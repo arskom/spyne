@@ -19,7 +19,9 @@
 
 
 """Complex model tests runnable on different Python implementations."""
+
 import unittest
+
 from spyne.model.complex import (ComplexModel, ComplexModelMeta,
                                  ComplexModelBase, Array)
 from spyne.model.primitive import Unicode, Integer, String
@@ -33,7 +35,7 @@ class DeclareOrder_declare(ComplexModel.customize(declare_order='declared')):
 
 
 class MyComplexModelMeta(ComplexModelMeta):
-    """Customer complex model metaclass."""
+    """Custom complex model metaclass."""
 
     def __new__(mcs, name, bases, attrs):
         attrs['new_field'] = Unicode
@@ -46,17 +48,18 @@ class MyComplexModelMeta(ComplexModelMeta):
 @add_metaclass(MyComplexModelMeta)
 class MyComplexModel(ComplexModelBase):
     """Custom complex model class."""
+    class Attributes(ComplexModelBase.Attributes):
+        declare_order = 'declared'
 
 
 class MyModelWithDeclaredOrder(MyComplexModel):
     """Test model for complex model with custom metaclass."""
+    class Attributes(MyComplexModel.Attributes):
+        declare_order = 'declared'
 
     field3 = Integer
     field1 = Integer
     field2 = Integer
-
-    class Attributes(MyComplexModel.Attributes):
-        declare_order = 'declared'
 
 
 class TestComplexModel(unittest.TestCase):
@@ -169,3 +172,8 @@ class TestComplexModel(unittest.TestCase):
                           list(DeclareOrder_declare._type_info))
         self.assertEquals(["field3", "field1", "field2", "new_field"],
                           list(MyModelWithDeclaredOrder._type_info))
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(unittest.main())

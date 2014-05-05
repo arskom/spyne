@@ -19,10 +19,13 @@
 
 """Metaclass utilities."""
 
-
 import sys
 import inspect
+
 from functools import wraps
+from itertools import chain
+from traceback import print_stack
+
 from spyne.util.odict import odict
 
 
@@ -53,9 +56,9 @@ class Prepareable(type):
         def preparing_constructor(cls, name, bases, attributes):
             # Don't bother with this shit unless the user *explicitly* asked for
             # it
-            for b in bases:
-                if hasattr(b,'Attributes') and not \
-                               (b.Attributes.declare_order in (None, 'random')):
+            for c in chain(bases, [cls]):
+                if hasattr(c,'Attributes') and not \
+                               (c.Attributes.declare_order in (None, 'random')):
                     break
             else:
                 return constructor(cls, name, bases, attributes)
@@ -69,7 +72,6 @@ class Prepareable(type):
                 # we create class dynamically with passed odict
                 return constructor(cls, name, bases, attributes)
 
-            namespace = cls.__prepare__(name, bases)
             current_frame = sys._getframe()
             class_declaration = None
 
@@ -81,11 +83,12 @@ class Prepareable(type):
                         class_declaration = literal
                         break
 
-                if current_frame.f_back:
-                    current_frame = current_frame.f_back
                 else:
-                    raise ClassNotFoundException(
-                        "Can't find class declaration in all frames")
+                    if current_frame.f_back:
+                        current_frame = current_frame.f_back
+                    else:
+                        raise ClassNotFoundException(
+                            "Can't find class declaration in any frame")
 
             def get_index(attribute_name,
                             _names=class_declaration.co_names):
@@ -109,6 +112,7 @@ class Prepareable(type):
                 attributes.items(), key=lambda item: get_index(item[0])
             )
 
+            namespace = cls.__prepare__(name, bases)
             for key, value in by_appearance:
                 namespace[key] = value
 
