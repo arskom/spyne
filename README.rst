@@ -27,10 +27,12 @@ or ZeroMQ. The transports can be used in both a client or server setting.
 
 The following are the primary sources of information about spyne:
 
-* Spyne's home page (that also has the latest documentation) is: http://spyne.io/
-* The latest documentation for Spyne can be found at: http://spyne.io/docs
+* Spyne's home page is: http://spyne.io/
+* The latest documentation for all releases of Spyne can be found at: http://spyne.io/docs
 * The official source code repository is at: https://github.com/arskom/spyne
-* The official spyne discussion forum is at: http://mail.python.org/mailman/listinfo/soap
+* The official spyne discussion forum is at: people@spyne.io. Subscribe either via
+  http://lists.spyne.io/listinfo/people or by sending an empty message to: people-subscribe
+  at spyne dot io
 * You can download Spyne releases from `github <http://github.com/arskom/spyne/downloads>`_
   or `pypi <http://pypi.python.org/pypi/spyne>`_.
 
@@ -58,7 +60,7 @@ of Spyne:
 * A Wsgi server of your choice is needed to wrap
   ``spyne.server.wsgi.WsgiApplication``
 * `lxml>=3.2.5 <http://lxml.de>`_ is needed for any xml-related protocol.
-* `lxml>=3.4.0 <http://lxml.de>`_ is needed for any html-related protocol.
+* `lxml>=3.3.0 <http://lxml.de>`_ is needed for any html-related protocol.
 * `SQLAlchemy <http://sqlalchemy.org>`_ is needed for
   ``spyne.model.complex.TTableModel``.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
