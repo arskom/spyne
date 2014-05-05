@@ -177,7 +177,7 @@ def _check_freq_dict(cls, d, fti=None):
 
     pprint(d)
     for k, v in fti.items():
-        print cls, k, v
+        print(cls, k, v)
         val = d[k]
 
         min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
@@ -189,7 +189,7 @@ def _check_freq_dict(cls, d, fti=None):
             raise ValidationError("%r.%s" % (cls, k),
                             '%%s member must occur at least %d times.' % min_o)
         elif val > max_o:
-            print cls, k
+            print(cls, k)
             raise ValidationError("%r.%s" % (cls, k),
                             '%%s member must occur at most %d times.' % max_o)
 
