@@ -212,6 +212,7 @@ def complex_add(document, cls, tags):
     if len(sequence) > 0:
         sequence_parent.append(sequence)
 
+    _ext_elements = dict()
     for k,v in deferred:
         ao = v.attribute_of
         if ao is None: # others will be added at a later loop
@@ -232,11 +233,14 @@ def complex_add(document, cls, tags):
         else:
             elt = elts[0]
 
-        _ct = etree.SubElement(elt, '{%s}complexType' % _ns_xsd)
-        _sc = etree.SubElement(_ct, '{%s}simpleContent' % _ns_xsd)
-        _ext = etree.SubElement(_sc, '{%s}extension' % _ns_xsd)
-        _ext.attrib['base'] = elt.attrib['type']
-        del elt.attrib['type']
+        _ext = _ext_elements.get(ao, None)
+        if _ext is None:
+            _ct = etree.SubElement(elt, '{%s}complexType' % _ns_xsd)
+            _sc = etree.SubElement(_ct, '{%s}simpleContent' % _ns_xsd)
+            _ext = etree.SubElement(_sc, '{%s}extension' % _ns_xsd)
+            _ext_elements[ao] = _ext
+            _ext.attrib['base'] = elt.attrib['type']
+            del elt.attrib['type']
 
         attribute = etree.SubElement(_ext, '{%s}attribute' % _ns_xsd)
         xml_attribute_add(v, k, attribute, document)

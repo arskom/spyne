@@ -51,6 +51,8 @@ spyne-2.11.0
 * Spyne now tracks subclasses and adds them to the interface if they have the same
   namespace as their parent.
 * Simple dictionary protocol's ``hier_delim`` default value is now '.'
+* Fixes support for > 1 XmlAttribute referencing the same 'attribute_of' element
+  in a ComplexModel subclass.
 * Many, many, many bugs fixed.
 
 spyne-2.10.10
