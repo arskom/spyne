@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from lxml import html
+from lxml import etree, html
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -37,9 +37,11 @@ from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.util.test import show, call_wsgi_app_kwargs, call_wsgi_app
 
+
 class CM(ComplexModel):
     i = Integer
     s = String
+
 
 class CCM(ComplexModel):
     c = CM
@@ -65,7 +67,6 @@ class TestHtmlColumnTable(unittest.TestCase):
                 ccm_c_s='abc',
             )
 
-        from lxml import etree
         elt = etree.fromstring(out_string)
         show(elt, 'TestHtmlColumnTable.test_complex_array')
 
@@ -108,10 +109,13 @@ class TestHtmlColumnTable(unittest.TestCase):
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')))
-        assert out_string == '<table class="string">' \
-            '<thead><tr><th class="some_callResponse">some_callResponse</th></tr></thead>' \
-            '<tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody>' \
-        '</table>'
+        elt = etree.fromstring(out_string)
+        show(elt, "TestHtmlColumnTable.test_string_array")
+        assert out_string == \
+            '<table xmlns="http://www.w3.org/1999/xhtml" class="string">' \
+                '<thead><tr><th class="some_callResponse">some_callResponse</th></tr></thead>' \
+                '<tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody>' \
+            '</table>'
 
     def test_anyuri_string(self):
         _link = "http://arskom.com.tr/"
@@ -131,7 +135,7 @@ class TestHtmlColumnTable(unittest.TestCase):
         out_string = call_wsgi_app_kwargs(server)
 
         elt = html.fromstring(out_string)
-        print(html.tostring(elt, pretty_print=True))
+        show(elt, "TestHtmlColumnTable.test_anyuri_string")
         assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
         assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
 
@@ -158,6 +162,7 @@ class TestHtmlColumnTable(unittest.TestCase):
         assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
         assert elt.xpath('//td[@class="c"]')[0][0].text == _text
         assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
+
 
 class TestHtmlRowTable(unittest.TestCase):
     def test_anyuri_string(self):
@@ -283,7 +288,25 @@ class TestHtmlRowTable(unittest.TestCase):
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
-        assert out_string == '<div><table class="some_callResponse"><tr><th>string</th><td><table><tr><td>1</td></tr><tr><td>2</td></tr></table></td></tr></table></div>'
+        show(html.fromstring(out_string), 'TestHtmlRowTable.test_string_array')
+        assert out_string == \
+            '<div xmlns="http://www.w3.org/1999/xhtml">' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="some_callResponse">' \
+                '<tr>' \
+                  '<th>string</th>' \
+                  '<td>' \
+                    '<table>' \
+                      '<tr>' \
+                        '<td>1</td>' \
+                      '</tr>' \
+                      '<tr>' \
+                        '<td>2</td>' \
+                      '</tr>' \
+                    '</table>' \
+                  '</td>' \
+                '</tr>' \
+              '</table>' \
+            '</div>'
 
     def test_string_array_no_header(self):
         class SomeService(ServiceBase):
@@ -297,7 +320,25 @@ class TestHtmlRowTable(unittest.TestCase):
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
         #FIXME: Needs a proper test with xpaths and all.
-        assert out_string == '<div><table class="some_callResponse"><tr><td><table><tr><td>1</td></tr><tr><td>2</td></tr></table></td></tr></table></div>'
+        show(html.fromstring(out_string), 'TestHtmlRowTable.test_string_array_no_header')
+        assert out_string == \
+            '<div xmlns="http://www.w3.org/1999/xhtml">' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="some_callResponse">' \
+                '<tr>' \
+                  '<td>' \
+                    '<table>' \
+                      '<tr>' \
+                        '<td>1</td>' \
+                      '</tr>' \
+                      '<tr>' \
+                        '<td>2</td>' \
+                      '</tr>' \
+                    '</table>' \
+                  '</td>' \
+                '</tr>' \
+              '</table>' \
+            '</div>'
+
 
     def test_complex_array(self):
         v = [
@@ -318,7 +359,58 @@ class TestHtmlRowTable(unittest.TestCase):
         out_string = call_wsgi_app_kwargs(server)
         show(html.fromstring(out_string), 'TestHtmlRowTable.test_complex_array')
         #FIXME: Needs a proper test with xpaths and all.
-        assert out_string == '<div><table class="CM"><tbody><tr><th class="i">i</th><td class="i">1</td></tr><tr><th class="s">s</th><td class="s">a</td></tr></tbody></table><table class="CM"><tbody><tr><th class="i">i</th><td class="i">2</td></tr><tr><th class="s">s</th><td class="s">b</td></tr></tbody></table><table class="CM"><tbody><tr><th class="i">i</th><td class="i">3</td></tr><tr><th class="s">s</th><td class="s">c</td></tr></tbody></table><table class="CM"><tbody><tr><th class="i">i</th><td class="i">4</td></tr><tr><th class="s">s</th><td class="s">d</td></tr></tbody></table></div>'
+        assert out_string == \
+            '<div xmlns="http://www.w3.org/1999/xhtml">' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+                '<tbody>' \
+                  '<tr>' \
+                    '<th class="i">i</th>' \
+                    '<td class="i">1</td>' \
+                  '</tr>' \
+                  '<tr>' \
+                    '<th class="s">s</th>' \
+                    '<td class="s">a</td>' \
+                  '</tr>' \
+                '</tbody>' \
+              '</table>' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+                '<tbody>' \
+                  '<tr>' \
+                    '<th class="i">i</th>' \
+                    '<td class="i">2</td>' \
+                  '</tr>' \
+                  '<tr>' \
+                    '<th class="s">s</th>' \
+                    '<td class="s">b</td>' \
+                  '</tr>' \
+                '</tbody>' \
+              '</table>' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+                '<tbody>' \
+                  '<tr>' \
+                    '<th class="i">i</th>' \
+                    '<td class="i">3</td>' \
+                  '</tr>' \
+                  '<tr>' \
+                    '<th class="s">s</th>' \
+                    '<td class="s">c</td>' \
+                  '</tr>' \
+                '</tbody>' \
+              '</table>' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+                '<tbody>' \
+                  '<tr>' \
+                    '<th class="i">i</th>' \
+                    '<td class="i">4</td>' \
+                  '</tr>' \
+                  '<tr>' \
+                    '<th class="s">s</th>' \
+                    '<td class="s">d</td>' \
+                  '</tr>' \
+                '</tbody>' \
+              '</table>' \
+            '</div>'
+
 
 
 if __name__ == '__main__':

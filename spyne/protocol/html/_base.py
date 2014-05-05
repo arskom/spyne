@@ -21,7 +21,7 @@ from lxml.builder import ElementMaker
 
 from spyne.protocol.cloth import XmlCloth
 NS_HTML = "http://www.w3.org/1999/xhtml"
-NSMAP = {"": NS_HTML}
+NSMAP = {None: NS_HTML}
 
 E = ElementMaker(namespace=NS_HTML)
 
