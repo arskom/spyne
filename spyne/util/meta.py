@@ -17,7 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Metaclass utilities."""
+"""Metaclass utilities for
+:attr:`spyne.model.complex.ComplexModelBase.Attributes.declare_order`
+"""
 
 import sys
 import inspect
