@@ -84,10 +84,11 @@ examples/file_manager/files/
 
 # test output
 coverage.xml
-spyne/test/protocol/html
+spyne/test/*.html
 spyne/test/store
 test_result*
 ./html
+./store
 
 # vim cruft
 *.swp
