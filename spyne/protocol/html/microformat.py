@@ -40,7 +40,8 @@ class HtmlMicroFormat(HtmlBase):
                                                               cloth_parser=None,
                     root_tag='div', child_tag='div', field_name_attr='class',
                     field_name_tag=None, field_name_class='field_name'):
-        """Protocol that returns the response object as a cloth microformat. See
+        """Protocol that returns the response object according to the "html
+        microformat" specification. See
         https://en.wikipedia.org/wiki/Microformats for more info.
 
         The simple flavour is like the XmlDocument protocol, but returns data in
