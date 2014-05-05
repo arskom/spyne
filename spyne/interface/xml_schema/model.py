@@ -32,6 +32,7 @@ from collections import defaultdict
 
 from spyne.const.xml_ns import xsd as _ns_xsd
 
+from spyne.model import ModelBase
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
@@ -40,6 +41,7 @@ _prot = XmlDocument()
 
 from spyne.util import memoize
 from spyne.util.etreeconv import dict_to_etree
+from spyne.util.six import string_types
 
 
 def xml_attribute_add(cls, name, element, document):
@@ -138,7 +140,11 @@ def complex_add(document, cls, tags):
 
     deferred = deque()
     choice_tags = defaultdict(lambda: etree.Element('{%s}choice' % _ns_xsd))
+
     for k, v in type_info.items():
+        assert isinstance(k, string_types)
+        assert issubclass(v, ModelBase)
+
         a = v.Attributes
         if a.exc_interface:
             continue

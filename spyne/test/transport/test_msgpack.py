@@ -63,11 +63,13 @@ class TestMessagePackServer(unittest.TestCase):
         from twisted.internet.task import deferLater
 
         v = "yaaay!"
+        p_ctx = []
         class SomeService(ServiceBase):
             @rpc(Unicode, _returns=Unicode)
             def yay(ctx, u):
                 def _cb():
                     return u
+                p_ctx.append(ctx)
                 return deferLater(reactor, 0.1, _cb)
 
         app = Application([SomeService], 'tns',
@@ -84,5 +86,7 @@ class TestMessagePackServer(unittest.TestCase):
 
             self.assertEquals(val, {0: msgpack.packb(v)})
 
-        return prot.dataReceived(msgpack.packb([1, request]))\
-            .addCallback(_ccb)
+        prot.dataReceived(msgpack.packb([1, request]))
+
+        return p_ctx[0].out_object[0].addCallback(_ccb)
+

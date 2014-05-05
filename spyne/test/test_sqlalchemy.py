@@ -32,7 +32,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 
-from spyne.model import XmlAttribute, Decimal
+from spyne.model import XmlAttribute, File
 from spyne.model import XmlData
 from spyne.model import ComplexModel
 from spyne.model import Array
@@ -42,6 +42,7 @@ from spyne.model import Integer
 from spyne.model import Enum
 from spyne.model import TTableModel
 
+from spyne.model.binary import HybridFileStore
 from spyne.model.complex import xml
 from spyne.model.complex import table
 
@@ -658,6 +659,25 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert st.s == 's'
         assert stos.i == 3
 
+    def test_file_storage(self):
+        class C(TableModel):
+            __tablename__ = "c"
+
+            id = Integer32(pk=True)
+            f = File(store_as=HybridFileStore('store', 'json'))
+
+        self.metadata.create_all()
+        c = C(f=File.Value(name="name", type="type", data=["data"]))
+        self.session.add(c)
+        self.session.flush()
+        self.session.commit()
+
+        c = self.session.query(C).get(1)
+        print c
+        assert c.f.name == "name"
+        assert c.f.type == "type"
+        assert str(c.f.data[0][:]) == "data"
+
     def test_add_field_complex_existing_column(self):
         class C(TableModel):
             __tablename__ = "c"
@@ -744,6 +764,22 @@ class TestSqlAlchemySchema(unittest.TestCase):
         rel_table = C.Attributes.sqla_metadata.tables['c_d']
         assert 'c_id' in rel_table.c
         assert 'd_id' in rel_table.c
+
+    def test_add_field_complex_cust(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+            c = Array(C).store_as('table')
+
+        C.append_field('d', D.customize(
+            nullable=False,
+            store_as=table(left='d_id'),
+        ))
+        assert C.__table__.c['d_id'].nullable == False
 
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):

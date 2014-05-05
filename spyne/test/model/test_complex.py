@@ -31,7 +31,6 @@ from spyne import Application
 from spyne import rpc
 from spyne import mrpc
 from spyne import ServiceBase
-from spyne._base import FakeContext
 from spyne.const import xml_ns
 from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
@@ -55,7 +54,6 @@ from spyne.protocol.dictdoc import SimpleDictDocument
 from spyne.protocol.xml import XmlDocument
 
 from spyne.test import FakeApp
-from spyne.util.six import StringIO
 
 ns_test = 'test_namespace'
 
@@ -238,9 +236,11 @@ class X(ComplexModel):
     __namespace__ = 'tns'
     x = Integer(nillable=True, max_occurs='unbounded')
 
+
 class Y(X):
     __namespace__ = 'tns'
     y = Integer
+
 
 class TestIncompleteInput(unittest.TestCase):
     def test_x(self):
@@ -272,13 +272,11 @@ class TestIncompleteInput(unittest.TestCase):
 
 
 class SisMsg(ComplexModel):
-    """Container with metadata for Jiva integration messages
-    carried in the MQ payload.
-    """
     data_source = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
     direction = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
     interface_name = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
     crt_dt = DateTime(nillable=False)
+
 
 class EncExtractXs(ComplexModel):
     __min_occurs__ = 1
@@ -381,6 +379,7 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
 
         sti = CCM.get_simple_type_info(CCM)
 
+        pprint(sti)
         assert "i" in sti
         assert sti["i"].path == ('i',)
         assert sti["i"].type is Integer
@@ -390,14 +389,14 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
         assert sti["s"].type is String
         assert sti["s"].parent is CCM
 
-        assert "c_i" in sti
-        assert sti["c_i"].path == ('c','i')
-        assert sti["c_i"].type is Integer
-        assert sti["c_i"].parent is CM
-        assert "c_s" in sti
-        assert sti["c_s"].path == ('c','s')
-        assert sti["c_s"].type is String
-        assert sti["c_s"].parent is CM
+        assert "c.i" in sti
+        assert sti["c.i"].path == ('c','i')
+        assert sti["c.i"].type is Integer
+        assert sti["c.i"].parent is CM
+        assert "c.s" in sti
+        assert sti["c.s"].path == ('c','s')
+        assert sti["c.s"].type is String
+        assert sti["c.s"].parent is CM
 
     def test_simple_type_info_conflicts(self):
         class CM(ComplexModel):
@@ -409,7 +408,7 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
             c_i = Float
 
         try:
-            CCM.get_simple_type_info(CCM)
+            CCM.get_simple_type_info(CCM, hier_delim='_')
         except ValueError:
             pass
         else:
@@ -432,8 +431,8 @@ class TestFlatDict(unittest.TestCase):
 
         assert d['i'] == 5
         assert d['s'] == 'a'
-        assert d['c_i'] == 7
-        assert d['c_s'] == 'b'
+        assert d['c.i'] == 7
+        assert d['c.s'] == 'b'
 
         assert len(d) == 4
 
@@ -450,10 +449,10 @@ class TestFlatDict(unittest.TestCase):
         d = SimpleDictDocument().object_to_simple_dict(CCM, val)
         print(d)
 
-        assert d['c[0]_i'] == 0
-        assert d['c[0]_s'] == 'b'
-        assert d['c[1]_i'] == 1
-        assert d['c[1]_s'] == 'bb'
+        assert d['c[0].i'] == 0
+        assert d['c[0].s'] == 'b'
+        assert d['c[1].i'] == 1
+        assert d['c[1].s'] == 'bb'
 
         assert len(d) == 4
 
@@ -484,8 +483,8 @@ class TestFlatDict(unittest.TestCase):
         d = SimpleDictDocument().object_to_simple_dict(CCM, val)
         pprint(d)
 
-        assert d['c[0]_i'] == [0,1]
-        assert d['c[1]_i'] == [0,1,2]
+        assert d['c[0].i'] == [0,1]
+        assert d['c[1].i'] == [0,1,2]
 
         assert len(d) == 2
 
@@ -740,8 +739,9 @@ class TestMemberRpc(unittest.TestCase):
                 return SomeComplexModel()
 
         null = NullServer(Application([SomeService], tns='some_tns'))
+
         v = SomeComplexModel(i=5)
-        assert null.service.echo(v) is v
+        assert null.service['SomeComplexModel.echo'](v) is v
 
 
 if __name__ == '__main__':

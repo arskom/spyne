@@ -29,13 +29,12 @@ it: ::
     resource = TwistedWebResource(...)
     resource.http_transport.doc.wsdl11.build_interface_document("http://example.com")
 
-This is not strictly necessary -- if you don't do this, Spyne will get the
-URL from the first request, build the wsdl on-the-fly and cache it as a
-string in memory for later requests. However, if you want to make sure
-you only have this url on the WSDL, this is how to do it. Note that if
-your client takes the information in wsdl seriously, all requests will go
-to the designated url above which can make testing a bit difficult. Use
-in moderation.
+This is not strictly necessary. If you don't do this, Spyne will get the URL
+from the first request, build the wsdl on-the-fly and cache it as a string in
+memory for later requests. However, if you want to make sure you only have this
+url on the WSDL, this is how to do it. Note that if your client takes the
+information in wsdl seriously, all requests will go to the designated url above
+which can make testing a bit difficult. Use in moderation.
 
 This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 """
@@ -46,25 +45,43 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import re
+
+from os import fstat
+from mmap import mmap
 from inspect import isgenerator
+from collections import namedtuple
+
+from twisted.python.log import err
+from twisted.web.server import NOT_DONE_YET, Request
+from twisted.web.resource import Resource, NoResource
+from twisted.internet.defer import Deferred
 
 from spyne.error import InternalError
-from twisted.python.log import err
-from twisted.internet.defer import Deferred
-from twisted.web.resource import Resource
-from twisted.web.server import NOT_DONE_YET
-
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
-from spyne.const.http import HTTP_404
-from spyne.model import PushBase
+from spyne.const.http import HTTP_404, HTTP_200
+from spyne.model import PushBase, File, ComplexModelBase
 from spyne.model.fault import Fault
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
+from spyne.util.six import text_type, string_types
+from spyne.util.six.moves.urllib.parse import unquote
 
+
+def _set_response_headers(request, headers):
+    retval = []
+
+    for k, v in headers.items():
+        if isinstance(v, (list, tuple)):
+            request.responseHeaders.setRawHeaders(k, v)
+        else:
+            request.responseHeaders.setRawHeaders(k, [v])
+
+    return retval
 
 
 def _reconstruct_url(request):
@@ -82,35 +99,135 @@ def _reconstruct_url(request):
 
 
 class TwistedHttpTransportContext(HttpTransportContext):
-
     def set_mime_type(self, what):
+        if isinstance(what, text_type):
+            what = what.encode('ascii', errors='replace')
         super(TwistedHttpTransportContext, self).set_mime_type(what)
         self.req.setHeader('Content-Type', what)
 
 
 class TwistedHttpMethodContext(HttpMethodContext):
-
     default_transport_context = TwistedHttpTransportContext
 
 
 class TwistedHttpTransport(HttpBase):
-    @staticmethod
-    def decompose_incoming_envelope(prot, ctx, message):
+    def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
+                                                         block_length=8 * 1024):
+        super(TwistedHttpTransport, self).__init__(app, chunked=chunked,
+               max_content_length=max_content_length, block_length=block_length)
+
+    def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
         twisted web's Request object is parsed into ``ctx.in_body_doc`` and
         ``ctx.in_header_doc``.
         """
 
         request = ctx.in_document
+        assert isinstance(request, Request)
 
-        ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+        ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
+        fi = ctx.transport.file_info
+        if fi is not None and len(request.args) == 1:
+            key, = request.args.keys()
+            if fi.field_name == key and fi.file_name is not None:
+                ctx.in_body_doc = {key: [File.Value(name=fi.file_name,
+                                    type=fi.file_type, data=request.args[key])]}
+
+            else:
+                ctx.in_body_doc = request.args
+        else:
+            ctx.in_body_doc = request.args
+
+        postpath = getattr(request, 'realpostpath', None)
+        if postpath is None:
+            postpath = request.path
+
+        params = self.match_pattern(ctx, request.method, postpath, request.host)
+
+        if ctx.method_request_string is None: # no pattern match
+            ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                                                     request.path.split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
-        ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
-        ctx.in_body_doc = request.args
+        for k, v in params.items():
+            val = ctx.in_body_doc.get(k, [])
+            val.extend(v)
+            ctx.in_body_doc[k] = val
+
+        r = {}
+        for k,v in ctx.in_body_doc.items():
+            l = []
+            for v2 in v:
+                if isinstance(v2, string_types):
+                    l.append(unquote(v2))
+                else:
+                    l.append(v2)
+            r[k] = l
+        ctx.in_body_doc = r
+
+        # This is consistent with what server.wsgi does.
+        if request.method in ('POST', 'PUT', 'PATCH'):
+            for k, v in ctx.in_body_doc.items():
+                if v == ['']:
+                    ctx.in_body_doc[k] = [None]
+
+
+FIELD_NAME_RE = re.compile(r'name="([^"]+)"')
+FILE_NAME_RE = re.compile(r'filename="([^"]+)"')
+_FileInfo = namedtuple("_FileInfo", "field_name file_name file_type "
+                                                                "header_offset")
+def _get_file_name(instr):
+    """We need this huge hack because twisted doesn't offer a way to get file
+    name from Content-Disposition header. This works only when there's just one
+    file because we want to avoid scanning the whole stream. So this won't get
+    the names of the subsequent files even though that's a perfectly valid
+    request.
+    """
+
+    field_name = file_name = file_type = content_idx = None
+
+    # hack to see if it looks like a multipart request. 5 is arbitrary.
+    if instr[:5] == "-----":
+        first_page = instr[:4096] # 4096 = default page size on linux.
+
+        # this normally roughly <200
+        header_idx = first_page.find('\r\n') + 2
+        content_idx = first_page.find('\r\n\r\n', header_idx)
+        if header_idx > 0 and content_idx > header_idx:
+            headerstr = first_page[header_idx:content_idx]
+
+            for line in headerstr.split("\r\n"):
+                k, v = line.split(":", 2)
+                if k == "Content-Disposition":
+                    for subv in v.split(";"):
+                        subv = subv.strip()
+                        m = FIELD_NAME_RE.match(subv)
+                        if m:
+                            field_name = m.group(1)
+                            continue
+
+                        m = FILE_NAME_RE.match(subv)
+                        if m:
+                            file_name = m.group(1)
+                    continue
+
+                if k == "Content-Type":
+                    file_type = v.strip()
+
+        # 4 == len('\r\n\r\n')
+        return _FileInfo(field_name, file_name, file_type, content_idx + 4)
+
+
+def _has_fd(istr):
+    if hasattr(istr, 'fileno'):
+        try:
+            istr.fileno()
+            return True
+        except IOError:
+            return False
+    return False
 
 
 class TwistedWebResource(Resource):
@@ -118,24 +235,43 @@ class TwistedWebResource(Resource):
     Resource.
     """
 
-    isLeaf = True
-
     def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
-                                           block_length=8 * 1024):
+                                           block_length=8 * 1024, prepath=None):
         Resource.__init__(self)
 
         self.http_transport = TwistedHttpTransport(app, chunked,
                                             max_content_length, block_length)
         self._wsdl = None
+        self.prepath = prepath
 
-    def render_GET(self, request):
-        if request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl'):
-            return self.__handle_wsdl_request(request)
-
+    def getChildWithDefault(self, path, request):
+        # this hack is necessary because twisted takes the slash character in
+        # http requests too seriously. i.e. it insists that a leaf node can only
+        # handle the last path fragment.
+        if self.prepath is None:
+            request.realprepath = '/' + '/'.join(request.prepath)
         else:
-            return self.handle_rpc(request)
+            if not self.prepath.startswith('/'):
+                request.realprepath = '/' + self.prepath
+            else:
+                request.realprepath = self.prepath
 
-    def render_POST(self, request):
+        request.realpostpath = request.path[len(request.realprepath):]
+
+        if path in self.children:
+            retval = self.children[path]
+        else:
+            retval = self.getChild(path, request)
+
+        if isinstance(retval, NoResource):
+            retval = self
+
+        return retval
+
+    def render(self, request):
+        if request.method == 'GET' and (
+                request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl')):
+            return self.__handle_wsdl_request(request)
         return self.handle_rpc(request)
 
     def handle_rpc_error(self, p_ctx, others, error, request):
@@ -145,6 +281,7 @@ class TwistedWebResource(Resource):
             resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
 
         request.setResponseCode(int(resp_code[:3]))
+        _set_response_headers(request, p_ctx.transport.resp_headers)
 
         # In case user code set its own out_* attributes before failing.
         p_ctx.out_document = None
@@ -164,7 +301,20 @@ class TwistedWebResource(Resource):
     def handle_rpc(self, request):
         initial_ctx = TwistedHttpMethodContext(self.http_transport, request,
                                  self.http_transport.app.out_protocol.mime_type)
-        initial_ctx.in_string = [request.content.getvalue()]
+        if _has_fd(request.content):
+            f = request.content
+
+            # it's best to avoid empty mappings.
+            if fstat(f.fileno()).st_size == 0:
+                initial_ctx.in_string = ['']
+            else:
+                initial_ctx.in_string = [mmap(f.fileno(), 0)]
+        else:
+            request.content.seek(0)
+            initial_ctx.in_string = [request.content.read()]
+
+        initial_ctx.transport.file_info = \
+                                        _get_file_name(initial_ctx.in_string[0])
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
@@ -190,35 +340,7 @@ class TwistedWebResource(Resource):
             ret.addErrback(_eb_deferred, request, p_ctx, others, self)
 
         elif isinstance(ret, PushBase):
-            p_ctx.out_stream = request
-            gen = self.http_transport.get_out_string_push(p_ctx)
-
-            assert isgenerator(gen), "It looks like this protocol is not " \
-                                     "async-compliant yet."
-
-            def _cb_push_finish():
-                p_ctx.out_stream.finish()
-                process_contexts(self.http_transport, others, p_ctx)
-
-            retval = ret.init(p_ctx, request, gen, _cb_push_finish, None)
-            """:type : Deferred"""
-
-            if isinstance(retval, Deferred):
-                def _eb_push_close(f):
-                    ret.close()
-
-                def _cb_push_close(r):
-                    def _eb_inner(f):
-                        return f
-
-                    if r is None:
-                        ret.close()
-                    else:
-                        r.addCallback(_cb_push_close).addErrback(_eb_inner)
-
-                retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
-            else:
-                ret.close()
+            _init_push(ret, request, p_ctx, others, self)
 
         else:
             _cb_deferred(p_ctx.out_object, request, p_ctx, others, self, cb=False)
@@ -237,6 +359,7 @@ class TwistedWebResource(Resource):
             self._wsdl = self.http_transport.doc.wsdl11.get_interface_document()
 
         ctx.transport.wsdl = self._wsdl
+        _set_response_headers(request, ctx.transport.resp_headers)
 
         try:
             if self._wsdl is None:
@@ -259,30 +382,90 @@ class TwistedWebResource(Resource):
             ctx.close()
 
 
-def _cb_request_finished(request, p_ctx):
+def _cb_request_finished(retval, request, p_ctx):
     request.finish()
     p_ctx.close()
 
-def _eb_request_finished(request, p_ctx):
+
+def _eb_request_finished(retval, request, p_ctx):
     err(request)
     p_ctx.close()
     request.finish()
 
-def _cb_deferred(retval, request, p_ctx, others, resource, cb=True):
-    if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
-        p_ctx.out_object = [retval]
-    else:
-        p_ctx.out_object = retval
 
-    resource.http_transport.get_out_string(p_ctx)
+def _init_push(ret, request, p_ctx, others, resource):
+    assert isinstance(ret, PushBase)
+
+    p_ctx.out_stream = request
+
+    # fire events
+    p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
+    if p_ctx.service_class is not None:
+        p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
+
+    gen = resource.http_transport.get_out_string_push(p_ctx)
+
+    assert isgenerator(gen), "It looks like this protocol is not " \
+                             "async-compliant yet."
+
+    def _cb_push_finish():
+        p_ctx.out_stream.finish()
+        process_contexts(resource.http_transport, others, p_ctx)
+
+    retval = ret.init(p_ctx, request, gen, _cb_push_finish, None)
+
+    if isinstance(retval, Deferred):
+        def _eb_push_close(f):
+            ret.close()
+
+        def _cb_push_close(r):
+            def _eb_inner(f):
+                return f
+
+            if r is None:
+                ret.close()
+            else:
+                r.addCallback(_cb_push_close).addErrback(_eb_inner)
+
+        retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
+
+    else:
+        ret.close()
+
+    return retval
+
+
+def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
+    resp_code = p_ctx.transport.resp_code
+    # If user code set its own response code, don't touch it.
+    if resp_code is None:
+        resp_code = HTTP_200
+    request.setResponseCode(int(resp_code[:3]))
+
+    _set_response_headers(request, p_ctx.transport.resp_headers)
+
+    om = p_ctx.descriptor.out_message
+    if cb and ((not issubclass(om, ComplexModelBase)) or len(om._type_info) <= 1):
+        p_ctx.out_object = [ret]
+    else:
+        p_ctx.out_object = ret
+
+    retval = None
+    if isinstance(ret, PushBase):
+        retval = _init_push(ret, request, p_ctx, others, resource)
+    else:
+        resource.http_transport.get_out_string(p_ctx)
+
+        producer = Producer(p_ctx.out_string, request)
+        producer.deferred.addCallback(_cb_request_finished, request, p_ctx)
+        producer.deferred.addErrback(_eb_request_finished, request, p_ctx)
+
+        request.registerProducer(producer, False)
 
     process_contexts(resource.http_transport, others, p_ctx)
 
-    producer = Producer(p_ctx.out_string, request)
-    producer.deferred.addCallback(_cb_request_finished, p_ctx, others, resource)
-    producer.deferred.addErrback(_eb_request_finished, p_ctx, others, resource)
+    return retval
 
-    request.registerProducer(producer, False)
 
 def _eb_deferred(retval, request, p_ctx, others, resource):
     p_ctx.out_error = retval.value

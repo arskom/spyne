@@ -19,8 +19,6 @@
 
 from inspect import isgenerator
 
-from lxml.html.builder import E
-
 from spyne.model import ModelBase
 from spyne.model import ByteArray
 from spyne.model import ComplexModelBase
@@ -29,22 +27,22 @@ from spyne.model import AnyUri
 from spyne.model import ImageUri
 from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
+from spyne.protocol.html import NSMAP
+from lxml.html.builder import E
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 
-def HtmlTable(app=None, validator=None, produce_header=True,
-                    ignore_uncap=False, ignore_wrappers=True,
-                    table_name_attr='class', field_name_attr=None, border=0,
-                        fields_as='columns', row_class=None, cell_class=None,
-                                                        header_cell_class=None):
+def HtmlTable(app=None, ignore_uncap=False, ignore_wrappers=True,
+                     produce_header=True, table_name_attr='class',
+                     field_name_attr='class', border=0, fields_as='columns',
+                     row_class=None, cell_class=None, header_cell_class=None):
     """Protocol that returns the response object as a html table.
 
     The simple flavour is like the HtmlMicroFormatprotocol, but returns data
     as a html table using the <table> tag.
 
     :param app: A spyne.application.Application instance.
-    :param validator: The validator to use. Ignored.
     :param produce_header: Boolean value to determine whether to show field
         names in the beginning of the table or not. Defaults to True. Set to
         False to skip headers.
@@ -67,34 +65,29 @@ def HtmlTable(app=None, validator=None, produce_header=True,
     """
 
     if fields_as == 'columns':
-        return _HtmlColumnTable(app, validator,
-                                    ignore_uncap, ignore_wrappers,
-                                    produce_header,
-                                    table_name_attr, field_name_attr, border,
+        return HtmlColumnTable(app, ignore_uncap, ignore_wrappers,
+                    produce_header, table_name_attr, field_name_attr, border,
                                     row_class, cell_class, header_cell_class)
     elif fields_as == 'rows':
-        return _HtmlRowTable(app, validator,
-                                    ignore_uncap, ignore_wrappers,
-                                    produce_header,
-                                    table_name_attr, field_name_attr, border,
+        return HtmlRowTable(app, ignore_uncap, ignore_wrappers,
+                    produce_header, table_name_attr, field_name_attr, border,
                                     row_class, cell_class, header_cell_class)
 
     else:
         raise ValueError(fields_as)
 
-class _HtmlTableBase(HtmlBase):
-    mime_type = 'text/html'
+class HtmlTableBase(HtmlBase):
+    def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
+                       cloth=None, attr_name='spyne_id', root_attr_name='spyne',
+                                                              cloth_parser=None,
+                             produce_header=True, table_name_attr='class',
+                            field_name_attr='class', border=0, row_class=None,
+                                cell_class=None, header_cell_class=None):
 
-    def __init__(self, app, validator,
-            ignore_uncap, ignore_wrappers,
-            produce_header, table_name_attr,
-            field_name_attr, border, row_class, cell_class, header_cell_class):
-
-        super(_HtmlTableBase, self).__init__(app, validator, None,
-                                                  ignore_uncap, ignore_wrappers)
-
-        assert table_name_attr in (None, 'class', 'id')
-        assert field_name_attr in (None, 'class', 'id')
+        super(HtmlTableBase, self).__init__(app=app,
+                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
+                cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
+                                                      cloth_parser=cloth_parser)
 
         self.produce_header = produce_header
         self.table_name_attr = table_name_attr
@@ -107,29 +100,20 @@ class _HtmlTableBase(HtmlBase):
         if self.cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'cell_class' should be None or "
                             "field_name_attr should be != 'class'")
+
         if self.header_cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'header_cell_class' should be None or "
                             "field_name_attr should be != 'class'")
 
-    def anyuri_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
-        attrs = {}
-        if self.table_name_attr is not None:
-            attrs[self.table_name_attr] = name
-        with parent.element('td', attrs):
-            super(_HtmlTableBase, self).anyuri_to_parent(ctx, cls, inst,
-                                                 parent, name,  **kwargs)
+    def model_base_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
+        parent.write(self.to_string(cls, inst))
 
-    def imageuri_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
-        attrs = {}
-        if self.table_name_attr is not None:
-            attrs[self.table_name_attr] = name
-        with parent.element('td', attrs):
-            super(_HtmlTableBase, self).imageuri_to_parent(ctx, cls, inst,
-                                                parent, name,  **kwargs)
+    def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        pass
 
-class _HtmlColumnTable(_HtmlTableBase):
+class HtmlColumnTable(HtmlTableBase):
     def __init__(self, *args, **kwargs):
-        super(_HtmlColumnTable, self).__init__(*args, **kwargs)
+        super(HtmlColumnTable, self).__init__(*args, **kwargs)
 
         self.serialization_handlers = cdict({
             ModelBase: self.model_base_to_parent,
@@ -141,91 +125,105 @@ class _HtmlColumnTable(_HtmlTableBase):
             Array: self.array_to_parent,
         })
 
-    def model_base_to_parent(self, ctx, cls, inst, parent, name,  tr_child=False, **kwargs):
-        attrs = {}
-        if self.field_name_attr is not None:
-            attrs = {self.field_name_attr: name}
-        retval = E.td(self.to_string(cls, inst), **attrs)
-        if not tr_child:
-            retval = E.tr(retval)
-        parent.write(retval)
+    def model_base_to_parent(self, ctx, cls, inst, parent, name,
+                                                      from_arr=False, **kwargs):
+        if from_arr:
+            td_attrs = {}
+            #if self.field_name_attr:
+            #    td_attrs[self.field_name_attr] = name
+            parent.write(E.tr(
+                E.td(
+                    self.to_string(cls, inst),
+                    **td_attrs
+                )
+            ))
+
+        else:
+            parent.write(self.to_string(cls, inst))
 
     @coroutine
-    def subserialize(self, ctx, cls, inst, parent, ns=None, name=None):
-        attrs = {}
-        if self.table_name_attr is not None:
-            attrs[self.table_name_attr] = name
+    def _gen_row(self, ctx, cls, inst, parent, name, array_index=None, **kwargs):
+        with parent.element('tr'):
+            for k, v in cls.get_flat_type_info(cls).items():
+                # FIXME: To be fixed to work with prot_attrs and renamed to exc
+                if getattr(v.Attributes, 'exc_html', False) == True:
+                    continue
+                if getattr(v.Attributes, 'read', True) == False:
+                    continue
 
-        locale = ctx.locale
-        with parent.element('table', attrs):
-            fti = None
-            if issubclass(cls, ComplexModelBase):
-                fti = cls.get_flat_type_info(cls)
-            if self.produce_header:
-                with parent.element('thead'):
-                    header_row = E.tr()
+                try:
+                    sub_value = getattr(inst, k, None)
+                except: # to guard against e.g. SQLAlchemy throwing NoSuchColumnError
+                    sub_value = None
 
-                    th = {}
-                    if self.header_cell_class is not None:
-                        th['class'] = self.header_cell_class
+                sub_name = v.Attributes.sub_name
+                if sub_name is None:
+                    sub_name = k
 
-                    # fti is none when the type inside Array is not a ComplexModel.
-                    if fti is None:
-                        if self.field_name_attr is not None:
-                            th[self.field_name_attr] = name
-                        header_name = self.translate(cls, ctx.locale, name)
-                        header_row.append(E.th(header_name, **th))
+                td_attrs = {}
+                if self.field_name_attr is not None:
+                    td_attrs[self.field_name_attr] = sub_name
 
-                    else:
-                        if self.field_name_attr is None:
-                            for k, v in fti.items():
-                                header_name = self.translate(v, ctx.locale, k)
-                                header_row.append(E.th(header_name, **th))
-
-                        else:
-                            for k, v in fti.items():
-                                th[self.field_name_attr] = k
-                                header_name = self.translate(v, ctx.locale, k)
-                                header_row.append(E.th(header_name, **th))
-
-                    parent.write(header_row)
-
-            with parent.element('tbody'):
-                if cls.Attributes.max_occurs > 1:
-                    ret = self.array_to_parent(ctx, cls, inst, parent, name)
+                with parent.element('td', td_attrs):
+                    ret = self.to_parent(ctx, v, sub_value, parent, sub_name,
+                                              array_index=array_index, **kwargs)
                     if isgenerator(ret):
                         try:
                             while True:
-                                y = (yield)
-                                ret.send(y)
+                                sv2 = (yield)
+                                ret.send(sv2)
                         except Break as b:
                             try:
                                 ret.throw(b)
                             except StopIteration:
                                 pass
 
+            self.extend_data_row(ctx, cls, inst, parent, name, **kwargs)
+
+    def _gen_header(self, ctx, cls, name, parent):
+        with parent.element('thead'):
+            with parent.element('tr'):
+                th = {}
+                if self.field_name_attr is not None:
+                    th[self.field_name_attr] = name
+
+                # fti is none when the type inside Array is not a ComplexModel.
+                if issubclass(cls, ComplexModelBase):
+                    fti = cls.get_flat_type_info(cls)
+                    if self.field_name_attr is None:
+                        for k, v in fti.items():
+                            if getattr(v.Attributes, 'exc_html', None):
+                                continue
+                            header_name = self.translate(v, ctx.locale, k)
+                            parent.write(E.th(header_name, **th))
+                    else:
+                        for k, v in fti.items():
+                            if getattr(v.Attributes, 'exc_html', None):
+                                continue
+                            th[self.field_name_attr] = k
+                            header_name = self.translate(v, ctx.locale, k)
+                            parent.write(E.th(header_name, **th))
+
                 else:
-                    with parent.element('tr'):
-                        ret = self.to_parent(ctx, cls, inst, parent, name)
-                        if isgenerator(ret):
-                            try:
-                                while True:
-                                    y = (yield)
-                                    ret.send(y)
-                            except Break as b:
-                                try:
-                                    ret.throw(b)
-                                except StopIteration:
-                                    pass
+                    if self.field_name_attr is not None:
+                        th[self.field_name_attr] = name
+                    header_name = self.translate(cls, ctx.locale, name)
+                    parent.write(E.th(header_name, **th))
+
+                self.extend_header_row(ctx, cls, name, parent)
 
     @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, 
-                                                      tr_child=False, **kwargs):
+    def _gen_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
         attrs = {}
-        if tr_child is False:
-            with parent.element('tr', attrs):
-                ret = self._get_members(ctx, cls, inst, parent, 
-                                                    tr_child=True, **kwargs)
+        if self.table_name_attr is not None:
+            attrs[self.table_name_attr] = cls.get_type_name()
+
+        with parent.element('table', attrs, nsmap=NSMAP):
+            if self.produce_header:
+                self._gen_header(ctx, cls, name, parent)
+
+            with parent.element('tbody'):
+                ret = gen_rows(ctx, cls, inst, parent, name, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -237,20 +235,45 @@ class _HtmlColumnTable(_HtmlTableBase):
                         except StopIteration:
                             pass
 
-        else:
-            if self.table_name_attr is not None:
-                attrs[self.table_name_attr] = name
-            with parent.element('td', attrs):
-                ret = self.subserialize(ctx, cls, inst, parent, None, name)
+                ret = self.extend_table(ctx, cls, parent, name, **kwargs)
                 if isgenerator(ret):
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as b:
+                        try:
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
+
+    def complex_model_to_parent(self, ctx, cls, inst, parent, name,
+                                                      from_arr=False, **kwargs):
+        # If this is direct child of an array, table is already set up in the
+        # array_to_parent.
+        if from_arr:
+            return self._gen_row(ctx, cls, inst, parent, name, **kwargs)
+        else:
+            return self._gen_table(ctx, cls, inst, parent, name, self._gen_row,
+                                                                       **kwargs)
+
+    def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        return self._gen_table(ctx, cls, inst, parent, name,
+                         super(HtmlColumnTable, self).array_to_parent, **kwargs)
+
+    def extend_table(self, ctx, cls, parent, name, **kwargs):
+        pass
+
+    def extend_data_row(self, ctx, cls, inst, parent, name, **kwargs):
+        pass
+
+    def extend_header_row(self, ctx, cls, parent, name, **kwargs):
+        pass
 
 
-class _HtmlRowTable(_HtmlTableBase):
+class HtmlRowTable(HtmlTableBase):
     def __init__(self, *args, **kwargs):
-        super(_HtmlRowTable, self).__init__(*args, **kwargs)
+        super(HtmlRowTable, self).__init__(*args, **kwargs)
 
         self.serialization_handlers = cdict({
             ModelBase: self.model_base_to_parent,
@@ -262,88 +285,97 @@ class _HtmlRowTable(_HtmlTableBase):
             Array: self.array_to_parent,
         })
 
+    def model_base_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
+        if from_arr:
+            td_attrs = {}
+            if False and self.field_name_attr:
+                td_attrs[self.field_name_attr] = name
+
+            parent.write(E.tr(E.td(self.to_string(cls, inst), **td_attrs)))
+        else:
+            parent.write(self.to_string(cls, inst))
+
     @coroutine
-    def subserialize(self, ctx, cls, inst, parent, ns=None, name=None):
+    def complex_model_to_parent(self, ctx, cls, inst, parent, name,
+                                                      from_arr=False, **kwargs):
         attrs = {}
         if self.table_name_attr is not None:
-            attrs[self.table_name_attr] = name
+            attrs[self.table_name_attr] = cls.get_type_name()
 
-        with parent.element('table', attrs):
+        with parent.element('table', attrs, nsmap=NSMAP):
             with parent.element('tbody'):
-                if cls.Attributes.max_occurs > 1:
-                    ret = self.array_to_parent(ctx, cls, inst, parent, name)
-                    if isgenerator(ret):
-                        try:
-                            while True:
-                                sv2 = (yield)
-                                ret.send(sv2)
-                        except Break as b:
-                            try:
-                                ret.throw(b)
-                            except StopIteration:
-                                pass
+                for k, v in cls.get_flat_type_info(cls).items():
+                    try:
+                        sub_value = getattr(inst, k, None)
+                    except: # to guard against e.g. SQLAlchemy throwing NoSuchColumnError
+                        sub_value = None
 
-                else:
+                    sub_name = v.Attributes.sub_name
+                    if sub_name is None:
+                        sub_name = k
+
                     with parent.element('tr'):
-                        ret = self.to_parent(ctx, cls, inst, parent, name)
-                        if isgenerator(ret):
-                            try:
-                                while True:
-                                    sv2 = (yield)
-                                    ret.send(sv2)
-                            except Break as b:
+                        if self.produce_header:
+                            parent.write(E.th(
+                                self.translate(v, ctx.locale, sub_name),
+                                **{self.field_name_attr: sub_name}
+                            ))
+
+                        td_attrs = {}
+                        if self.field_name_attr is not None:
+                            td_attrs[self.field_name_attr] = sub_name
+                        with parent.element('td', td_attrs):
+                            ret = self.to_parent(ctx, v, sub_value, parent,
+                                                            sub_name, **kwargs)
+                            if isgenerator(ret):
                                 try:
-                                    ret.throw(b)
-                                except StopIteration:
-                                    pass
+                                    while True:
+                                        sv2 = (yield)
+                                        ret.send(sv2)
+                                except Break as b:
+                                    try:
+                                        ret.throw(b)
+                                    except StopIteration:
+                                        pass
 
     @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, 
-                                                    tr_child=False, **kwargs):
-        attrs = {}
-        if tr_child is False:
-            ret = self._get_members(ctx, cls, inst, parent, 
-                                                tr_child=True, **kwargs)
-            if isgenerator(ret):
-                try:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
-                except Break as b:
+    def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        with parent.element('div', nsmap=NSMAP):
+            if issubclass(cls, ComplexModelBase):
+                ret = super(HtmlRowTable, self).array_to_parent(
+                                         ctx, cls, inst, parent, name, **kwargs)
+                if isgenerator(ret):
                     try:
-                        ret.throw(b)
-                    except StopIteration:
-                        pass
-
-        else:
-            if self.table_name_attr is not None:
-                attrs[self.table_name_attr] = name
-
-            with parent.element('tr', attrs):
-                if self.produce_header:
-                    parent.write(E.th(self.translate(cls, ctx.locale, name),
-                                                **{self.field_name_attr: name}))
-                with parent.element('td', attrs):
-                    ret = self.subserialize(ctx, cls, inst, parent, None, name)
-                    if isgenerator(ret):
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as b:
                         try:
-                            while True:
-                                sv2 = (yield)
-                                ret.send(sv2)
-                        except Break as b:
-                            try:
-                                ret.throw(b)
-                            except StopIteration:
-                                pass
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
+            else:
+                table_attrs = {}
+                if self.table_name_attr:
+                    table_attrs = {self.table_name_attr: name}
 
-    def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        retval = E.tr()
-        attr = {}
-        if self.field_name_attr is not None:
-            attr = {self.field_name_attr: name}
-
-        if self.produce_header:
-            retval.append(E.th(self.translate(cls, ctx.locale, name), **attr))
-
-        retval.append(E.td(self.to_string(cls, inst), **attr))
-        parent.write(retval)
+                with parent.element('table', table_attrs, nsmap=NSMAP):
+                    with parent.element('tr'):
+                        if self.produce_header:
+                            parent.write(E.th(self.translate(cls, ctx.locale,
+                                                          cls.get_type_name())))
+                        with parent.element('td'):
+                            with parent.element('table'):
+                                ret = super(HtmlRowTable, self) \
+                                    .array_to_parent(ctx, cls, inst, parent,
+                                                                 name, **kwargs)
+                                if isgenerator(ret):
+                                    try:
+                                        while True:
+                                            sv2 = (yield)
+                                            ret.send(sv2)
+                                    except Break as b:
+                                        try:
+                                            ret.throw(b)
+                                        except StopIteration:
+                                            pass

@@ -17,10 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 import sys
 import datetime
 
 from collections import deque
+from inspect import isgeneratorfunction
+
 
 try:
     from urllib import splittype
@@ -99,6 +104,8 @@ class Break(Exception):
 
 
 def coroutine(func):
+    assert isgeneratorfunction(func)
+
     def start(*args, **kwargs):
         ret = func(*args, **kwargs)
 
@@ -107,6 +114,9 @@ def coroutine(func):
 
         except StopIteration:
             return None
+
+        except Exception as e:
+            logger.exception(e)
 
         return ret
 
@@ -181,7 +191,6 @@ else:
         return (td.microseconds +
                             (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
-from pprint import pformat
 
 def TAttrDict(default=None):
     class AttrDict(object):
@@ -210,8 +219,14 @@ def TAttrDict(default=None):
         def items(self):
             return self.__data.items()
 
+        def get(self, key, *args):
+            return self.__data.get(key, *args)
+
+        def update(self, d):
+            return self.__data.update(d)
+
         def __repr__(self):
-            return "AttrDict(%s)" % ', '.join(['%s=%r' % (k,v)
+            return "AttrDict(%s)" % ', '.join(['%s=%r' % (k, v)
                     for k,v in sorted(self.__data.items(), key=lambda x:x[0])])
 
         if default is None:
@@ -226,7 +241,7 @@ def TAttrDict(default=None):
                 else:
                     return default()
             def __getattr__(self, key):
-                if key in ("_AttrDict__data", 'items'):
+                if key in ("_AttrDict__data", 'items', 'get', 'update'):
                     return object.__getattribute__(self, '__data')
                 if key in self.__data:
                     return self.__data[key]
@@ -244,19 +259,3 @@ class AttrDictColl(object):
     def __init__(self, *args):
         for a in args:
             setattr(self, a, AttrDictColl.AttrDictImpl(NAME=a))
-
-
-# needs some magic with semaphores. i.e. STAY AWAY FROM THIS!!!!1111!! :)
-class GeneratorIO(object):
-    def __init__(self):
-        self.buffer = deque()
-
-    def __iter__(self):
-        return self.gen()
-
-    def write(self, data):
-        self.data.append(data)
-
-    def gen(self):
-        while len(self.data) > 0:
-            yield self.popleft()

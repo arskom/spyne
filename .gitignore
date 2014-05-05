@@ -32,7 +32,6 @@ doc/docs
 # emacs cruft
 *~
 *#*
-*.pyc
 *flymake.py
 .ropeproject
 
@@ -85,7 +84,10 @@ examples/file_manager/files/
 
 # test output
 coverage.xml
+spyne/test/protocol/html
+spyne/test/store
 test_result*
+./html
 
 # vim cruft
 *.swp

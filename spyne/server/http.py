@@ -17,9 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from collections import defaultdict
 
 from spyne import TransportContext
 from spyne import MethodContext
+from spyne.protocol.http import HttpPattern
 from spyne.server import ServerBase
 from spyne.const.http import gen_body_redirect, HTTP_301, HTTP_302
 
@@ -61,6 +63,7 @@ class HttpTransportContext(TransportContext):
             l = kwargs.pop('location')
             self.resp_headers['Location'] = l
             self.parent.out_string = [gen_body_redirect(resp_code, l)]
+            self.mime_type = 'text/html'
 
         else:
             # So that deserialization is skipped.
@@ -112,3 +115,79 @@ class HttpBase(ServerBase):
         self.chunked = chunked
         self.max_content_length = max_content_length
         self.block_length = block_length
+
+        self._http_patterns = set()
+
+        for k, v in self.app.interface.service_method_map.items():
+            # p_ stands for primary
+            p_method_descriptor = v[0]
+            for patt in p_method_descriptor.patterns:
+                if isinstance(patt, HttpPattern):
+                    self._http_patterns.add(patt)
+
+        # this makes sure similar addresses with patterns are evaluated after
+        # addresses with wildcards, which puts the more specific addresses to
+        # the front.
+        self._http_patterns = list(reversed(sorted(self._http_patterns,
+                                          key=lambda x: (x.address, x.host) )))
+
+    def match_pattern(self, ctx, method='', path='', host=''):
+        """Sets ctx.method_request_string if there's a match. It's O(n) which
+        means you should keep your number of patterns as low as possible.
+
+        :param ctx: A MethodContext instance
+        :param method: The verb in the HTTP Request (GET, POST, etc.)
+        :param host: The contents of the ``Host:`` header
+        :param path: Path but not the arguments. (i.e. stuff before '?', if it's
+            there)
+        """
+
+        if not path.startswith('/'):
+            path = '/' + path
+
+        params = defaultdict(list)
+        for patt in self._http_patterns:
+            assert isinstance(patt, HttpPattern)
+
+            if patt.verb is not None:
+                match = patt.verb_re.match(method)
+                if match is None:
+                    continue
+                if not (match.span() == (0, len(method))):
+                    continue
+
+                for k,v in match.groupdict().items():
+                    params[k].append(v)
+
+            if patt.host is not None:
+                match = patt.host_re.match(host)
+                if match is None:
+                    continue
+                if not (match.span() == (0, len(host))):
+                    continue
+
+                for k,v in match.groupdict().items():
+                    params[k].append(v)
+
+            address = patt.address
+            if address is None:
+                address = ctx.descriptor.name
+
+            if address:
+                match = patt.address_re.match(path)
+                if match is None:
+                    continue
+                if not (match.span() == (0, len(path))):
+                    continue
+                for k,v in match.groupdict().items():
+                    params[k].append(v)
+
+            ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
+                                                    patt.endpoint.name)
+            break
+
+        return params
+
+    @property
+    def has_patterns(self):
+        return len(self._http_patterns) > 0

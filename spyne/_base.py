@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from time import time
-
+from copy import copy
 from collections import deque
 
 from spyne.const.xml_ns import DEFAULT_NS
@@ -87,6 +87,20 @@ class MethodContext(object):
     """
 
     frozen = False
+
+    def copy(self):
+        retval = copy(self)
+
+        if retval.transport is not None:
+            retval.transport.parent = retval
+        if retval.protocol is not None:
+            retval.protocol.parent = retval
+        if retval.event is not None:
+            retval.event.parent = retval
+        if retval.aux is not None:
+            retval.aux.parent = retval
+
+        return retval
 
     @property
     def method_name(self):
@@ -268,7 +282,7 @@ class MethodContext(object):
     by the user code.
     """
 
-    # Deprecated.
+    # Deprecated. Use self.descriptor.service_class.
     @property
     def service_class(self):
         if self.descriptor is not None:
@@ -323,7 +337,9 @@ class MethodDescriptor(object):
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
-                 operation_name=None, no_self=None, translations=None, when=None):
+                 operation_name=None, no_self=None, translations=None, when=None,
+                 in_message_name_override=True, out_message_name_override=True,
+                 service_class=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -420,7 +436,7 @@ class MethodDescriptor(object):
         self.no_self = no_self
         """FIXME: docstring yo."""
 
-        self.service_class = None
+        self.service_class = service_class
         """The ServiceBase subclass the method belongs to, if there's any."""
 
         self.parent_class = None
@@ -435,6 +451,30 @@ class MethodDescriptor(object):
         """None or a callable that takes the object instance and returns a
         boolean value. If true, the object can process that action.
         """
+
+        self.in_message_name_override = in_message_name_override
+        """When False, no mangling of in message name will be performed by later
+        stages of the interface generation. Naturally, it will be up to you to
+        resolve name clashes."""
+
+        self.out_message_name_override = out_message_name_override
+        """When False, no mangling of out message name will be performed by
+        later stages of the interface generation. Naturally, it will be up to
+        you to resolve name clashes."""
+
+    def translate(self, locale, default):
+        """
+        :param cls: class
+        :param locale: locale string
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
+        if locale is None:
+            locale = 'en_US'
+        if self.translations is not None:
+            return self.translations.get(locale, default)
+        return default
 
     @property
     def key(self):
@@ -511,3 +551,5 @@ class FakeContext(object):
         self.out_object = out_object
         self.out_document = out_document
         self.out_string = out_string
+        self.protocol = type("ProtocolContext", (object,), {})()
+        self.transport = type("ProtocolContext", (object,), {})()

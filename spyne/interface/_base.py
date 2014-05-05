@@ -24,7 +24,7 @@ from collections import deque
 
 import spyne.interface
 
-from spyne import EventManager, ServiceBase
+from spyne import EventManager, ServiceBase, MethodDescriptor
 from spyne.const import xml_ns as namespace
 
 from spyne.model import Array
@@ -33,7 +33,7 @@ from spyne.model import ComplexModelBase
 from spyne.model.complex import XmlModifier
 
 
-def generate_method_id(cls, descriptor):
+def _generate_method_id(cls, descriptor):
     return '.'.join([
             cls.__module__,
             cls.__name__,
@@ -207,14 +207,20 @@ class Interface(object):
             yield method.out_message
 
         for p in method.patterns:
-            p.endpoint = method.name
+            p.endpoint = method
 
     def process_method(self, s, method):
+        assert isinstance(method, MethodDescriptor)
+
         method_key = '{%s}%s' % (self.app.tns, method.name)
+
+        if issubclass(s, ComplexModelBase) and method.in_message_name_override:
+            method_key = '{%s}%s.%s' % (self.app.tns,
+                                                 s.get_type_name(), method.name)
 
         logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method_key))
-        key = generate_method_id(s, method)
+        key = _generate_method_id(s, method)
         if key in self.method_id_map:
             c = self.method_id_map[key].parent_class
             if c.__orig__ is None:
@@ -228,7 +234,7 @@ class Interface(object):
                                         (c.__orig__, key, s.__orig__, key)
             return
 
-        self.method_id_map[generate_method_id(s, method)] = method
+        self.method_id_map[key] = method
 
         val = self.service_method_map.get(method_key, None)
         if val is None:
@@ -250,10 +256,8 @@ class Interface(object):
                 os = om.parent_class
             raise ValueError("\nThe message %r defined in both '%s.%s'"
                                                          " and '%s.%s'"
-                        % (method.name, s.__module__, s.__name__,
-                                       os.__module__, os.__name__,
-                        ))
-
+                                    % (method.name, s.__module__,  s.__name__,
+                                                   os.__module__, os.__name__))
 
     def populate_interface(self, types=None):
         """Harvests the information stored in individual classes' _type_info
@@ -276,7 +280,7 @@ class Interface(object):
                 if method.aux is None:
                     method.aux = s.__aux__
                 if method.aux is not None:
-                    method.aux.methods.append(generate_method_id(s, method))
+                    method.aux.methods.append(_generate_method_id(s, method))
 
                 for cls in self.add_method(method):
                     self.add_class(cls)
@@ -406,8 +410,8 @@ class Interface(object):
                                                 old, cls.get_type_name_ns(self))
 
             if cls.Attributes.methods is not None:
-                logger.debug("\tpopulating member methods for '%s.%s'..." % \
-                                     (cls.get_namespace(), cls.get_type_name()))
+                logger.debug("\tpopulating member methods for '%s.%s'...",
+                                       cls.get_namespace(), cls.get_type_name())
 
                 for method_key, descriptor in cls.Attributes.methods.items():
                     assert hasattr(cls, method_key)
@@ -415,6 +419,22 @@ class Interface(object):
                     self.member_methods.append((cls, descriptor))
                     for c in self.add_method(descriptor):
                         self.add_class(c)
+
+            if cls.Attributes._subclasses is not None:
+                logger.debug("\tadding subclasses of '%s.%s'..." % \
+                                     (cls.get_namespace(), cls.get_type_name()))
+
+                for c in cls.Attributes._subclasses:
+                    if c.get_namespace() is None:
+                        c.resolve_namespace(c, ns)
+
+                    child_ns = c.get_namespace()
+                    if child_ns == ns:
+                        self.add_class(c)
+                    else:
+                        logger.debug("\tnot importing %r to %r because it would "
+                            "cause circular imports because %r extends %r " % (
+                            child_ns, ns, c.get_type_name(), cls.get_type_name()))
 
     def is_valid_import(self, ns):
         """This will return False for base namespaces unless told otherwise."""

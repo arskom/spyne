@@ -208,10 +208,10 @@ class TestValidation(unittest.TestCase):
                 pass
 
         # must not complain about missing s
-        _test([SomeService], 'p_i=5', validator='soft')
+        _test([SomeService], 'p.i=5', validator='soft')
         try:
             # must raise validation error for missing i
-            _test([SomeService], 'p_s=a', validator='soft')
+            _test([SomeService], 'p.s=a', validator='soft')
         except ValidationError:
             pass
         else:
@@ -231,10 +231,10 @@ class TestValidation(unittest.TestCase):
                 pass
 
         # must not complain about missing s
-        _test([SomeService], 'p[0]_i=5', validator='soft')
+        _test([SomeService], 'p[0].i=5', validator='soft')
         try:
             # must raise validation error for missing i
-            _test([SomeService], 'p[0]_s=a', validator='soft')
+            _test([SomeService], 'p[0].s=a', validator='soft')
         except ValidationError:
             pass
         else:
@@ -257,10 +257,10 @@ class TestValidation(unittest.TestCase):
                 print(p)
 
         # must not complain about missing s
-        _test([SomeService], 'p[0]_i=5', validator='soft')
+        _test([SomeService], 'p[0].i=5', validator='soft')
         try:
             # must raise validation error for missing i
-            _test([SomeService], 'p[0]_cc[0]_d=2013-01-01', validator='soft')
+            _test([SomeService], 'p[0].cc[0].d=2013-01-01', validator='soft')
         except ValidationError:
             pass
         else:
@@ -387,7 +387,7 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(CCM(c=ccm.c, i=ccm.i, s=ccm.s))
 
-        ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
+        ctx = _test([SomeService], '&ccm.i=1&ccm.s=s&ccm.c.i=3&ccm.c.s=cs')
 
         assert ctx.out_string[0] == "CCM(i=1, c=CM(i=3, s='cs'), s='s')"
 
@@ -419,7 +419,7 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
+        ctx = _test([SomeService], '&ccm.i=1&ccm.s=s&ccm.c.i=3&ccm.c.s=cs')
 
         print(ctx.out_string)
         assert ''.join(ctx.out_string) == "CCM(i=1, c=CM(i=3, s='cs'), s='s')"
@@ -443,9 +443,9 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        ctx = _test([SomeService],  'ccm[0]_i=1&ccm[0]_s=s'
-                                   '&ccm[0]_c_i=1&ccm[0]_c_s=a'
-                                   '&ccm[1]_c_i=2&ccm[1]_c_s=b')
+        ctx = _test([SomeService],  'ccm[0].i=1&ccm[0].s=s'
+                                   '&ccm[0].c.i=1&ccm[0].c.s=a'
+                                   '&ccm[1].c.i=2&ccm[1].c.s=b')
 
         s = ''.join(ctx.out_string)
 
@@ -470,9 +470,9 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        ctx = _test([SomeService],  'ccm_i=1&ccm_s=s'
-                                   '&ccm_c[0]_i=1&ccm_c[0]_s=a'
-                                   '&ccm_c[1]_i=2&ccm_c[1]_s=b')
+        ctx = _test([SomeService],  'ccm.i=1&ccm.s=s'
+                                   '&ccm.c[0].i=1&ccm.c[0].s=a'
+                                   '&ccm.c[1].i=2&ccm.c[1].s=b')
 
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=[CM(i=1, s='a'), CM(i=2, s='b')], s='s')"
@@ -496,9 +496,9 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        ctx = _test([SomeService],  'ccm_i=1&ccm_s=s'
-                                   '&ccm_c[0]_i=1&ccm_c[0]_s=a'
-                                   '&ccm_c[1]_i=2&ccm_c[1]_s=b')
+        ctx = _test([SomeService],  'ccm.i=1&ccm.s=s'
+                                   '&ccm.c[0].i=1&ccm.c[0].s=a'
+                                   '&ccm.c[1].i=2&ccm.c[1].s=b')
 
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=[CM(i=1, s='a'), CM(i=2, s='b')], s='s')"
@@ -516,9 +516,9 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        ctx = _test([SomeService],  'ccm[0]_i=1&ccm[0]_s=s'
-                                   '&ccm[0]_c=a'
-                                   '&ccm[0]_c=b')
+        ctx = _test([SomeService],  'ccm[0].i=1&ccm[0].s=s'
+                                   '&ccm[0].c=a'
+                                   '&ccm[0].c=b')
         s = ''.join(list(ctx.out_string))
         assert s == "[CCM(i=1, c=['a', 'b'], s='s')]"
 
@@ -535,23 +535,23 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        ctx = _test([SomeService],  'ccm_i=1&ccm_s=s'
-                                   '&ccm_c=a'
-                                   '&ccm_c=b')
+        ctx = _test([SomeService],  'ccm.i=1&ccm.s=s'
+                                   '&ccm.c=a'
+                                   '&ccm.c=b')
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=['a', 'b'], s='s')"
 
-        ctx = _test([SomeService],  'ccm_i=1'
-                                   '&ccm_s=s'
-                                   '&ccm_c[1]=b'
-                                   '&ccm_c[0]=a')
+        ctx = _test([SomeService],  'ccm.i=1'
+                                   '&ccm.s=s'
+                                   '&ccm.c[1]=b'
+                                   '&ccm.c[0]=a')
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=['a', 'b'], s='s')"
 
-        ctx = _test([SomeService],  'ccm_i=1'
-                                   '&ccm_s=s'
-                                   '&ccm_c[0]=a'
-                                   '&ccm_c[1]=b')
+        ctx = _test([SomeService],  'ccm.i=1'
+                                   '&ccm.s=s'
+                                   '&ccm.c[0]=a'
+                                   '&ccm.c[1]=b')
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=['a', 'b'], s='s')"
 
@@ -664,7 +664,7 @@ class TestHttpPatterns(unittest.TestCase):
         ctx, = server.generate_contexts(initial_ctx)
 
         foo = []
-        for i in server._http_patterns.iter_rules():
+        for i in server._http_patterns:
             foo.append(i)
 
         assert len(foo) == 1

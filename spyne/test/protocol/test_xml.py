@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# encoding: utf-8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -28,6 +30,9 @@ import datetime
 from pprint import pprint
 
 from lxml import etree
+
+from webtest import TestApp
+from webtest.app import AppError
 
 from spyne import MethodContext, rpc
 from spyne._base import FakeContext
@@ -50,6 +55,7 @@ from spyne.model.complex import Mandatory as M
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util.xml import get_xml_as_object
+from spyne.server.wsgi import WsgiApplication
 
 
 class TestXml(unittest.TestCase):
@@ -315,7 +321,7 @@ class TestXml(unittest.TestCase):
         elt = etree.fromstring(''.join(ctx.out_string))
         target = elt.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
 
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
         assert target.attrib['{%s}c' % app.interface.nsmap["s1"]] == "bar"
 
     def test_wrapped_array(self):
@@ -509,6 +515,35 @@ class TestXml(unittest.TestCase):
         ])
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
+    def test_unicode_chars_in_exception(self):
+        class SomeService(ServiceBase):
+            @srpc(Unicode(pattern=u'x'), _returns=Unicode)
+            def some_call(s):
+                test(never,reaches,here)
+
+        app = Application([SomeService], "tns", name="test_mandatory_elements",
+                          in_protocol=XmlDocument(validator='lxml'),
+                          out_protocol=XmlDocument())
+        server = WsgiApplication(app)
+
+        req = (
+            '<some_call xmlns="tns">'
+                '<s>Ğ</s>'
+            '</some_call>'
+        )
+
+        resp = server({
+            'QUERY_STRING': '',
+            'PATH_INFO': '/',
+            'REQUEST_METHOD': 'POST',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': '80',
+            'wsgi.input': StringIO(req),
+            "wsgi.url_scheme": 'http',
+        }, lambda x,y: print(x,y))
+
+        assert 'Ğ' in ''.join(resp)
+
     def test_mandatory_subelements(self):
         class C(ComplexModel):
             foo = M(Unicode)
@@ -597,7 +632,7 @@ class TestIncremental(unittest.TestCase):
                              .serialize(ctx, XmlDocument.RESPONSE)
 
         elt = etree.fromstring(ostr.getvalue())
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt.xpath('x:getResult/x:i/text()',
                                             namespaces={'x':__name__}) == ['1']
@@ -629,7 +664,7 @@ class TestIncremental(unittest.TestCase):
                             .serialize(ctx, XmlDocument.RESPONSE)
 
         elt = etree.fromstring(ostr.getvalue())
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt.xpath('x:getResult/x:SomeComplexModel/x:i/text()',
                         namespaces={'x':__name__}) == ['1', '2', '3', '4', '5']

@@ -26,38 +26,43 @@ import msgpack
 
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, Factory, connectionDone
+from twisted.python.failure import Failure
+from twisted.python import log
 
+from spyne import EventManager
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
-from spyne.model import Fault
 from spyne.server.msgpack import MessagePackServerBase
-
-
-NO_ERROR = 0
-CLIENT_ERROR = 1
-SERVER_ERROR = 2
+from spyne.server.msgpack import OUT_RESPONSE_SERVER_ERROR, \
+    OUT_RESPONSE_CLIENT_ERROR
 
 
 class TwistedMessagePackProtocolFactory(Factory):
     def __init__(self, app, base=MessagePackServerBase):
         self.app = app
         self.base = base
+        self.event_manager = EventManager(self)
 
     def buildProtocol(self, address):
-        return TwistedMessagePackProtocol(self.app, self.base)
+        return TwistedMessagePackProtocol(self.app, self.base, factory=self)
 
 
 class TwistedMessagePackProtocol(Protocol):
     def __init__(self, app, base=MessagePackServerBase,
-                                                  max_buffer_size=10*1024*1024):
+                                     max_buffer_size=2*1024*1024, factory=None):
+        self.factory = factory
         self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self._transport = base(app)
 
     def connectionMade(self):
         logger.info("%r connection made.", self)
+        if self.factory is not None:
+            self.factory.event_manager.fire_event("connection_made", self)
 
     def connectionLost(self, reason=connectionDone):
-        logger.info("%r connection lost.", self)
+        logger.info("%r connection lost yo.", self)
+        if self.factory is not None:
+            self.factory.event_manager.fire_event("connection_lost", self)
 
     def dataReceived(self, data):
         self._buffer.feed(data)
@@ -65,9 +70,7 @@ class TwistedMessagePackProtocol(Protocol):
         for msg in self._buffer:
             p_ctx = others = None
             try:
-                p_ctx, others = self._transport.produce_contexts(msg)
-                p_ctx.transport.protocol = self
-                return self.process_contexts(p_ctx, others)
+                self.process_incoming_message(msg)
 
             except ValidationError as e:
                 import traceback
@@ -75,19 +78,23 @@ class TwistedMessagePackProtocol(Protocol):
                 logger.exception(e)
                 self.handle_error(p_ctx, others, e)
 
+    def process_incoming_message(self, msg):
+        p_ctx, others = self._transport.produce_contexts(msg)
+        p_ctx.transport.protocol = self
+        self.process_contexts(p_ctx, others)
+
     def handle_error(self, p_ctx, others, exc):
         self._transport.get_out_string(p_ctx)
 
         if isinstance(exc, InternalError):
-            error = SERVER_ERROR
+            error = OUT_RESPONSE_SERVER_ERROR
         else:
-            error = CLIENT_ERROR
+            error = OUT_RESPONSE_CLIENT_ERROR
 
-        out_string = msgpack.packb({
-            error: msgpack.packb(p_ctx.out_document[0].values()),
-        })
+        out_string = msgpack.packb([
+            error, msgpack.packb(p_ctx.out_document[0].values()),
+        ])
         self.transport.write(out_string)
-        print "HE", repr(out_string)
         p_ctx.close()
 
         try:
@@ -115,21 +122,28 @@ class TwistedMessagePackProtocol(Protocol):
         ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, self, p_ctx, others)
-            ret.addErrback(_eb_deferred)
-            return ret
+            ret.addErrback(_eb_deferred, self, p_ctx, others)
+            ret.addErrback(log.err)
+            return
 
         _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
 
 
 def _eb_deferred(retval, prot, p_ctx, others):
     p_ctx.out_error = retval.value
-    if not issubclass(retval.type, Fault):
+    tb = None
+
+    if isinstance(retval, Failure):
+        tb = retval.getTracebackObject()
         retval.printTraceback()
         p_ctx.out_error = InternalError(retval.value)
 
-    ret = prot.handle_rpc_error(p_ctx, others, p_ctx.out_error)
-    prot.transport.write(ret)
+    prot.handle_error(p_ctx, others, p_ctx.out_error)
+    prot.transport.write(''.join(p_ctx.out_string))
     prot.transport.loseConnection()
+
+    return Failure(p_ctx.out_error, p_ctx.out_error.__class__, tb)
+
 
 def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
     if len(p_ctx.descriptor.out_message._type_info) > 1 or nowrap:
@@ -139,11 +153,10 @@ def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
 
     try:
         prot._transport.get_out_string(p_ctx)
-        out_string = msgpack.packb({
-            NO_ERROR: ''.join(p_ctx.out_string),
-        })
+        prot._transport.pack(p_ctx)
+
+        out_string = ''.join(p_ctx.out_string)
         prot.transport.write(out_string)
-        print "PC", repr(out_string)
 
     except Exception as e:
         logger.exception(e)

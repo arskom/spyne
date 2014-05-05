@@ -144,5 +144,13 @@ Acknowledgments
         :target: http://www.jetbrains.com/pycharm/
 
 Spyne committers get a free license for PyCharm Professional Edition, courtesy
-of JetBrains. Thanks a lot guys!..
+of JetBrains.
 
+.. image:: http://www.cloudbees.com/sites/default/files/Button-Built-on-CB-1.png
+        :target: https://spyne.ci.cloudbees.com/
+
+CloudBees generously hosts our Jenkins installation and gives us a ton of
+compute time for free.
+
+
+Thanks a lot guys!..

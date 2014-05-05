@@ -22,13 +22,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from pprint import pformat
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
-
-from lxml import html
+from lxml import etree, html
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -38,15 +32,16 @@ from spyne.model.primitive import AnyUri
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.protocol.http import HttpRpc
-from spyne.protocol.html import HtmlTable
+from spyne.protocol.html.table import HtmlColumnTable, HtmlRowTable
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
-from spyne.util.test import call_wsgi_app_kwargs, call_wsgi_app
+from spyne.util.test import show, call_wsgi_app_kwargs, call_wsgi_app
 
 
 class CM(ComplexModel):
     i = Integer
     s = String
+
 
 class CCM(ComplexModel):
     c = CM
@@ -62,7 +57,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                 return [ccm] * 5
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                                out_protocol=HtmlTable(field_name_attr='class'))
+                        out_protocol=HtmlColumnTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server,
@@ -72,13 +67,10 @@ class TestHtmlColumnTable(unittest.TestCase):
                 ccm_c_s='abc',
             )
 
-        from lxml import etree
         elt = etree.fromstring(out_string)
-        print(etree.tostring(elt, pretty_print=True))
+        show(elt, 'TestHtmlColumnTable.test_complex_array')
 
         elt = html.fromstring(out_string)
-        resp = elt.find_class('some_callResponse')
-        assert len(resp) == 1
 
         row, = elt[0] # thead
         cell = row.findall('th[@class="i"]')
@@ -112,11 +104,18 @@ class TestHtmlColumnTable(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                                               out_protocol=HtmlColumnTable())
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')))
-        assert out_string == '<table class="some_callResponse"><thead><tr><th>some_callResponse</th></tr></thead><tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody></table>'
+        elt = etree.fromstring(out_string)
+        show(elt, "TestHtmlColumnTable.test_string_array")
+        assert out_string == \
+            '<table xmlns="http://www.w3.org/1999/xhtml" class="string">' \
+                '<thead><tr><th class="some_callResponse">some_callResponse</th></tr></thead>' \
+                '<tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody>' \
+            '</table>'
 
     def test_anyuri_string(self):
         _link = "http://arskom.com.tr/"
@@ -130,13 +129,13 @@ class TestHtmlColumnTable(unittest.TestCase):
                 return [C(c=_link)]
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class'))
+                 out_protocol=HtmlColumnTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
 
         elt = html.fromstring(out_string)
-        print(html.tostring(elt, pretty_print=True))
+        show(elt, "TestHtmlColumnTable.test_anyuri_string")
         assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
         assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
 
@@ -153,7 +152,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                 return [C(c=AnyUri.Value(_link, text=_text))]
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class'))
+                 out_protocol=HtmlColumnTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -178,7 +177,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return C(c=_link)
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
+                        out_protocol=HtmlRowTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -201,7 +200,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return C(c=AnyUri.Value(_link, text=_text))
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
+                            out_protocol=HtmlRowTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -218,19 +217,20 @@ class TestHtmlRowTable(unittest.TestCase):
             def some_call(ccm):
                 return ccm
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
+        app = Application([SomeService], 'tns',
+                          in_protocol=HttpRpc(hier_delim="_"),
+                          out_protocol=HtmlRowTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
-        out_string = call_wsgi_app_kwargs(server,
+        out_string = call_wsgi_app_kwargs(server, 'some_call',
                          ccm_c_s='abc', ccm_c_i='123', ccm_i='456', ccm_s='def')
 
         elt = html.fromstring(out_string)
-        print(html.tostring(elt, pretty_print=True))
+        show(elt, "TestHtmlRowTable.test_complex")
 
         # Here's what this is supposed to return
         """
-        <table class="some_callResponse">
+        <table class="CCM">
           <tbody>
             <tr>
               <th class="i">i</th>
@@ -261,7 +261,8 @@ class TestHtmlRowTable(unittest.TestCase):
         </table>
         """
 
-        resp = elt.find_class('some_callResponse')
+        print html.tostring(elt, pretty_print=True)
+        resp = elt.find_class('CCM')
         assert len(resp) == 1
 
         assert elt.xpath('tbody/tr/th[@class="i"]/text()')[0] == 'i'
@@ -282,11 +283,30 @@ class TestHtmlRowTable(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable(fields_as='rows'))
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                                                    out_protocol=HtmlRowTable())
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
-        assert out_string == '<table class="some_callResponse"><tbody><tr><th>string</th><td>1</td></tr><tr><th>string</th><td>2</td></tr></tbody></table>'
+        show(html.fromstring(out_string), 'TestHtmlRowTable.test_string_array')
+        assert out_string == \
+            '<div xmlns="http://www.w3.org/1999/xhtml">' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="some_callResponse">' \
+                '<tr>' \
+                  '<th>string</th>' \
+                  '<td>' \
+                    '<table>' \
+                      '<tr>' \
+                        '<td>1</td>' \
+                      '</tr>' \
+                      '<tr>' \
+                        '<td>2</td>' \
+                      '</tr>' \
+                    '</table>' \
+                  '</td>' \
+                '</tr>' \
+              '</table>' \
+            '</div>'
 
     def test_string_array_no_header(self):
         class SomeService(ServiceBase):
@@ -295,11 +315,103 @@ class TestHtmlRowTable(unittest.TestCase):
                 return s
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                out_protocol=HtmlTable(fields_as='rows', produce_header=False))
+                out_protocol=HtmlRowTable(produce_header=False))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
-        assert out_string == '<table class="some_callResponse"><tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody></table>'
+        #FIXME: Needs a proper test with xpaths and all.
+        show(html.fromstring(out_string), 'TestHtmlRowTable.test_string_array_no_header')
+        assert out_string == \
+            '<div xmlns="http://www.w3.org/1999/xhtml">' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="some_callResponse">' \
+                '<tr>' \
+                  '<td>' \
+                    '<table>' \
+                      '<tr>' \
+                        '<td>1</td>' \
+                      '</tr>' \
+                      '<tr>' \
+                        '<td>2</td>' \
+                      '</tr>' \
+                    '</table>' \
+                  '</td>' \
+                '</tr>' \
+              '</table>' \
+            '</div>'
+
+
+    def test_complex_array(self):
+        v = [
+            CM(i=1, s='a'),
+            CM(i=2, s='b'),
+            CM(i=3, s='c'),
+            CM(i=4, s='d'),
+        ]
+        class SomeService(ServiceBase):
+            @srpc(_returns=Array(CM))
+            def some_call():
+                return v
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                out_protocol=HtmlRowTable())
+        server = WsgiApplication(app)
+
+        out_string = call_wsgi_app_kwargs(server)
+        show(html.fromstring(out_string), 'TestHtmlRowTable.test_complex_array')
+        #FIXME: Needs a proper test with xpaths and all.
+        assert out_string == \
+            '<div xmlns="http://www.w3.org/1999/xhtml">' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+                '<tbody>' \
+                  '<tr>' \
+                    '<th class="i">i</th>' \
+                    '<td class="i">1</td>' \
+                  '</tr>' \
+                  '<tr>' \
+                    '<th class="s">s</th>' \
+                    '<td class="s">a</td>' \
+                  '</tr>' \
+                '</tbody>' \
+              '</table>' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+                '<tbody>' \
+                  '<tr>' \
+                    '<th class="i">i</th>' \
+                    '<td class="i">2</td>' \
+                  '</tr>' \
+                  '<tr>' \
+                    '<th class="s">s</th>' \
+                    '<td class="s">b</td>' \
+                  '</tr>' \
+                '</tbody>' \
+              '</table>' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+                '<tbody>' \
+                  '<tr>' \
+                    '<th class="i">i</th>' \
+                    '<td class="i">3</td>' \
+                  '</tr>' \
+                  '<tr>' \
+                    '<th class="s">s</th>' \
+                    '<td class="s">c</td>' \
+                  '</tr>' \
+                '</tbody>' \
+              '</table>' \
+              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+                '<tbody>' \
+                  '<tr>' \
+                    '<th class="i">i</th>' \
+                    '<td class="i">4</td>' \
+                  '</tr>' \
+                  '<tr>' \
+                    '<th class="s">s</th>' \
+                    '<td class="s">d</td>' \
+                  '</tr>' \
+                '</tbody>' \
+              '</table>' \
+            '</div>'
+
+
 
 if __name__ == '__main__':
     unittest.main()

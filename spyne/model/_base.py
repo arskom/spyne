@@ -222,6 +222,10 @@ class ModelBase(object):
         #The key is either a ProtocolBase subclass or a ProtocolBase instance.
         #Instances override classes."""
 
+        empty_is_none = False
+        """When the incoming object is empty (e.g. '' for strings) treat it as
+        None. No effect (yet) for outgoing values."""
+
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
@@ -483,9 +487,10 @@ class SimpleModel(ModelBase):
         return (cls.Attributes.values == SimpleModel.Attributes.values)
 
     @staticmethod
-    def validate_string(cls, value):
-        return (     ModelBase.validate_string(cls, value)
-                and (len(cls.Attributes.values) == 0 or (
+    def validate_native(cls, value):
+        return (     ModelBase.validate_native(cls, value)
+                and (cls.Attributes.values is None or
+                                            len(cls.Attributes.values) == 0 or (
                      (value is None     and cls.Attributes.nillable) or
                      (value is not None and value in cls.Attributes.values)
                 ))
@@ -532,7 +537,7 @@ class PushBase(object):
     def close(self):
         try:
             self.gen.throw(Break())
-        except Break:
+        except (Break, StopIteration, GeneratorExit):
             pass
         self._cb_finish()
 
@@ -565,10 +570,14 @@ class table:
         value is used as the name of the intermediate table.
     :param left: Name of the left join column.
     :param right: Name of the right join column.
+    :param backref: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.backref
+    :param cascade: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.cascade
+    :param lazy: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.lazy
+    :param back_populates: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.back_populates
     """
 
     def __init__(self, multi=False, left=None, right=None, backref=None,
-                                  id_backref=None, cascade=False, lazy='select'):
+            id_backref=None, cascade=False, lazy='select', back_populates=None):
         self.multi = multi
         self.left = left
         self.right = right
@@ -576,6 +585,7 @@ class table:
         self.id_backref = id_backref
         self.cascade = cascade
         self.lazy = lazy
+        self.back_populates = back_populates
 
 
 class json:

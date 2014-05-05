@@ -29,11 +29,12 @@ from base64 import urlsafe_b64encode
 from base64 import urlsafe_b64decode
 from binascii import hexlify
 from binascii import unhexlify
+from os.path import abspath, isdir
 
 from spyne.util.six import StringIO
 from spyne.error import ValidationError
 from spyne.util import _bytes_join
-from spyne.model import ModelBase
+from spyne.model import ModelBase, ComplexModel, Unicode
 from spyne.model import SimpleModel
 
 class BINARY_ENCODING_HEX: pass
@@ -67,10 +68,19 @@ class ByteArray(SimpleModel):
         if 'encoding' in kwargs:
             v = kwargs['encoding']
 
-            if v in (None, 'base64', 'base64Binary', BINARY_ENCODING_BASE64):
+            if v is None:
+                kwargs['encoding'] = BINARY_ENCODING_USE_DEFAULT
+
+            elif v in ('base64', 'base64Binary', BINARY_ENCODING_BASE64):
                 # This string is defined in the Xml Schema Standard
                 tn = 'base64Binary'
                 kwargs['encoding'] = BINARY_ENCODING_BASE64
+
+            elif v in ('urlsafe_base64', BINARY_ENCODING_URLSAFE_BASE64):
+                # the Xml Schema Standard does not define urlsafe base64
+                # FIXME: produce a regexp that validates urlsafe base64 strings
+                tn = 'string'
+                kwargs['encoding'] = BINARY_ENCODING_URLSAFE_BASE64
 
             elif v in ('hex', 'hexBinary', BINARY_ENCODING_HEX):
                 # This string is defined in the Xml Schema Standard
@@ -136,6 +146,25 @@ binary_decoding_handlers = {
 }
 
 
+class HybridFileStore(object):
+    def __init__(self, store_path, db_format='json'):
+        """Hybrid Sql/Filesystem store.
+
+        :param store_path: The path where the file contents are stored. If
+            this is converted to an absolute path if it's not already one.
+        :param db_format: The format (and the relevant column type) used to
+            store file metadata. Currently only 'json' is implemented.
+        """
+
+        self.store = abspath(store_path)
+        self.db_format = db_format
+
+        if not isdir(self.store):
+            os.makedirs(self.store)
+
+        assert isdir(self.store)
+
+
 class File(SimpleModel):
     """A compact way of dealing with incoming files for protocols with a
     standard way of encoding file metadata along with binary data. (E.g. Http)
@@ -152,7 +181,7 @@ class File(SimpleModel):
         One of (None, 'base64', 'hex')
         """
 
-    class Value(object):
+    class Value(ComplexModel):
         """The class for values marked as ``File``.
 
         :param name: Original name of the file
@@ -164,19 +193,29 @@ class File(SimpleModel):
             It is ignored unless the ``path`` argument is ``None``.
         """
 
+        _type_info = [
+            ('name', Unicode(encoding='utf8')),
+            ('type', Unicode),
+            ('data', ByteArray(logged=False)),
+        ]
+
         def __init__(self, name=None, path=None, type='application/octet-stream',
-                                                            data=None, handle=None):
+                                            data=None, handle=None, move=False):
+
             self.name = name
             if self.name is not None:
-                assert os.path.basename(self.name) == self.name
+                if not os.path.basename(self.name) == self.name:
+                    raise ValidationError(self.name,
+                                 "File name %r should not contain any '/' char")
 
             self.path = path
-            if self.path is not None:
-                assert os.path.isabs(self.path)
-
             self.type = type
             self.data = data
             self.handle = handle
+            self.move = move
+            self.abspath = None
+            if self.path is not None:
+                self.abspath = abspath(self.path)
 
         def rollover(self):
             """This method normalizes the file object by making ``path``,
@@ -213,10 +252,11 @@ class File(SimpleModel):
                            "if you want to read it back."
         f = open(value.path, 'rb')
 
-        data = f.read(0x4000) # this needs to be a multiple of 4 (for base64)
+        # base64 encodes every 3 bytes to 4 base64 characters
+        data = f.read(0x4001) # so this needs to be a multiple of 3
         while len(data) > 0:
             yield base64.b64encode(data)
-            data = f.read(0x4000)
+            data = f.read(0x4001)
 
         f.close()
 
@@ -227,12 +267,13 @@ class File(SimpleModel):
         return File.Value(data=[base64.b64decode(value)])
 
     def __repr__(self):
-        return "File(name=%r, path=%r, type=%r, data=%r)" % (self.name,
-                                                self.path, self.type, self.data)
+        return "File(name=%r, path=%r, type=%r, data=%r)" % \
+                                    (self.name, self.path, self.type, self.data)
 
     @classmethod
     def store_as(cls, what):
         return cls.customize(store_as=what)
+
 
 # **DEPRECATED!** Use ByteArray or File instead.
 class Attachment(ModelBase):
@@ -244,12 +285,12 @@ class Attachment(ModelBase):
         self.file_name = file_name
 
     def save_to_file(self):
-        '''This method writes the data to the specified file.  This method
+        """This method writes the data to the specified file.  This method
         assumes that the file_name is the full path to the file to be written.
         This method also assumes that self.data is the base64 decoded data,
         and will do no additional transformations on it, simply write it to
         disk.
-        '''
+        """
 
         if not self.data:
             raise Exception("No data to write")
@@ -262,9 +303,9 @@ class Attachment(ModelBase):
         f.close()
 
     def load_from_file(self):
-        '''This method loads the data from the specified file, and does
+        """This method loads the data from the specified file, and does
         no encoding/decoding of the data
-        '''
+        """
         if not self.file_name:
             raise Exception("No file_name specified")
         f = open(self.file_name, 'rb')

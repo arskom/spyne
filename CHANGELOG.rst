@@ -48,9 +48,19 @@ spyne-2.11.0
 * Removed ``@nillable_string`` and ``@nillable_string_iterable`` decorators from
   type (de)serializers from/to string. These methods are meant to be used via the
   wrapper functions {from,to}_string in ``ProtocolBase``\.
-* Adds (or restores) support for > 1 XmlAttribute referencing the same 'attribute_of' element
+* Spyne now tracks subclasses and adds them to the interface if they have the same
+  namespace as their parent.
+* Simple dictionary protocol's ``hier_delim`` default value is now '.'
+* Fixes support for > 1 XmlAttribute referencing the same 'attribute_of' element
   in a ComplexModel subclass.
 * Many, many, many bugs fixed.
+
+spyne-2.10.10
+-------------
+* Fix wsdl rendering in TwistedWebResource.
+* Fix http response header propagation in TwistedWebResource.
+* Fix handling of fractions in microsecond values.
+* Fix spyne.util.get_validation_schema()
 
 spyne-2.10.9
 ------------

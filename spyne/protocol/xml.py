@@ -206,7 +206,7 @@ class XmlDocument(SubXmlBase):
                 strip_cdata=True,
                 resolve_entities=False,
                 huge_tree=False,
-                compact=True
+                compact=True,
             ):
         super(XmlDocument, self).__init__(app, validator)
         self.xml_declaration = xml_declaration
@@ -230,6 +230,7 @@ class XmlDocument(SubXmlBase):
             Attachment: self.attachment_to_parent,
             XmlAttribute: self.xmlattribute_to_parent,
             ComplexModelBase: self.complex_to_parent,
+            SchemaValidationError: self.schema_validation_error_to_parent,
         })
 
         self.deserialization_handlers = cdict({
@@ -318,10 +319,11 @@ class XmlDocument(SubXmlBase):
     def __validate_lxml(self, payload):
         ret = self.validation_schema.validate(payload)
 
-        logger.debug("Validated ? %s" % str(ret))
+        logger.debug("Validated ? %r" % ret)
         if ret == False:
-            raise SchemaValidationError(
-                               str(self.validation_schema.error_log.last_error))
+            error_text = unicode(self.validation_schema.error_log.last_error)
+            raise SchemaValidationError(error_text.encode('ascii',
+                                                           'xmlcharrefreplace'))
 
     def create_in_document(self, ctx, charset=None):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
@@ -565,7 +567,7 @@ class XmlDocument(SubXmlBase):
                 if isgenerator(ret):
                     try:
                         while True:
-                            y = (yield) # may throw Break
+                            y = (yield)
                             ret.send(y)
 
                     except Break:
@@ -713,6 +715,21 @@ class XmlDocument(SubXmlBase):
         subelts = [
             E("faultcode", '%s:%s' % (_pref_soap_env, inst.faultcode)),
             E("faultstring", inst.faultstring),
+            E("faultactor", inst.faultactor),
+        ]
+        if inst.detail != None:
+            _append(subelts, E('detail', inst.detail))
+
+        # add other nonstandard fault subelements with get_members_etree
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+
+    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
+        tag_name = "{%s}Fault" % _ns_soap_env
+
+        subelts = [
+            E("faultcode", '%s:%s' % (_pref_soap_env, inst.faultcode)),
+            # HACK: Does anyone know a better way of injecting raw xml entities?
+            E("faultstring", html.fromstring(inst.faultstring).text),
             E("faultactor", inst.faultactor),
         ]
         if inst.detail != None:

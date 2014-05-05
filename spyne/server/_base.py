@@ -23,11 +23,13 @@ logger = logging.getLogger(__name__)
 from inspect import isgenerator
 
 from spyne import EventManager
+from spyne.auxproc import process_contexts
+from spyne.interface import AllYourInterfaceDocuments
+from spyne.model import Fault
+from spyne.model import PushBase
+from spyne.protocol import ProtocolBase
 from spyne.util import Break
 from spyne.util import coroutine
-from spyne.model.fault import Fault
-from spyne.protocol import ProtocolBase
-from spyne.interface import AllYourInterfaceDocuments
 
 
 class ServerBase(object):
@@ -102,7 +104,6 @@ class ServerBase(object):
         else:
             raise ctx.in_error
 
-    @coroutine
     def get_out_string_pull(self, ctx):
         """Uses the ``ctx.out_object`` to set ``ctx.out_document`` and later
         ``ctx.out_string``."""
@@ -115,16 +116,16 @@ class ServerBase(object):
         if ctx.out_document is None:
             ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
             if isgenerator(ret):
-                try:
-                    while True:
-                        y = (yield)
-                        ret.send(y)
+                oobj, = ctx.out_object
+                if oobj is None:
+                    ret.throw(Break())
 
-                except Break:
-                    try:
-                        ret.throw(Break())
-                    except StopIteration:
-                        pass
+                else:
+                    assert isinstance(oobj, PushBase), \
+                                          "%r is not a PushBase instance" % oobj
+
+                    self.run_push(oobj, ctx, [], ret)
+                    oobj.close()
 
         if ctx.service_class != None:
             if ctx.out_error is None:
@@ -147,6 +148,8 @@ class ServerBase(object):
         if ctx.out_string is None:
             ctx.out_string = [""]
 
+
+    # for backwards compatibility
     get_out_string = get_out_string_pull
 
     @coroutine
@@ -166,7 +169,22 @@ class ServerBase(object):
                 except StopIteration:
                     pass
 
-    def serve_forever():
+    def serve_forever(self):
         """Implement your event loop here, if needed."""
 
         raise NotImplementedError()
+
+    def run_push(self, ret, p_ctx, others, gen):
+        assert isinstance(ret, PushBase)
+
+        assert p_ctx.out_stream is not None
+
+        # fire events
+        p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
+        if p_ctx.service_class is not None:
+            p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
+
+        def _cb_push_finish():
+            process_contexts(self, others, p_ctx)
+
+        ret.init(p_ctx, p_ctx.out_stream, gen, _cb_push_finish, None)

@@ -19,10 +19,12 @@
 
 """A Convenience module for wsgi wrapper routines."""
 
-import os
 import logging
 logger = logging.getLogger(__name__)
 
+import os
+
+from spyne import Application
 from spyne.server.wsgi import WsgiApplication
 
 
@@ -32,7 +34,9 @@ class WsgiMounter(object):
     instances.
 
     :param mounts: dict of :class:`spyne.application.Application` instances
-    whose keys are url fragments.
+    whose keys are url fragments. Use ``''`` or ``'/'`` as key to set the
+    default handler. When a default handler is not set, an empty 404 page is
+    returned.
     """
 
     @staticmethod
@@ -41,8 +45,19 @@ class WsgiMounter(object):
         return []
 
     def __init__(self, mounts=None):
-        self.mounts = dict([(k, WsgiApplication(v)) for k,v in
-                                                        (mounts or {}).items()])
+        self.mounts = {}
+
+        for k, v in (mounts or {}).items():
+            if isinstance(v, Application):
+                app = WsgiApplication(v)
+            else:
+                assert callable(v), "%r is not a valid wsgi app." % v
+                app = v
+
+            if k in ('', '/'):
+                self.default = app
+            else:
+                self.mounts[k] = app
 
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
@@ -53,11 +68,20 @@ class WsgiMounter(object):
             script = fragments[0]
 
         app = self.mounts.get(script, self.default)
+        if app is self.default:
+            return app(environ, start_response)
 
         original_script_name = environ.get('SCRIPT_NAME', '')
 
+        if len(script) > 0:
+            script = "/" + script
         environ['SCRIPT_NAME'] = ''.join(('/', original_script_name, script))
-        environ['PATH_INFO'] = ''.join(('/', '/'.join(fragments[1:])))
+        pi = ''.join(('/', '/'.join(fragments[1:])))
+
+        if pi == '/':
+            environ['PATH_INFO'] = ''
+        else:
+            environ['PATH_INFO'] = pi
 
         return app(environ, start_response)
 

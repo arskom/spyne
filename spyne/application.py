@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-
 import logging
 logger = logging.getLogger(__name__)
 logger_client = logging.getLogger('.'.join([__name__, 'client']))
@@ -29,7 +28,7 @@ from spyne.model.fault import Fault
 from spyne.interface import Interface
 from spyne import EventManager
 from spyne.util.appreg import register_application
-from spyne.error import ResourceNotFoundError
+from spyne.error import RespawnError
 
 
 def get_fault_string_from_exception(e):
@@ -193,24 +192,50 @@ class Application(object):
         elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
             ctx.in_object = []
 
+        retval = None
+
         # service rpc
-        if ctx.descriptor.service_class is not None:
-            return ctx.descriptor.service_class.call_wrapper(ctx)
+        if ctx.descriptor.no_self:
+            retval = ctx.descriptor.service_class.call_wrapper(ctx)
 
         # class rpc
-        cls = ctx.descriptor.parent_class
-        if cls.__orig__ is not None:
-            cls = cls.__orig__
-        inst = cls.__respawn__(ctx)
-        if inst is None:
-            raise ResourceNotFoundError('{%s}%s' %
+        else:
+            cls = ctx.descriptor.parent_class
+            if cls.__orig__ is not None:
+                cls = cls.__orig__
+
+            inst = cls.__respawn__(ctx)
+            if inst is None:
+                raise RespawnError('{%s}%s' %
                                      (cls.get_namespace(), cls.get_type_name()))
-        args = ctx.in_object[1:]
-        if ctx.function is not None:
-            if ctx.descriptor.no_ctx:
-                return ctx.function(inst, *args)
+            in_cls = ctx.descriptor.in_message
+
+            args = ctx.in_object
+            if args is None:
+                args = []
+
+            elif ctx.descriptor.body_style is BODY_STYLE_WRAPPED and \
+                                        len(in_cls.get_flat_type_info(in_cls)) <= 1:
+                args = []
+
             else:
-                return ctx.function(inst, ctx, *args)
+                args = args[1:]
+
+            if ctx.descriptor.service_class is not None:
+                ctx.in_object = [inst, ctx]
+                ctx.in_object.extend(args)
+
+                # hack to make sure inst goes first
+                ctx.descriptor.no_ctx = True
+                retval = ctx.descriptor.service_class.call_wrapper(ctx)
+
+            elif ctx.function is not None:
+                if ctx.descriptor.no_ctx:
+                    retval = ctx.function(inst, *args)
+                else:
+                    retval = ctx.function(inst, ctx, *args)
+
+        return retval
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()

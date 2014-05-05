@@ -18,19 +18,20 @@
 #
 
 import logging
-from time import strptime, mktime
-
 logger = logging.getLogger(__name__)
 
 import pytz
 import uuid
+import errno
 
-from copy import copy
+from os.path import isabs, join
 from collections import deque
 from datetime import timedelta, time, datetime, date
 from math import modf
 from decimal import Decimal as D, InvalidOperation
 from pytz import FixedOffset
+from mmap import mmap, ACCESS_READ
+from time import strptime, mktime
 
 try:
     from lxml import etree
@@ -48,21 +49,20 @@ from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_413
 from spyne.const.http import HTTP_500
 
-from spyne.error import Fault
+from spyne.error import Fault, InternalError
 from spyne.error import ResourceNotFoundError
 from spyne.error import RequestTooLongError
 from spyne.error import RequestNotAllowed
 from spyne.error import InvalidCredentialsError
 from spyne.error import ValidationError
 
-from spyne.model.binary import Attachment
 from spyne.model.binary import binary_encoding_handlers
 from spyne.model.binary import binary_decoding_handlers
 from spyne.model.binary import BINARY_ENCODING_USE_DEFAULT
 from spyne.model.primitive import _time_re
 from spyne.model.primitive import _duration_re
 
-from spyne.model import ModelBase, XmlAttribute
+from spyne.model import ModelBase, XmlAttribute, Array
 from spyne.model import SimpleModel
 from spyne.model import Null
 from spyne.model import ByteArray
@@ -152,6 +152,7 @@ class ProtocolBase(object):
 
         self._to_string_handlers = cdict({
             ModelBase: self.model_base_to_string,
+            File: self.file_to_string,
             Time: self.time_to_string,
             Uuid: self.uuid_to_string,
             Null: self.null_to_string,
@@ -197,6 +198,7 @@ class ProtocolBase(object):
             ByteArray: self.byte_array_from_string,
             ModelBase: self.model_base_from_string,
             Attachment: self.attachment_from_string,
+            XmlAttribute: self.xmlattribute_from_string,
             ComplexModelBase: self.complex_model_base_from_string
         })
 
@@ -223,6 +225,21 @@ class ProtocolBase(object):
     @property
     def app(self):
         return self.__app
+
+    @staticmethod
+    def strip_wrappers(cls, inst):
+        ti = getattr(cls, '_type_info', {})
+
+        while len(ti) == 1 and cls.Attributes._wrapper:
+            # Wrappers are auto-generated objects that have exactly one
+            # child type.
+            key, = ti.keys()
+            if not issubclass(cls, Array):
+                inst = getattr(inst, key, None)
+            cls, = ti.values()
+            ti = getattr(cls, '_type_info', {})
+
+        return cls, inst
 
     def set_app(self, value):
         assert self.__app is None, "One protocol instance should belong to one " \
@@ -282,8 +299,9 @@ class ProtocolBase(object):
         for d in call_handles:
             assert d is not None
 
-            c = copy(ctx)
+            c = ctx.copy()
             c.descriptor = d
+
             retval.append(c)
 
         return retval
@@ -332,6 +350,9 @@ class ProtocolBase(object):
 
     def from_string(self, class_, string, *args, **kwargs):
         if string is None:
+            return None
+
+        if string == '' and class_.Attributes.empty_is_none:
             return None
 
         handler = self._from_string_handlers[class_]
@@ -389,7 +410,8 @@ class ProtocolBase(object):
 
     def unicode_to_string(self, cls, value):
         retval = value
-        if cls.Attributes.encoding is not None and isinstance(value, six.text_type):
+        if cls.Attributes.encoding is not None and \
+                                               isinstance(value, six.text_type):
             retval = value.encode(cls.Attributes.encoding)
         if cls.Attributes.format is None:
             return retval
@@ -400,10 +422,11 @@ class ProtocolBase(object):
         retval = value
         if isinstance(value, str):
             if cls.Attributes.encoding is None:
-                retval = six.text_type(value, errors=cls.Attributes.unicode_errors)
+                retval = six.text_type(value,
+                                           errors=cls.Attributes.unicode_errors)
             else:
                 retval = six.text_type(value, cls.Attributes.encoding,
-                                              errors=cls.Attributes.unicode_errors)
+                                           errors=cls.Attributes.unicode_errors)
         return retval
 
     def string_from_string(self, cls, value):
@@ -658,13 +681,48 @@ class ProtocolBase(object):
 
         return File.Value(data=binary_decoding_handlers[encoding](value))
 
+    def file_to_string(self, cls, value, suggested_encoding=None):
+        """
+        :param cls: A :class:`spyne.model.File` subclass
+        :param value: Either a sequence of byte chunks or a
+            :class:`spyne.model.File.Value` instance.
+        """
+
+        encoding = cls.Attributes.encoding
+        if encoding is BINARY_ENCODING_USE_DEFAULT:
+            encoding = suggested_encoding
+
+        if isinstance(value, File.Value):
+            if value.data is not None:
+                return binary_encoding_handlers[encoding](value.data)
+
+            if value.handle is not None:
+                assert isinstance(value.handle, file)
+
+                fileno = value.handle.fileno()
+                data = mmap(fileno, 0, access=ACCESS_READ)
+
+                return binary_encoding_handlers[encoding](data)
+
+        else:
+            return binary_encoding_handlers[encoding](value)
+
     def file_to_string_iterable(self, cls, value):
         if value.data is None:
             if value.handle is None:
                 assert value.path is not None, "You need to write data to " \
-                            "persistent storage first if you want to read it back."
+                         "persistent storage first if you want to read it back."
 
-                f = open(value.path, 'rb')
+                try:
+                    path = value.path
+                    if not isabs(value.path):
+                        path = join(value.store, value.path)
+                    f = open(path, 'rb')
+                except IOError as e:
+                    if e.errno == errno.ENOENT:
+                        raise ResourceNotFoundError(value.path)
+                    else:
+                        raise InternalError("Error accessing requested file")
 
             else:
                 f = value.handle
@@ -673,7 +731,11 @@ class ProtocolBase(object):
             return _file_to_iter(f)
 
         else:
-            return iter(value.data)
+            if isinstance(value.data, (list,tuple)) and \
+                                                isinstance(value.data[0], mmap):
+                return _file_to_iter(value.data[0])
+            else:
+                return iter(value.data)
 
     def simple_model_to_string_iterable(self, cls, value):
         retval = self.to_string(cls, value)
@@ -804,7 +866,7 @@ def _datetime_to_string(cls, value):
     if format is None:
         ret_str = value.isoformat()
     else:
-        ret_str = datetime.strftime(value, format)
+        ret_str = value.strftime(format)
 
     string_format = cls.Attributes.string_format
     if string_format is None:

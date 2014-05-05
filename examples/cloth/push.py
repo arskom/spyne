@@ -29,71 +29,47 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
 """
-This is a simple HelloWorld example to show the basics of writing
-a webservice using spyne, starting a server, and creating a service
-client.
-
-Here's how to call it using suds:
-
->>> from suds.client import Client
->>> c = Client('http://localhost:8000/?wsdl')
->>> c.service.say_hello('punk', 5)
-(stringArray){
-   string[] =
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
- }
->>>
+This is a simple HelloWorld example to show the basics of writing a Http api
+using Spyne's push utilities.
 """
 
 
 import logging
 
 from spyne.application import Application
-from spyne.protocol.soap import Soap11
-from spyne.server.wsgi import WsgiApplication
-
 from spyne.decorator import rpc
+from spyne.protocol.cloth import XmlCloth
+from spyne.protocol.http import HttpRpc
 from spyne.service import ServiceBase
-from spyne.model import Iterable
-from spyne.model import Integer
-from spyne.model import Unicode
+from spyne.model.complex import Iterable
+from spyne.model.primitive import UnsignedInteger
+from spyne.model.primitive import String
+from spyne.server.wsgi import WsgiApplication
 
 
 class HelloWorldService(ServiceBase):
-    @rpc(Unicode, Integer, _returns=Iterable(Unicode))
+    @rpc(String, UnsignedInteger, _returns=Iterable(String))
     def say_hello(ctx, name, times):
-        """Docstrings for service methods appear as documentation in the wsdl.
-        <b>What fun!</b>
-
-        @param name the name to say hello to
-        @param times the number of times to say hello
-        @return the completed array
-        """
-
-        for i in range(times):
-            yield u'Hello, %s' % name
-
+        def cb(ret):
+            for i in range(times):
+                ret.append('Hello, %s' % name)
+        return Iterable.Push(cb)
 
 if __name__=='__main__':
     from wsgiref.simple_server import make_server
-
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
+    application = Application([HelloWorldService], 'spyne.examples.hello.http',
+        in_protocol=HttpRpc(validator='soft'),
+        out_protocol=XmlCloth(),
+    )
+
+    wsgi_application = WsgiApplication(application)
+
+    server = make_server('127.0.0.1', 8000, wsgi_application)
 
     logging.info("listening to http://127.0.0.1:8000")
     logging.info("wsdl is at: http://localhost:8000/?wsdl")
 
-    application = Application([HelloWorldService], 'spyne.examples.hello.soap',
-                in_protocol=Soap11(validator='lxml'),
-                out_protocol=Soap11()
-            )
-    wsgi_application = WsgiApplication(application)
-
-    server = make_server('127.0.0.1', 8000, wsgi_application)
     server.serve_forever()

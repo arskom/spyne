@@ -143,11 +143,11 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
-from spyne.util import six
-
+from pprint import pprint
 from collections import deque
 from collections import defaultdict
 
+from spyne.util import six
 from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
 
@@ -175,7 +175,9 @@ def _check_freq_dict(cls, d, fti=None):
     if fti is None:
         fti = cls.get_flat_type_info(cls)
 
-    for k,v in fti.items():
+    pprint(d)
+    for k, v in fti.items():
+        print cls, k, v
         val = d[k]
 
         min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
@@ -184,11 +186,12 @@ def _check_freq_dict(cls, d, fti=None):
             min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
 
         if val < min_o:
-            raise ValidationError(k,
-                            '%%r member must occur at least %d times.' % min_o)
+            raise ValidationError("%r.%s" % (cls, k),
+                            '%%s member must occur at least %d times.' % min_o)
         elif val > max_o:
-            raise ValidationError(k,
-                            '%%r member must occur at most %d times.' % max_o)
+            print cls, k
+            raise ValidationError("%r.%s" % (cls, k),
+                            '%%s member must occur at most %d times.' % max_o)
 
 
 class DictDocument(ProtocolBase):
@@ -276,22 +279,31 @@ class SimpleDictDocument(DictDocument):
     flat dictionaries. The only example as of now is Http.
     """
 
-    def simple_dict_to_object(self, doc, inst_class, validator=None,
-                                                hier_delim="_", req_enc=None):
+    def __init__(self, app=None, validator=None, mime_type=None,
+                 ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
+                 ordered=False, hier_delim='.'):
+        super(SimpleDictDocument, self).__init__(app=app, validator=validator,
+                        mime_type=mime_type, ignore_uncap=ignore_uncap,
+                        ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                        ordered=ordered)
+
+        self.hier_delim = hier_delim
+
+    def simple_dict_to_object(self, doc, inst_class, validator=None, req_enc=None):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
         """
 
-
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
-        validate_freq = inst_class.Attributes.validate_freq
-        if validator is self.SOFT_VALIDATION and validate_freq:
+        if validator is self.SOFT_VALIDATION:
             _fill(inst_class, frequencies)
 
         retval = inst_class.get_deserialization_instance()
-        simple_type_info = inst_class.get_simple_type_info(inst_class)
+        simple_type_info = inst_class.get_simple_type_info(inst_class,
+                                                     hier_delim=self.hier_delim)
+
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
@@ -312,8 +324,13 @@ class SimpleDictDocument(DictDocument):
                                         and not isinstance(v2, unicode):
                     v2 = v2.decode(req_enc)
 
-                if (validator is self.SOFT_VALIDATION and not
+                try:
+                    if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
+
+                        raise ValidationError((orig_k, v2))
+
+                except TypeError:
                     raise ValidationError((orig_k, v2))
 
                 if issubclass(member.type, File):
@@ -349,8 +366,6 @@ class SimpleDictDocument(DictDocument):
             cfreq_key = inst_class, idx
 
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
-            validates = deque()
-
             for pkey in member.path[:-1]:
                 nidx = 0
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
@@ -386,7 +401,7 @@ class SimpleDictDocument(DictDocument):
 
                 cfreq_key = cfreq_key + (ncls, nidx)
                 idx = nidx
-                ctype_info = ncls._type_info
+                ctype_info = ncls.get_flat_type_info(ncls)
 
             frequencies[cfreq_key][member.path[-1]] += len(value)
 
@@ -403,14 +418,18 @@ class SimpleDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-        if validator is self.SOFT_VALIDATION and validate_freq:
+        if validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
-                _check_freq_dict(k[-2], d)
+                for path_cls in k[:-1:2]:
+                    if not path_cls.Attributes.validate_freq:
+                        break
+                else:
+                    _check_freq_dict(path_cls, d)
 
         return retval
 
-    def object_to_simple_dict(self, inst_cls, value, hier_delim="_", retval=None,
-                     prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
+    def object_to_simple_dict(self, inst_cls, value, retval=None,
+         prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v, tags=None):
         """Converts a native python object to a flat dict.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -424,6 +443,12 @@ class SimpleDictDocument(DictDocument):
 
         if value is None and inst_cls.Attributes.min_occurs == 0:
             return retval
+
+        if tags is None:
+            tags = set([id(value)])
+        else:
+            if id(value) in tags:
+                return retval
 
         if issubclass(inst_cls, ComplexModelBase):
             fti = inst_cls.get_flat_type_info(inst_cls)
@@ -441,7 +466,7 @@ class SimpleDictDocument(DictDocument):
                         subtype = v
 
                     if issubclass(subtype, SimpleModel):
-                        key = hier_delim.join(new_prefix)
+                        key = self.hier_delim.join(new_prefix)
                         l = []
                         for ssv in subvalue:
                             l.append(subvalue_eater(self, ssv, subtype))
@@ -451,17 +476,16 @@ class SimpleDictDocument(DictDocument):
                         last_prefix = new_prefix[-1]
                         for i, ssv in enumerate(subvalue):
                             new_prefix[-1] = '%s[%d]' % (last_prefix, i)
-                            self.object_to_simple_dict(subtype, ssv, hier_delim,
-                                        retval, new_prefix, parent=inst_cls,
-                                        subvalue_eater=subvalue_eater)
+                            self.object_to_simple_dict(subtype, ssv,
+                                   retval, new_prefix, parent=inst_cls,
+                                   subvalue_eater=subvalue_eater, tags=tags)
 
                 else:
-                    self.object_to_simple_dict(v, subvalue, hier_delim,
-                                            retval, new_prefix, parent=inst_cls,
-                                            subvalue_eater=subvalue_eater)
+                    self.object_to_simple_dict(v, subvalue, retval, new_prefix,
+                      parent=inst_cls, subvalue_eater=subvalue_eater, tags=tags)
 
         else:
-            key = hier_delim.join(prefix)
+            key = self.hier_delim.join(prefix)
 
             if key in retval:
                 raise ValueError("%r.%s conflicts with previous value %r" %
@@ -551,10 +575,16 @@ class HierDictDocument(DictDocument):
             return value
 
         # get native type
-        if issubclass(class_, ComplexModelBase):
+        if issubclass(class_, File) and isinstance(value, self.complex_as):
+            retval = self._doc_to_object(File.Value, value, validator)
+
+        elif issubclass(class_, ComplexModelBase):
             retval = self._doc_to_object(class_, value, validator)
 
         else:
+            if value == '' and class_.Attributes.empty_is_none:
+                value = None
+
             if (validator is self.SOFT_VALIDATION
                                 and isinstance(value, six.string_types)
                                 and not class_.validate_string(class_, value)):
@@ -563,7 +593,6 @@ class HierDictDocument(DictDocument):
             if issubclass(class_, (ByteArray, File)):
                 retval = self.from_string(class_, value,
                                                    self.default_binary_encoding)
-
             else:
                 retval = self.from_string(class_, value)
 
@@ -599,10 +628,12 @@ class HierDictDocument(DictDocument):
         try:
             items = doc.items()
         except AttributeError:
+            # Input is not a dict, so we assume it's a sequence that we can pair
+            # with the incoming sequence with field names.
             items = zip(class_._type_info.keys(), doc)
 
         # parse input to set incoming data to related attributes.
-        for k,v in items:
+        for k, v in items:
             member = flat_type_info.get(k, None)
             if member is None:
                 continue
@@ -659,6 +690,9 @@ class HierDictDocument(DictDocument):
                 yield r
 
         for k, v in class_._type_info.items():
+            if getattr(v.Attributes, 'exc_dict', None):
+                continue
+
             try:
                 sub_value = getattr(inst, k, None)
             # to guard against e.g. sqlalchemy throwing NoSuchColumnError
@@ -666,12 +700,20 @@ class HierDictDocument(DictDocument):
                 logger.error("Error getting %r: %r" %(k,e))
                 sub_value = None
 
+            if sub_value is None:
+                sub_value = v.Attributes.default
+
             val = self._object_to_doc(v, sub_value)
-            if val is not None or v.Attributes.min_occurs > 0:
-                yield (k, val)
+            min_o = v.Attributes.min_occurs
+
+            if val is not None or min_o > 0 or self.complex_as is list:
+                sub_name = v.Attributes.sub_name
+                if sub_name is None:
+                    sub_name = k
+
+                yield (sub_name, val)
 
     def _to_value(self, cls, value):
-        #import ipdb; ipdb.set_trace()
         if issubclass(cls, AnyDict):
             return value
 
@@ -680,15 +722,25 @@ class HierDictDocument(DictDocument):
             return self._object_to_doc(st, value)
 
         if issubclass(cls, ComplexModelBase):
-            if self.complex_as is list:
-                return list(self._complex_to_list(cls, value))
-            else:
-                return self._complex_to_dict(cls, value)
+            return self._complex_to_doc(cls, value)
+
+        if issubclass(cls, File) and isinstance(value, File.Value):
+            retval = self._complex_to_doc(File.Value, value)
+            if self.complex_as is dict and not self.ignore_wrappers:
+                retval = iter(retval.values()).next()
+
+            return retval
 
         if issubclass(cls, (ByteArray, File)):
             return self.to_string(cls, value, self.default_binary_encoding)
 
         return self.to_string(cls, value)
+
+    def _complex_to_doc(self, cls, value):
+        if self.complex_as is list:
+            return list(self._complex_to_list(cls, value))
+        else:
+            return self._complex_to_dict(cls, value)
 
     def _complex_to_dict(self, class_, inst):
         inst = class_.get_serialization_instance(inst)

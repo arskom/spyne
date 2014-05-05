@@ -20,22 +20,28 @@
 from __future__ import absolute_import
 
 import logging
-from spyne.auxproc import process_contexts
-from spyne.model import Fault
-
 logger = logging.getLogger(__name__)
 
 import msgpack
 
 from spyne import MethodContext, TransportContext
+from spyne.auxproc import process_contexts
 from spyne.error import ValidationError
+from spyne.model import Fault
 from spyne.server import ServerBase
+from spyne.util.six import string_types
 
+
+OUT_RESPONSE_NO_ERROR = 0
+OUT_RESPONSE_CLIENT_ERROR = 1
+OUT_RESPONSE_SERVER_ERROR = 2
+
+IN_REQUEST = 1
 
 def _process_v1_msg(prot, msg):
     header = None
     body = msg[1]
-    if not isinstance(body, basestring):
+    if not isinstance(body, string_types):
         raise ValidationError(body, "Body must be a bytestream.")
 
     if len(msg) > 2:
@@ -68,19 +74,20 @@ class MessagePackMethodContext(MethodContext):
 
 
 class MessagePackServerBase(ServerBase):
-    """Contains the transport protocol logic but not the transport itself."""
+    """Contains the transport protocol logic but not the transport itself.
+
+    Subclasses should implement logic to move bitstreams in and out of this
+    class."""
 
     def __init__(self, app):
         super(MessagePackServerBase, self).__init__(app)
 
         self._version_map = {
-            1: _process_v1_msg
+            IN_REQUEST: _process_v1_msg
         }
 
     def produce_contexts(self, msg):
-        """msg = [1, body, header]"""
-
-        logger.debug("Request object: %r", msg)
+        """msg = [IN_REQUEST, body, header]"""
 
         if not isinstance(msg, list):
             raise ValidationError("Request must be a list")
@@ -97,6 +104,7 @@ class MessagePackServerBase(ServerBase):
 
         initial_ctx = processor(self, msg)
         contexts = self.generate_contexts(initial_ctx)
+
         return contexts[0], contexts[1:]
 
     def process_contexts(self, contexts):
@@ -110,12 +118,12 @@ class MessagePackServerBase(ServerBase):
             logger.error(p_ctx.in_error)
             return self.handle_error(p_ctx, others, p_ctx.in_error)
 
-        self.get_out_object(contexts)
-        if contexts.out_error:
-            return self.handle_error(contexts, others, contexts.out_error)
+        self.get_out_object(p_ctx)
+        if p_ctx.out_error:
+            return self.handle_error(p_ctx, others, p_ctx.out_error)
 
         try:
-            self.get_out_string(contexts)
+            self.get_out_string(p_ctx)
 
         except Exception as e:
             logger.exception(e)
@@ -133,3 +141,6 @@ class MessagePackServerBase(ServerBase):
 
     def handle_transport_error(self, error):
         return msgpack.pack(str(error))
+
+    def pack(self, ctx):
+        ctx.out_string = msgpack.packb({OUT_RESPONSE_NO_ERROR: ''.join(ctx.out_string)}),

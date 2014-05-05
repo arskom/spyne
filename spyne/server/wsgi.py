@@ -37,9 +37,9 @@ except ImportError: # Python 2
 
 try:
     from werkzeug.formparser import parse_form_data
-except ImportError as e:
+except ImportError as import_error:
     def parse_form_data(*args, **kwargs):
-        raise e
+        raise import_error
 
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
@@ -47,7 +47,6 @@ from spyne.error import RequestTooLongError
 from spyne.model.binary import File
 from spyne.model.fault import Fault
 from spyne.protocol.http import HttpRpc
-from spyne.protocol.http import HttpPattern
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
@@ -66,6 +65,7 @@ try:
 except ImportError as e:
     def apply_mtom(*args, **kwargs):
         raise e
+
 
 def _parse_qs(qs):
     pairs = (s2 for s1 in qs.split('&') for s2 in s1.split(';'))
@@ -157,7 +157,7 @@ def _is_wsdl_request(req_env):
 
 
 class WsgiApplication(HttpBase):
-    '''A `PEP-3333 <http://www.python.org/dev/peps/pep-3333>`_
+    """A `PEP-3333 <http://www.python.org/dev/peps/pep-3333>`_
     compliant callable class.
 
     If you want to have a hard-coded URL in the wsdl document, this is how to do
@@ -198,48 +198,25 @@ class WsgiApplication(HttpBase):
         * ``wsgi_close``
             Called after the whole data has been returned to the client. It's
             called both from success and error cases.
-    '''
+    """
 
-    def __init__(self, app, chunked=True,
-                max_content_length=2 * 1024 * 1024,
-                block_length=8 * 1024):
-        super(WsgiApplication, self).__init__(app, chunked, max_content_length, block_length)
+    def __init__(self, app, chunked=True, max_content_length=2 * 1024 * 1024,
+                                                         block_length=8 * 1024):
+        super(WsgiApplication, self).__init__(app, chunked, max_content_length,
+                                                                   block_length)
 
         self._mtx_build_interface_document = threading.Lock()
 
+        self._wsdl = None
         if self.doc.wsdl11 is not None:
             self._wsdl = self.doc.wsdl11.get_interface_document()
 
-        # Initialize HTTP Patterns
-        self._http_patterns = None
-        self._map_adapter = None
-        self._mtx_build_map_adapter = threading.Lock()
-
-        for k,v in self.app.interface.service_method_map.items():
-            # p_ stands for primary
-            p_method_descriptor = v[0]
-            for patt in p_method_descriptor.patterns:
-                if isinstance(patt, HttpPattern):
-                    r = patt.as_werkzeug_rule()
-
-                    # We are doing this here because we want to import Werkzeug
-                    # as late as possible.
-                    if self._http_patterns is None:
-                        from werkzeug.routing import Map
-                        self._http_patterns = Map(host_matching=True)
-
-                    self._http_patterns.add(r)
-
-    @property
-    def has_patterns(self):
-        return self._http_patterns is not None
-
     def __call__(self, req_env, start_response, wsgi_url=None):
-        '''This method conforms to the WSGI spec for callable wsgi applications
+        """This method conforms to the WSGI spec for callable wsgi applications
         (PEP 333). It looks in environ['wsgi.input'] for a fully formed rpc
         message envelope, will deserialize the request parameters and call the
         method on the object returned by the get_handler() method.
-        '''
+        """
 
         url = wsgi_url
         if url is None:
@@ -504,42 +481,42 @@ class WsgiApplication(HttpBase):
         """
 
         params = {}
+        wsgi_env = ctx.in_document
 
         if self.has_patterns:
-            from werkzeug.exceptions import NotFound
-            if self._map_adapter is None:
-                self.generate_map_adapter(ctx)
+            # http://legacy.python.org/dev/peps/pep-0333/#url-reconstruction
+            domain = wsgi_env.get('HTTP_HOST', None)
+            if domain is None:
+                domain = wsgi_env['SERVER_NAME']
+            else:
+                domain = domain.partition(':')[0] # strip port info
 
-            try:
-                #If PATH_INFO matches a url, Set method_request_string to mrs
-                mrs, params = self._map_adapter.match(
-                                            ctx.in_document["PATH_INFO"],
-                                            ctx.in_document["REQUEST_METHOD"])
-                ctx.method_request_string = mrs
-
-            except NotFound:
-                pass
+            params = self.match_pattern(ctx,
+                    wsgi_env.get('REQUEST_METHOD', ''),
+                    wsgi_env.get('PATH_INFO', ''),
+                    domain,
+                )
 
         if ctx.method_request_string is None:
             ctx.method_request_string = '{%s}%s' % (
                                     prot.app.interface.get_tns(),
-                                    ctx.in_document['PATH_INFO'].split('/')[-1])
+                                    wsgi_env['PATH_INFO'].split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
-        ctx.in_header_doc = _get_http_headers(ctx.in_document)
-        ctx.in_body_doc = _parse_qs(ctx.in_document['QUERY_STRING'])
+        ctx.in_header_doc = _get_http_headers(wsgi_env)
+        ctx.in_body_doc = _parse_qs(wsgi_env['QUERY_STRING'])
 
         for k, v in params.items():
              if k in ctx.in_body_doc:
-                 ctx.in_body_doc[k].append(v)
+                 ctx.in_body_doc[k].extend(v)
              else:
-                 ctx.in_body_doc[k] = [v]
+                 ctx.in_body_doc[k] = list(v)
 
-        verb = ctx.in_document['REQUEST_METHOD'].upper()
+        verb = wsgi_env['REQUEST_METHOD'].upper()
         if verb in ('POST', 'PUT', 'PATCH'):
-            stream, form, files = parse_form_data(ctx.in_document,
+            stream, form, files = parse_form_data(wsgi_env,
                                              stream_factory=prot.stream_factory)
 
             for k, v in form.lists():

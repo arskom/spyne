@@ -17,28 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from lxml.builder import ElementMaker
+"""The ``spyne.protocol.cloth`` package contains an EXPERIMENTAL protocol
+for clothing otherwise boring data.
+"""
 
-from spyne.protocol.cloth import XmlCloth
-NS_HTML = "http://www.w3.org/1999/xhtml"
-NSMAP = {None: NS_HTML}
-
-E = ElementMaker(namespace=NS_HTML)
-
-
-
-class HtmlBase(XmlCloth):
-    mime_type = 'application/xhtml+xml'
-
-    def __init__(self, *args, **kwargs):
-        super(HtmlBase, self).__init__(*args, **kwargs)
-
-        if self._cloth is not None:
-            if not self._cloth.tag.endswith('html'):
-                self._cloth = E.html(self._cloth)
-
-            print self._cloth.tag
-            if self._cloth.tag != '{%s}html' % NS_HTML:
-                for elt in self._cloth.xpath("//*"):
-                    print elt.tag
-                    elt.tag = "{%s}%s" %(NS_HTML, elt.tag)
+from spyne.protocol.cloth._base import XmlCloth
+# huge hack to have the last line of microformat.py execute
+import spyne.protocol.html

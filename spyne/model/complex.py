@@ -34,13 +34,12 @@ from inspect import isclass
 
 from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY
 from spyne import const
-
 from spyne.const import xml_ns
 
-from spyne.model import ModelBase
-from spyne.model import PushBase
-from spyne.model import Unicode
 from spyne.model import Point
+from spyne.model import Unicode
+from spyne.model import PushBase
+from spyne.model import ModelBase
 from spyne.model import json, xml, msgpack, table
 from spyne.model._base import apply_pssm
 from spyne.model.primitive import NATIVE_MAP
@@ -51,7 +50,7 @@ from spyne.util import memoize_id
 from spyne.util import sanitize_args
 from spyne.util.meta import Prepareable
 from spyne.util.odict import odict
-from spyne.util.six import add_metaclass, with_metaclass
+from spyne.util.six import add_metaclass, with_metaclass, string_types
 
 
 PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
@@ -68,6 +67,10 @@ class TypeInfo(odict):
     def __init__(self, *args, **kwargs):
         super(TypeInfo, self).__init__(*args, **kwargs)
         self.attributes = {}
+
+    def __setitem__(self, key, val):
+        assert isinstance(key, string_types)
+        super(TypeInfo, self).__setitem__(key, val)
 
 
 class _SimpleTypeInfoElement(object):
@@ -264,6 +267,7 @@ def _get_type_info(cls, cls_name, cls_dict, attrs, base_type_info):
                 v = _get_spyne_type(cls_name, k, v)
                 if v is not None:
                     class_fields.append((k, v))
+
         _type_info.update(class_fields)
 
     else:
@@ -282,49 +286,63 @@ class _MethodsDict(dict):
         self._processed = False
 
     def sanitize(self, cls):
+        # sanitize is called on every customization, so we make sure it's run
+        # only once in this class' lifetime.
         if self._processed:
             return
 
         self._processed = True
 
-        for descriptor in self.values():
-            descriptor.parent_class = cls
+        for d in self.values():
+            d.parent_class = cls
 
-            if descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
-                descriptor.in_message = cls.novalidate_freq()
-                descriptor.body_style = BODY_STYLE_BARE
+            if d.in_message_name_override:
+                d.in_message.__type_name__ = '%s.%s' % \
+                          (cls.get_type_name(), d.in_message.get_type_name())
+
+            if d.body_style is BODY_STYLE_WRAPPED or d.out_message_name_override:
+                d.out_message.__type_name__ = '%s.%s' % \
+                          (cls.get_type_name(), d.out_message.get_type_name())
+
+            if d.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
+                # The method only needs the primary key(s) and shouldn't
+                # complain when other mandatory fields are missing.
+                d.in_message = cls.novalidate_freq()
+                d.body_style = BODY_STYLE_BARE
+
             else:
-                descriptor.in_message.insert_field(0, 'self',
-                                                          cls.novalidate_freq())
-                descriptor.body_style = BODY_STYLE_WRAPPED
+                d.in_message.insert_field(0, 'self', cls.novalidate_freq())
+                d.body_style = BODY_STYLE_WRAPPED
 
-                for k, v in descriptor.in_message._type_info.items():
+                for k, v in d.in_message._type_info.items():
                     # SelfReference is replaced by descriptor.in_message itself.
                     # However, in the context of mrpc, SelfReference means
                     # parent class. here, we do that substitution. It's a safe
-                    # hack, a hack nevertheless.
-                    if v is descriptor.in_message:
-                        descriptor.in_message._type_info[k] = cls
+                    # hack but a hack nevertheless.
+                    if v is d.in_message:
+                        d.in_message._type_info[k] = cls
 
             # Same as above, for the output type.
-            for k, v in descriptor.out_message._type_info.items():
-                if v is descriptor.out_message:
-                    descriptor.out_message._type_info[k] = cls
+            for k, v in d.out_message._type_info.items():
+                if v is d.out_message:
+                    d.out_message._type_info[k] = cls
 
 
 def _gen_methods(cls_dict):
     methods = _MethodsDict()
     for k, v in cls_dict.items():
-        if not k.startswith('_'):
-            if hasattr(v, '_is_rpc'):
-                descriptor = v(_default_function_name=k)
-                cls_dict[k] = descriptor.function
-                methods[k] = descriptor
+        if not k.startswith('_') and hasattr(v, '_is_rpc'):
+            descriptor = v(_default_function_name=k)
+            cls_dict[k] = descriptor.function
+            methods[k] = descriptor
 
     return methods
 
-def _get_ordered_attributes(cls_dict, attrs):
-    assert isinstance(cls_dict, odict)
+
+def _get_ordered_attributes(cls_name, cls_dict, attrs):
+    if not isinstance(cls_dict, odict):
+        # FIXME: Maybe add a warning here?
+        return cls_dict
 
     SUPPORTED_ORDERS = ('random', 'declared')
     if (attrs.declare_order is not None and
@@ -334,7 +352,7 @@ def _get_ordered_attributes(cls_dict, attrs):
         raise Exception(msg % (attrs.declare_order, cls_name))
 
     declare_order = attrs.declare_order or const.DEFAULT_DECLARE_ORDER
-    if declare_order == 'random':
+    if declare_order is None or declare_order == 'random':
         # support old behaviour
         cls_dict = dict(cls_dict)
 
@@ -420,7 +438,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         """
 
         attrs = _gen_attrs(cls_bases, cls_dict)
-        cls_dict = _get_ordered_attributes(cls_dict, attrs)
+        cls_dict = _get_ordered_attributes(cls_name, cls_dict, attrs)
 
         type_name = cls_dict.get("__type_name__", None)
         if type_name is None:
@@ -442,7 +460,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
                 _type_info_alt.update(b._type_info_alt)
 
         _sanitize_type_info(cls_name, _type_info, _type_info_alt)
-
         _sanitize_sqlalchemy_parameters(cls_dict, attrs)
 
         return super(ComplexModelMeta, cls).__new__(cls, cls_name, cls_bases,
@@ -450,6 +467,15 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = self._type_info
+
+        extends = self.__extends__
+        if extends is not None and self.__orig__ is None:
+            eattr = extends.Attributes;
+            if eattr._subclasses is None:
+                eattr._subclasses = []
+            eattr._subclasses.append(self)
+            if self.Attributes._subclasses is eattr._subclasses:
+                self.Attributes._subclasses = None
 
         for k,v in type_info.items():
             if issubclass(v, SelfReference):
@@ -478,6 +504,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
         methods = self.Attributes.methods
         if methods is not None:
+            assert isinstance(methods, _MethodsDict)
             methods.sanitize(self)
 
         # For spyne objects reflecting an existing db table
@@ -539,7 +566,10 @@ def _fill_empty_type_name(cls, k, v, parent=False):
         if extends is not None and extends.__type_name__ is ModelBase.Empty:
             _fill_empty_type_name(cls, k, v.__extends__, parent=True)
 
+
 _is_array = lambda v: issubclass(v, Array) or (v.Attributes.min_occurs > 1)
+
+
 class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
@@ -612,6 +642,8 @@ class ComplexModelBase(ModelBase):
 
         _variants = None
         _xml_tag_body_as = None, None
+        _delayed_child_attrs = None
+        _subclasses = None
 
     def __init__(self, *args, **kwargs):
         cls = self.__class__
@@ -635,18 +667,21 @@ class ComplexModelBase(ModelBase):
                 def_fac = attr.default_factory
 
                 if def_fac is not None:
-                    # no need to check for read-only for default values
+                    # should not check for read-only for default values
                     setattr(self, k, def_fac())
 
                 elif def_val is not None:
-                    # no need to check for read-only for default values
+                    # should not check for read-only for default values
                     setattr(self, k, def_val)
 
-                elif attr.max_occurs > 1 or issubclass(v, Array):
-                    try:
-                        setattr(self, k, def_val)
-                    except TypeError: # SQLAlchemy does this
-                        setattr(self, k, [])
+                # sqlalchemy objects do their own init.
+                elif '_sa_class_manager' in cls.__dict__:
+                    # except the attributes that sqlalchemy doesn't know about
+                    if v.Attributes.exc_table:
+                        setattr(self, k, None)
+                    elif issubclass(v, ComplexModelBase) and \
+                                                  v.Attributes.store_as is None:
+                        setattr(self, k, None)
                 else:
                     setattr(self, k, None)
 
@@ -654,7 +689,15 @@ class ComplexModelBase(ModelBase):
         return len(self._type_info)
 
     def __getitem__(self, i):
-        return getattr(self, self._type_info.keys()[i], None)
+        if isinstance(i, slice):
+            retval = []
+            for key in self._type_info.keys()[i]:
+                retval.append(getattr(self, key, None))
+
+        else:
+            retval = getattr(self, self._type_info.keys()[i], None)
+
+        return retval
 
     def __repr__(self):
         return "%s(%s)" % (self.get_type_name(), ', '.join(
@@ -742,7 +785,7 @@ class ComplexModelBase(ModelBase):
 
     @staticmethod
     @memoize
-    def get_simple_type_info(cls, hier_delim="_"):
+    def get_simple_type_info(cls, hier_delim="."):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
@@ -852,11 +895,20 @@ class ComplexModelBase(ModelBase):
         retval.__namespace__ = cls.__namespace__
         retval.Attributes.parent_variant = cls
 
+        dca = retval.Attributes._delayed_child_attrs
+        if retval.Attributes._delayed_child_attrs is None:
+            retval.Attributes._delayed_child_attrs = {}
+        else:
+            retval.Attributes._delayed_child_attrs = dict(dca.items())
+
         child_attrs = kwargs.get('child_attrs', None)
         if child_attrs is not None:
             ti = retval._type_info
             for k, v in child_attrs.items():
-                ti[k] = ti[k].customize(**v)
+                if k in ti:
+                    ti[k] = ti[k].customize(**v)
+                else:
+                    retval.Attributes._delayed_child_attrs[k] = v
 
         tn = kwargs.get("type_name", None)
         if tn is not None:
@@ -884,6 +936,14 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def append_field(cls, field_name, field_type):
+        assert isinstance(field_name, string_types)
+
+        dca = cls.Attributes._delayed_child_attrs
+        if dca is not None:
+            d_cust = dca.get(field_name, None)
+            if d_cust is not None:
+                field_type = field_type.customize(**d_cust)
+
         cls._type_info[field_name] = field_type
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
@@ -893,6 +953,15 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def insert_field(cls, index, field_name, field_type):
+        assert isinstance(index, int)
+        assert isinstance(field_name, string_types)
+
+        dca = cls.Attributes._delayed_child_attrs
+        if dca is not None:
+            if field_name in dca:
+                d_cust = dca.pop(field_name)
+                field_type = field_type.customize(**d_cust)
+
         cls._type_info.insert(index, (field_name, field_type))
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
@@ -992,6 +1061,7 @@ class Array(ComplexModelBase):
         if serializer.Attributes.max_occurs == 1:
             serializer = serializer.customize(max_occurs=decimal.Decimal('inf'))
 
+        assert isinstance(member_name, string_types), member_name
         cls._type_info = {member_name: serializer}
 
     # the array belongs to its child's namespace, it doesn't have its own
@@ -1051,12 +1121,16 @@ def TTableModelBase():
         @classmethod
         def append_field(cls, field_name, field_type):
             super(TableModelBase, cls).append_field(field_name, field_type)
-            add_column(cls, field_name, field_type)
+            # There could have been changes to field_type in ComplexModel so we
+            # should not use field_type directly from above
+            add_column(cls, field_name, cls._type_info[field_name])
 
         @classmethod
         def insert_field(cls, index, field_name, field_type):
             super(TableModelBase, cls).insert_field(index, field_name, field_type)
-            add_column(cls, field_name, field_type)
+            # There could have been changes to field_type in ComplexModel so we
+            # should not use field_type directly from above
+            add_column(cls, field_name, cls._type_info[field_name])
 
     return TableModelBase
 

@@ -27,14 +27,22 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import shutil
+import sqlalchemy
+
+from mmap import mmap, ACCESS_READ
+from spyne.util.six import string_types
+
 try:
     import simplejson as json
 except ImportError:
     import json
 
 from spyne.util import six
-import sqlalchemy
 
+from os import fstat
+from os.path import join, isabs, abspath, dirname, basename, isfile
+from uuid import uuid1
 from inspect import isclass
 
 from lxml import etree
@@ -64,13 +72,14 @@ from sqlalchemy.types import UserDefinedType
 
 # internal types
 from spyne.model.enum import EnumBase
-from spyne.model.complex import XmlModifier
+from spyne.model.complex import XmlModifier, ComplexModel
 
 # Config types
 from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
 from spyne.model.complex import table as c_table
 from spyne.model.complex import msgpack as c_msgpack
+from spyne.model.binary import HybridFileStore
 
 # public types
 from spyne.model import SimpleModel, AnyDict
@@ -106,11 +115,12 @@ from spyne.model import UnsignedInteger8
 from spyne.model import UnsignedInteger16
 from spyne.model import UnsignedInteger32
 from spyne.model import UnsignedInteger64
+from spyne.model import File
 
 from spyne.util import sanitize_args
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
-from spyne.util.dictdoc import get_dict_as_object
+from spyne.util.dictdoc import get_dict_as_object, JsonDocument
 from spyne.util.dictdoc import get_object_as_json
 
 
@@ -268,7 +278,7 @@ class PGHtml(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, basestring) or value is None:
+            if isinstance(value, string_types) or value is None:
                 return value
             else:
                 return html.tostring(value, pretty_print=self.pretty_print,
@@ -301,10 +311,10 @@ class PGJson(UserDefinedType):
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            if value is not None and len(value) > 0:
+            if isinstance(value, string_types):
                 return json.loads(value)
             else:
-                return None
+                return value
         return process
 
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGJson
@@ -356,11 +366,103 @@ class PGObjectJson(UserDefinedType):
             if isinstance(value, six.string_types):
                 return get_dict_as_object(json.loads(value), self.cls,
                         ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as)
+                        complex_as=self.complex_as,
+                        protocol=JsonDocument,
+                    )
             if value is not None:
                 return get_dict_as_object(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
+                        complex_as=self.complex_as,
+                        protocol=JsonDocument,
+                    )
+
+        return process
+
+class PGFileJson(PGObjectJson):
+    class FileData(ComplexModel):
+        _type_info = [
+            ('name', Unicode),
+            ('type', Unicode),
+            ('path', Unicode),
+        ]
+
+    def __init__(self, store):
+        super(PGFileJson, self).__init__(PGFileJson.FileData,
+                                         ignore_wrappers=True, complex_as=list)
+        self.store = store
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if value is not None:
+                if value.data is not None:
+                    value.path = uuid1().get_hex()
+                    fp = join(self.store, value.path)
+                    with open(fp, 'wb') as file:
+                        for d in value.data:
+                            file.write(d)
+
+                elif value.handle is not None:
+                    value.path = uuid1().get_hex()
+                    fp = join(self.store, value.path)
+                    data = mmap(value.handle.fileno(), 0) # 0 = whole file
+                    with open(fp, 'wb') as out_file:
+                        out_file.write(data)
+
+                elif value.path is not None:
+                    in_file_path = value.path
+
+                    if not isfile(in_file_path):
+                        logger.error("File path in %r not found" % value)
+
+                    if dirname(abspath(in_file_path)) != self.store:
+                        dest = join(self.store, uuid1().get_hex())
+
+                        if value.move:
+                            shutil.move(in_file_path, dest)
+                            print "move", in_file_path, dest
+                        else:
+                            shutil.copy(in_file_path, dest)
+
+                        value.path = basename(dest)
+                        value.abspath = dest
+
+                else:
+                    raise ValueError("Invalid file object passed in. All of "
+                                     ".data .handle and .path are None.")
+
+                value.store = self.store
+                value.abspath = join(self.store, value.path)
+
+                retval = get_object_as_json(value, self.cls,
+                        ignore_wrappers=self.ignore_wrappers,
+                        complex_as=self.complex_as,
+                    )
+
+                return retval
+        return process
+
+    def result_processor(self, dialect, col_type):
+        def process(value):
+            retval = None
+
+            if isinstance(value, six.string_types):
+                value = json.loads(value)
+
+            if value is not None:
+                retval = get_dict_as_object(value, self.cls,
+                        ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as)
+
+                path = join(self.store, retval.path)
+                retval.handle = open(path, 'rb')
+                if fstat(retval.handle.fileno()).st_size > 0:
+                    retval.data = [mmap(retval.handle.fileno(), 0, access=ACCESS_READ)]
+                else:
+                    retval.data = ['']
+                retval.store = self.store
+                retval.abspath = path
+
+            return retval
 
         return process
 
@@ -672,26 +774,25 @@ def _check_table(cls):
     return table
 
 
-def table_fields(cls):
-    for k, v in cls._type_info.items():
-        if not v.Attributes.exc_table:
-            yield k, v
-
-
 def _add_simple_type(cls, props, table, k, v, sqla_type):
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
-    if k in table.c:
-        col = table.c[k]
+    mp = getattr(v.Attributes, 'mapper_property', None)
+    if not v.Attributes.exc_table:
+        if k in table.c:
+            col = table.c[k]
 
-    else:
-        col = Column(k, sqla_type, *col_args, **col_kwargs)
-        table.append_column(col)
-        _gen_index_info(table, col, k, v)
+        else:
+            col = Column(k, sqla_type, *col_args, **col_kwargs)
+            table.append_column(col)
+            _gen_index_info(table, col, k, v)
 
-    if not v.Attributes.exc_mapper:
-        props[k] = col
+        if not v.Attributes.exc_mapper:
+            props[k] = col
+
+    elif mp is not None:
+        props[k] = mp
 
 def _gen_array_m2m(cls, props, k, child, p):
     metadata = cls.Attributes.sqla_metadata
@@ -709,8 +810,8 @@ def _gen_array_m2m(cls, props, k, child, p):
     # FIXME: Handle the case where the table already exists.
     rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
-    props[k] = relationship(child, secondary=rel_t,
-              backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+    props[k] = relationship(child, secondary=rel_t, backref=p.backref,
+                back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
 
 def _gen_array_simple(cls, props, k, child_cust, p):
     table_name = cls.Attributes.table_name
@@ -819,13 +920,16 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
         child_t.append_column(col)
         child.__mapper__.add_property(col.name, col)
 
-    props[k] = relationship(child, foreign_keys=[col],
-              backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+    props[k] = relationship(child, foreign_keys=[col], backref=p.backref,
+                back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
 
 def _is_array(v):
     return (v.Attributes.max_occurs > 1 or issubclass(v, Array))
 
 def _add_complex_type(cls, props, table, k, v):
+    if issubclass(v, File):
+        return _add_file_type(cls, props, table, k, v)
+
     p = getattr(v.Attributes, 'store_as', None)
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
@@ -869,10 +973,13 @@ def _add_complex_type(cls, props, table, k, v):
 
             if col.name in table.c:
                 col = table.c[col.name]
+                if col_kwargs.get('nullable') is False:
+                    col.nullable = False
             else:
                 table.append_column(col)
             rel = relationship(real_v, uselist=False, cascade=p.cascade,
-                            foreign_keys=[col], backref=p.backref, lazy=p.lazy)
+                            foreign_keys=[col], back_populates=p.back_populates,
+                            backref=p.backref, lazy=p.lazy)
 
             _gen_index_info(table, col, k, v)
 
@@ -979,6 +1086,32 @@ def _gen_mapper(cls, props, table, cls_bases):
     return cls_mapper
 
 
+def _add_file_type(cls, props, table, k, v):
+    p = getattr(v.Attributes, 'store_as', None)
+    col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
+    _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
+
+    if isinstance(p, HybridFileStore):
+        if k in table.c:
+            col = table.c[k]
+        else:
+            assert isabs(p.store)
+            #FIXME: Add support for storage markers from spyne.model.complex
+            if p.db_format == 'json':
+                t = PGFileJson(p.store)
+            else:
+                raise NotImplementedError(p.db_format)
+
+            col = Column(k, t, *col_args, **col_kwargs)
+
+        props[k] = col
+        if not k in table.c:
+            table.append_column(col)
+
+    else:
+        raise NotImplementedError(p)
+
+
 def add_column(cls, k, v):
     """Add field to the given Spyne object also mapped as a SQLAlchemy object
     to a SQLAlchemy table
@@ -1013,7 +1146,7 @@ def gen_sqla_info(cls, cls_bases=()):
     table = _check_table(cls)
     mapper_props = {}
 
-    for k, v in table_fields(cls):
+    for k, v in cls._type_info.items():
         t = get_sqlalchemy_type(v)
 
         if t is None: # complex model

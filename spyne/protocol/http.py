@@ -24,6 +24,7 @@ implementation.
 import logging
 logger = logging.getLogger(__name__)
 
+import re
 import pytz
 import tempfile
 from spyne.util import six
@@ -33,11 +34,12 @@ if six.PY3:
 else:
     from Cookie import SimpleCookie
 
-from spyne import BODY_STYLE_WRAPPED
+from spyne import BODY_STYLE_WRAPPED, MethodDescriptor
 from spyne.error import ResourceNotFoundError
-from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64
+from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64, File
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import SimpleDictDocument
+from spyne.util.six import string_types
 
 
 try:
@@ -116,9 +118,9 @@ class HttpRpc(SimpleDictDocument):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                     tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False,
-                                                            parse_cookie=True):
+                                             parse_cookie=True, hier_delim="."):
         super(HttpRpc, self).__init__(app, validator, mime_type,
-                                                      ignore_uncap=ignore_uncap)
+                              ignore_uncap=ignore_uncap, hier_delim=hier_delim)
 
         self.tmp_dir = tmp_dir
         self.tmp_delete_on_close = tmp_delete_on_close
@@ -231,6 +233,11 @@ class HttpRpc(SimpleDictDocument):
                 if out_class is not None:
                     ctx.out_document = self.to_string_iterable(out_class,
                                                                     out_object)
+                    if issubclass(out_class, File) and not \
+                           isinstance(out_object, (list, tuple, string_types)) \
+                                                and out_object.type is not None:
+                        ctx.transport.set_mime_type(str(out_object.type))
+
             # header
             if ctx.out_header is not None:
                 out_header = ctx.out_header
@@ -253,6 +260,8 @@ class HttpRpc(SimpleDictDocument):
         ctx.out_string = ctx.out_document
 
 
+_pattern_re = re.compile('<([^>]+)>')
+
 class HttpPattern(object):
     """Experimental. Stay away.
 
@@ -261,11 +270,52 @@ class HttpPattern(object):
     :param host: HTTP "Host:" header pattern
     """
 
-    def __init__(self, address, verb=None, host=None, endpoint=None):
+    @staticmethod
+    def _compile_pattern(pattern):
+        if pattern is None:
+            return None
+        pattern_regex = _pattern_re.sub(r'(?P<\1>.*)', pattern)
+        return re.compile(pattern_regex)
+
+    def __init__(self, address=None, verb=None, host=None, endpoint=None):
         self.address = address
         self.host = host
         self.verb = verb
+
         self.endpoint = endpoint
+        if self.endpoint is not None:
+            assert isinstance(self.endpoint, MethodDescriptor)
+
+    def hello(self, descriptor):
+        if self.address is None:
+            self.address = descriptor.name
+
+    @property
+    def address(self):
+        return self.__address
+
+    @address.setter
+    def address(self, what):
+        self.__address = what
+        self.address_re = self._compile_pattern(what)
+
+    @property
+    def host(self):
+        return self.__host
+
+    @host.setter
+    def host(self, what):
+        self.__host = what
+        self.host_re = self._compile_pattern(what)
+
+    @property
+    def verb(self):
+        return self.__verb
+
+    @verb.setter
+    def verb(self, what):
+        self.__verb = what
+        self.verb_re = self._compile_pattern(what)
 
     def as_werkzeug_rule(self):
         from werkzeug.routing import Rule
@@ -280,5 +330,9 @@ class HttpPattern(object):
             host = '<__ignored>'  # for some reason, this is necessary when
                                   # host_matching is enabled.
 
-        return Rule(self.address, host=host, endpoint=self.endpoint,
+        return Rule(self.address, host=host, endpoint=self.endpoint.name,
                                                                 methods=methods)
+
+    def __repr__(self):
+        return "HttpPattern(address=%r, host=%r, verb=%r, endpoint=%r" % (
+                    self.address, self.host, self.verb, self.endpoint.name)
