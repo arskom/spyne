@@ -421,8 +421,8 @@ class Interface(object):
                         self.add_class(c)
 
             if cls.Attributes._subclasses is not None:
-                logger.debug("\tadding subclasses of '%s.%s'..." % \
-                                     (cls.get_namespace(), cls.get_type_name()))
+                logger.debug("\tadding subclasses of '%s.%s'...",
+                                       cls.get_namespace(), cls.get_type_name())
 
                 for c in cls.Attributes._subclasses:
                     if c.get_namespace() is None:

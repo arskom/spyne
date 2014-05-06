@@ -148,7 +148,7 @@ def _produce_output_message(func_name, kparams):
                                                   for i in range(len(_returns))]
 
             _out_variable_names = kparams.get('_out_variable_names',
-                                              default_names)
+                                                                  default_names)
 
             assert (len(_returns) == len(_out_variable_names))
 
