@@ -88,6 +88,7 @@
       <xs:element name="complex_return" type="tns:complex_return"/>
       <xs:element name="complex_returnResponse" type="tns:complex_returnResponse"/>
       <xs:element name="custom_messages" type="tns:custom_messages"/>
+      <xs:element name="custom_messagesResponse" type="tns:custom_messagesResponse"/>
       <xs:element name="dateTimeArray" type="tns:dateTimeArray"/>
       <xs:element name="do_something_else" type="tns:do_something_else"/>
       <xs:element name="do_something_elseResponse" type="tns:do_something_elseResponse"/>
@@ -169,7 +170,6 @@
       <xs:element name="empty_output_bare" type="xs:string"/>
       <xs:element name="empty_output_bareResponse" type="tns:empty_output_bareResponse"/>
       <xs:element name="floatArray" type="tns:floatArray"/>
-      <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut"/>
       <xs:element name="huge_number" type="tns:huge_number"/>
       <xs:element name="huge_numberResponse" type="tns:huge_numberResponse"/>
       <xs:element name="integerArray" type="tns:integerArray"/>
@@ -297,6 +297,11 @@
       <xs:complexType name="custom_messages">
         <xs:sequence>
           <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="custom_messagesResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="CustomMessages" nillable="true" type="xs:string"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="dateTimeArray">
@@ -651,11 +656,6 @@
           <xs:element maxOccurs="unbounded" minOccurs="0" name="float" nillable="true" type="xs:float"/>
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="getCustomMessagesMsgOut">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="CustomMessages" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="huge_number"/>
       <xs:complexType name="huge_numberResponse">
         <xs:sequence>
@@ -756,6 +756,9 @@
   </wsdl:message>
   <wsdl:message name="custom_messages">
     <wsdl:part element="tns:custom_messages" name="custom_messages"/>
+  </wsdl:message>
+  <wsdl:message name="custom_messagesResponse">
+    <wsdl:part element="tns:custom_messagesResponse" name="custom_messagesResponse"/>
   </wsdl:message>
   <wsdl:message name="do_something_else">
     <wsdl:part element="tns:do_something_else" name="do_something_else"/>
@@ -999,9 +1002,6 @@
   <wsdl:message name="empty_output_bareResponse">
     <wsdl:part element="tns:empty_output_bareResponse" name="empty_output_bareResponse"/>
   </wsdl:message>
-  <wsdl:message name="getCustomMessagesMsgOut">
-    <wsdl:part element="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut"/>
-  </wsdl:message>
   <wsdl:message name="huge_number">
     <wsdl:part element="tns:huge_number" name="huge_number"/>
   </wsdl:message>
@@ -1129,7 +1129,7 @@
     </wsdl:operation>
     <wsdl:operation name="custom_messages" parameterOrder="custom_messages">
       <wsdl:input message="tns:custom_messages" name="custom_messages"/>
-      <wsdl:output message="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut"/>
+      <wsdl:output message="tns:custom_messagesResponse" name="custom_messagesResponse"/>
     </wsdl:operation>
     <wsdl:operation name="do_something_else" parameterOrder="do_something_else">
       <wsdl:input message="tns:do_something_else" name="do_something_else"/>
@@ -1353,7 +1353,7 @@
       <wsdl:input name="custom_messages">
         <soap:body use="literal"/>
       </wsdl:input>
-      <wsdl:output name="getCustomMessagesMsgOut">
+      <wsdl:output name="custom_messagesResponse">
         <soap:body use="literal"/>
       </wsdl:output>
     </wsdl:operation>

@@ -138,9 +138,6 @@ class XmlSchema(InterfaceDocumentBase):
         for cls in chain.from_iterable(toposort2(self.interface.deps)):
             self.add(cls, set())
 
-        # we don't need the deps from this point on.
-        self.interface.deps = None
-
         for pref in self.namespaces:
             schema = self.get_schema_node(pref)
 
