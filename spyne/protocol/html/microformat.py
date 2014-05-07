@@ -21,7 +21,7 @@ from inspect import isgenerator
 
 from lxml.html.builder import E
 
-from spyne.model import Array
+from spyne.model import Array, AnyHtml
 from spyne.model import ComplexModelBase
 from spyne.model import ByteArray
 from spyne.model import ModelBase
@@ -78,6 +78,7 @@ class HtmlMicroFormat(HtmlBase):
         self.serialization_handlers = cdict({
             ModelBase: self.model_base_to_parent,
             AnyUri: self.anyuri_to_parent,
+            AnyHtml: self.anyhtml_to_parent,
             ImageUri: self.imageuri_to_parent,
             ByteArray: self.not_supported,
             Attachment: self.not_supported,
