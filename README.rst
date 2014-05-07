@@ -22,19 +22,20 @@ build on existing functionality.
 
 Spyne currently supports the WSDL 1.1 interface description standard, along with
 SOAP 1.1 and the so-called HttpRpc, XmlDocument, JsonDocument, YamlDocument,
-MessagePackDocument and MessagePackRpc protocols which can be transported via Http
-or ZeroMQ. The transports can be used in both a client or server setting.
+MessagePackDocument and MessagePackRpc protocols which can be transported via
+Http or ZeroMQ. The transports can be used in both a client or server setting.
 
 The following are the primary sources of information about spyne:
 
 * Spyne's home page is: http://spyne.io/
 * The latest documentation for all releases of Spyne can be found at: http://spyne.io/docs
 * The official source code repository is at: https://github.com/arskom/spyne
-* The official spyne discussion forum is at: people@spyne.io. Subscribe either via
-  http://lists.spyne.io/listinfo/people or by sending an empty message to: people-subscribe
-  at spyne dot io
-* You can download Spyne releases from `github <http://github.com/arskom/spyne/downloads>`_
-  or `pypi <http://pypi.python.org/pypi/spyne>`_.
+* The official spyne discussion forum is at: people@spyne.io. Subscribe either
+  via http://lists.spyne.io/listinfo/people or by sending an empty message to:
+  people-subscribe at spyne dot io.
+* You can download Spyne releases from
+  `github <http://github.com/arskom/spyne/downloads>`_ or
+  `pypi <http://pypi.python.org/pypi/spyne>`_.
 
 Spyne is a generalized version of a Soap library known as soaplib. The following
 legacy versions of soaplib are also available in the source repository at github
@@ -95,39 +96,34 @@ You can get spyne via pypi: ::
 
     easy_install spyne
 
-or you can clone from github: ::
+or you can clone the latest master tree from github: ::
 
     git clone git://github.com/arskom/spyne.git
 
-or get the source distribution from one of the download sites and unpack it.
-
-To install from source distribution, you should run its setup script as usual: ::
+To install from source distribution, you should run the setup script as usual: ::
 
     python setup.py install [--user]
 
-To run the tests use: ::
-
-    pyhon setup.py test
-
-The test script first installs every single library that Spyne integrates with,
-in the current directory, so be ready to do some fiddling with your distro's
-package manager in case you don't want this, or have a fully functional python
-development environment ready so that packages like lxml can compile.
-
-Finally if you want to make any changes to the Spyne code, just use ::
+If you want to make any changes to the Spyne code, just use ::
 
     python setup.py develop [--user]
 
 so that you can painlessly test your patches.
 
+Finally, to run the tests use: ::
+
+    pyhon setup.py test
+
+The test script should first install every single library that Spyne integrates
+with to the current directory. You should have a python development envrionment
+already set up so that packages like lxml can compile.
+
 
 Getting Support
 ===============
 
-The main developers of Spyne lurk in the `official soap implementors
-forum <http://mail.python.org/mailman/listinfo/soap/>`_ kindly operated
-by python.org. That's mostly because Spyne is the continuation of soaplib,
-but also because Soap is an important part of Spyne.
+The official mailing list for both users and developers alike can be found at
+http://lists.spyne.io/listinfo/people.
 
 You can also use the 'spyne' tag to ask questions on
 `Stack Overflow <http://stackoverflow.com>`_.
