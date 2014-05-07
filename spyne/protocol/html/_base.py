@@ -26,7 +26,6 @@ NSMAP = {None: NS_HTML}
 E = ElementMaker(namespace=NS_HTML)
 
 
-
 class HtmlBase(XmlCloth):
     mime_type = 'application/xhtml+xml'
 
