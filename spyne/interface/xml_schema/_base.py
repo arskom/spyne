@@ -26,9 +26,11 @@ import tempfile
 import spyne.const.xml_ns
 
 from lxml import etree
+from itertools import chain
 
 from spyne.util.cdict import cdict
 from spyne.util.odict import odict
+from spyne.util.toposort import toposort2
 
 from spyne.model import SimpleModel
 from spyne.model import ByteArray
@@ -133,7 +135,7 @@ class XmlSchema(InterfaceDocumentBase):
     def build_schema_nodes(self, with_schema_location=False):
         self.schema_dict = {}
 
-        for cls in self.interface.classes.values():
+        for cls in chain.from_iterable(toposort2(self.interface.deps)):
             self.add(cls, set())
 
         for pref in self.namespaces:
@@ -154,7 +156,7 @@ class XmlSchema(InterfaceDocumentBase):
                     import_.set('schemaLocation', sl)
 
             # append simpleType and complexType tags
-            for node in reversed(self.namespaces[pref].types.values()):
+            for node in self.namespaces[pref].types.values():
                 schema.append(node)
 
             # append element tags

@@ -20,13 +20,14 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from collections import deque
+from collections import deque, defaultdict
 
 import spyne.interface
 
 from spyne import EventManager, ServiceBase, MethodDescriptor
 from spyne.const import xml_ns as namespace
 
+from spyne.model import ModelBase
 from spyne.model import Array
 from spyne.model import XmlData
 from spyne.model import ComplexModelBase
@@ -92,6 +93,7 @@ class Interface(object):
 
         self.nsmap['tns'] = self.get_tns()
         self.prefmap[self.get_tns()] = 'tns'
+        self.deps = defaultdict(set)
 
     def has_class(self, cls):
         """Returns true if the given class is already included in the interface
@@ -333,7 +335,7 @@ class Interface(object):
 
         return pref
 
-    def add_class(self, cls):
+    def add_class(self, cls, add_parent=True):
         if self.has_class(cls):
             return
 
@@ -355,13 +357,16 @@ class Interface(object):
 
         assert not (cls.get_type_name() is cls.Empty)
 
+        self.deps[cls]
         self.classes[class_key] = cls
         if ns == self.get_tns():
             self.classes[tn] = cls
 
         # add parent class
         extends = getattr(cls, '__extends__', None)
-        if not (extends is None):
+        if add_parent and extends is not None:
+            assert issubclass(extends, ModelBase)
+            self.deps[cls].add(extends)
             self.add_class(extends)
             parent_ns = extends.get_namespace()
             if parent_ns != ns and not parent_ns in self.imports[ns] and \
@@ -377,6 +382,9 @@ class Interface(object):
                 if v is None:
                     continue
 
+                self.deps[cls].add(v)
+
+                logger.debug("\tadding %s.%s = %r", cls.get_type_name(), k, v)
                 if v.get_namespace() is None:
                     v.resolve_namespace(v, ns)
 
@@ -421,20 +429,22 @@ class Interface(object):
                         self.add_class(c)
 
             if cls.Attributes._subclasses is not None:
-                logger.debug("\tadding subclasses of '%s.%s'..." % \
-                                     (cls.get_namespace(), cls.get_type_name()))
+                logger.debug("\tadding subclasses of '%s.%s'...",
+                                       cls.get_namespace(), cls.get_type_name())
 
                 for c in cls.Attributes._subclasses:
-                    if c.get_namespace() is None:
-                        c.resolve_namespace(c, ns)
+                    c.resolve_namespace(c, ns)
 
                     child_ns = c.get_namespace()
                     if child_ns == ns:
-                        self.add_class(c)
+                        if not self.has_class(c):
+                            self.add_class(c, add_parent=False)
+                            self.deps[c].add(cls)
                     else:
-                        logger.debug("\tnot importing %r to %r because it would "
-                            "cause circular imports because %r extends %r " % (
-                            child_ns, ns, c.get_type_name(), cls.get_type_name()))
+                        logger.debug("\tnot adding %r to %r because it would "
+                            "cause circular imports because %r extends %r and "
+                            "they don't have the same namespace" % (child_ns,
+                                   ns, c.get_type_name(), cls.get_type_name()))
 
     def is_valid_import(self, ns):
         """This will return False for base namespaces unless told otherwise."""
