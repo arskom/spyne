@@ -116,7 +116,7 @@ Finally, to run the tests use: ::
 
 The test script should first install every single library that Spyne integrates
 with to the current directory. You should have a python development envrionment
-already set up so that packages like lxml can compile.
+already set up so that packages like lxml can be compiled.
 
 
 Getting Support
