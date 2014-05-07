@@ -145,7 +145,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
 
-        if ctx.out_stream is not None:
+        if isinstance(ctx.out_stream, StringIO):
             ctx.out_string = [ctx.out_stream.getvalue()]
 
     @coroutine
