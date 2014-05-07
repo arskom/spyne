@@ -33,14 +33,14 @@ def toposort2(data):
 
     # add items that are listed as dependencies but not as dependents to data
     extra_items_in_deps = reduce(set.union, data.values()) - set(data.keys())
-    data.update({item:set() for item in extra_items_in_deps})
+    data.update(dict([(item,set()) for item in extra_items_in_deps]))
 
     while True:
         ordered = set(item for item,dep in data.items() if len(dep) == 0)
         if len(ordered) == 0:
             break
         yield sorted(ordered)
-        data = {item: (dep - ordered) for item,dep in data.items()
-                                                       if item not in ordered}
+        data = dict([(item, (dep - ordered)) for item,dep in data.items()
+                                                       if item not in ordered])
 
     assert not data, "A cyclic dependency exists amongst %r" % data
