@@ -18,3 +18,7 @@ script:
   - if [[ ${TRAVIS_PYTHON_VERSION:0:1} == '2' ]]; then python setup.py test; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '3.3' ]]; then tox -e py33; fi
   - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then tox -e pypy; fi
+notifications:
+  email:
+    recipients:
+      - robots@spyne.io
