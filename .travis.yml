@@ -22,3 +22,6 @@ notifications:
   email:
     recipients:
       - robots@spyne.io
+  irc:
+    channels:
+      - "chat.freenode.net#spyne"
