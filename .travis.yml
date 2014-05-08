@@ -22,6 +22,10 @@ notifications:
   email:
     recipients:
       - robots@spyne.io
+    on_success: always
+    on_failure: always
   irc:
     channels:
       - "chat.freenode.net#spyne"
+    on_success: always
+    on_failure: always
