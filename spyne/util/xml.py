@@ -39,13 +39,12 @@ class FakeApplication(object):
 
 
 def get_schema_documents(models, default_namespace=None):
-    '''Returns the schema documents in a dict whose keys are namespace prefixes
+    """Returns the schema documents in a dict whose keys are namespace prefixes
     and values are Element objects.
 
     :param models: A list of spyne.model classes that will be represented in
                    the schema.
-
-    '''
+    """
 
     if default_namespace is None:
         default_namespace = models[0].get_namespace()
@@ -67,11 +66,11 @@ def get_schema_documents(models, default_namespace=None):
 
 
 def get_validation_schema(models, default_namespace=None):
-    '''Returns the validation schema object for the given models.
+    """Returns the validation schema object for the given models.
 
     :param models: A list of spyne.model classes that will be represented in
                    the schema.
-    '''
+    """
 
     if default_namespace is None:
         default_namespace = models[0].get_namespace()
@@ -138,17 +137,16 @@ def get_xml_as_object(elt, cls):
     :param elt: The xml document to be deserialized.
     :param cls: The class the xml document represents.
     """
-
     return xml_object.from_element(None, cls, elt)
 
 
-def parse_schema_string(s, files={}, repr=Thier_repr(with_ns=False)):
+def parse_schema_string(s, files={}, repr_=Thier_repr(with_ns=False)):
     elt = etree.fromstring(s, parser=PARSER)
-    return XmlSchemaParser(files, repr=repr).parse_schema(elt)
+    return XmlSchemaParser(files, repr_=repr_).parse_schema(elt)
 
 
-def parse_schema_element(elt, files={}, repr=Thier_repr(with_ns=False)):
-    return XmlSchemaParser(files, repr=repr).parse_schema(elt)
+def parse_schema_element(elt, files={}, repr_=Thier_repr(with_ns=False)):
+    return XmlSchemaParser(files, repr_=repr_).parse_schema(elt)
 
 
 def parse_schema_file(file_name, files={}, repr_=Thier_repr(with_ns=False)):
