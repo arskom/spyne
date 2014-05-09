@@ -40,10 +40,11 @@ from spyne.service import ServiceBase
 from spyne.util import memoize
 from spyne.util.email import email_exception
 from spyne.model import Mandatory as M, UnsignedInteger32, PushBase, Iterable, \
-    ModelBase
+    ModelBase, File
 from spyne.model import Unicode
 from spyne.model import Array
 from spyne.model import ComplexModelBase
+from spyne.util.sqlalchemy import PGFileJson
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -318,6 +319,9 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
 
         else:
             return repr(obj)
+
+    elif issubclass(cls, File) and isinstance(obj, PGFileJson.FileData):
+        retval = log_repr(obj, PGFileJson.FileData)
 
     else:
         retval = repr(obj)
