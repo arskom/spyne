@@ -378,6 +378,7 @@ class PGObjectJson(UserDefinedType):
 
         return process
 
+
 class PGFileJson(PGObjectJson):
     class FileData(ComplexModel):
         _type_info = [
