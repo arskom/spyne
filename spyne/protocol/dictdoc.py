@@ -190,6 +190,31 @@ def _check_freq_dict(cls, d, fti=None):
                             '%%s member must occur at most %d times.' % max_o)
 
 
+def _s2cmi(m, nidx):
+    """
+    Sparse so contigous mapping inserter.
+
+    >>> m1={3:0, 4:1, 7:2}
+    >>> _s2cmi(m1, 5); m1
+    1
+    {3: 0, 4: 1, 5: 2, 7: 3}
+    >>> _s2cmi(m1, 0); m1
+    0
+    {0: 0, 3: 1, 4: 2, 5: 3, 7: 4}
+    >>> _s2cmi(m1, 8); m1
+    4
+    {0: 0, 3: 1, 4: 2, 5: 3, 7: 4, 8: 5}
+    """
+    nv = -1
+    for i, v in m.items():
+        if i >= nidx:
+            m[i] += 1
+        elif v > nv:
+            nv = v
+    m[nidx] = nv + 1
+    return nv + 1
+
+
 class DictDocument(ProtocolBase):
     """An abstract protocol that can use hierarchical or flat dicts as input
     and output documents.
@@ -301,8 +326,7 @@ class SimpleDictDocument(DictDocument):
         simple_type_info = inst_class.get_simple_type_info(inst_class,
                                                      hier_delim=self.hier_delim)
 
-        future_conversions = []
-
+        idxmap = defaultdict(dict)
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
@@ -378,17 +402,15 @@ class SimpleDictDocument(DictDocument):
                         nidx = int(indexes.popleft())
 
                     if ninst is None:
-                        if self.strict_arrays:
-                            ninst = [ncls.get_deserialization_instance()]
-                        else:
-                            ninst = defaultdict(
-                                              ncls.get_deserialization_instance)
-                            future_conversions.append((cinst, pkey, ninst))
-
+                        ninst = []
                         cinst._safe_set(pkey, ninst, ncls)
-                        frequencies[cfreq_key][pkey] += 1
 
                     if self.strict_arrays:
+                        if len(ninst) == 0:
+                            newval = ncls.get_deserialization_instance()
+                            ninst.append(newval)
+                            frequencies[cfreq_key][pkey] += 1
+
                         if nidx > len(ninst):
                             raise ValidationError(orig_k,
                                             "%%r Invalid array index %d." % idx)
@@ -396,7 +418,18 @@ class SimpleDictDocument(DictDocument):
                             ninst.append(ncls.get_deserialization_instance())
                             frequencies[cfreq_key][pkey] += 1
 
-                    cinst = ninst[nidx]
+                        cinst = ninst[nidx]
+
+                    else:
+                        _m = idxmap[id(ninst)]
+                        cidx = _m.get(nidx, None)
+                        if cidx is None:
+                            cidx = _s2cmi(_m, nidx)
+                            newval = ncls.get_deserialization_instance()
+                            ninst.insert(cidx, newval)
+                            frequencies[cfreq_key][pkey] += 1
+                        cinst = ninst[cidx]
+
                     assert cinst is not None, ninst
 
                 else:
@@ -426,10 +459,6 @@ class SimpleDictDocument(DictDocument):
                 cinst._safe_set(member.path[-1], value[0], member.type)
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
-
-        for parent_inst, parent_key, child_inst in future_conversions:
-            setattr(parent_inst, parent_key, [v for k, v in
-                                sorted(child_inst.items(), key=lambda x: x[0])])
 
         if validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
