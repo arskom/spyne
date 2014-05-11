@@ -743,6 +743,14 @@ class TestMemberRpc(unittest.TestCase):
         v = SomeComplexModel(i=5)
         assert null.service['SomeComplexModel.echo'](v) is v
 
+    def test_order(self):
+        class CM(ComplexModel):
+            _type_info = [
+                ('a', Integer),
+                ('c', Integer(order=0))
+            ]
+
+        assert CM._type_info.keys() == ['c', 'a']
 
 if __name__ == '__main__':
     unittest.main()

@@ -114,9 +114,10 @@ class TestSimpleDictDocument(unittest.TestCase):
     def test_own_parse_qs_11(self):
         assert dict(_parse_qs('p=1&q=2&p=3')) == {'p': ['1', '3'], 'q': ['2']}
 
-def _test(services, qs, validator='soft'):
-    app = Application(services, 'tns', in_protocol=HttpRpc(validator=validator),
-                                       out_protocol=HttpRpc())
+def _test(services, qs, validator='soft', strict_arrays=False):
+    app = Application(services, 'tns',
+          in_protocol=HttpRpc(validator=validator, strict_arrays=strict_arrays),
+          out_protocol=HttpRpc())
     server = WsgiApplication(app)
 
     initial_ctx = WsgiMethodContext(server, {
@@ -196,7 +197,6 @@ class TestValidation(unittest.TestCase):
         else:
             raise Exception("must raise ValidationError")
 
-
     def test_validation_frequency_parent(self):
         class C(ComplexModel):
             i=Integer(min_occurs=1)
@@ -242,6 +242,43 @@ class TestValidation(unittest.TestCase):
 
         # must not raise anything for missing p because C has min_occurs=0
         _test([SomeService], '', validator='soft')
+
+    def test_validation_array_index_jump_error(self):
+        class C(ComplexModel):
+            i=Integer
+
+        class SomeService(ServiceBase):
+            @srpc(Array(C), _returns=String)
+            def some_call(p):
+                return repr(p)
+
+        try:
+            # must raise validation error for index jump from 0 to 2 even without
+            # any validation
+            _test([SomeService], 'p[0].i=42&p[2].i=42&', strict_arrays=True)
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_array_index_jump_tolerate(self):
+        class C(ComplexModel):
+            i=Integer
+
+        class SomeService(ServiceBase):
+            @srpc(Array(C), _returns=String)
+            def some_call(p):
+                return repr(p)
+
+        # must not raise validation error for index jump from 0 to 2 and ignore
+        # element with index 1
+        ret = _test([SomeService], 'p[0].i=0&p[2].i=2&', strict_arrays=False)
+        assert ret.out_object[0] == '[C(i=0), C(i=2)]'
+
+        # even if they arrive out-of-order.
+        ret = _test([SomeService], 'p[2].i=2&p[0].i=0&', strict_arrays=False)
+        assert ret.out_object[0] == '[C(i=0), C(i=2)]'
+
 
     def test_validation_nested_array(self):
         class CC(ComplexModel):
@@ -554,7 +591,6 @@ class Test(unittest.TestCase):
                                    '&ccm.c[1]=b')
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=['a', 'b'], s='s')"
-
 
     def test_cookie_parse(self):
         string = 'some_string'

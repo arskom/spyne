@@ -138,6 +138,8 @@ class TwistedHttpTransport(HttpBase):
         else:
             ctx.in_body_doc = request.args
 
+        # this is a huge hack because twisted seems to take the slashes in urls
+        # too seriously.
         postpath = getattr(request, 'realpostpath', None)
         if postpath is None:
             postpath = request.path

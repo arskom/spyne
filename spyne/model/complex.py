@@ -498,6 +498,19 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
                 if issubclass(v2, SelfReference):
                     v._set_serializer(self)
 
+        # FIXME: Implement this better
+        new_type_info = []
+        for k, v in self._type_info.items():
+            if v.Attributes.order == None:
+                new_type_info.append(k)
+
+        for k, v in self._type_info.items():
+            if v.Attributes.order is not None:
+                new_type_info.insert(v.Attributes.order, k)
+
+        assert len(self._type_info) == len(new_type_info)
+        self._type_info.keys()[:] = new_type_info
+
         tn = self.Attributes.table_name
         meta = self.Attributes.sqla_metadata
         t = self.Attributes.sqla_table

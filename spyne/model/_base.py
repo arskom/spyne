@@ -226,6 +226,10 @@ class ModelBase(object):
         """When the incoming object is empty (e.g. '' for strings) treat it as
         None. No effect (yet) for outgoing values."""
 
+        order = None
+        """An integer that's passed to ``_type_info.insert()`` as first argument
+         when not None. ``.append()`` is used otherwise."""
+
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 

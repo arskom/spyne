@@ -143,7 +143,6 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
-from pprint import pprint
 from collections import deque
 from collections import defaultdict
 
@@ -175,9 +174,7 @@ def _check_freq_dict(cls, d, fti=None):
     if fti is None:
         fti = cls.get_flat_type_info(cls)
 
-    pprint(d)
     for k, v in fti.items():
-        print(cls, k, v)
         val = d[k]
 
         min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
@@ -189,7 +186,6 @@ def _check_freq_dict(cls, d, fti=None):
             raise ValidationError("%r.%s" % (cls, k),
                             '%%s member must occur at least %d times.' % min_o)
         elif val > max_o:
-            print(cls, k)
             raise ValidationError("%r.%s" % (cls, k),
                             '%%s member must occur at most %d times.' % max_o)
 
@@ -281,13 +277,14 @@ class SimpleDictDocument(DictDocument):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                  ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
-                 ordered=False, hier_delim='.'):
+                 ordered=False, hier_delim='.', strict_arrays=False):
         super(SimpleDictDocument, self).__init__(app=app, validator=validator,
                         mime_type=mime_type, ignore_uncap=ignore_uncap,
                         ignore_wrappers=ignore_wrappers, complex_as=complex_as,
                         ordered=ordered)
 
         self.hier_delim = hier_delim
+        self.strict_arrays = strict_arrays
 
     def simple_dict_to_object(self, doc, inst_class, validator=None, req_enc=None):
         """Converts a flat dict to a native python object.
@@ -303,6 +300,8 @@ class SimpleDictDocument(DictDocument):
         retval = inst_class.get_deserialization_instance()
         simple_type_info = inst_class.get_simple_type_info(inst_class,
                                                      hier_delim=self.hier_delim)
+
+        future_conversions = []
 
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
@@ -327,7 +326,6 @@ class SimpleDictDocument(DictDocument):
                 try:
                     if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
-
                         raise ValidationError((orig_k, v2))
 
                 except TypeError:
@@ -373,30 +371,40 @@ class SimpleDictDocument(DictDocument):
                     ncls, = ncls._type_info.values()
 
                 mo = ncls.Attributes.max_occurs
-                if ninst is None:
-                    ninst = ncls.get_deserialization_instance()
-                    if mo > 1:
-                        ninst = [ninst]
-                    cinst._safe_set(pkey, ninst, ncls)
-                    frequencies[cfreq_key][pkey] += 1
-
                 if mo > 1:
                     if len(indexes) == 0:
                         nidx = 0
                     else:
                         nidx = int(indexes.popleft())
 
-                    if nidx > len(ninst):
-                        raise ValidationError(orig_k,
-                                            "%%r Invalid array index %d." % idx)
+                    if ninst is None:
+                        if self.strict_arrays:
+                            ninst = [ncls.get_deserialization_instance()]
+                        else:
+                            ninst = defaultdict(
+                                              ncls.get_deserialization_instance)
+                            future_conversions.append((cinst, pkey, ninst))
 
-                    if nidx == len(ninst):
-                        ninst.append(ncls.get_deserialization_instance())
+                        cinst._safe_set(pkey, ninst, ncls)
                         frequencies[cfreq_key][pkey] += 1
 
+                    if self.strict_arrays:
+                        if nidx > len(ninst):
+                            raise ValidationError(orig_k,
+                                            "%%r Invalid array index %d." % idx)
+                        if nidx == len(ninst):
+                            ninst.append(ncls.get_deserialization_instance())
+                            frequencies[cfreq_key][pkey] += 1
+
                     cinst = ninst[nidx]
+                    assert cinst is not None, ninst
 
                 else:
+                    if ninst is None:
+                        ninst = ncls.get_deserialization_instance()
+                        cinst._safe_set(pkey, ninst, ncls)
+                        frequencies[cfreq_key][pkey] += 1
+
                     cinst = ninst
 
                 cfreq_key = cfreq_key + (ncls, nidx)
@@ -411,12 +419,17 @@ class SimpleDictDocument(DictDocument):
                     cinst._safe_set(member.path[-1], value, member.type)
                 else:
                     _v.extend(value)
+
                 logger.debug("\tset array   %r(%r) = %r" %
                                                     (member.path, pkey, value))
             else:
                 cinst._safe_set(member.path[-1], value[0], member.type)
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
+
+        for parent_inst, parent_key, child_inst in future_conversions:
+            setattr(parent_inst, parent_key, [v for k, v in
+                                sorted(child_inst.items(), key=lambda x: x[0])])
 
         if validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():

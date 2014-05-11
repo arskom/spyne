@@ -55,6 +55,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             if cloth_parser is None:
                 cloth_parser = etree.XMLParser(remove_comments=True)
             self._cloth = html.parse(cloth, parser=cloth_parser)
+            self._cloth = self._cloth.getroot()
 
         if self._cloth is not None:
             q = "//*[@%s]" % self.root_attr_name
