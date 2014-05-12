@@ -87,8 +87,8 @@ coverage.xml
 spyne/test/*.html
 spyne/test/store
 test_result*
-./html
-./store
+/html
+/store
 
 # vim cruft
 *.swp
