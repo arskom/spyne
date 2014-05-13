@@ -20,9 +20,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from collections import deque
 from copy import deepcopy
 from inspect import isgenerator
+from collections import deque
 
 from spyne.util import Break, coroutine
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
