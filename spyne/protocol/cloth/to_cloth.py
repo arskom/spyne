@@ -190,6 +190,9 @@ class ToClothMixin(ProtocolBase):
             else:
                 val = getattr(inst, k, None)
 
+            if val is None:
+                self.null_to_cloth(ctx, v, val, elt, parent, name=k)
+
             self.to_cloth(ctx, v, val, elt, parent, name=k)
 
     @coroutine
