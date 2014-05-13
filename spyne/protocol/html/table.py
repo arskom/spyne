@@ -184,9 +184,9 @@ class HtmlColumnTable(HtmlTableBase):
     def _gen_header(self, ctx, cls, name, parent):
         with parent.element('thead'):
             with parent.element('tr'):
-                th = {}
+                th_attrs = {}
                 if self.field_name_attr is not None:
-                    th[self.field_name_attr] = name
+                    th_attrs[self.field_name_attr] = name
 
                 # fti is none when the type inside Array is not a ComplexModel.
                 if issubclass(cls, ComplexModelBase):
@@ -196,20 +196,20 @@ class HtmlColumnTable(HtmlTableBase):
                             if getattr(v.Attributes, 'exc_html', None):
                                 continue
                             header_name = self.translate(v, ctx.locale, k)
-                            parent.write(E.th(header_name, **th))
+                            parent.write(E.th(header_name, **th_attrs))
                     else:
                         for k, v in fti.items():
                             if getattr(v.Attributes, 'exc_html', None):
                                 continue
-                            th[self.field_name_attr] = k
+                            th_attrs[self.field_name_attr] = k
                             header_name = self.translate(v, ctx.locale, k)
-                            parent.write(E.th(header_name, **th))
+                            parent.write(E.th(header_name, **th_attrs))
 
                 else:
                     if self.field_name_attr is not None:
-                        th[self.field_name_attr] = name
+                        th_attrs[self.field_name_attr] = name
                     header_name = self.translate(cls, ctx.locale, name)
-                    parent.write(E.th(header_name, **th))
+                    parent.write(E.th(header_name, **th_attrs))
 
                 self.extend_header_row(ctx, cls, name, parent)
 
