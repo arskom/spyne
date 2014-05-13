@@ -261,7 +261,8 @@ class HttpRpc(SimpleDictDocument):
         ctx.out_string = ctx.out_document
 
 
-_pattern_re = re.compile('<([^>]+)>')
+_fragment_pattern_re = re.compile('<([A-Za-z0-9_]+)>')
+_full_pattern_re = re.compile('{([A-Za-z0-9_]+)}')
 
 class HttpPattern(object):
     """Experimental. Stay away.
@@ -272,11 +273,34 @@ class HttpPattern(object):
     """
 
     @staticmethod
-    def _compile_pattern(pattern):
+    def _compile_url_pattern(pattern):
+        """where <> placeholders don't contain slashes."""
+
         if pattern is None:
             return None
-        pattern_regex = _pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
-        return re.compile(pattern_regex)
+        pattern = _fragment_pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
+        pattern = _full_pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
+        return re.compile(pattern)
+
+    @staticmethod
+    def _compile_host_pattern(pattern):
+        """where <> placeholders don't contain dots."""
+
+        if pattern is None:
+            return None
+        pattern = _fragment_pattern_re.sub(r'(?P<\1>[^.]*)', pattern)
+        pattern = _full_pattern_re.sub(r'(?P<\1>[^.]*)', pattern)
+        return re.compile(pattern)
+
+    @staticmethod
+    def _compile_verb_pattern(pattern):
+        """where <> placeholders are same as {} ones."""
+
+        if pattern is None:
+            return None
+        pattern = _fragment_pattern_re.sub(r'(?P<\1>.*)', pattern)
+        pattern = _full_pattern_re.sub(r'(?P<\1>.*)', pattern)
+        return re.compile(pattern)
 
     def __init__(self, address=None, verb=None, host=None, endpoint=None):
         self.address = address
@@ -298,7 +322,7 @@ class HttpPattern(object):
     @address.setter
     def address(self, what):
         self.__address = what
-        self.address_re = self._compile_pattern(what)
+        self.address_re = self._compile_url_pattern(what)
 
     @property
     def host(self):
@@ -307,7 +331,7 @@ class HttpPattern(object):
     @host.setter
     def host(self, what):
         self.__host = what
-        self.host_re = self._compile_pattern(what)
+        self.host_re = self._compile_host_pattern(what)
 
     @property
     def verb(self):
@@ -316,7 +340,7 @@ class HttpPattern(object):
     @verb.setter
     def verb(self, what):
         self.__verb = what
-        self.verb_re = self._compile_pattern(what)
+        self.verb_re = self._compile_verb_pattern(what)
 
     def as_werkzeug_rule(self):
         from werkzeug.routing import Rule
