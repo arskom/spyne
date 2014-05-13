@@ -213,34 +213,6 @@ def _join_args(x, y):
     return xa + ya, xk
 
 
-def _get_base_type_info(cls_bases, cls_dict):
-    """Get base class (if exists) and enforce single inheritance."""
-
-    retval = {}
-    extends = cls_dict.get('__extends__', None)
-    if extends is None:
-        for b in cls_bases:
-            base_types = getattr(b, "_type_info", None)
-
-            if not (base_types is None):
-                if getattr(b, '__mixin__', False) == True:
-                    retval.update(b._type_info)
-                else:
-                    if not (extends in (None, b)):
-                        raise Exception("WSDL 1.1 does not support multiple "
-                                        "inheritance")
-
-                    try:
-                        if len(base_types) > 0 and issubclass(b, ModelBase):
-                            cls_dict["__extends__"] = b
-
-                    except Exception as e:
-                        logger.exception(e)
-                        logger.error(repr(extends))
-                        raise
-    return retval
-
-
 def _gen_attrs(cls_bases, cls_dict):
     attrs = cls_dict.get('Attributes', None)
     if attrs is None:
@@ -256,7 +228,31 @@ def _gen_attrs(cls_bases, cls_dict):
     return attrs
 
 
-def _get_type_info(cls, cls_name, cls_dict, attrs, base_type_info):
+def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
+    base_type_info = TypeInfo()
+    mixin = {}
+    extends = cls_dict.get('__extends__', None)
+    if extends is None:
+        for b in cls_bases:
+            base_types = getattr(b, "_type_info", None)
+
+            if not (base_types is None):
+                if getattr(b, '__mixin__', False) == True:
+                    mixin = b._type_info
+                else:
+                    if not (extends in (None, b)):
+                        raise Exception("WSDL 1.1 does not support multiple "
+                                        "inheritance")
+
+                    try:
+                        if len(base_types) > 0 and issubclass(b, ModelBase):
+                            cls_dict["__extends__"] = b
+
+                    except Exception as e:
+                        logger.exception(e)
+                        logger.error(repr(extends))
+                        raise
+
     if not ('_type_info' in cls_dict):
         cls_dict['_type_info'] = _type_info = TypeInfo()
         _type_info.update(base_type_info)
@@ -276,6 +272,7 @@ def _get_type_info(cls, cls_name, cls_dict, attrs, base_type_info):
         if not isinstance(_type_info, TypeInfo):
             _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
+    _type_info.update(mixin)
     return _type_info
 
 
@@ -444,10 +441,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         if type_name is None:
             cls_dict["__type_name__"] = cls_name
 
-        base_type_info = _get_base_type_info(cls_bases, cls_dict)
-
-        _type_info = _get_type_info(cls, cls_name, cls_dict, attrs,
-                                                                 base_type_info)
+        _type_info = _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs)
 
         methods = _gen_methods(cls_dict)
         if len(methods) > 0:
