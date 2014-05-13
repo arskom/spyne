@@ -315,6 +315,11 @@ class HtmlRowTable(HtmlTableBase):
                     if sub_name is None:
                         sub_name = k
 
+                    if sub_value is None and cls.Attributes.min_occurs == 0:
+                        self.null_to_parent(ctx, cls, sub_value, parent,
+                                                             sub_name, **kwargs)
+                        continue
+
                     tr_attrs = {}
                     if self.row_class is not None:
                         tr_attrs['class'] = self.row_class
