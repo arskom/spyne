@@ -36,8 +36,6 @@ class HtmlBase(XmlCloth):
             if not self._cloth.tag.endswith('html'):
                 self._cloth = E.html(self._cloth)
 
-            print self._cloth.tag
             if self._cloth.tag != '{%s}html' % NS_HTML:
                 for elt in self._cloth.xpath("//*"):
-                    print elt.tag
                     elt.tag = "{%s}%s" %(NS_HTML, elt.tag)
