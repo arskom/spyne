@@ -64,6 +64,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                 self._root_cloth = elts[0]
 
             q = "//*[@%s]" % self.attr_name
+            elts = self._cloth.xpath(q)
             if len(elts) == 0:
                 self._cloth = None
 
