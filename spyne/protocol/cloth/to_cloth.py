@@ -109,12 +109,12 @@ class ToClothMixin(ProtocolBase):
                 if is_shown:
                     yield k,v
 
-    def complex_to_cloth(self, ctx, cls, inst, template, parent, name=None):
-        for elt in self._get_elts(template, "mrpc"):
+    def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
+        for elt in self._get_elts(cloth, "mrpc"):
             self._actions_to_cloth(ctx, cls, inst, elt)
 
         fti = cls.get_flat_type_info(cls)
-        for i, elt in enumerate(self._get_outmost_elts(template)):
+        for i, elt in enumerate(self._get_outmost_elts(cloth)):
             k = elt.attrib[self.attr_name]
             v = fti.get(k, None)
             if v is None:
@@ -132,11 +132,11 @@ class ToClothMixin(ProtocolBase):
             self.to_cloth(ctx, v, val, elt, parent, name=k)
 
     @coroutine
-    def array_to_cloth(self, ctx, cls, inst, template, parent, name=None, **kwargs):
+    def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
-                ret = self.to_cloth(ctx, cls, sv, template, parent, from_arr=True, **kwargs)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -150,7 +150,7 @@ class ToClothMixin(ProtocolBase):
 
         else:
             for sv in inst:
-                ret = self.to_cloth(ctx, cls, sv, template, parent, from_arr=True, **kwargs)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -162,8 +162,8 @@ class ToClothMixin(ProtocolBase):
                         except StopIteration:
                             pass
 
-    def to_cloth(self, ctx, cls, inst, template, parent, name=None, from_arr=False, **kwargs):
-        if template is None:
+    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False, **kwargs):
+        if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         if inst is None:
@@ -171,34 +171,34 @@ class ToClothMixin(ProtocolBase):
 
         if inst is None:
             if cls.Attributes.min_occurs > 0:
-                parent.write(template)
+                parent.write(cloth)
 
         elif not from_arr and cls.Attributes.max_occurs > 1:
-            return self.array_to_cloth(ctx, cls, inst, template, parent, name=name)
+            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
 
-        self._enter_cloth(ctx, template, parent)
+        self._enter_cloth(ctx, cloth, parent)
         handler = self.rendering_handlers[cls]
-        return handler(ctx, cls, inst, template, parent, name=name)
+        return handler(ctx, cls, inst, cloth, parent, name=name)
 
-    def model_base_to_cloth(self, ctx, cls, inst, template, parent, name):
+    def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         print cls, inst
         parent.write(self.to_string(cls, inst))
 
-    def element_to_cloth(self, ctx, cls, inst, template, parent, name):
+    def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         print cls, inst
         parent.write(inst)
 
-    def _enter_cloth(self, ctx, template, parent):
-        if template is self._cloth:
+    def _enter_cloth(self, ctx, cloth, parent):
+        if cloth is self._cloth:
             print "return"
             return
 
-        assert len(list(template.iterancestors())) > 0
+        assert len(list(cloth.iterancestors())) > 0
         stack = ctx.protocol.stack
         tags = ctx.protocol.tags
 
-        # exit from prev template write to the first ancestor
-        anc = list(reversed(_ancestors(template)))
+        # exit from prev cloth write to the first ancestor
+        anc = list(reversed(_ancestors(cloth)))
         while anc[:len(stack)] != list([s for s, sc in stack]):
             elt, elt_ctx = ctx.protocol.stack.pop()
             elt_ctx.__exit__(None, None, None)
@@ -209,14 +209,14 @@ class ToClothMixin(ProtocolBase):
                 print "write", sibl.tag, "exit sibl"
                 parent.write(sibl)
 
-        print "entering", template.tag
+        print "entering", cloth.tag
         deps = deque()
-        for sibl in _prevsibs(template):
+        for sibl in _prevsibs(cloth):
             if id(sibl) in tags:
                 break
             deps.appendleft((False, sibl))
 
-        for elt in template.iterancestors():
+        for elt in cloth.iterancestors():
             if elt in list([s for s, sc in stack]):
                 break
             deps.appendleft((True, elt))
@@ -247,15 +247,15 @@ class ToClothMixin(ProtocolBase):
                 tags.add(id(elt))
 
         # write the element itself
-        attrib = dict([(k2, v2) for k2, v2 in template.attrib.items()
+        attrib = dict([(k2, v2) for k2, v2 in cloth.attrib.items()
                            if not (k2 in (self.attr_name,self.root_attr_name))])
 
-        curtag = parent.element(template.tag, attrib)
+        curtag = parent.element(cloth.tag, attrib)
         curtag.__enter__()
-        stack.append( (template, curtag) )
-        print "entering", template.tag, 'ok'
+        stack.append( (cloth, curtag) )
+        print "entering", cloth.tag, 'ok'
 
-    def _close_template(self, ctx, parent):
+    def _close_cloth(self, ctx, parent):
         for elt, elt_ctx in reversed(ctx.protocol.stack):
             print "exit ", elt.tag, "close"
             elt_ctx.__exit__(None, None, None)
@@ -268,7 +268,7 @@ class ToClothMixin(ProtocolBase):
         ctx.protocol.tags = set()
 
         self.to_cloth(ctx, cls, inst, cloth, parent)
-        self._close_template(ctx, parent)
+        self._close_cloth(ctx, parent)
 
     @coroutine
     def to_root_cloth(self, ctx, cls, inst, cloth, parent, name=None):
@@ -287,4 +287,4 @@ class ToClothMixin(ProtocolBase):
                 try:
                     ret.throw(e)
                 except (Break, StopIteration, GeneratorExit):
-                    self._close_template(ctx, parent)
+                    self._close_cloth(ctx, parent)
