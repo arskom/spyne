@@ -275,7 +275,7 @@ class HttpPattern(object):
     def _compile_pattern(pattern):
         if pattern is None:
             return None
-        pattern_regex = _pattern_re.sub(r'(?P<\1>.*)', pattern)
+        pattern_regex = _pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
         return re.compile(pattern_regex)
 
     def __init__(self, address=None, verb=None, host=None, endpoint=None):
