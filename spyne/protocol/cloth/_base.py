@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 from lxml import etree
-from lxml import html
 from lxml.etree import LxmlSyntaxError
 from lxml.builder import E
 
@@ -46,36 +45,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                  mime_type=mime_type, ignore_uncap=ignore_uncap,
                                  ignore_wrappers=ignore_wrappers)
 
-        self.attr_name = attr_name
-        self.root_attr_name = root_attr_name
-
-        self._mrpc_cloth = self._root_cloth = None
-        self._cloth = cloth
-        if isinstance(self._cloth, string_types):
-            if cloth_parser is None:
-                cloth_parser = etree.XMLParser(remove_comments=True)
-
-            self._cloth = html.parse(cloth, parser=cloth_parser)
-            self._cloth = self._cloth.getroot()
-
-        if self._cloth is not None:
-            q = "//*[@%s]" % self.root_attr_name
-            elts = self._cloth.xpath(q)
-            if len(elts) > 0:
-                self._root_cloth = elts[0]
-
-            q = "//*[@%s]" % self.attr_name
-            elts = self._cloth.xpath(q)
-            if len(elts) == 0:
-                self._cloth = None
-
-            if self._cloth is None and self._root_cloth is None:
-                raise Exception("Invalid cloth. Does not contain any element "
-                                "with '%s' or '%s' attribute defined." %
-                                          (self.root_attr_name, self.attr_name))
-
-        if self._cloth is not None:
-            self._mrpc_cloth = self._pop_elt(self._cloth, 'mrpc_entry')
+        self._init_cloth(cloth, attr_name, root_attr_name, cloth_parser)
 
     @staticmethod
     def translate(cls, locale, default):
