@@ -21,6 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from collections import deque
+from copy import deepcopy
 from inspect import isgenerator
 
 from spyne.util import Break, coroutine
@@ -47,7 +48,7 @@ class ToClothMixin(ProtocolBase):
             AnyHtml: self.element_to_cloth,
             ComplexModelBase: self.complex_to_cloth,
         })
-        
+
     def _get_elts(self, elt, tag_id=None):
         if tag_id is None:
             return elt.xpath('//*[@%s]' % self.attr_name)
@@ -108,6 +109,28 @@ class ToClothMixin(ProtocolBase):
 
                 if is_shown:
                     yield k,v
+
+    def _actions_to_cloth(self, ctx, cls, inst, template):
+        if self._mrpc_cloth is None:
+            logger.warning("missing 'mrpc_template'")
+            return
+
+        for elt in self._get_elts(template, "mrpc"):
+            for k, v in self._methods(cls, inst):
+                href = v.in_message.get_type_name()
+                text = v.translate(ctx.locale, v.in_message.get_type_name())
+
+                mrpc_template = deepcopy(self._mrpc_cloth)
+                anchor = self._get_clean_elt(mrpc_template, 'mrpc_link')
+                anchor.attrib['href'] = href
+
+                text_elt = self._get_clean_elt(mrpc_template, 'mrpc_text')
+                if text_elt is not None:
+                    text_elt.text = text
+                else:
+                    anchor.text = text
+
+                elt.append(mrpc_template)
 
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
         for elt in self._get_elts(cloth, "mrpc"):
