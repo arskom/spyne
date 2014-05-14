@@ -593,7 +593,7 @@ class ProtocolBase(object):
         seconds = value.seconds % 60
         minutes = value.seconds / 60
         hours = minutes / 60
-        minutes = minutes % 60
+        minutes %= 60
         seconds = float(seconds)
         useconds = value.microseconds
 
