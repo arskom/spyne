@@ -265,6 +265,9 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
     if cls is None:
         cls = obj.__class__
 
+    if issubclass(obj.__class__, cls):
+        cls = obj.__class__
+
     if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
                                                                      from_array:
         retval = []
