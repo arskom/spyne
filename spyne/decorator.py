@@ -258,6 +258,7 @@ def rpc(*params, **kparams):
             _translations = kparams.get("_translations", None)
             _when = kparams.get("_when", None)
             _service_class = kparams.get("_service_class", None)
+            _href = kparams.get("_href", None)
 
             if _no_self:
                 from spyne.model import SelfReference
@@ -325,7 +326,7 @@ def rpc(*params, **kparams):
                 translations=_translations, when=_when,
                 in_message_name_override=_in_message_name_override,
                 out_message_name_override=_out_message_name_override,
-                service_class=_service_class,
+                service_class=_service_class, href=_href,
             )
 
             if _patterns is not None:
