@@ -288,8 +288,8 @@ class HttpPattern(object):
 
         if pattern is None:
             return None
-        pattern = _fragment_pattern_re.sub(r'(?P<\1>[^.]*)', pattern)
-        pattern = _full_pattern_re.sub(r'(?P<\1>[^.]*)', pattern)
+        pattern = _fragment_pattern_re.sub(r'(?P<\1>[^\.]*)', pattern)
+        pattern = _full_pattern_re.sub(r'(?P<\1>.*)', pattern)
         return re.compile(pattern)
 
     @staticmethod
