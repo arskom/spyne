@@ -190,9 +190,6 @@ class ToClothMixin(ProtocolBase):
             else:
                 val = getattr(inst, k, None)
 
-            if val is None:
-                self.null_to_cloth(ctx, v, val, elt, parent, name=k)
-
             self.to_cloth(ctx, v, val, elt, parent, name=k)
 
     @coroutine
@@ -233,16 +230,21 @@ class ToClothMixin(ProtocolBase):
         if inst is None:
             inst = cls.Attributes.default
 
+        if not from_arr and cls.Attributes.max_occurs > 1:
+            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+
+        self._enter_cloth(ctx, cloth, parent)
+
+        retval = None
         if inst is None:
             if cls.Attributes.min_occurs > 0:
                 parent.write(cloth)
 
-        elif not from_arr and cls.Attributes.max_occurs > 1:
-            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+        else:
+            handler = self.rendering_handlers[cls]
+            retval = handler(ctx, cls, inst, cloth, parent, name=name)
 
-        self._enter_cloth(ctx, cloth, parent)
-        handler = self.rendering_handlers[cls]
-        return handler(ctx, cls, inst, cloth, parent, name=name)
+        return retval
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         print cls, inst
