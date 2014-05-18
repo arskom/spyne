@@ -192,7 +192,7 @@ def _check_freq_dict(cls, d, fti=None):
 
 def _s2cmi(m, nidx):
     """
-    Sparse so contigous mapping inserter.
+    Sparse to contigous mapping inserter.
 
     >>> m1={3:0, 4:1, 7:2}
     >>> _s2cmi(m1, 5); m1
@@ -229,8 +229,9 @@ class DictDocument(ProtocolBase):
 
     def __init__(self, app=None, validator=None, mime_type=None,
             ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
-                                                                ordered=False):
-        super(DictDocument, self).__init__(app, validator, mime_type, ignore_uncap, ignore_wrappers)
+                                                                 ordered=False):
+        super(DictDocument, self).__init__(app, validator, mime_type,
+                                                  ignore_uncap, ignore_wrappers)
 
         self.complex_as = complex_as
         self.ordered = ordered

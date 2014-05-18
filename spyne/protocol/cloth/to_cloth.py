@@ -52,7 +52,7 @@ class ToClothMixin(ProtocolBase):
         })
 
     def _init_cloth(self, cloth, attr_name, root_attr_name, cloth_parser):
-        """called from XmlCloth.__init__ in order to not break the dunder init
+        """Called from XmlCloth.__init__ in order to not break the dunder init
         signature consistency"""
 
         self.attr_name = attr_name
@@ -197,7 +197,8 @@ class ToClothMixin(ProtocolBase):
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True, **kwargs)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
+                                                                       **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -211,7 +212,8 @@ class ToClothMixin(ProtocolBase):
 
         else:
             for sv in inst:
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True, **kwargs)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
+                                                                       **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -223,7 +225,8 @@ class ToClothMixin(ProtocolBase):
                         except StopIteration:
                             pass
 
-    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False, **kwargs):
+    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
+                                                                      **kwargs):
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
@@ -314,7 +317,7 @@ class ToClothMixin(ProtocolBase):
 
         # write the element itself
         attrib = dict([(k2, v2) for k2, v2 in cloth.attrib.items()
-                           if not (k2 in (self.attr_name,self.root_attr_name))])
+                          if not (k2 in (self.attr_name, self.root_attr_name))])
 
         curtag = parent.element(cloth.tag, attrib)
         curtag.__enter__()
@@ -329,7 +332,8 @@ class ToClothMixin(ProtocolBase):
                 print "write", sibl.tag, "close sibl"
                 parent.write(sibl)
 
-    def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name, from_arr=False, **kwargs):
+    def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
+                                                      from_arr=False, **kwargs):
         ctx.protocol.stack = deque()
         ctx.protocol.tags = set()
 
