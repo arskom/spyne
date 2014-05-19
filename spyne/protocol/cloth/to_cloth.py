@@ -227,6 +227,12 @@ class ToClothMixin(ProtocolBase):
 
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
+        subprot = getattr(cls.Attributes, 'prot', None)
+        if subprot is not None and not (subprot is self):
+            return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
+
+        if issubclass(inst.__class__, cls.__orig__ or cls):
+            cls = inst.__class__
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
