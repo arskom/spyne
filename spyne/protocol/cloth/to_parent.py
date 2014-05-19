@@ -75,7 +75,7 @@ class ToParentMixin(ProtocolBase):
         if inst is None:
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        if issubclass(cls, ComplexModelBase) and self.ignore_wrappers:
+        if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
             cls, inst = self.strip_wrappers(cls, inst)
 
         from_arr = kwargs.get('from_arr', False)
