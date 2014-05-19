@@ -232,7 +232,10 @@ class ToClothMixin(ProtocolBase):
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
         if issubclass(inst.__class__, cls.__orig__ or cls):
+            print cls, "=>",
             cls = inst.__class__
+            print cls
+
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
@@ -307,18 +310,17 @@ class ToClothMixin(ProtocolBase):
         for new, elt in deps:
             open_elts = [id(e) for e, e_ctx in stack]
             if id(elt) in open_elts:
-                print "skip ", elt
+                print "\tskip ", elt
             else:
                 if new:
                     curtag = parent.element(elt.tag, elt.attrib)
                     curtag.__enter__()
-                    print "enter", elt.tag, "norm"
+                    print "\tenter", elt.tag, "norm"
                     stack.append( (elt, curtag) )
                 else:
                     parent.write(elt)
-                    print "write", elt.tag, "norm"
+                    print "\twrite", elt.tag, "norm"
 
-                print "- adding", elt.tag, id(elt)
                 tags.add(id(elt))
 
         # write the element itself

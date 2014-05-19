@@ -145,6 +145,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                             ret.throw(b)
                         except StopIteration:
                             pass
+
         except LxmlSyntaxError as e:
             if e.msg == 'no content written':
                 pass
@@ -156,13 +157,16 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             name = cls.get_type_name()
 
         if self._root_cloth is not None:
+            print "to root cloth"
             return self.to_root_cloth(ctx, cls, inst, self._root_cloth,
                                                          parent, name, **kwargs)
 
         if self._cloth is not None:
+            print "to parent cloth"
             return self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                  name, **kwargs)
 
+        print "to parent"
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     def decompose_incoming_envelope(self, ctx, message):
