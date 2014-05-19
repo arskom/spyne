@@ -228,13 +228,13 @@ class ToClothMixin(ProtocolBase):
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
 
+        if cloth is None:
+            return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+
         if issubclass(inst.__class__, cls.__orig__ or cls):
             print cls, "=>",
             cls = inst.__class__
             print cls
-
-        if cloth is None:
-            return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         if inst is None:
             inst = cls.Attributes.default
