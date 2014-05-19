@@ -280,9 +280,11 @@ class ToClothMixin(ProtocolBase):
 
         # exit from prev cloth write to the first common ancestor
         anc = list(reversed(_ancestors(cloth)))
+        last_elt = None
         while anc[:len(stack)] != list([s for s, sc in stack]):
             elt, elt_ctx = ctx.protocol.stack.pop()
             elt_ctx.__exit__(None, None, None)
+            last_elt = elt
             print "\texit ", elt.tag, "norm"
             for sibl in elt.itersiblings():
                 if sibl in anc:
@@ -291,7 +293,13 @@ class ToClothMixin(ProtocolBase):
                 parent.write(sibl)
 
         deps = deque()
-        for sibl in _prevsibs(cloth):
+        sibls = _prevsibs(cloth)
+        try:
+            sibls = sibls[sibls.index(last_elt):]
+        except ValueError:
+            pass
+
+        for sibl in sibls:
             if id(sibl) in tags:
                 break
             deps.appendleft((False, sibl))
