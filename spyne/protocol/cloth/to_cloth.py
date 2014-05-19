@@ -34,7 +34,7 @@ from spyne.util.cdict import cdict
 
 
 _prevsibs = lambda elt: list(elt.itersiblings(preceding=True))
-_ancestors = lambda elt: list(elt.iterancestors())
+_revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
 
 
 class ToClothMixin(ProtocolBase):
@@ -279,7 +279,7 @@ class ToClothMixin(ProtocolBase):
         tags = ctx.protocol.tags
 
         # exit from prev cloth write to the first common ancestor
-        anc = list(reversed(_ancestors(cloth)))
+        anc = _revancestors(cloth)
         last_elt = None
         while anc[:len(stack)] != list([s for s, sc in stack]):
             elt, elt_ctx = ctx.protocol.stack.pop()
