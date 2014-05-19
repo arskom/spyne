@@ -112,7 +112,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                         setattr(result_message, attr_name, ctx.out_object[i])
 
             else:
-                result_message = ctx.out_object
+                result_message, = ctx.out_object
 
             retval = self.incgen(ctx, result_message_class, result_message, name)
 
