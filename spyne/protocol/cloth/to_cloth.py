@@ -269,26 +269,27 @@ class ToClothMixin(ProtocolBase):
 
     def _enter_cloth(self, ctx, cloth, parent):
         if cloth is self._cloth:
-            print "return"
+            print "entering", cloth.tag, "return same"
             return
+
+        print "entering", cloth.tag
 
         assert len(list(cloth.iterancestors())) > 0
         stack = ctx.protocol.stack
         tags = ctx.protocol.tags
 
-        # exit from prev cloth write to the first ancestor
+        # exit from prev cloth write to the first common ancestor
         anc = list(reversed(_ancestors(cloth)))
         while anc[:len(stack)] != list([s for s, sc in stack]):
             elt, elt_ctx = ctx.protocol.stack.pop()
             elt_ctx.__exit__(None, None, None)
-            print "exit ", elt.tag, "norm"
+            print "\texit ", elt.tag, "norm"
             for sibl in elt.itersiblings():
                 if sibl in anc:
                     break
-                print "write", sibl.tag, "exit sibl"
+                print "\twrite", sibl.tag, "exit sibl"
                 parent.write(sibl)
 
-        print "entering", cloth.tag
         deps = deque()
         for sibl in _prevsibs(cloth):
             if id(sibl) in tags:
@@ -307,7 +308,9 @@ class ToClothMixin(ProtocolBase):
                 deps.appendleft((False, sibl))
 
         # write parents with parent siblings
-        print deps
+        print "\tdeps:"
+        for p, tag in deps:
+            print "\t\t", ("parent" if p else "sibling"), tag
         for new, elt in deps:
             open_elts = [id(e) for e, e_ctx in stack]
             if id(elt) in open_elts:
