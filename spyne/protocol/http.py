@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 import re
 import pytz
 import tempfile
-from spyne.util import six
 
-if six.PY3:
+from spyne.util.six import string_types, BytesIO, PY3
+if PY3:
     from http.cookies import SimpleCookie
 else:
     from Cookie import SimpleCookie
@@ -39,7 +39,6 @@ from spyne.error import ResourceNotFoundError
 from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64, File
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import SimpleDictDocument
-from spyne.util.six import string_types
 
 
 try:
@@ -68,7 +67,7 @@ def get_stream_factory(dir=None, delete=True):
             else:
                 retval = tempfile.NamedTemporaryFile('wb+', dir=dir)
         else:
-            retval = StringIO()
+            retval = BytesIO()
 
         return retval
 
