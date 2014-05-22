@@ -41,6 +41,13 @@ except ImportError as import_error:
     def parse_form_data(*args, **kwargs):
         raise import_error
 
+from spyne.util.six import string_types, BytesIO, PY3
+if PY3:
+    from http.cookies import SimpleCookie
+else:
+    from Cookie import SimpleCookie
+
+
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
@@ -128,6 +135,16 @@ class WsgiTransportContext(HttpTransportContext):
 
         self.req_method = req_env.get('REQUEST_METHOD', None)
         """HTTP Request verb, as a convenience to users."""
+
+    def get_cookie(self, key):
+        cookie_string = self.req_env.get('HTTP_COOKIE', None)
+        if cookie_string is None:
+            return
+
+        cookie = SimpleCookie()
+        cookie.load(cookie_string)
+
+        return cookie.get(key, None).value
 
 
 class WsgiMethodContext(HttpMethodContext):

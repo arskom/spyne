@@ -105,6 +105,8 @@ class TwistedHttpTransportContext(HttpTransportContext):
         super(TwistedHttpTransportContext, self).set_mime_type(what)
         self.req.setHeader('Content-Type', what)
 
+    def get_cookie(self, key):
+        return self.req.getCookie(key)
 
 class TwistedHttpMethodContext(HttpMethodContext):
     default_transport_context = TwistedHttpTransportContext
