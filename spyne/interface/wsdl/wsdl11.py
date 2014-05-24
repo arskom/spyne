@@ -378,6 +378,7 @@ class Wsdl11(XmlSchema):
                 objs = obj
             else:
                 objs = (obj,)
+
             for obj in objs:
                 part = etree.SubElement(message, '{%s}part' % _ns_wsdl)
                 part.set('name', obj.get_element_name())
