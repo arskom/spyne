@@ -150,8 +150,8 @@ class HybridFileStore(object):
     def __init__(self, store_path, db_format='json'):
         """Hybrid Sql/Filesystem store.
 
-        :param store_path: The path where the file contents are stored. If
-            this is converted to an absolute path if it's not already one.
+        :param store_path: The path where the file contents are stored. This is
+            converted to an absolute path if it's not already one.
         :param db_format: The format (and the relevant column type) used to
             store file metadata. Currently only 'json' is implemented.
         """

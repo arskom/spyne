@@ -246,7 +246,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
         # </div></div>
         #
 
-        print out_string
+        print(out_string)
         elt = html.fromstring(''.join(out_string))
         show(elt, "TestHtmlMicroFormat.test_complex_array")
 

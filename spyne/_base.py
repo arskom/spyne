@@ -339,7 +339,7 @@ class MethodDescriptor(object):
                  aux=None, patterns=None, body_style=None, args=None,
                  operation_name=None, no_self=None, translations=None, when=None,
                  in_message_name_override=True, out_message_name_override=True,
-                 service_class=None):
+                 service_class=None, href=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -445,6 +445,9 @@ class MethodDescriptor(object):
 
         # HATEOAS Stuff
         self.translations = translations
+        """None or a dict of locale-translation pairs."""
+
+        self.href = href
         """None or a dict of locale-translation pairs."""
 
         self.when = when

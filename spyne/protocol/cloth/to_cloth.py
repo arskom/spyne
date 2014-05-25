@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ from spyne.util.cdict import cdict
 
 
 _prevsibs = lambda elt: list(elt.itersiblings(preceding=True))
-_ancestors = lambda elt: list(elt.iterancestors())
+_revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
 
 
 class ToClothMixin(ProtocolBase):
@@ -52,7 +54,7 @@ class ToClothMixin(ProtocolBase):
         })
 
     def _init_cloth(self, cloth, attr_name, root_attr_name, cloth_parser):
-        """called from XmlCloth.__init__ in order to not break the dunder init
+        """Called from XmlCloth.__init__ in order to not break the dunder init
         signature consistency"""
 
         self.attr_name = attr_name
@@ -79,9 +81,9 @@ class ToClothMixin(ProtocolBase):
                 self._cloth = None
 
             if self._cloth is None and self._root_cloth is None:
-                raise Exception("Invalid cloth. Does not contain any element "
-                                "with '%s' or '%s' attribute defined." %
-                                          (self.root_attr_name, self.attr_name))
+                raise Exception("Invalid cloth: It does not contain any "
+                                "element with '%s' or '%s' attribute defined."
+                                        % (self.root_attr_name, self.attr_name))
 
         if self._cloth is not None:
             self._mrpc_cloth = self._pop_elt(self._cloth, 'mrpc_entry')
@@ -129,9 +131,9 @@ class ToClothMixin(ProtocolBase):
             return retval
 
     def _get_elts_by_id(self, elt, what):
-        print "id=%r" % what, "got",
+        print("id=%r" % what, "got", end='')
         retval = elt.xpath('//*[@id="%s"]' % what)
-        print retval
+        print(retval)
         return retval
 
     @staticmethod
@@ -190,9 +192,6 @@ class ToClothMixin(ProtocolBase):
             else:
                 val = getattr(inst, k, None)
 
-            if val is None:
-                self.null_to_cloth(ctx, v, val, elt, parent, name=k)
-
             self.to_cloth(ctx, v, val, elt, parent, name=k)
 
     @coroutine
@@ -200,7 +199,8 @@ class ToClothMixin(ProtocolBase):
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True, **kwargs)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
+                                                                       **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -214,7 +214,8 @@ class ToClothMixin(ProtocolBase):
 
         else:
             for sv in inst:
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True, **kwargs)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
+                                                                       **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -226,56 +227,81 @@ class ToClothMixin(ProtocolBase):
                         except StopIteration:
                             pass
 
-    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False, **kwargs):
+    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
+                                                                      **kwargs):
+
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+
+        if issubclass(inst.__class__, cls.__orig__ or cls):
+            print(cls, "=>", end='')
+            cls = inst.__class__
+            print(cls)
 
         if inst is None:
             inst = cls.Attributes.default
 
+        if not from_arr and cls.Attributes.max_occurs > 1:
+            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+
+        self._enter_cloth(ctx, cloth, parent)
+
+        subprot = getattr(cls.Attributes, 'prot', None)
+        if subprot is not None and not (subprot is self):
+            return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
+
+        retval = None
         if inst is None:
             if cls.Attributes.min_occurs > 0:
                 parent.write(cloth)
 
-        elif not from_arr and cls.Attributes.max_occurs > 1:
-            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+        else:
+            handler = self.rendering_handlers[cls]
+            retval = handler(ctx, cls, inst, cloth, parent, name=name)
 
-        self._enter_cloth(ctx, cloth, parent)
-        handler = self.rendering_handlers[cls]
-        return handler(ctx, cls, inst, cloth, parent, name=name)
+        return retval
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print cls, inst
+        print(cls, inst)
         parent.write(self.to_string(cls, inst))
 
     def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print cls, inst
+        print(cls, inst)
         parent.write(inst)
 
     def _enter_cloth(self, ctx, cloth, parent):
         if cloth is self._cloth:
-            print "return"
+            print("entering", cloth.tag, "return same")
             return
+
+        print("entering", cloth.tag)
 
         assert len(list(cloth.iterancestors())) > 0
         stack = ctx.protocol.stack
         tags = ctx.protocol.tags
 
-        # exit from prev cloth write to the first ancestor
-        anc = list(reversed(_ancestors(cloth)))
+        # exit from prev cloth write to the first common ancestor
+        anc = _revancestors(cloth)
+        last_elt = None
         while anc[:len(stack)] != list([s for s, sc in stack]):
             elt, elt_ctx = ctx.protocol.stack.pop()
             elt_ctx.__exit__(None, None, None)
-            print "exit ", elt.tag, "norm"
+            last_elt = elt
+            print("\texit ", elt.tag, "norm")
             for sibl in elt.itersiblings():
                 if sibl in anc:
                     break
-                print "write", sibl.tag, "exit sibl"
+                print("\twrite", sibl.tag, "exit sibl")
                 parent.write(sibl)
 
-        print "entering", cloth.tag
         deps = deque()
-        for sibl in _prevsibs(cloth):
+        sibls = _prevsibs(cloth)
+        try:
+            sibls = sibls[sibls.index(last_elt):]
+        except ValueError:
+            pass
+
+        for sibl in sibls:
             if id(sibl) in tags:
                 break
             deps.appendleft((False, sibl))
@@ -292,42 +318,44 @@ class ToClothMixin(ProtocolBase):
                 deps.appendleft((False, sibl))
 
         # write parents with parent siblings
-        print deps
+        print("\tdeps:")
+        for p, tag in deps:
+            print("\t\t", ("parent" if p else "sibling"), tag)
         for new, elt in deps:
             open_elts = [id(e) for e, e_ctx in stack]
             if id(elt) in open_elts:
-                print "skip ", elt
+                print("\tskip ", elt)
             else:
                 if new:
                     curtag = parent.element(elt.tag, elt.attrib)
                     curtag.__enter__()
-                    print "enter", elt.tag, "norm"
+                    print("\tenter", elt.tag, "norm")
                     stack.append( (elt, curtag) )
                 else:
                     parent.write(elt)
-                    print "write", elt.tag, "norm"
+                    print("\twrite", elt.tag, "norm")
 
-                print "- adding", elt.tag, id(elt)
                 tags.add(id(elt))
 
         # write the element itself
         attrib = dict([(k2, v2) for k2, v2 in cloth.attrib.items()
-                           if not (k2 in (self.attr_name,self.root_attr_name))])
+                          if not (k2 in (self.attr_name, self.root_attr_name))])
 
         curtag = parent.element(cloth.tag, attrib)
         curtag.__enter__()
         stack.append( (cloth, curtag) )
-        print "entering", cloth.tag, 'ok'
+        print("entering", cloth.tag, 'ok')
 
     def _close_cloth(self, ctx, parent):
         for elt, elt_ctx in reversed(ctx.protocol.stack):
-            print "exit ", elt.tag, "close"
+            print("exit ", elt.tag, "close")
             elt_ctx.__exit__(None, None, None)
             for sibl in elt.itersiblings():
-                print "write", sibl.tag, "close sibl"
+                print("write", sibl.tag, "close sibl")
                 parent.write(sibl)
 
-    def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name, from_arr=False, **kwargs):
+    def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
+                                                      from_arr=False, **kwargs):
         ctx.protocol.stack = deque()
         ctx.protocol.tags = set()
 

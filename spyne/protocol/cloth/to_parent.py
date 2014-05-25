@@ -17,6 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
+import logging
+logger = logging.getLogger(__name__)
+
 from inspect import isgenerator
 
 from lxml import etree, html
@@ -57,25 +62,33 @@ class ToParentMixin(ProtocolBase):
         })
 
     def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        subprot = getattr(cls.Attributes, 'prot', None)
+        if issubclass(inst.__class__, cls.__orig__ or cls):
+            print(cls, "=>", end="")
+            cls = inst.__class__
+            print(cls)
 
+        subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self):
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
-        handler = self.serialization_handlers[cls]
         if inst is None:
             inst = cls.Attributes.default
 
         if inst is None:
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        if issubclass(cls, ComplexModelBase) and self.ignore_wrappers:
+        if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
             cls, inst = self.strip_wrappers(cls, inst)
 
         from_arr = kwargs.get('from_arr', False)
         if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+        try:
+            handler = self.serialization_handlers[cls]
+        except KeyError:
+            logger.error("%r is missing handler for %r", self, cls)
+            raise
         return handler(ctx, cls, inst, parent, name, **kwargs)
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
@@ -102,7 +115,7 @@ class ToParentMixin(ProtocolBase):
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
-                print sv
+                print(sv)
                 ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True,
                                                                        **kwargs)
                 if isgenerator(ret):
@@ -134,7 +147,7 @@ class ToParentMixin(ProtocolBase):
     @coroutine
     def _get_members(self, ctx, cls, inst, parent, **kwargs):
         for k, v in cls.get_flat_type_info(cls).items():
-            print "_get_members", k, v
+            print("_get_members", k, v)
             try:
                 subvalue = getattr(inst, k, None)
             except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError

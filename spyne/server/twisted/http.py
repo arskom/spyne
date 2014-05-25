@@ -105,6 +105,8 @@ class TwistedHttpTransportContext(HttpTransportContext):
         super(TwistedHttpTransportContext, self).set_mime_type(what)
         self.req.setHeader('Content-Type', what)
 
+    def get_cookie(self, key):
+        return self.req.getCookie(key)
 
 class TwistedHttpMethodContext(HttpMethodContext):
     default_transport_context = TwistedHttpTransportContext
@@ -144,7 +146,8 @@ class TwistedHttpTransport(HttpBase):
         if postpath is None:
             postpath = request.path
 
-        params = self.match_pattern(ctx, request.method, postpath, request.host)
+        params = self.match_pattern(ctx, request.method, postpath,
+                                                      request.getHeader('Host'))
 
         if ctx.method_request_string is None: # no pattern match
             ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),

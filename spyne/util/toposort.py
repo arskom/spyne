@@ -39,7 +39,7 @@ def toposort2(data):
         ordered = set(item for item,dep in data.items() if len(dep) == 0)
         if len(ordered) == 0:
             break
-        yield sorted(ordered)
+        yield sorted(ordered, key=lambda x:repr(x))
         data = dict([(item, (dep - ordered)) for item,dep in data.items()
                                                        if item not in ordered])
 

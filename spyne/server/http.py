@@ -69,6 +69,9 @@ class HttpTransportContext(TransportContext):
             # So that deserialization is skipped.
             self.parent.out_string = []
 
+    def get_cookie(self, key):
+        raise NotImplementedError()
+
     mime_type = property(
         lambda self: self.get_mime_type(),
         lambda self, what: self.set_mime_type(what),

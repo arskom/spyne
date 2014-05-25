@@ -22,7 +22,7 @@
 In case it's not obvious, this module is EXPERIMENTAL.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import logging
 logger = logging.getLogger(__name__)
@@ -69,6 +69,8 @@ from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from sqlalchemy.types import UserDefinedType
+
+from spyne.error import ValidationError
 
 # internal types
 from spyne.model.enum import EnumBase
@@ -398,6 +400,10 @@ class PGFileJson(PGObjectJson):
                 if value.data is not None:
                     value.path = uuid1().get_hex()
                     fp = join(self.store, value.path)
+                    if not abspath(fp).startswith(self.store):
+                        raise ValidationError(value.path, "Path %r contains "
+                                          "relative path operators (e.g. '..')")
+
                     with open(fp, 'wb') as file:
                         for d in value.data:
                             file.write(d)
@@ -405,6 +411,10 @@ class PGFileJson(PGObjectJson):
                 elif value.handle is not None:
                     value.path = uuid1().get_hex()
                     fp = join(self.store, value.path)
+                    if not abspath(fp).startswith(self.store):
+                        raise ValidationError(value.path, "Path %r contains "
+                                          "relative path operators (e.g. '..')")
+
                     data = mmap(value.handle.fileno(), 0) # 0 = whole file
                     with open(fp, 'wb') as out_file:
                         out_file.write(data)
@@ -420,7 +430,7 @@ class PGFileJson(PGObjectJson):
 
                         if value.move:
                             shutil.move(in_file_path, dest)
-                            print "move", in_file_path, dest
+                            print("move", in_file_path, dest)
                         else:
                             shutil.copy(in_file_path, dest)
 
@@ -429,7 +439,7 @@ class PGFileJson(PGObjectJson):
 
                 else:
                     raise ValueError("Invalid file object passed in. All of "
-                                     ".data .handle and .path are None.")
+                                            ".data .handle and .path are None.")
 
                 value.store = self.store
                 value.abspath = join(self.store, value.path)

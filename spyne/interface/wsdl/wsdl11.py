@@ -178,7 +178,7 @@ class Wsdl11(XmlSchema):
         return pt
 
     def _get_or_create_service_node(self, service_name):
-        '''Builds a wsdl:service element.'''
+        """Builds a wsdl:service element."""
 
         ser = None
         if not service_name in self.service_elt_dict:
@@ -378,6 +378,7 @@ class Wsdl11(XmlSchema):
                 objs = obj
             else:
                 objs = (obj,)
+
             for obj in objs:
                 part = etree.SubElement(message, '{%s}part' % _ns_wsdl)
                 part.set('name', obj.get_element_name())

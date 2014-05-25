@@ -867,15 +867,22 @@ class Language(Token):
 
 class Point(Unicode):
     """A point type whose native format is a WKT string. You can use
-    :func:`shapely.wkt.loads` to get a proper point type."""
+    :func:`shapely.wkt.loads` to get a proper point type.
+
+    It's a subclass of the :class:`Unicode` type, so regular Unicode constraints
+    apply. The only additional parameter is the number of dimensions.
+
+    :param dim: Number of dimensons.
+    """
+
     __type_name__ = None
 
     class Attributes(Unicode.Attributes):
         dim = None
 
     @staticmethod
-    def Value(x, y):
-        return 'POINT(%3.15f %3.15f)' % (x,y)
+    def Value(x, y, prec=15):
+        return ('POINT(%%3.%(prec)sf %%3.%(prec)sf)' % {'prec': prec}) % (x,y)
 
     def __new__(cls, dim=None, **kwargs):
         assert dim in (None,2,3)
@@ -892,8 +899,15 @@ class Point(Unicode):
 
 
 class Line(Unicode):
-    """A point type whose native format is a WKT string. You can use
-    :func:`shapely.wkt.loads` to get a proper point type."""
+    """A line type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper line type.
+
+    It's a subclass of the :class:`Unicode` type, so regular Unicode constraints
+    apply. The only additional parameter is the number of dimensions.
+
+    :param dim: Number of dimensons.
+    """
+
     __type_name__ = None
 
     class Attributes(Unicode.Attributes):
@@ -916,8 +930,14 @@ LineString = Line
 
 
 class Polygon(Unicode):
-    """A Polygon type whose native format is a WKT string. You can use
-    :func:`shapely.wkt.loads` to get a proper polygon type."""
+    """A polygon type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper polygon type.
+
+    It's a subclass of the :class:`Unicode` type, so regular Unicode constraints
+    apply. The only additional parameter is the number of dimensions.
+
+    :param dim: Number of dimensons.
+    """
     __type_name__ = None
 
     class Attributes(Unicode.Attributes):
@@ -938,8 +958,15 @@ class Polygon(Unicode):
 
 
 class MultiPoint(Unicode):
-    """A Multipolygon type whose native format is a WKT string. You can use
-    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+    """A MultiPoint type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper MultiPoint type.
+
+    It's a subclass of the :class:`Unicode` type, so regular Unicode constraints
+    apply. The only additional parameter is the number of dimensions.
+
+    :param dim: Number of dimensons.
+    """
+
     __type_name__ = None
 
     class Attributes(Unicode.Attributes):
@@ -960,8 +987,15 @@ class MultiPoint(Unicode):
 
 
 class MultiLine(Unicode):
-    """A Multipolygon type whose native format is a WKT string. You can use
-    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+    """A MultiLine type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper MultiLine type.
+
+    It's a subclass of the :class:`Unicode` type, so regular Unicode constraints
+    apply. The only additional parameter is the number of dimensions.
+
+    :param dim: Number of dimensons.
+    """
+
     __type_name__ = None
 
     class Attributes(Unicode.Attributes):
@@ -984,8 +1018,15 @@ MultiLineString = MultiLine
 
 
 class MultiPolygon(Unicode):
-    """A Multipolygon type whose native format is a WKT string. You can use
-    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+    """A MultiPolygon type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper MultiPolygon type.
+
+    It's a subclass of the :class:`Unicode` type, so regular Unicode constraints
+    apply. The only additional parameter is the number of dimensions.
+
+    :param dim: Number of dimensons.
+    """
+
     __type_name__ = None
 
     class Attributes(Unicode.Attributes):

@@ -27,7 +27,7 @@ Flattening
 ==========
 
 Plain HTTP does not support hierarchical key-value stores. Spyne makes plain
-HTTP fake hierarchical dicts via two small hacks.
+HTTP fake hierarchical dicts with two small hacks.
 
 Let's look at the following object hierarchy: ::
 
@@ -44,14 +44,14 @@ following hierarchichal dict representation: ::
 
     {'a': 1, 'b': { 'c': 2 }}
 
-We do two hacks to deserialize the above object structure from a flat dict:
+Here's what we do to deserialize the above object structure from a flat dict:
 
 1. Object hierarchies are flattened. e.g. the flat representation of the above
-   dict is: ``{'a': 1, 'b_c': 2}``.
+   dict is: ``{'a': 1, 'b.c': 2}``.
 2. Arrays of objects are sent using variables with array indexes in square
    brackets. So the request with the following query object: ::
 
-      {'a': 1, 'b_d[0]': 1, 'b_d[1]': 2}}
+      {'a': 1, 'b.d[0]': 1, 'b.d[1]': 2}}
 
   ... corresponds to: ::
 
@@ -192,7 +192,7 @@ def _check_freq_dict(cls, d, fti=None):
 
 def _s2cmi(m, nidx):
     """
-    Sparse so contigous mapping inserter.
+    Sparse to contigous mapping inserter.
 
     >>> m1={3:0, 4:1, 7:2}
     >>> _s2cmi(m1, 5); m1
@@ -229,8 +229,9 @@ class DictDocument(ProtocolBase):
 
     def __init__(self, app=None, validator=None, mime_type=None,
             ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
-                                                                ordered=False):
-        super(DictDocument, self).__init__(app, validator, mime_type, ignore_uncap, ignore_wrappers)
+                                                                 ordered=False):
+        super(DictDocument, self).__init__(app, validator, mime_type,
+                                                  ignore_uncap, ignore_wrappers)
 
         self.complex_as = complex_as
         self.ordered = ordered
