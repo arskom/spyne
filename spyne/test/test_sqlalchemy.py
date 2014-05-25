@@ -673,7 +673,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.commit()
 
         c = self.session.query(C).get(1)
-        print c
+        print(c)
         assert c.f.name == "name"
         assert c.f.type == "type"
         assert str(c.f.data[0][:]) == "data"

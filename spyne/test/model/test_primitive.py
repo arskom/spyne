@@ -463,7 +463,7 @@ class TestPrimitive(unittest.TestCase):
         assert ProtocolBase().to_string(Uuid(serialize_as='bytes_le'), value) == \
                                 'xV4\x124\x12xV\x124Vx\x124Vx'
         assert ProtocolBase().to_string(Uuid(serialize_as='fields'), value) == \
-                                (305419896L, 4660L, 22136L, 18L, 52L, 95073701484152L)
+                                (305419896, 4660, 22136, 18, 52, 95073701484152)
         assert ProtocolBase().to_string(Uuid(serialize_as='int'), value) == \
                                 24197857161011715162171839636988778104
 
