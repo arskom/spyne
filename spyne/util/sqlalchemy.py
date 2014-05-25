@@ -22,7 +22,7 @@
 In case it's not obvious, this module is EXPERIMENTAL.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import logging
 logger = logging.getLogger(__name__)
@@ -430,7 +430,7 @@ class PGFileJson(PGObjectJson):
 
                         if value.move:
                             shutil.move(in_file_path, dest)
-                            print "move", in_file_path, dest
+                            print("move", in_file_path, dest)
                         else:
                             shutil.copy(in_file_path, dest)
 
