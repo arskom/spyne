@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -129,9 +131,9 @@ class ToClothMixin(ProtocolBase):
             return retval
 
     def _get_elts_by_id(self, elt, what):
-        print "id=%r" % what, "got",
+        print("id=%r" % what, "got", end='')
         retval = elt.xpath('//*[@id="%s"]' % what)
-        print retval
+        print(retval)
         return retval
 
     @staticmethod
@@ -232,9 +234,9 @@ class ToClothMixin(ProtocolBase):
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         if issubclass(inst.__class__, cls.__orig__ or cls):
-            print cls, "=>",
+            print(cls, "=>", end='')
             cls = inst.__class__
-            print cls
+            print(cls)
 
         if inst is None:
             inst = cls.Attributes.default
@@ -260,19 +262,19 @@ class ToClothMixin(ProtocolBase):
         return retval
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print cls, inst
+        print(cls, inst)
         parent.write(self.to_string(cls, inst))
 
     def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print cls, inst
+        print(cls, inst)
         parent.write(inst)
 
     def _enter_cloth(self, ctx, cloth, parent):
         if cloth is self._cloth:
-            print "entering", cloth.tag, "return same"
+            print("entering", cloth.tag, "return same")
             return
 
-        print "entering", cloth.tag
+        print("entering", cloth.tag)
 
         assert len(list(cloth.iterancestors())) > 0
         stack = ctx.protocol.stack
@@ -285,11 +287,11 @@ class ToClothMixin(ProtocolBase):
             elt, elt_ctx = ctx.protocol.stack.pop()
             elt_ctx.__exit__(None, None, None)
             last_elt = elt
-            print "\texit ", elt.tag, "norm"
+            print("\texit ", elt.tag, "norm")
             for sibl in elt.itersiblings():
                 if sibl in anc:
                     break
-                print "\twrite", sibl.tag, "exit sibl"
+                print("\twrite", sibl.tag, "exit sibl")
                 parent.write(sibl)
 
         deps = deque()
@@ -316,22 +318,22 @@ class ToClothMixin(ProtocolBase):
                 deps.appendleft((False, sibl))
 
         # write parents with parent siblings
-        print "\tdeps:"
+        print("\tdeps:")
         for p, tag in deps:
-            print "\t\t", ("parent" if p else "sibling"), tag
+            print("\t\t", ("parent" if p else "sibling"), tag)
         for new, elt in deps:
             open_elts = [id(e) for e, e_ctx in stack]
             if id(elt) in open_elts:
-                print "\tskip ", elt
+                print("\tskip ", elt)
             else:
                 if new:
                     curtag = parent.element(elt.tag, elt.attrib)
                     curtag.__enter__()
-                    print "\tenter", elt.tag, "norm"
+                    print("\tenter", elt.tag, "norm")
                     stack.append( (elt, curtag) )
                 else:
                     parent.write(elt)
-                    print "\twrite", elt.tag, "norm"
+                    print("\twrite", elt.tag, "norm")
 
                 tags.add(id(elt))
 
@@ -342,14 +344,14 @@ class ToClothMixin(ProtocolBase):
         curtag = parent.element(cloth.tag, attrib)
         curtag.__enter__()
         stack.append( (cloth, curtag) )
-        print "entering", cloth.tag, 'ok'
+        print("entering", cloth.tag, 'ok')
 
     def _close_cloth(self, ctx, parent):
         for elt, elt_ctx in reversed(ctx.protocol.stack):
-            print "exit ", elt.tag, "close"
+            print("exit ", elt.tag, "close")
             elt_ctx.__exit__(None, None, None)
             for sibl in elt.itersiblings():
-                print "write", sibl.tag, "close sibl"
+                print("write", sibl.tag, "close sibl")
                 parent.write(sibl)
 
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,

@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -76,7 +78,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         if ctx.out_stream is None:
             ctx.out_stream = StringIO()
-            print ctx.out_stream, id(ctx.out_stream)
+            print(ctx.out_stream, id(ctx.out_stream))
 
         if ctx.out_error is not None:
             # All errors at this point must be Fault subclasses.
@@ -157,16 +159,16 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             name = cls.get_type_name()
 
         if self._root_cloth is not None:
-            print "to root cloth"
+            print("to root cloth")
             return self.to_root_cloth(ctx, cls, inst, self._root_cloth,
                                                          parent, name, **kwargs)
 
         if self._cloth is not None:
-            print "to parent cloth"
+            print("to parent cloth")
             return self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                  name, **kwargs)
 
-        print "to parent"
+        print("to parent")
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     def decompose_incoming_envelope(self, ctx, message):

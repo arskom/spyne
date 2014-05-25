@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -61,9 +63,9 @@ class ToParentMixin(ProtocolBase):
 
     def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         if issubclass(inst.__class__, cls.__orig__ or cls):
-            print cls, "=>",
+            print(cls, "=>", end="")
             cls = inst.__class__
-            print cls
+            print(cls)
 
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self):
@@ -113,7 +115,7 @@ class ToParentMixin(ProtocolBase):
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
-                print sv
+                print(sv)
                 ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True,
                                                                        **kwargs)
                 if isgenerator(ret):
@@ -145,7 +147,7 @@ class ToParentMixin(ProtocolBase):
     @coroutine
     def _get_members(self, ctx, cls, inst, parent, **kwargs):
         for k, v in cls.get_flat_type_info(cls).items():
-            print "_get_members", k, v
+            print("_get_members", k, v)
             try:
                 subvalue = getattr(inst, k, None)
             except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
