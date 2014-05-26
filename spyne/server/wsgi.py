@@ -240,12 +240,12 @@ class WsgiApplication(HttpBase):
             url = reconstruct_url(req_env).split('.wsdl')[0]
 
         if _is_wsdl_request(req_env):
-            return self.__handle_wsdl_request(req_env, start_response, url)
+            return self.handle_wsdl_request(req_env, start_response, url)
 
         else:
             return self.handle_rpc(req_env, start_response)
 
-    def __handle_wsdl_request(self, req_env, start_response, url):
+    def handle_wsdl_request(self, req_env, start_response, url):
         ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
 
         if self.doc.wsdl11 is None:
