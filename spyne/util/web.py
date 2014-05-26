@@ -277,7 +277,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
         cls = obj.__class__
 
     if hasattr(cls, 'Attributes') and not cls.Attributes.logged:
-        retval.append("%s(...)" % cls.get_type_name())
+        return "%s(...)" % cls.get_type_name()
 
     if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
                                                                      from_array:
