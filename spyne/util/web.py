@@ -276,14 +276,14 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
     if hasattr(obj, '__class__') and issubclass(obj.__class__, cls):
         cls = obj.__class__
 
+    if hasattr(cls, 'Attributes') and not cls.Attributes.logged:
+        retval.append("%s(...)" % cls.get_type_name())
+
     if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
                                                                      from_array:
         retval = []
         if issubclass(cls, Array):
             cls, = cls._type_info.values()
-
-        if not cls.Attributes.logged:
-            retval.append("%s(...)" % cls.get_type_name())
 
         elif cls.Attributes.logged == 'len':
             l = '?'
