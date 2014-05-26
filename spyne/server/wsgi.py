@@ -159,20 +159,6 @@ class WsgiMethodContext(HttpMethodContext):
         """Holds the WSGI-specific information"""
 
 
-def _is_wsdl_request(req_env):
-    # Get the wsdl for the service. Assume path_info matches pattern:
-    # /stuff/stuff/stuff/serviceName.wsdl or
-    # /stuff/stuff/stuff/serviceName/?wsdl
-
-    return (
-        req_env['REQUEST_METHOD'].upper() == 'GET'
-        and (
-               req_env['QUERY_STRING'].lower() == 'wsdl'
-            or req_env['PATH_INFO'].endswith('.wsdl')
-        )
-    )
-
-
 class WsgiApplication(HttpBase):
     """A `PEP-3333 <http://www.python.org/dev/peps/pep-3333>`_
     compliant callable class.
@@ -239,11 +225,25 @@ class WsgiApplication(HttpBase):
         if url is None:
             url = reconstruct_url(req_env).split('.wsdl')[0]
 
-        if _is_wsdl_request(req_env):
+        if self.is_wsdl_request(req_env):
             return self.handle_wsdl_request(req_env, start_response, url)
 
         else:
             return self.handle_rpc(req_env, start_response)
+
+    def is_wsdl_request(self, req_env):
+        # Get the wsdl for the service. Assume path_info matches pattern:
+        # /stuff/stuff/stuff/serviceName.wsdl or
+        # /stuff/stuff/stuff/serviceName/?wsdl
+
+        return (
+            req_env['REQUEST_METHOD'].upper() == 'GET'
+            and (
+                   req_env['QUERY_STRING'].lower() == 'wsdl'
+                or req_env['PATH_INFO'].endswith('.wsdl')
+            )
+        )
+
 
     def handle_wsdl_request(self, req_env, start_response, url):
         ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
