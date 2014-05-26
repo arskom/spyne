@@ -31,7 +31,7 @@ from spyne.util import six
 
 from spyne import BODY_STYLE_WRAPPED, rpc
 from spyne.application import Application as AppBase
-from spyne.const import MAX_STRING_FIELD_LENGTH
+from spyne.const import MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.error import Fault
 from spyne.error import InternalError
@@ -311,6 +311,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
     elif issubclass(cls, ComplexModelBase):
         retval = []
+        i = 0
 
         for k, t in cls.get_flat_type_info(cls).items():
             v = getattr(obj, k, None)
@@ -318,10 +319,16 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
             # get properly reinitialized.
             if isclass(v) and issubclass(v, ModelBase):
                 continue
+
+            if i > MAX_FIELD_NUM:
+                retval.append("(...)")
+                break
+
             if t.Attributes.logged:
                 if v is not None:
                     retval.append("%s=%s" % (k, log_repr(v, t, parent=k,
                                                                     tags=tags)))
+                    i += 1
 
         return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
