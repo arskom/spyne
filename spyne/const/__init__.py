@@ -25,7 +25,10 @@ MAX_STRING_FIELD_LENGTH = 64
 """Maximum length of a string field for :func:`spyne.util.log_repr`"""
 
 MAX_ARRAY_ELEMENT_NUM = 2
-"""Maximum number of array members for :func:`spyne.util.log_repr`"""
+"""Maximum number of array elements for :func:`spyne.util.log_repr`"""
+
+MAX_FIELD_NUM = 10
+"""Maximum number of complex model fields for :func:`spyne.util.log_repr`"""
 
 ARRAY_PREFIX = ''
 """The prefix for Array wrapper objects. You may want to set this to 'ArrayOf'

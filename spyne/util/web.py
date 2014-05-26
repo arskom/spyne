@@ -31,7 +31,7 @@ from spyne.util import six
 
 from spyne import BODY_STYLE_WRAPPED, rpc
 from spyne.application import Application as AppBase
-from spyne.const import MAX_STRING_FIELD_LENGTH
+from spyne.const import MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.error import Fault
 from spyne.error import InternalError
@@ -250,7 +250,7 @@ class Context(object):
             self.session.close()
 
 
-def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
+def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=None):
     """Use this function if you want to serialize a ComplexModelBase instance to
     logs. It will:
 
@@ -259,8 +259,16 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
         * Not try to iterate on iterators, push data, etc.
     """
 
+    if tags is None:
+        tags = set()
+
     if obj is None:
         return 'None'
+
+    if id(obj) in tags:
+        return "%s(...)" % obj.__class__.__name__
+
+    tags.add(id(obj))
 
     if cls is None:
         cls = obj.__class__
@@ -268,14 +276,14 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
     if hasattr(obj, '__class__') and issubclass(obj.__class__, cls):
         cls = obj.__class__
 
+    if hasattr(cls, 'Attributes') and not cls.Attributes.logged:
+        return "%s(...)" % cls.get_type_name()
+
     if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
                                                                      from_array:
         retval = []
         if issubclass(cls, Array):
             cls, = cls._type_info.values()
-
-        if not cls.Attributes.logged:
-            retval.append("%s(...)" % cls.get_type_name())
 
         elif cls.Attributes.logged == 'len':
             l = '?'
@@ -293,7 +301,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
 
         else:
             for i, o in enumerate(obj):
-                retval.append(log_repr(o, cls, from_array=True))
+                retval.append(log_repr(o, cls, from_array=True, tags=tags))
 
                 if i > MAX_ARRAY_ELEMENT_NUM:
                     retval.append("(...)")
@@ -303,6 +311,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
 
     elif issubclass(cls, ComplexModelBase):
         retval = []
+        i = 0
 
         for k, t in cls.get_flat_type_info(cls).items():
             v = getattr(obj, k, None)
@@ -310,9 +319,16 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
             # get properly reinitialized.
             if isclass(v) and issubclass(v, ModelBase):
                 continue
+
+            if i > MAX_FIELD_NUM:
+                retval.append("(...)")
+                break
+
             if t.Attributes.logged:
                 if v is not None:
-                    retval.append("%s=%s" % (k, log_repr(v, t, parent=k)))
+                    retval.append("%s=%s" % (k, log_repr(v, t, parent=k,
+                                                                    tags=tags)))
+                    i += 1
 
         return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
@@ -324,7 +340,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
             return repr(obj)
 
     elif issubclass(cls, File) and isinstance(obj, PGFileJson.FileData):
-        retval = log_repr(obj, PGFileJson.FileData)
+        retval = log_repr(obj, PGFileJson.FileData, tags=tags)
 
     else:
         retval = repr(obj)
