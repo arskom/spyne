@@ -132,10 +132,9 @@ the following dict: ::
         }
     },
 
-This could become useful when you call a don't know what type to expect, which
-is never the case with Spyne. This functionality is kept for compatibility
-purposes.
+This could come in handy in case you don't know what type to expect.
 """
+
 
 import logging
 logger = logging.getLogger(__name__)
