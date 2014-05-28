@@ -68,7 +68,7 @@ Here's what we do to deserialize the above object structure from a flat dict:
 
   Or the following object: ::
 
-      {'a': 1, 'b[0]_c': 1, 'b[1]_c': 2}}
+      {'a': 1, 'b[0].c': 1, 'b[1].c': 2}}
 
   ... would correspond to: ::
 
