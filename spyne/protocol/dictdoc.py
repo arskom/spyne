@@ -317,6 +317,11 @@ class SimpleDictDocument(DictDocument):
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
         """
 
+        if issubclass(inst_class, AnyDict):
+            return doc
+
+        assert issubclass(inst_class, ComplexModelBase), "Patches are welcome"
+
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
         if validator is self.SOFT_VALIDATION:
