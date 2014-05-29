@@ -237,7 +237,7 @@ class RunTests(ExtendedTestCommand):
         from tox._cmdline import Session
         tox_args = ['-ctox.django.ini']
         config = parseconfig(tox_args, 'tox')
-        ret = Session(config).runcommand()
+        ret = Session(config).runcommand() or ret
 
         ret = call_pytest_subprocess('interop/test_httprpc.py',
                                      capture=self.capture) or ret
