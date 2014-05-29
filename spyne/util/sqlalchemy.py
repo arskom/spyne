@@ -27,6 +27,7 @@ from __future__ import absolute_import, print_function
 import logging
 logger = logging.getLogger(__name__)
 
+import os
 import shutil
 import sqlalchemy
 
@@ -463,15 +464,19 @@ class PGFileJson(PGObjectJson):
                 retval = get_dict_as_object(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as)
-
-                path = join(self.store, retval.path)
-                retval.handle = open(path, 'rb')
-                if fstat(retval.handle.fileno()).st_size > 0:
-                    retval.data = [mmap(retval.handle.fileno(), 0, access=ACCESS_READ)]
-                else:
-                    retval.data = ['']
                 retval.store = self.store
-                retval.abspath = path
+                retval.abspath = path = join(self.store, retval.path)
+
+                ret = os.access(path, os.R_OK)
+                retval.handle = None
+                retval.data = ['']
+                if ret:
+                    retval.handle = open(path, 'rb')
+                    if fstat(retval.handle.fileno()).st_size > 0:
+                        retval.data = [mmap(retval.handle.fileno(), 0,
+                                                            access=ACCESS_READ)]
+                else:
+                    logger.error("File %r is not readable", path)
 
             return retval
 
