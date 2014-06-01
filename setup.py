@@ -195,7 +195,6 @@ def subunit2junitxml(ctr):
 
 
 class ExtendedTestCommand(TestCommand):
-
     """TestCommand customized to project needs."""
 
     user_options = TestCommand.user_options + [
@@ -215,7 +214,6 @@ class ExtendedTestCommand(TestCommand):
 
 
 class RunTests(ExtendedTestCommand):
-
     def run_tests(self):
         print("running tests")
         sys.path.append(join(EXAMPLES_DIR, 'django'))
@@ -343,7 +341,7 @@ else:
     if sys.version_info < (3,0):
         test_reqs.extend(['pyparsing<1.99', 'suds'])
     else:
-        test_reqs.extend(['pyparsing'])
+        test_reqs.extend(['pyparsing', 'suds-jurko'])
 
 
 class SubUnitTee(object):
