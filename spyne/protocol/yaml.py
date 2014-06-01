@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.protocol.Yaml`` package contains the Yaml-related protocols.
-Currently, only :class:`spyne.protocol.Yaml.YamlDocument` is supported.
+"""The ``spyne.protocol.yaml`` package contains the Yaml-related protocols.
+Currently, only :class:`spyne.protocol.yaml.YamlDocument` is supported.
 
 Initially released in 2.10.0-rc.
 
