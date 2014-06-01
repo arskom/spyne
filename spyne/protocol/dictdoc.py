@@ -68,7 +68,7 @@ Here's what we do to deserialize the above object structure from a flat dict:
 
   Or the following object: ::
 
-      {'a': 1, 'b[0]_c': 1, 'b[1]_c': 2}}
+      {'a': 1, 'b[0].c': 1, 'b[1].c': 2}}
 
   ... would correspond to: ::
 
@@ -132,10 +132,9 @@ the following dict: ::
         }
     },
 
-This could become useful when you call a don't know what type to expect, which
-is never the case with Spyne. This functionality is kept for compatibility
-purposes.
+This could come in handy in case you don't know what type to expect.
 """
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -317,6 +316,11 @@ class SimpleDictDocument(DictDocument):
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
         """
+
+        if issubclass(inst_class, AnyDict):
+            return doc
+
+        assert issubclass(inst_class, ComplexModelBase), "Patches are welcome"
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))

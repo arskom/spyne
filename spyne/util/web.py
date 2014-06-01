@@ -265,11 +265,6 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
     if obj is None:
         return 'None'
 
-    if id(obj) in tags:
-        return "%s(...)" % obj.__class__.__name__
-
-    tags.add(id(obj))
-
     if cls is None:
         cls = obj.__class__
 
@@ -281,9 +276,16 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
     if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
                                                                      from_array:
+        if id(obj) in tags:
+            return "%s(...)" % obj.__class__.__name__
+        tags.add(id(obj))
+
         retval = []
         if issubclass(cls, Array):
             cls, = cls._type_info.values()
+
+        if isinstance(obj, PushBase):
+            retval.append('<PushData>')
 
         elif cls.Attributes.logged == 'len':
             l = '?'
@@ -294,10 +296,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
                 if given_len is not None:
                     l = str(given_len)
 
-            retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
-
-        elif isinstance(obj, PushBase):
-            retval.append('<PushData>')
+            retval.append("%s[len=%s] (...)" % (cls.get_type_name(), l))
 
         else:
             for i, o in enumerate(obj):
@@ -310,6 +309,10 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
         retval = "[%s]" % (', '.join(retval))
 
     elif issubclass(cls, ComplexModelBase):
+        if id(obj) in tags:
+            return "%s(...)" % obj.__class__.__name__
+        tags.add(id(obj))
+
         retval = []
         i = 0
 

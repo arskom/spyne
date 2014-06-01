@@ -19,6 +19,8 @@
 
 """The Twisted Http Client transport."""
 
+from spyne import __version__ as VERSION
+
 from spyne.client import Service
 from spyne.client import RemoteProcedureBase
 from spyne.client import ClientBase
@@ -100,7 +102,7 @@ class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
         # there's no point in having a client making the same request more than
         # once, so if there's more than just one context, it's rather a bug.
-        # the comma-in-assignment trick is a general way of getting the first
+        # The comma-in-assignment trick is a pedantic way of getting the first
         # and the only variable from an iterable. so if there's more than one
         # element in the iterable, it'll fail miserably.
         self.ctx, = self.contexts
@@ -113,7 +115,7 @@ class _RemoteProcedure(RemoteProcedureBase):
         agent = Agent(reactor)
         d = agent.request(
             'POST', self.url,
-            Headers({'User-Agent': ['Spyne Twisted Http Client']}),
+            Headers({'User-Agent': ['Spyne Twisted Http Client %s' % VERSION]}),
             _Producer(self.ctx.out_string)
         )
 
