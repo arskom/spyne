@@ -29,7 +29,6 @@ from spyne.const import xml_ns as namespace
 
 from spyne.model import ModelBase
 from spyne.model import Array
-from spyne.model import XmlData
 from spyne.model import ComplexModelBase
 from spyne.model.complex import XmlModifier
 
@@ -410,13 +409,6 @@ class Interface(object):
                         self.imports[ns].add(child_ns)
                         logger.debug("\timporting %r to %r for %s.%s(%r)",
                                     child_ns, ns, v.get_type_name(), k, v.type)
-
-                    if issubclass(v, XmlData):
-                        old = cls.get_type_name_ns(self)
-                        cls.__namespace__ = child_ns
-                        cls.__type_name__ = v.type.get_type_name()
-                        logger.debug("\tXmlData overrides %r with %r",
-                                                old, cls.get_type_name_ns(self))
 
             if cls.Attributes.methods is not None:
                 logger.debug("\tpopulating member methods for '%s.%s'...",

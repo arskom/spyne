@@ -28,7 +28,7 @@ from collections import deque, defaultdict
 
 from lxml import etree
 
-from spyne.model import ModelBase, XmlAttribute, AnyXml, Unicode
+from spyne.model import ModelBase, XmlAttribute, AnyXml, Unicode, XmlData
 from spyne.const.xml_ns import xsd as _ns_xsd
 from spyne.util import memoize
 from spyne.util.etreeconv import dict_to_etree
@@ -129,6 +129,13 @@ def complex_add(document, cls, tags):
             extension.set('base', extends.get_type_name_ns(document.interface))
             sequence_parent = extension
 
+    xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
+    if xtba_key is not None:
+        _sc = etree.SubElement(sequence_parent, '{%s}simpleContent' % _ns_xsd)
+        xtba_ext = etree.SubElement(_sc, '{%s}extension' % _ns_xsd)
+        xtba_ext.attrib['base'] = xtba_type.type.get_type_name_ns(
+                                                             document.interface)
+
     sequence = etree.Element('{%s}sequence' % _ns_xsd)
 
     deferred = deque()
@@ -140,6 +147,9 @@ def complex_add(document, cls, tags):
 
         a = v.Attributes
         if a.exc_interface:
+            continue
+
+        if issubclass(v, XmlData):
             continue
 
         if issubclass(v, XmlAttribute):
@@ -208,9 +218,13 @@ def complex_add(document, cls, tags):
     _ext_elements = dict()
     for k,v in deferred:
         ao = v.attribute_of
-        if ao is None: # others will be added at a later loop
-            attribute = etree.SubElement(complex_type,'{%s}attribute' % _ns_xsd)
+        if ao is None:
+            attribute = etree.Element('{%s}attribute' % _ns_xsd)
             xml_attribute_add(v, k, attribute, document)
+            if xtba_key is None:
+                complex_type.append(attribute)
+            else:
+                xtba_ext.append(attribute)
             continue
 
         elts = complex_type.xpath("//xsd:element[@name='%s']" % ao,

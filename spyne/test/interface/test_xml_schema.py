@@ -226,18 +226,21 @@ class TestXmlSchema(unittest.TestCase):
         assert any[0].attrib['namespace'] == '##other'
         assert any[0].attrib['processContents'] == 'lax'
 
-    def _build_xml_data_test_schema(self):
+    def _build_xml_data_test_schema(self, custom_root):
         tns = 'kickass.ns'
+
         class ProductEdition(ComplexModel):
             __namespace__ = tns
             id = XmlAttribute(Uuid)
-            name = XmlData(Unicode)
+            if custom_root:
+                name = XmlData(Uuid)
+            else:
+                name = XmlData(Unicode)
 
         class Product(ComplexModel):
             __namespace__ = tns
             id = XmlAttribute(Uuid)
             edition = ProductEdition
-            sample = XmlAttribute(Unicode, attribute_of='edition')
 
         class ExampleService(ServiceBase):
             @rpc(Product, _returns=Product)
@@ -252,20 +255,40 @@ class TestXmlSchema(unittest.TestCase):
 
         schema = XmlSchema(app.interface)
         schema.build_interface_document()
+        schema.build_validation_schema()
 
         doc = schema.get_interface_document()['tns']
         print(etree.tostring(doc, pretty_print=True))
-        return doc
+        return schema
 
-    def test_xml_data(self):
-        doc = self._build_xml_data_test_schema()
+    def test_xml_data_schema_doc(self):
+        schema = self._build_xml_data_test_schema(custom_root=False)
 
-        assert len(doc.xpath(
-                '/xs:schema/xs:complexType[@name="Product"]'
-                                    '/xs:sequence/xs:element[@name="edition"]'
-                '/xs:complexType/xs:simpleContent/xs:extension'
-                                    '/xs:attribute[@name="id"]'
+        assert len(schema.get_interface_document()['tns'].xpath(
+                '/xs:schema/xs:complexType[@name="ProductEdition"]'
+                '/xs:simpleContent/xs:extension/xs:attribute[@name="id"]'
                 ,namespaces={'xs': ns.xsd})) == 1
+
+    def _test_xml_data_validation(self):
+        schema = self._build_xml_data_test_schema(custom_root=False)
+
+        assert schema.validation_schema.validate(etree.fromstring("""
+            <Product id="00000000-0000-0000-0000-000000000000" xmlns="kickass.ns">
+                <edition id="00000000-0000-0000-0000-000000000001">punk</edition>
+            </Product>
+        """)), schema.validation_schema.error_log.last_error
+
+    def _test_xml_data_validation_custom_root(self):
+        schema = self._build_xml_data_test_schema(custom_root=True)
+
+        assert schema.validation_schema.validate(etree.fromstring("""
+            <Product id="00000000-0000-0000-0000-000000000000" xmlns="kickass.ns">
+                <edition id="00000000-0000-0000-0000-000000000001">
+                    00000000-0000-0000-0000-000000000002
+                </edition>
+            </Product>
+        """)), schema.validation_schema.error_log.last_error
+
 
     def test_subs(self):
         from lxml import etree
