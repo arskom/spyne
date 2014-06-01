@@ -89,7 +89,7 @@ class MessagePackDocument(HierDictDocument):
         """
 
         try:
-            ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
+            ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string))
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
@@ -131,7 +131,7 @@ class MessagePackRpc(MessagePackDocument):
 
         # TODO: Use feed api
         try:
-            ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
+            ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string))
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 

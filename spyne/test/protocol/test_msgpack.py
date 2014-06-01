@@ -21,7 +21,7 @@ import unittest
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-from spyne.util.six import StringIO
+from spyne.util.six import BytesIO
 
 import msgpack
 
@@ -89,7 +89,7 @@ class TestMessagePackRpc(unittest.TestCase):
         server = WsgiApplication(application)
 
         input_string = msgpack.packb([0,0,"get_values", [["a","c"]] ])
-        input_stream = StringIO(input_string)
+        input_stream = BytesIO(input_string)
 
         ret = server({
             'CONTENT_LENGTH': str(len(input_string)),
@@ -106,7 +106,7 @@ class TestMessagePackRpc(unittest.TestCase):
             'wsgi.input': input_stream,
         }, start_response)
 
-        ret = ''.join(ret)
+        ret = b''.join(ret)
         print(repr(ret))
         print(msgpack.unpackb(ret))
         s = msgpack.packb([1, 0, None, {'get_valuesResponse': {
