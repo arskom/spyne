@@ -4,6 +4,8 @@ Changelog
 
 spyne-2.11.0
 ------------
+* Experimental Python 3 Support for all of the Xml-related (not Html)
+  components.
 * Add support for altering output protocol by setting ``ctx.out_protocol``.
 * Add returning ctx.out_string support to null server (The ``ostr`` argument).
 * Add support for XmlData modifier. It lets mapping the data in the xml body
