@@ -420,7 +420,7 @@ class ProtocolBase(object):
 
     def unicode_from_string(self, cls, value):
         retval = value
-        if isinstance(value, str):
+        if isinstance(value, six.binary_type):
             if cls.Attributes.encoding is None:
                 retval = six.text_type(value,
                                            errors=cls.Attributes.unicode_errors)

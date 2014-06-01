@@ -91,7 +91,7 @@ def _from_soap(in_envelope_xml, xmlids=None):
 
 
 def _parse_xml_string(xml_string, parser, charset=None):
-    string = ''.join(xml_string)
+    string = b''.join(xml_string)
     if charset:
         string = string.decode(charset)
 
