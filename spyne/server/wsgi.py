@@ -307,7 +307,7 @@ class WsgiApplication(HttpBase):
                 p_ctx.out_protocol.fault_to_http_response_code(error)
 
         self.get_out_string(p_ctx)
-        p_ctx.out_string = [''.join(p_ctx.out_string)]
+        p_ctx.out_string = [b''.join(p_ctx.out_string)]
 
         p_ctx.transport.resp_headers['Content-Length'] = \
                                                    str(len(p_ctx.out_string[0]))
