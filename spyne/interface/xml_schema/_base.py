@@ -32,16 +32,8 @@ from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 from spyne.util.toposort import toposort2
 
-from spyne.model import SimpleModel
-from spyne.model import ByteArray
-from spyne.model import ComplexModelBase
-from spyne.model import Fault
-from spyne.model import Decimal
-from spyne.model import DateTime
-from spyne.model import Date
-from spyne.model import Time
-from spyne.model import Unicode
-
+from spyne.model import SimpleModel, ByteArray, ComplexModelBase, Fault, \
+    Decimal, DateTime, Date, Time, Unicode
 from spyne.model.enum import EnumBase
 from spyne.interface import InterfaceDocumentBase
 

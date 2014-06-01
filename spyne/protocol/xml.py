@@ -598,7 +598,7 @@ class XmlDocument(SubXmlBase):
             for k, v in cls._type_info.items():
                 try:
                     subvalue = getattr(inst, k, None)
-                except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
+                except: # e.g. SqlAlchemy could throw NoSuchColumnError
                     subvalue = None
 
                 # This is a tight loop, so enable this only when necessary.

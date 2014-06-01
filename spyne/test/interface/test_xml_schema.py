@@ -150,8 +150,7 @@ class TestXmlSchema(unittest.TestCase):
                 logging.info('edition_id: %r', product.edition_id)
                 return product
 
-        Application([SomeService],
-            tns='some_ns',
+        Application([SomeService], tns='some_ns',
             in_protocol=Soap11(validator='lxml'),
             out_protocol=Soap11()
         )
@@ -193,7 +192,6 @@ class TestXmlSchema(unittest.TestCase):
         assert elt.xpath('//xs:element[@name="hex"]/@type',
                             namespaces=_ns)[0] == '%s:hexBinary' % pref_xs
 
-
     def test_multilevel_customized_simple_type(self):
         class ExampleService(ServiceBase):
             __tns__ = 'http://xml.company.com/ns/example/'
@@ -228,7 +226,7 @@ class TestXmlSchema(unittest.TestCase):
         assert any[0].attrib['namespace'] == '##other'
         assert any[0].attrib['processContents'] == 'lax'
 
-    def _test_xml_data(self):
+    def _build_xml_data_test_schema(self):
         tns = 'kickass.ns'
         class ProductEdition(ComplexModel):
             __namespace__ = tns
@@ -257,6 +255,10 @@ class TestXmlSchema(unittest.TestCase):
 
         doc = schema.get_interface_document()['tns']
         print(etree.tostring(doc, pretty_print=True))
+        return doc
+
+    def test_xml_data(self):
+        doc = self._build_xml_data_test_schema()
 
         assert len(doc.xpath(
                 '/xs:schema/xs:complexType[@name="Product"]'
@@ -435,6 +437,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
             out_protocol=Soap11()
         )
         # if instantiation doesn't fail, test is green.
+
 
 class TestParseForeignXmlSchema(unittest.TestCase):
     def test_simple_content(self):

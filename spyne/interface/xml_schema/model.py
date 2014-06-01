@@ -23,25 +23,18 @@ for schema generation."""
 import logging
 logger = logging.getLogger(__name__)
 
-import decimal
+from decimal import Decimal as D
+from collections import deque, defaultdict
 
 from lxml import etree
 
-from collections import deque
-from collections import defaultdict
-
+from spyne.model import ModelBase, XmlAttribute, AnyXml, Unicode
 from spyne.const.xml_ns import xsd as _ns_xsd
-
-from spyne.model import ModelBase
-from spyne.model.complex import XmlAttribute
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import Unicode
-from spyne.protocol.xml import XmlDocument
-_prot = XmlDocument()
-
 from spyne.util import memoize
 from spyne.util.etreeconv import dict_to_etree
 from spyne.util.six import string_types
+from spyne.protocol.xml import XmlDocument
+_prot = XmlDocument()
 
 
 def xml_attribute_add(cls, name, element, document):
@@ -182,7 +175,7 @@ def complex_add(document, cls, tags):
 
         if a.max_occurs != 1:  # 1 is the xml schema default
             val = a.max_occurs
-            if val in (decimal.Decimal('inf'), float('inf')):
+            if val in (D('inf'), float('inf')):
                 val = 'unbounded'
             else:
                 val = str(val)

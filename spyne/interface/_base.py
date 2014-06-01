@@ -24,7 +24,7 @@ from collections import deque, defaultdict
 
 import spyne.interface
 
-from spyne import EventManager, ServiceBase, MethodDescriptor
+from spyne import EventManager, MethodDescriptor
 from spyne.const import xml_ns as namespace
 
 from spyne.model import ModelBase
@@ -40,6 +40,7 @@ def _generate_method_id(cls, descriptor):
             cls.__name__,
             descriptor.name,
         ])
+
 
 class Interface(object):
     """The ``Interface`` class holds all information needed to build an
