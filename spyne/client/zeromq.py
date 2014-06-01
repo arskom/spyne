@@ -33,7 +33,7 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         self.get_out_object(self.ctx, args, kwargs)
         self.get_out_string(self.ctx)
-        out_string = ''.join(self.ctx.out_string)
+        out_string = b''.join(self.ctx.out_string)
 
         socket = context.socket(zmq.REQ)
         socket.connect(self.url)

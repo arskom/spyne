@@ -16,6 +16,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
+from spyne.util.six import text_type
 
 """The ``spyne.protocol.xml`` module contains an xml-based protocol that
 serializes python objects to xml using Xml Schema conventions.
@@ -321,7 +322,7 @@ class XmlDocument(SubXmlBase):
 
         logger.debug("Validated ? %r" % ret)
         if ret == False:
-            error_text = unicode(self.validation_schema.error_log.last_error)
+            error_text = text_type(self.validation_schema.error_log.last_error)
             raise SchemaValidationError(error_text.encode('ascii',
                                                            'xmlcharrefreplace'))
 
