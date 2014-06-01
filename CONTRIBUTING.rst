@@ -51,8 +51,8 @@ GitHub. Even if this gives the core committers the power to commit directly
 to the core repository, we highly value code reviews and expect every
 significant change to be committed via pull requests.
 
-Development principles
-----------------------
+Miscellanous Remarks
+--------------------
 
 * When overriding a method in a class use the ``super()`` to call the parent
   implementation instead of explicitly specifying the parent class. This is
