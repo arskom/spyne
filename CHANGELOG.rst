@@ -4,17 +4,20 @@ Changelog
 
 spyne-2.11.0
 ------------
-* Experimental Python 3 Support for all of the Xml-related (not Html)
+* Experimental Python 3 Support for all of the Xml-related (non-Html)
   components.
 * Add support for altering output protocol by setting ``ctx.out_protocol``.
 * Add returning ctx.out_string support to null server (The ``ostr`` argument).
 * Add support for XmlData modifier. It lets mapping the data in the xml body
-  to an object field.
+  to an object field via xsd:simpleContent.
 * Remove deprecated ``JsonObject`` identifier. Just do a gentle
   ``s/JsonObject/JsonDocument/g`` if you're still using it.
 * SQLAlchemy: Implement storing arrays of simple types in a table.
 * SQLAlchemy: Make it work with multiple foreign keys from one table to
   another.
+* SQLAlchemy: Implement a hybrid file container that puts file metadata in a
+  json column in database and and file data in file system. Fully supported by
+  all protocols as a binary File format.
 * Implement an Xml Schema parser.
 * Import all model markers to ``spyne.model``.
 * Import ``@rpc``\, ``@srpc``\, ``ServiceBase`` and ``Application`` inside the
@@ -28,7 +31,7 @@ spyne-2.11.0
   Sample request:  ``{"ver":1, "body": {"div": {"dividend":4,"divisor":0]}}``
   Sample response: ``{"ver":1, "fault": {"faultcode": "Server", "faultstring": "Internal Error"}}}``
 
-* Steal and integrate the WebSocket tranport for Twisted.
+* Steal and integrate the experimental WebSocket tranport for Twisted.
 * Support Django natively using :class:`spyne.server.django.DjangoView` and
   :class:`spyne.server.django.DjangoServer`.
 * It's now possible to override the ``JsonEncoder`` class ``JsonDocument`` uses.
