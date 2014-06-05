@@ -566,9 +566,8 @@ class HierDictDocument(DictDocument):
 
         if body_class:
             # assign raw result to its wrapper, result_message
-            result_class = ctx.descriptor.in_message
-            value = ctx.in_body_doc.get(result_class.get_type_name(), None)
-            result_message = self._doc_to_object(result_class, value,
+            value = ctx.in_body_doc.get(body_class.get_type_name(), None)
+            result_message = self._doc_to_object(body_class, value,
                                                                  self.validator)
             ctx.in_object = result_message
 
