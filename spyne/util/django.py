@@ -451,7 +451,7 @@ class ValidationError(Fault):
             'Client.{0}'.format(type(validation_error_exc).__name__), message)
 
 
-class Service(ServiceBase):
+class DjangoServiceBase(ServiceBase):
 
     """Service with common Django exception handling."""
 
@@ -459,7 +459,7 @@ class Service(ServiceBase):
     def call_wrapper(cls, ctx):
         """Handle common Django exceptions."""
         try:
-            out_object = super(Service, cls).call_wrapper(ctx)
+            out_object = super(DjangoServiceBase, cls).call_wrapper(ctx)
         except ObjectDoesNotExist as e:
             raise ObjectNotFoundError(e)
         except DjValidationError as e:

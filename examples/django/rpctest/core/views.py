@@ -40,7 +40,7 @@ from spyne.service import ServiceBase
 from spyne.protocol.soap import Soap11
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.util.django import DjangoComplexModel, Service
+from spyne.util.django import DjangoComplexModel, DjangoServiceBase
 
 from rpctest.core.models import FieldContainer
 
@@ -73,7 +73,7 @@ class ContainerService(ServiceBase):
         except IntegrityError:
             raise ResourceAlreadyExistsError('Container')
 
-class ExceptionHandlingService(Service):
+class ExceptionHandlingService(DjangoServiceBase):
 
     """Service for testing exception handling."""
 
