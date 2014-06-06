@@ -36,16 +36,26 @@ class ZeroMQServer(ServerBase):
     """The ZeroMQ server transport."""
     transport = 'http://rfc.zeromq.org/'
 
-    def __init__(self, app, app_url, wsdl_url=None, ctx=None):
+    def __init__(self, app, app_url, wsdl_url=None, ctx=None, socket=None):
+        if ctx and socket and ctx is not socket.context:
+            raise ValueError("ctx should be the same as socket.context")
         super(ZeroMQServer, self).__init__(app)
-
-        self.ctx = ctx or zmq.Context()
 
         self.app_url = app_url
         self.wsdl_url = wsdl_url
 
-        self.zmq_socket = self.ctx.socket(zmq.REP)
-        self.zmq_socket.bind(app_url)
+        if ctx:
+            self.ctx = ctx
+        elif socket:
+            self.ctx = socket.context
+        else:
+            self.ctx = zmq.Context()
+
+        if socket:
+            self.zmq_socket = socket
+        else:
+            self.zmq_socket = self.ctx.socket(zmq.REP)
+            self.zmq_socket.bind(app_url)
 
     def __handle_wsdl_request(self):
         return self.app.get_interface_document(self.url)
