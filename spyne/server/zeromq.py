@@ -19,6 +19,7 @@
 """The ``spyne.server.zeromq`` module contains a server implementation that
 uses ZeroMQ (zmq.REP) as transport.
 """
+import threading
 
 import zmq
 
@@ -94,3 +95,60 @@ class ZeroMQServer(ServerBase):
             self.zmq_socket.send(b''.join(p_ctx.out_string))
 
             p_ctx.close()
+
+
+class ZeroMQThreadPoolServer(object):
+    """Create a ZeroMQ server transport with several background workers,
+    allowing asynchronous calls.
+
+    More details on the pattern http://zguide.zeromq.org/page:all#Shared-Queue-DEALER-and-ROUTER-sockets"""
+
+    def __init__(self, app, app_url, pool_size, wsdl_url=None, ctx=None, socket=None):
+        if ctx and socket and ctx is not socket.context:
+            raise ValueError("ctx should be the same as socket.context")
+
+        self.app = app
+
+        if ctx:
+            self.ctx = ctx
+        elif socket:
+            self.ctx = socket.context
+        else:
+            self.ctx = zmq.Context()
+
+        if socket:
+            self.frontend = socket
+        else:
+            self.frontend = self.ctx.socket(zmq.ROUTER)
+            self.frontend.bind(app_url)
+
+        be_url = 'inproc://{tns}.{name}'.format(tns=self.app.tns, name=self.app.name)
+        self.pool = []
+        self.background_jobs = []
+        for i in range(pool_size):
+            worker, job = self.create_worker(i, be_url)
+            self.pool.append(worker)
+            self.background_jobs.append(job)
+
+        self.backend = self.ctx.socket(zmq.DEALER)
+        self.backend.bind(be_url)
+
+    def create_worker(self, i, be_url):
+        socket = self.ctx.socket(zmq.REP)
+        socket.connect(be_url)
+        worker = ZeroMQServer(self.app, be_url, socket=socket)
+        job = threading.Thread(target=worker.serve_forever)
+        job.daemon = True
+        return worker, job
+
+    def serve_forever(self):
+        """Runs the ZeroMQ server."""
+
+        for job in self.background_jobs:
+            job.start()
+
+        zmq.device(zmq.QUEUE, self.frontend, self.backend)
+
+        # We never get here...
+        self.frontend.close()
+        self.backend.close()
