@@ -35,9 +35,10 @@ import re
 from django.core.exceptions import (ImproperlyConfigured, ObjectDoesNotExist,
                                     ValidationError as DjValidationError)
 from django.core.validators import slug_re, comma_separated_int_list_re
+from spyne.error import (ResourceNotFoundError, ValidationError as
+                         BaseValidationError, Fault)
 from spyne.model import primitive
 from spyne.model.complex import ComplexModelMeta, ComplexModelBase
-from spyne.model.fault import Fault
 from spyne.service import ServiceBase
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
@@ -428,7 +429,7 @@ class DjangoComplexModel(ComplexModelBase):
     __abstract__ = True
 
 
-class ObjectNotFoundError(Fault):
+class ObjectNotFoundError(ResourceNotFoundError):
 
     """Fault constructed from `model.DoesNotExist` exception."""
 
@@ -436,18 +437,20 @@ class ObjectNotFoundError(Fault):
         """Construct fault with code Client.<object_name>NotFound."""
         message = str(does_not_exist_exc)
         object_name = message.split()[0]
-        super(ObjectNotFoundError, self).__init__(
+        # we do not want to reuse initialization of ResourceNotFoundError
+        super(Fault, self).__init__(
             'Client.{0}NotFound'.format(object_name), message)
 
 
-class ValidationError(Fault):
+class ValidationError(BaseValidationError):
 
     """Fault constructed from `ValidationError` exception."""
 
     def __init__(self, validation_error_exc):
         """Construct fault with code Client.<validation_error_type_name>."""
         message = str(validation_error_exc)
-        super(ValidationError, self).__init__(
+        # we do not want to reuse initialization of BaseValidationError
+        super(Fault, self).__init__(
             'Client.{0}'.format(type(validation_error_exc).__name__), message)
 
 
