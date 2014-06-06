@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -27,8 +26,6 @@ from spyne.auxproc import process_contexts
 from spyne._base import MethodContext
 from spyne.server import ServerBase
 
-context = zmq.Context()
-"""The ZeroMQ context."""
 
 class ZmqMethodContext(MethodContext):
     def __init__(self, app):
@@ -39,13 +36,15 @@ class ZeroMQServer(ServerBase):
     """The ZeroMQ server transport."""
     transport = 'http://rfc.zeromq.org/'
 
-    def __init__(self, app, app_url, wsdl_url=None):
+    def __init__(self, app, app_url, wsdl_url=None, ctx=None):
         super(ZeroMQServer, self).__init__(app)
+
+        self.ctx = ctx or zmq.Context()
 
         self.app_url = app_url
         self.wsdl_url = wsdl_url
 
-        self.zmq_socket = context.socket(zmq.REP)
+        self.zmq_socket = self.ctx.socket(zmq.REP)
         self.zmq_socket.bind(app_url)
 
     def __handle_wsdl_request(self):
