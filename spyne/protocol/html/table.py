@@ -144,7 +144,7 @@ class HtmlColumnTable(HtmlTableBase):
             parent.write(self.to_string(cls, inst))
 
     @coroutine
-    def _gen_row(self, ctx, cls, inst, parent, name, array_index=None, **kwargs):
+    def _gen_row(self, ctx, cls, inst, parent, name, **kwargs):
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
                 # FIXME: To be fixed to work with prot_attrs and renamed to exc
@@ -168,7 +168,8 @@ class HtmlColumnTable(HtmlTableBase):
 
                 with parent.element('td', td_attrs):
                     ret = self.to_parent(ctx, v, sub_value, parent, sub_name,
-                                              array_index=array_index, **kwargs)
+                                                                       **kwargs)
+
                     if isgenerator(ret):
                         try:
                             while True:
