@@ -233,8 +233,8 @@ class ToClothMixin(ProtocolBase):
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        if issubclass(inst.__class__, cls.__orig__ or cls):
-            cls = inst.__class__
+        #if issubclass(inst.__class__, cls.__orig__ or cls):
+        #    cls = inst.__class__
 
         if inst is None:
             inst = cls.Attributes.default
