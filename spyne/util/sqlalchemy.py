@@ -470,6 +470,7 @@ class PGFileJson(PGObjectJson):
                 ret = os.access(path, os.R_OK)
                 retval.handle = None
                 retval.data = ['']
+
                 if ret:
                     retval.handle = open(path, 'rb')
                     if fstat(retval.handle.fileno()).st_size > 0:

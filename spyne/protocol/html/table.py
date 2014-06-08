@@ -111,6 +111,7 @@ class HtmlTableBase(HtmlBase):
     def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         pass
 
+
 class HtmlColumnTable(HtmlTableBase):
     def __init__(self, *args, **kwargs):
         super(HtmlColumnTable, self).__init__(*args, **kwargs)
