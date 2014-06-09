@@ -35,7 +35,7 @@ from spyne import MethodContext
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
 from spyne.application import Application
-from spyne.decorator import srpc
+from spyne.decorator import srpc, rpc
 from spyne.error import ValidationError
 from spyne.model.binary import binary_encoding_handlers
 from spyne.model.complex import ComplexModel
@@ -1050,7 +1050,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             else:
                 raise Exception("must raise ValidationError")
 
-        def test_validation_integer_type(self):
+        def test_validation_integer_type_2(self):
             class SomeService(ServiceBase):
                 @srpc(Integer8)
                 def some_call(p):
@@ -1064,5 +1064,39 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
 
             else:
                 raise Exception("must raise ValidationError")
+
+        def test_inheritance(self):
+            class P(ComplexModel):
+                identifier = Uuid
+                signature = Unicode
+
+            class C(P):
+                foo = Unicode
+                bar = Uuid
+
+            class SomeService(ServiceBase):
+                @rpc(_returns=C)
+                def some_call(ctx):
+                    result = C()
+                    result.identifier = uuid.UUID(int=0)
+                    result.signature = 'yyyyyyyyyyy'
+                    result.foo = 'zzzzzz'
+                    result.bar = uuid.UUID(int=1)
+                    return result
+
+            ctx = _dry_me([SomeService], {"some_call": []})
+
+            s = ''.join(ctx.out_string)
+            d = serializer.dumps({"some_callResponse": {"some_callResult": {
+                "C": {
+                    'identifier': '00000000-0000-0000-0000-000000000000',
+                    'bar': '00000000-0000-0000-0000-000000000001',
+                    'foo': 'zzzzzz',
+                    'signature': 'yyyyyyyyyyy'
+                }}}}, **dumps_kwargs)
+
+            print(serializer.loads(s))
+            print(serializer.loads(d))
+            assert s == d
 
     return Test
