@@ -238,7 +238,7 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
 
             if not (base_types is None):
                 if getattr(b, '__mixin__', False) == True:
-                    mixin = b._type_info
+                    mixin = b.get_flat_type_info(b)
                 else:
                     if not (extends in (None, b)):
                         raise Exception("WSDL 1.1 does not support multiple "
