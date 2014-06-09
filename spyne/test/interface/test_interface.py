@@ -93,13 +93,10 @@ class TestInterface(unittest.TestCase):
         assert smm['{%s}some_other_call' % tns][0].service_class == Service2
         assert smm['{%s}some_other_call' % tns][0].function == Service2.some_other_call
 
-    def test_empty(self):
-        RequestStatus = Unicode(values=['new', 'processed'])
+    def test_custom_primitive_in_array(self):
+        RequestStatus = Unicode(values=['new', 'processed'], zonta='bonta')
 
-        class RequestUnsigned(ComplexModel):
-            pass
-
-        class DataRequest(RequestUnsigned):
+        class DataRequest(ComplexModel):
             operator = Uuid
             status = Array(RequestStatus)
 
