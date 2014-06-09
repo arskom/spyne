@@ -351,15 +351,10 @@ class DjangoComplexModelMeta(ComplexModelMeta):
         """Populate new complex type from configured Django model."""
         super_new = super(DjangoComplexModelMeta, mcs).__new__
 
-        try:
-            parents = [b for b in bases if issubclass(b, DjangoComplexModel)]
-        except NameError:
-            # we are defining DjangoComplexModel itself
-            parents = None
+        abstract = bool(attrs.get('__abstract__', False))
 
-        if not parents:
-            # If this isn't a subclass of DjangoComplexModel, don't do
-            # anything special.
+        if abstract:
+            # skip processing of abstract models
             return super_new(mcs, name, bases, attrs)
 
         attributes = attrs.get('Attributes')
@@ -426,3 +421,5 @@ class DjangoComplexModel(ComplexModelBase):
     not yet available.
 
     """
+
+    __abstract__ = True
