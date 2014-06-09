@@ -595,7 +595,7 @@ class HierDictDocument(DictDocument):
             if out_type is None:
                 return
 
-            out_type_info = out_type._type_info
+            out_type_info = out_type.get_flat_type_info(out_type)
 
             # instantiate the result message
             out_instance = out_type()
@@ -677,7 +677,7 @@ class HierDictDocument(DictDocument):
         except AttributeError:
             # Input is not a dict, so we assume it's a sequence that we can pair
             # with the incoming sequence with field names.
-            items = zip(class_._type_info.keys(), doc)
+            items = zip(flat_type_info.keys(), doc)
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
@@ -736,7 +736,7 @@ class HierDictDocument(DictDocument):
             for r in self._get_member_pairs(parent_cls, inst):
                 yield r
 
-        for k, v in class_._type_info.items():
+        for k, v in class_.get_flat_type_info(class_).items():
             if getattr(v.Attributes, 'exc_dict', None):
                 continue
 
