@@ -272,6 +272,7 @@ class ModelBase(object):
 
         return cls.__namespace__
 
+    # TODO: rename to "resolve_identifier"
     @staticmethod
     def resolve_namespace(cls, default_ns, tags=None):
         """This call finalizes the namespace assignment. The default namespace
