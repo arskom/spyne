@@ -412,7 +412,7 @@ class ModelBase(object):
             elif k in ('autoincrement', 'onupdate', 'server_default'):
                 Attributes.sqla_column_args[-1][k] = v
 
-            elif k == 'max_occurs' and v == 'unbounded':
+            elif k == 'max_occurs' and v in ('unbounded', 'inf', float('inf')):
                 setattr(Attributes, k, Decimal('inf'))
 
             else:
