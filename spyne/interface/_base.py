@@ -28,7 +28,7 @@ from spyne import EventManager, MethodDescriptor
 from spyne.const import xml_ns as namespace
 
 from spyne.model import ModelBase
-from spyne.model import Array
+from spyne.model import Array, Iterable
 from spyne.model import ComplexModelBase
 from spyne.model.complex import XmlModifier
 
@@ -115,7 +115,7 @@ class Interface(object):
                 return True
 
             # So that "Array"s and "Iterable"s don't conflict.
-            if o1 is Array or o2 is Array:
+            if set((o1, o2)) == set((Array, Iterable)):
                 return True
 
             raise ValueError("classes %r and %r have conflicting names." %
