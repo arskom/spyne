@@ -26,7 +26,7 @@ from django.test import TestCase, TransactionTestCase, Client
 
 from spyne.client.django import DjangoTestClient
 from spyne.model.fault import Fault
-from spyne.util.django import DjangoComplexModel
+from spyne.util.django import DjangoComplexModel, default_model_mapper
 
 from rpctest.core.models import (FieldContainer, RelatedFieldContainer,
                                  UserProfile as DjUserProfile)
@@ -82,6 +82,13 @@ class ModelTestCase(TestCase):
         type_info = Container.get_flat_type_info(Container)
         self.assertIn('id', type_info)
         self.assertNotIn('excluded_field', type_info)
+
+    def test_regex_pattern_mappiing(self):
+        """Test if regex pattern is mapped from django model."""
+        type_info = Container.get_flat_type_info(Container)
+        field_mapper = default_model_mapper.get_field_mapper('EmailField')
+        self.assertEqual(type_info['email_field'].__name__, 'Unicode')
+        self.assertIsNotNone(type_info['email_field'].Attributes.pattern)
 
     def test_get_container(self):
         """Test mapping from Django model to spyne model."""

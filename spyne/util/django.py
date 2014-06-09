@@ -83,6 +83,7 @@ class BaseDjangoFieldMapper(object):
         customized_model = spyne_model(nullable=nullable,
                                        min_occurs=int(required), **params)
 
+
         return (field.attname, customized_model)
 
     def get_spyne_model(self, field, **kwargs):
@@ -143,7 +144,7 @@ class RelationMapper(BaseDjangoFieldMapper):
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model configured by related field."""
         related_field = field.rel.get_related_field()
-        field_type = related_field.get_internal_type()
+        field_type = related_field.__class__.__name__
         field_mapper = self.django_model_mapper.get_field_mapper(field_type)
 
         _, related_spyne_model = field_mapper.map(related_field, **kwargs)
@@ -247,7 +248,7 @@ class DjangoModelMapper(object):
         field_map = odict()
 
         for field in self._get_fields(django_model, exclude):
-            field_type = field.get_internal_type()
+            field_type = field.__class__.__name__
             try:
                 field_mapper = self._registry[field_type]
             except KeyError:
