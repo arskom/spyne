@@ -22,14 +22,14 @@ import unittest
 
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import UnsignedLong
-from spyne.model.primitive import UnsignedInteger16
-from spyne.model.primitive import Integer
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Unicode
+from spyne.model import Array
+from spyne.model import ComplexModel
+from spyne.model import AnyXml, Uuid
+from spyne.model import UnsignedLong
+from spyne.model import UnsignedInteger16
+from spyne.model import Integer
+from spyne.model import DateTime
+from spyne.model import Unicode
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
