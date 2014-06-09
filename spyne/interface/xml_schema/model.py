@@ -28,14 +28,23 @@ from collections import deque, defaultdict
 
 from lxml import etree
 
-from spyne.model import ModelBase, XmlAttribute, AnyXml, Unicode, XmlData
+from spyne.model import ModelBase, XmlAttribute, AnyXml, Unicode, XmlData,\
+    Decimal, Integer
 from spyne.const.xml_ns import xsd as _ns_xsd
 from spyne.util import memoize
+from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
 from spyne.util.six import string_types
 from spyne.protocol.xml import XmlDocument
 _prot = XmlDocument()
 
+ATTR_NAMES = cdict({
+    ModelBase: set(['values']),
+    Decimal: set(['pattern', 'gt', 'ge', 'lt', 'le', 'values', 'total_digits',
+                                                            'fraction_digits']),
+    Integer: set(['pattern', 'gt', 'ge', 'lt', 'le', 'values', 'total_digits']),
+    Unicode: set(['values', 'min_len', 'max_len', 'pattern']),
+})
 
 def xml_attribute_add(cls, name, element, document):
     element.set('name', name)
@@ -50,15 +59,40 @@ def xml_attribute_add(cls, name, element, document):
         element.set('default', _prot.to_string(cls.type, d))
 
 
+def _check_extension_attrs(cls):
+    extends = cls.__extends__
+
+    eattrs = extends.Attributes
+    cattrs = cls.Attributes
+
+    ckeys = set([k for k in vars(cls.Attributes) if not k.startswith('_')])
+    ekeys = set([k for k in vars(extends.Attributes) if not k.startswith('_')])
+
+    diff = set()
+    for k in (ckeys | ekeys):
+        if getattr(eattrs, k, None) != getattr(cattrs, k, None):
+            diff.add(k)
+
+    attr_names = ATTR_NAMES[cls]
+    while extends is not None:
+        if len(diff & attr_names) > 0:
+            return extends
+        extends = extends.__extends__
+
+
+# noinspection PyDefaultArgument
 def simple_get_restriction_tag(document, cls):
+    extends = _check_extension_attrs(cls)
+    if extends is None:
+        return
+
     simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
 
     simple_type.set('name', cls.get_type_name())
     document.add_simple_type(cls, simple_type)
 
     restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xsd)
-    restriction.set('base', cls.__extends__.get_type_name_ns(
-                                                            document.interface))
+    restriction.set('base', extends.get_type_name_ns(document.interface))
 
     for v in cls.Attributes.values:
         enumeration = etree.SubElement(restriction, '{%s}enumeration' % _ns_xsd)
@@ -71,8 +105,8 @@ def simple_add(document, cls, tags):
     if not cls.is_default(cls):
         document.get_restriction_tag(cls)
 
-def byte_array_add(interface, cls, tags):
-    simple_add(interface, cls, tags)
+def byte_array_add(document, cls, tags):
+    simple_add(document, cls, tags)
 
 
 def complex_add(document, cls, tags):
@@ -165,10 +199,15 @@ def complex_add(document, cls, tags):
         #if ns is not None:
         #    name = "{%s}%s" % (ns, name)
 
+        type_name_ns = v.get_type_name_ns(document.interface)
+        if v.__extends__ is not None and v.__orig__ is not None and \
+                                                _check_extension_attrs(v) is None:
+            type_name_ns = v.__orig__.get_type_name_ns(document.interface)
+
         member = etree.Element(a.schema_tag)
         if a.schema_tag == '{%s}element' % _ns_xsd:
             member.set('name', name)
-            member.set('type', v.get_type_name_ns(document.interface))
+            member.set('type', type_name_ns)
 
         elif a.schema_tag == '{%s}any' % _ns_xsd and issubclass(v, AnyXml):
             if a.namespace is not None:
@@ -282,8 +321,10 @@ def enum_add(document, cls, tags):
 fault_add = complex_add
 
 
-def unicode_get_restriction_tag(interface, cls):
-    restriction = simple_get_restriction_tag(interface, cls)
+def unicode_get_restriction_tag(document, cls):
+    restriction = simple_get_restriction_tag(document, cls)
+    if restriction is None:
+        return
 
     # length
     if cls.Attributes.min_len == cls.Attributes.max_len:
@@ -343,6 +384,8 @@ def Tget_range_restriction_tag(T):
     def _get_range_restriction_tag(document, cls):
         prot = document.interface.app.in_protocol
         restriction = simple_get_restriction_tag(document, cls)
+        if restriction is None:
+            return
 
         if cls.Attributes.gt != T.Attributes.gt:
             elt = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xsd)

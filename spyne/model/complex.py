@@ -556,6 +556,11 @@ def _fill_empty_type_name(v, parent_ns, parent_tn, k, parent=False):
         v._type_info = TypeInfo({tn: child_v})
         v.__type_name__ = '%s%s%s'% (const.ARRAY_PREFIX, tn, const.ARRAY_SUFFIX)
 
+        extends = child_v.__extends__
+        while extends is not None and extends.get_type_name() is v.Empty:
+            _fill_empty_type_name(extends, parent_ns, parent_tn, k)
+            extends = extends.__extends__
+
     elif issubclass(v, XmlModifier):
         child_v = v.type
         child_v.__type_name__ = tn
@@ -563,17 +568,22 @@ def _fill_empty_type_name(v, parent_ns, parent_tn, k, parent=False):
         v._type_info = TypeInfo({tn: child_v})
         v.__type_name__ = '%s%s%s'% (const.ARRAY_PREFIX, tn, const.ARRAY_SUFFIX)
 
+        extends = child_v.__extends__
+        while extends is not None and extends.get_type_name() is v.Empty:
+            _fill_empty_type_name(extends, parent_ns, parent_tn, k)
+            extends = extends.__extends__
+
     else:
         suff = const.TYPE_SUFFIX
         if parent:
-            suff = const.PARENT_SUFFIX + suff
+            suff += const.PARENT_SUFFIX
 
         v.__type_name__ = "%s_%s%s" % (parent_tn, k, suff)
-        extends = getattr(v, '__extends__', None)
-        if extends is not None and extends.__type_name__ is ModelBase.Empty:
+        extends = v.__extends__
+        while extends is not None and extends.__type_name__ is ModelBase.Empty:
             _fill_empty_type_name(v.__extends__, v.get_namespace(),
                                               v.get_type_name(), k, parent=True)
-
+            extends = extends.__extends__
 
 _is_array = lambda v: issubclass(v, Array) or (v.Attributes.min_occurs > 1)
 
