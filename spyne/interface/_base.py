@@ -267,8 +267,6 @@ class Interface(object):
         the used objects.
         """
 
-        classes = deque()
-
         # populate types
         for s in self.services:
             logger.debug("populating '%s.%s (%s)' types..." % (s.__module__,
@@ -286,9 +284,6 @@ class Interface(object):
 
                 for cls in self.add_method(method):
                     self.add_class(cls)
-
-        for c in classes:
-            self.add_class(c)
 
         # populate call routes for service methods
         for s in self.services:
