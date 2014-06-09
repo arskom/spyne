@@ -545,7 +545,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
 
 # FIXME: what an ugly hack.
-def fill_empty_type_name(v, parent_ns, parent_tn, k, parent=False):
+def _fill_empty_type_name(v, parent_ns, parent_tn, k, parent=False):
     v.__namespace__ = parent_ns
     tn = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
 
@@ -571,7 +571,7 @@ def fill_empty_type_name(v, parent_ns, parent_tn, k, parent=False):
         v.__type_name__ = "%s_%s%s" % (parent_tn, k, suff)
         extends = getattr(v, '__extends__', None)
         if extends is not None and extends.__type_name__ is ModelBase.Empty:
-            fill_empty_type_name(v.__extends__, v.get_namespace(),
+            _fill_empty_type_name(v.__extends__, v.get_namespace(),
                                               v.get_type_name(), k, parent=True)
 
 
@@ -863,7 +863,7 @@ class ComplexModelBase(ModelBase):
                 continue
 
             if v.__type_name__ is ModelBase.Empty:
-                fill_empty_type_name(v, cls.get_namespace(),
+                _fill_empty_type_name(v, cls.get_namespace(),
                                                          cls.get_type_name(), k)
 
             v.resolve_namespace(v, default_ns, tags)
