@@ -93,5 +93,27 @@ class TestInterface(unittest.TestCase):
         assert smm['{%s}some_other_call' % tns][0].service_class == Service2
         assert smm['{%s}some_other_call' % tns][0].function == Service2.some_other_call
 
+    def test_empty(self):
+        RequestStatus = Unicode(values=['new', 'processed'])
+
+        class RequestUnsigned(ComplexModel):
+            pass
+
+        class DataRequest(RequestUnsigned):
+            operator = Uuid
+            status = Array(RequestStatus)
+
+        class HelloWorldService(ServiceBase):
+            @rpc(DataRequest)
+            def some_call(ctx, dgrntcl):
+                pass
+
+        Application([HelloWorldService], 'spyne.examples.hello.soap',
+                in_protocol=Soap11(validator='lxml'),
+                out_protocol=Soap11())
+
+        # test passes if instantiating Application doesn't fail
+
+
 if __name__ == '__main__':
     unittest.main()
