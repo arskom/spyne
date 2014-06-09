@@ -24,7 +24,7 @@ from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.model import Array
 from spyne.model import ComplexModel
-from spyne.model import AnyXml, Uuid
+from spyne.model import AnyXml
 from spyne.model import UnsignedLong
 from spyne.model import UnsignedInteger16
 from spyne.model import Integer
@@ -97,7 +97,6 @@ class TestInterface(unittest.TestCase):
         RequestStatus = Unicode(values=['new', 'processed'], zonta='bonta')
 
         class DataRequest(ComplexModel):
-            operator = Uuid
             status = Array(RequestStatus)
 
         class HelloWorldService(ServiceBase):
