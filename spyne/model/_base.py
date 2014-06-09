@@ -279,6 +279,12 @@ class ModelBase(object):
         of the interface generator.
         """
 
+        if tags is None:
+            tags = set()
+        elif cls in tags:
+            return False
+        tags.add(cls)
+
         if cls.__namespace__ is spyne.const.xml_ns.DEFAULT_NS:
             cls.__namespace__ = default_ns
 
@@ -301,6 +307,11 @@ class ModelBase(object):
 
         if cls.__namespace__ is None or len(cls.__namespace__) == 0:
             raise ValueError("You need to explicitly set %r.__namespace__" % cls)
+
+        if getattr(cls, '__extends__', None) != None:
+            cls.__extends__.resolve_namespace(cls.__extends__, default_ns, tags)
+
+        return True
 
     @classmethod
     def get_type_name(cls):

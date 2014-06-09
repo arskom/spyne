@@ -92,24 +92,3 @@ class Fault(ComplexModelBase, Exception):
     @classmethod
     def to_string_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]
-
-    @staticmethod
-    def resolve_namespace(cls, default_ns):
-        if getattr(cls, '__extends__', None) != None:
-            cls.__extends__.resolve_namespace(cls.__extends__, default_ns)
-
-        ComplexModelBase.resolve_namespace(cls, default_ns)
-
-        for k, v in cls._type_info.items():
-            if v.__type_name__ is ComplexModelBase.Empty:
-                v.__namespace__ = cls.get_namespace()
-                v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k,
-                                                        spyne.const.TYPE_SUFFIX)
-
-            if not issubclass(v, cls):
-                v.resolve_namespace(v, default_ns)
-
-        if cls._force_own_namespace is not None:
-            for c in cls._force_own_namespace:
-                c.__namespace__ = cls.get_namespace()
-                Fault.resolve_namespace(c, cls.get_namespace())

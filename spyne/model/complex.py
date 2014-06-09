@@ -545,9 +545,9 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
 
 # FIXME: what an ugly hack.
-def _fill_empty_type_name(cls, k, v, parent=False):
-    v.__namespace__ = cls.get_namespace()
-    tn = "%s_%s%s" % (cls.get_type_name(), k, const.TYPE_SUFFIX)
+def fill_empty_type_name(v, parent_ns, parent_tn, k, parent=False):
+    v.__namespace__ = parent_ns
+    tn = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
 
     if issubclass(v, Array):
         child_v, = v._type_info.values()
@@ -568,10 +568,11 @@ def _fill_empty_type_name(cls, k, v, parent=False):
         if parent:
             suff = const.PARENT_SUFFIX + suff
 
-        v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, suff)
+        v.__type_name__ = "%s_%s%s" % (parent_tn, k, suff)
         extends = getattr(v, '__extends__', None)
         if extends is not None and extends.__type_name__ is ModelBase.Empty:
-            _fill_empty_type_name(cls, k, v.__extends__, parent=True)
+            fill_empty_type_name(v.__extends__, v.get_namespace(),
+                                              v.get_type_name(), k, parent=True)
 
 
 _is_array = lambda v: issubclass(v, Array) or (v.Attributes.min_occurs > 1)
@@ -851,23 +852,19 @@ class ComplexModelBase(ModelBase):
     def resolve_namespace(cls, default_ns, tags=None):
         if tags is None:
             tags = set()
+        elif cls in tags:
+            return False
 
-        if cls in tags:
-            return
-        else:
-            tags.add(cls)
-
-        if getattr(cls, '__extends__', None) != None:
-            cls.__extends__.resolve_namespace(cls.__extends__, default_ns, tags)
-
-        ModelBase.resolve_namespace(cls, default_ns, tags)
+        if not ModelBase.resolve_namespace(cls, default_ns, tags):
+            return False
 
         for k, v in cls._type_info.items():
             if v is None:
                 continue
 
             if v.__type_name__ is ModelBase.Empty:
-                _fill_empty_type_name(cls, k, v)
+                fill_empty_type_name(v, cls.get_namespace(),
+                                                         cls.get_type_name(), k)
 
             v.resolve_namespace(v, default_ns, tags)
 
@@ -878,6 +875,8 @@ class ComplexModelBase(ModelBase):
 
         assert not (cls.__namespace__ is ModelBase.Empty)
         assert not (cls.__type_name__ is ModelBase.Empty)
+
+        return True
 
     @staticmethod
     def produce(namespace, type_name, members):
@@ -1090,7 +1089,7 @@ class Array(ComplexModelBase):
         if cls.__namespace__ in xml_ns.const_prefmap:
             cls.__namespace__ = default_ns
 
-        ComplexModel.resolve_namespace(cls, default_ns, tags)
+        return ComplexModel.resolve_namespace(cls, default_ns, tags)
 
     @classmethod
     def get_serialization_instance(cls, value):
