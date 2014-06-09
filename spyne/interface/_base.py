@@ -28,7 +28,7 @@ from spyne import EventManager, MethodDescriptor
 from spyne.const import xml_ns as namespace
 
 from spyne.model import ModelBase
-from spyne.model import Array
+from spyne.model import Array, Iterable
 from spyne.model import ComplexModelBase
 from spyne.model.complex import XmlModifier
 
@@ -115,7 +115,7 @@ class Interface(object):
                 return True
 
             # So that "Array"s and "Iterable"s don't conflict.
-            if o1 is Array or o2 is Array:
+            if set((o1, o2)) == set((Array, Iterable)):
                 return True
 
             raise ValueError("classes %r and %r have conflicting names." %
@@ -267,8 +267,6 @@ class Interface(object):
         the used objects.
         """
 
-        classes = deque()
-
         # populate types
         for s in self.services:
             logger.debug("populating '%s.%s (%s)' types..." % (s.__module__,
@@ -286,9 +284,6 @@ class Interface(object):
 
                 for cls in self.add_method(method):
                     self.add_class(cls)
-
-        for c in classes:
-            self.add_class(c)
 
         # populate call routes for service methods
         for s in self.services:

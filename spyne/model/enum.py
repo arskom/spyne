@@ -28,6 +28,7 @@ class EnumBase(SimpleModel):
     def resolve_namespace(cls, default_ns, tags=None):
         if cls.__namespace__ is None:
             cls.__namespace__ = default_ns
+        return True
 
     @staticmethod
     def validate_string(cls, value):

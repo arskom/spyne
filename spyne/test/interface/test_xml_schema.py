@@ -360,7 +360,6 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         tns = 'some_ns'
         class SomeGuy(ComplexModel):
             __namespace__ = tns
-
             name = Unicode(max_len=10, pattern="a", min_len=5, default="aa")
 
         schema = get_schema_documents([SomeGuy], tns)['tns']
@@ -379,7 +378,6 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         tns = 'some_ns'
         class SomeGuy(ComplexModel):
             __namespace__ = tns
-
             bald = Boolean(default=True)
 
         schema = get_schema_documents([SomeGuy], tns)['tns']

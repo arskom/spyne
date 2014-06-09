@@ -22,14 +22,14 @@ import unittest
 
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import UnsignedLong
-from spyne.model.primitive import UnsignedInteger16
-from spyne.model.primitive import Integer
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Unicode
+from spyne.model import Array
+from spyne.model import ComplexModel
+from spyne.model import AnyXml
+from spyne.model import UnsignedLong
+from spyne.model import UnsignedInteger16
+from spyne.model import Integer
+from spyne.model import DateTime
+from spyne.model import Unicode
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
@@ -92,6 +92,24 @@ class TestInterface(unittest.TestCase):
         assert smm['{%s}some_other_call' % tns]
         assert smm['{%s}some_other_call' % tns][0].service_class == Service2
         assert smm['{%s}some_other_call' % tns][0].function == Service2.some_other_call
+
+    def test_custom_primitive_in_array(self):
+        RequestStatus = Unicode(values=['new', 'processed'], zonta='bonta')
+
+        class DataRequest(ComplexModel):
+            status = Array(RequestStatus)
+
+        class HelloWorldService(ServiceBase):
+            @rpc(DataRequest)
+            def some_call(ctx, dgrntcl):
+                pass
+
+        Application([HelloWorldService], 'spyne.examples.hello.soap',
+                in_protocol=Soap11(validator='lxml'),
+                out_protocol=Soap11())
+
+        # test passes if instantiating Application doesn't fail
+
 
 if __name__ == '__main__':
     unittest.main()
