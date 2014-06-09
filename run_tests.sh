@@ -84,7 +84,7 @@ MAKE="make $MAKEOPTS";
 
 # Set specific variables
 if [ $PYIMPL == "cpy" ]; then
-    PREFIX="$(basename $FN .tgz)";
+    PREFIX="$(basename $(basename $FN .tgz) .tar.xz)";
 
 elif [ $PYIMPL == "ipy" ]; then
     PREFIX="$(basename $FN .zip)";
