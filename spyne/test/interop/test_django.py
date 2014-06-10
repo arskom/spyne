@@ -22,11 +22,13 @@
 from __future__ import absolute_import
 
 import datetime
+import re
 from django.test import TestCase, TransactionTestCase, Client
 
 from spyne.client.django import DjangoTestClient
 from spyne.model.fault import Fault
-from spyne.util.django import DjangoComplexModel, default_model_mapper
+from spyne.util.django import (DjangoComplexModel, default_model_mapper,
+                               email_re)
 
 from rpctest.core.models import (FieldContainer, RelatedFieldContainer,
                                  UserProfile as DjUserProfile)
@@ -152,3 +154,20 @@ class ModelTestCase(TestCase):
                 django_optional_relations = True
 
         self.assertTrue(UserProfile._type_info['user_id'].Attributes.nullable)
+
+
+class EmailRegexTestCase(TestCase):
+
+    """Tests for email_re."""
+
+    def test_empty(self):
+        """Empty string is invalid email."""
+        self.assertIsNone(re.match(email_re, ''))
+
+    def test_valid(self):
+        """Test valid email."""
+        self.assertIsNotNone(re.match(email_re, 'valid.email@example.com'))
+
+    def test_invalid(self):
+        """Test invalid email."""
+        self.assertIsNone(re.match(email_re, '@example.com'))

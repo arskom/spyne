@@ -38,12 +38,12 @@ from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
 
-# regex from http://www.w3.org/TR/xforms20/#xforms:email
+# regex is based on http://www.w3.org/TR/xforms20/#xforms:email
 email_re = re.compile(
-    r"([A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
+    r"[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
     r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*@"
     r"[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
-    r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*)?", re.IGNORECASE)
+    r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*", re.IGNORECASE)
 
 
 class BaseDjangoFieldMapper(object):
