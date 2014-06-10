@@ -236,7 +236,7 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
         for b in cls_bases:
             base_types = getattr(b, "_type_info", None)
 
-            if not (base_types is None):
+            if base_types is not None:
                 if getattr(b, '__mixin__', False) == True:
                     mixin = b.get_flat_type_info(b)
                 else:
