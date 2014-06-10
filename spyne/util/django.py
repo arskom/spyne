@@ -38,17 +38,12 @@ from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
 
+# regex from http://www.w3.org/TR/xforms20/#xforms:email
 email_re = re.compile(
-    # dot-atom
-    r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"
-    # quoted-string, see also http://tools.ietf.org/html/rfc2822#section-3.2.5
-    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]'
-    r'|\\[\001-\011\013\014\016-\177])*"'
-    r')@((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
-    r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)$)'  # domain
-    # literal form, ipv4 address (SMTP 4.1.3)
-    r'|\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
-    r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)
+    r"([A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
+    r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*@"
+    r"[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
+    r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*)?", re.IGNORECASE)
 
 
 class BaseDjangoFieldMapper(object):

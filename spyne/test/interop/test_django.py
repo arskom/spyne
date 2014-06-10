@@ -98,6 +98,7 @@ class ModelTestCase(TestCase):
         FieldContainer.objects.create(slug_field='container2',
                                       foreign_key=container,
                                       one_to_one_field=container,
+                                      email_field='email@example.com',
                                       char_field='yo')
         c = get_container()
         self.assertIsInstance(c, Container)
@@ -108,6 +109,7 @@ class ModelTestCase(TestCase):
         new_container = FieldContainer(slug_field='container',
                                        date_field=datetime.date.today(),
                                        datetime_field=datetime.datetime.now(),
+                                       email_field='email@example.com',
                                        time_field=datetime.time(),
                                        custom_foreign_key=related_container,
                                        custom_one_to_one_field=related_container)
