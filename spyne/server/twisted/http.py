@@ -107,8 +107,8 @@ def _render_file(file, request):
         else:
             raise
 
-    if request.setLastModified(file.getmtime()) is CACHED:
-        return ''
+    #if request.setLastModified(file.getmtime()) is CACHED:
+    #    return ''
 
     producer = file.makeProducer(request, fileForReading)
 
