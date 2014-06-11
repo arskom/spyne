@@ -18,8 +18,8 @@
 #
 
 from lxml.builder import ElementMaker
-
 from spyne.protocol.cloth import XmlCloth
+
 NS_HTML = "http://www.w3.org/1999/xhtml"
 NSMAP = {None: NS_HTML}
 
@@ -38,4 +38,4 @@ class HtmlBase(XmlCloth):
 
             if self._cloth.tag != '{%s}html' % NS_HTML:
                 for elt in self._cloth.xpath("//*"):
-                    elt.tag = "{%s}%s" %(NS_HTML, elt.tag)
+                    elt.tag = "{%s}%s" % (NS_HTML, elt.tag)
