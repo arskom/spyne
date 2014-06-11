@@ -52,9 +52,11 @@ from mmap import mmap
 from inspect import isgenerator, isclass
 from collections import namedtuple
 
-from twisted.web import static
 from twisted.web.server import NOT_DONE_YET, Request
-from twisted.web.resource import Resource, NoResource
+from twisted.web.resource import Resource, NoResource, ForbiddenResource
+from twisted.web import static
+from twisted.web.static import getTypeAndEncoding
+from twisted.web.http import CACHED
 from twisted.python.log import err
 from twisted.internet.defer import Deferred
 
@@ -72,6 +74,50 @@ from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
 from spyne.util.six import text_type, string_types
 from spyne.util.six.moves.urllib.parse import unquote
+
+
+def _render_file(file, request):
+    """
+    Begin sending the contents of this L{File} (or a subset of the
+    contents, based on the 'range' header) to the given request.
+    """
+    file.restat(False)
+
+    if file.type is None:
+        file.type, file.encoding = getTypeAndEncoding(file.basename(),
+                                                      file.contentTypes,
+                                                      file.contentEncodings,
+                                                      file.defaultType)
+
+    if not file.exists():
+        return file.childNotFound.render(request)
+
+    if file.isdir():
+        return file.redirect(request)
+
+    request.setHeader('accept-ranges', 'bytes')
+
+    try:
+        fileForReading = file.openForReading()
+    except IOError, e:
+        import errno
+
+        if e[0] == errno.EACCES:
+            return ForbiddenResource().render(request)
+        else:
+            raise
+
+    if request.setLastModified(file.getmtime()) is CACHED:
+        return ''
+
+    producer = file.makeProducer(request, fileForReading)
+
+    if request.method == 'HEAD':
+        return ''
+
+    producer.start()
+    # and make sure the connection doesn't get closed
+    return NOT_DONE_YET
 
 
 def _set_response_headers(request, headers):
@@ -343,6 +389,7 @@ class TwistedWebResource(Resource):
                                                                         request)
 
         ret = p_ctx.out_object[0]
+        retval = NOT_DONE_YET
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, request, p_ctx, others, self)
             ret.addErrback(_eb_deferred, request, p_ctx, others, self)
@@ -351,9 +398,9 @@ class TwistedWebResource(Resource):
             _init_push(ret, request, p_ctx, others, self)
 
         else:
-            _cb_deferred(p_ctx.out_object, request, p_ctx, others, self, cb=False)
+            retval = _cb_deferred(p_ctx.out_object, request, p_ctx, others, self, cb=False)
 
-        return NOT_DONE_YET
+        return retval
 
     def __handle_wsdl_request(self, request):
         ctx = TwistedHttpMethodContext(self.http_transport, request,
@@ -462,7 +509,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     else:
         p_ctx.out_object = ret
 
-    retval = None
+    retval = NOT_DONE_YET
 
     if isinstance(ret, PushBase):
         retval = _init_push(ret, request, p_ctx, others, resource)
@@ -474,7 +521,10 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
         file = static.File(ret.abspath,
                         defaultType=str(ret.type) or 'application/octet-stream')
-        retval = file.render_GET(request)
+        retval = _render_file(file, request)
+        if retval != NOT_DONE_YET and cb:
+            request.write(retval)
+            request.finish()
 
     else:
         resource.http_transport.get_out_string(p_ctx)
