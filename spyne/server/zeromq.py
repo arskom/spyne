@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -20,6 +19,7 @@
 """The ``spyne.server.zeromq`` module contains a server implementation that
 uses ZeroMQ (zmq.REP) as transport.
 """
+import threading
 
 import zmq
 
@@ -27,8 +27,6 @@ from spyne.auxproc import process_contexts
 from spyne._base import MethodContext
 from spyne.server import ServerBase
 
-context = zmq.Context()
-"""The ZeroMQ context."""
 
 class ZmqMethodContext(MethodContext):
     def __init__(self, app):
@@ -39,14 +37,26 @@ class ZeroMQServer(ServerBase):
     """The ZeroMQ server transport."""
     transport = 'http://rfc.zeromq.org/'
 
-    def __init__(self, app, app_url, wsdl_url=None):
+    def __init__(self, app, app_url, wsdl_url=None, ctx=None, socket=None):
+        if ctx and socket and ctx is not socket.context:
+            raise ValueError("ctx should be the same as socket.context")
         super(ZeroMQServer, self).__init__(app)
 
         self.app_url = app_url
         self.wsdl_url = wsdl_url
 
-        self.zmq_socket = context.socket(zmq.REP)
-        self.zmq_socket.bind(app_url)
+        if ctx:
+            self.ctx = ctx
+        elif socket:
+            self.ctx = socket.context
+        else:
+            self.ctx = zmq.Context()
+
+        if socket:
+            self.zmq_socket = socket
+        else:
+            self.zmq_socket = self.ctx.socket(zmq.REP)
+            self.zmq_socket.bind(app_url)
 
     def __handle_wsdl_request(self):
         return self.app.get_interface_document(self.url)
@@ -85,3 +95,60 @@ class ZeroMQServer(ServerBase):
             self.zmq_socket.send(b''.join(p_ctx.out_string))
 
             p_ctx.close()
+
+
+class ZeroMQThreadPoolServer(object):
+    """Create a ZeroMQ server transport with several background workers,
+    allowing asynchronous calls.
+
+    More details on the pattern http://zguide.zeromq.org/page:all#Shared-Queue-DEALER-and-ROUTER-sockets"""
+
+    def __init__(self, app, app_url, pool_size, wsdl_url=None, ctx=None, socket=None):
+        if ctx and socket and ctx is not socket.context:
+            raise ValueError("ctx should be the same as socket.context")
+
+        self.app = app
+
+        if ctx:
+            self.ctx = ctx
+        elif socket:
+            self.ctx = socket.context
+        else:
+            self.ctx = zmq.Context()
+
+        if socket:
+            self.frontend = socket
+        else:
+            self.frontend = self.ctx.socket(zmq.ROUTER)
+            self.frontend.bind(app_url)
+
+        be_url = 'inproc://{tns}.{name}'.format(tns=self.app.tns, name=self.app.name)
+        self.pool = []
+        self.background_jobs = []
+        for i in range(pool_size):
+            worker, job = self.create_worker(i, be_url)
+            self.pool.append(worker)
+            self.background_jobs.append(job)
+
+        self.backend = self.ctx.socket(zmq.DEALER)
+        self.backend.bind(be_url)
+
+    def create_worker(self, i, be_url):
+        socket = self.ctx.socket(zmq.REP)
+        socket.connect(be_url)
+        worker = ZeroMQServer(self.app, be_url, socket=socket)
+        job = threading.Thread(target=worker.serve_forever)
+        job.daemon = True
+        return worker, job
+
+    def serve_forever(self):
+        """Runs the ZeroMQ server."""
+
+        for job in self.background_jobs:
+            job.start()
+
+        zmq.device(zmq.QUEUE, self.frontend, self.backend)
+
+        # We never get here...
+        self.frontend.close()
+        self.backend.close()
