@@ -49,12 +49,13 @@ import re
 
 from os import fstat
 from mmap import mmap
-from inspect import isgenerator
+from inspect import isgenerator, isclass
 from collections import namedtuple
 
-from twisted.python.log import err
+from twisted.web import static
 from twisted.web.server import NOT_DONE_YET, Request
 from twisted.web.resource import Resource, NoResource
+from twisted.python.log import err
 from twisted.internet.defer import Deferred
 
 from spyne.error import InternalError
@@ -107,6 +108,7 @@ class TwistedHttpTransportContext(HttpTransportContext):
 
     def get_cookie(self, key):
         return self.req.getCookie(key)
+
 
 class TwistedHttpMethodContext(HttpMethodContext):
     default_transport_context = TwistedHttpTransportContext
@@ -450,14 +452,28 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     _set_response_headers(request, p_ctx.transport.resp_headers)
 
     om = p_ctx.descriptor.out_message
+    single_class = None
     if cb and ((not issubclass(om, ComplexModelBase)) or len(om._type_info) <= 1):
         p_ctx.out_object = [ret]
+        if len(om._type_info) == 1:
+            single_class, = om._type_info.values()
+
     else:
         p_ctx.out_object = ret
 
     retval = None
+
     if isinstance(ret, PushBase):
         retval = _init_push(ret, request, p_ctx, others, resource)
+
+    elif ((isclass(om) and issubclass(om, File)) or
+          (isclass(single_class) and issubclass(single_class, File))) and \
+                                      getattr(ret, 'abspath', None) is not None:
+
+        file = static.File(ret.abspath,
+                        defaultType=str(ret.type) or 'application/octet-stream')
+        retval = file.render_GET(request)
+
     else:
         resource.http_transport.get_out_string(p_ctx)
 
