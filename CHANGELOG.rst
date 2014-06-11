@@ -58,6 +58,8 @@ spyne-2.11.0
 * Simple dictionary protocol's ``hier_delim`` default value is now '.'
 * Fixes support for > 1 XmlAttribute referencing the same 'attribute_of' element
   in a ComplexModel subclass.
+* Render ``spyne.model.File`` as ``twisted.web.static.File`` when using HttpRpc
+  over ``TwistedWebResource``.
 * Many, many, many bugs fixed.
 
 spyne-2.10.10
