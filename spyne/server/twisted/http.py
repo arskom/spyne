@@ -65,6 +65,7 @@ from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404, HTTP_200
 from spyne.model import PushBase, File, ComplexModelBase
 from spyne.model.fault import Fault
+from spyne.protocol.http import HttpRpc
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
@@ -468,6 +469,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
     elif ((isclass(om) and issubclass(om, File)) or
           (isclass(single_class) and issubclass(single_class, File))) and \
+         isinstance(p_ctx.out_protocol, HttpRpc) and \
                                       getattr(ret, 'abspath', None) is not None:
 
         file = static.File(ret.abspath,
