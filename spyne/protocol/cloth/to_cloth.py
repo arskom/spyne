@@ -41,10 +41,10 @@ _revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
 
 class ToClothMixin(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
-                                     ignore_uncap=False, ignore_wrappers=False):
+                 ignore_uncap=False, ignore_wrappers=False):
         super(ToClothMixin, self).__init__(app=app, validator=validator,
-                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
-                                 ignore_wrappers=ignore_wrappers)
+                           mime_type=mime_type, ignore_uncap=ignore_uncap,
+                                                ignore_wrappers=ignore_wrappers)
 
         self.rendering_handlers = cdict({
             ModelBase: self.model_base_to_cloth,
@@ -83,7 +83,7 @@ class ToClothMixin(ProtocolBase):
             if self._cloth is None and self._root_cloth is None:
                 raise Exception("Invalid cloth: It does not contain any "
                                 "element with '%s' or '%s' attribute defined."
-                                        % (self.root_attr_name, self.attr_name))
+                                % (self.root_attr_name, self.attr_name))
 
         if self._cloth is not None:
             self._mrpc_cloth = self._pop_elt(self._cloth, 'mrpc_entry')
@@ -148,7 +148,7 @@ class ToClothMixin(ProtocolBase):
                     is_shown = v.when(inst)
 
                 if is_shown:
-                    yield k,v
+                    yield k, v
 
     def _actions_to_cloth(self, ctx, cls, inst, template):
         if self._mrpc_cloth is None:
@@ -328,7 +328,7 @@ class ToClothMixin(ProtocolBase):
                     curtag = parent.element(elt.tag, elt.attrib)
                     curtag.__enter__()
                     print("\tenter", elt.tag, "norm")
-                    stack.append( (elt, curtag) )
+                    stack.append((elt, curtag))
                 else:
                     parent.write(elt)
                     print("\twrite", elt.tag, "norm")
@@ -337,11 +337,11 @@ class ToClothMixin(ProtocolBase):
 
         # write the element itself
         attrib = dict([(k2, v2) for k2, v2 in cloth.attrib.items()
-                          if not (k2 in (self.attr_name, self.root_attr_name))])
+                       if not (k2 in (self.attr_name, self.root_attr_name))])
 
         curtag = parent.element(cloth.tag, attrib)
         curtag.__enter__()
-        stack.append( (cloth, curtag) )
+        stack.append((cloth, curtag))
         print("entering", cloth.tag, 'ok')
 
     def _close_cloth(self, ctx, parent):
@@ -353,7 +353,7 @@ class ToClothMixin(ProtocolBase):
                 parent.write(sibl)
 
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
-                                                      from_arr=False, **kwargs):
+                        from_arr=False, **kwargs):
         ctx.protocol.stack = deque()
         ctx.protocol.tags = set()
 
