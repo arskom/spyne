@@ -36,6 +36,7 @@ from spyne.error import ValidationError
 from spyne.util import _bytes_join
 from spyne.model import ModelBase, ComplexModel, Unicode
 from spyne.model import SimpleModel
+from spyne.util import six
 
 class BINARY_ENCODING_HEX: pass
 class BINARY_ENCODING_BASE64: pass
@@ -118,7 +119,7 @@ class ByteArray(SimpleModel):
     @classmethod
     def from_urlsafe_base64(cls, value):
         #FIXME: Find out why we need to do this.
-        if isinstance(value, unicode):
+        if isinstance(value, six.text_type):
             value = value.encode('utf8')
         return [urlsafe_b64decode(_bytes_join(value))]
 
