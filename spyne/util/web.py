@@ -317,17 +317,17 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
         i = 0
 
         for k, t in cls.get_flat_type_info(cls).items():
-            v = getattr(obj, k, None)
-            # HACK!: sometimes non-db attributes restored from database don't
-            # get properly reinitialized.
-            if isclass(v) and issubclass(v, ModelBase):
-                continue
-
             if i > MAX_FIELD_NUM:
                 retval.append("(...)")
                 break
 
             if t.Attributes.logged:
+                v = getattr(obj, k, None)
+                # HACK!: sometimes non-db attributes restored from database don't
+                # get properly reinitialized.
+                if isclass(v) and issubclass(v, ModelBase):
+                    continue
+
                 if v is not None:
                     retval.append("%s=%s" % (k, log_repr(v, t, parent=k,
                                                                     tags=tags)))
