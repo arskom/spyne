@@ -545,9 +545,9 @@ class XmlDocument(SubXmlBase):
         delay = set()
 
         if isinstance(parent, etree._Element):
-            elt = E(tag_name, *subelts)
-            _append(parent, elt)
+            elt = etree.SubElement(parent, tag_name, *subelts)
             ret = self._get_members_etree(ctx, cls, inst, elt, delay)
+
             if isgenerator(ret):
                 try:
                     while True:
