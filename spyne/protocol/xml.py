@@ -46,8 +46,8 @@ from spyne import BODY_STYLE_WRAPPED
 from spyne.util import _bytes_join, Break, coroutine
 from spyne.util.six import text_type
 from spyne.util.cdict import cdict
-from spyne.util.etreeconv import etree_to_dict
-from spyne.util.etreeconv import dict_to_etree
+from spyne.util.etreeconv import etree_to_dict, dict_to_etree,\
+    root_dict_to_etree
 
 from spyne.error import Fault
 from spyne.error import ValidationError
@@ -729,8 +729,13 @@ class XmlDocument(SubXmlBase):
             E("faultstring", inst.faultstring),
             E("faultactor", inst.faultactor),
         ]
-        if inst.detail != None:
+        if isinstance(inst.detail, six.string_types + (etree._Element,)):
             _append(subelts, E('detail', inst.detail))
+        elif isinstance(inst.detail, dict):
+            _append(subelts, E('detail', root_dict_to_etree(inst.detail)))
+        else:
+            raise TypeError('Must be lxml Element or dict, got',
+                                                              type(inst.detail))
 
         # add other nonstandard fault subelements with get_members_etree
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
