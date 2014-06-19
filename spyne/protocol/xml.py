@@ -44,7 +44,7 @@ from lxml.etree import XMLParser
 from spyne import BODY_STYLE_WRAPPED
 
 from spyne.util import _bytes_join, Break, coroutine
-from spyne.util.six import text_type
+from spyne.util.six import text_type, string_types
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import etree_to_dict, dict_to_etree,\
     root_dict_to_etree
@@ -721,7 +721,7 @@ class XmlDocument(SubXmlBase):
         inst = cls.get_serialization_instance(inst)
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [])
 
-    def fault_to_parent(self, ctx, cls, inst, parent, ns):
+    def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
         tag_name = "{%s}Fault" % _ns_soap_env
 
         subelts = [
@@ -729,7 +729,7 @@ class XmlDocument(SubXmlBase):
             E("faultstring", inst.faultstring),
             E("faultactor", inst.faultactor),
         ]
-        if isinstance(inst.detail, six.string_types + (etree._Element,)):
+        if isinstance(inst.detail, string_types + (etree._Element,)):
             _append(subelts, E('detail', inst.detail))
         elif isinstance(inst.detail, dict):
             _append(subelts, E('detail', root_dict_to_etree(inst.detail)))
