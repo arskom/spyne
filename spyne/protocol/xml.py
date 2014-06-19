@@ -16,7 +16,6 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
-from spyne.util.six import text_type
 
 """The ``spyne.protocol.xml`` module contains an xml-based protocol that
 serializes python objects to xml using Xml Schema conventions.
@@ -45,6 +44,7 @@ from lxml.etree import XMLParser
 from spyne import BODY_STYLE_WRAPPED
 
 from spyne.util import _bytes_join, Break, coroutine
+from spyne.util.six import text_type
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import etree_to_dict
 from spyne.util.etreeconv import dict_to_etree
@@ -545,7 +545,8 @@ class XmlDocument(SubXmlBase):
         delay = set()
 
         if isinstance(parent, etree._Element):
-            elt = etree.SubElement(parent, tag_name, *subelts)
+            elt = etree.SubElement(parent, tag_name)
+            elt.extend(subelts)
             ret = self._get_members_etree(ctx, cls, inst, elt, delay)
 
             if isgenerator(ret):
