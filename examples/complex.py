@@ -30,11 +30,11 @@
 #
 
 
-'''
+"""
 This example shows how to define and use complex structures
 in spyne.  This example uses an extremely simple in-memory
 dictionary to store the User objects.
-'''
+"""
 
 import logging
 import random
