@@ -546,7 +546,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
 
 # FIXME: what an ugly hack.
-def _fill_empty_type_name(v, parent_ns, parent_tn, k, parent=False):
+def _fill_empty_type_name(v, parent_ns, parent_tn, k):
     v.__namespace__ = parent_ns
     tn = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
 
@@ -559,7 +559,8 @@ def _fill_empty_type_name(v, parent_ns, parent_tn, k, parent=False):
 
         extends = child_v.__extends__
         while extends is not None and extends.get_type_name() is v.Empty:
-            _fill_empty_type_name(extends, parent_ns, parent_tn, k)
+            _fill_empty_type_name(extends, parent_ns, parent_tn,
+                                                        k + const.PARENT_SUFFIX)
             extends = extends.__extends__
 
     elif issubclass(v, XmlModifier):
@@ -571,19 +572,18 @@ def _fill_empty_type_name(v, parent_ns, parent_tn, k, parent=False):
 
         extends = child_v.__extends__
         while extends is not None and extends.get_type_name() is v.Empty:
-            _fill_empty_type_name(extends, parent_ns, parent_tn, k)
+            _fill_empty_type_name(extends, parent_ns, parent_tn,
+                                                        k + const.PARENT_SUFFIX)
             extends = extends.__extends__
 
     else:
         suff = const.TYPE_SUFFIX
-        if parent:
-            suff += const.PARENT_SUFFIX
 
         v.__type_name__ = "%s_%s%s" % (parent_tn, k, suff)
         extends = v.__extends__
         while extends is not None and extends.__type_name__ is ModelBase.Empty:
             _fill_empty_type_name(v.__extends__, v.get_namespace(),
-                                              v.get_type_name(), k, parent=True)
+                                     v.get_type_name(), k + const.PARENT_SUFFIX)
             extends = extends.__extends__
 
 _is_array = lambda v: issubclass(v, Array) or (v.Attributes.min_occurs > 1)
