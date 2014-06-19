@@ -736,6 +736,8 @@ class XmlDocument(SubXmlBase):
             _append(subelts, E('detail', inst.detail))
         elif isinstance(inst.detail, dict):
             _append(subelts, E('detail', root_dict_to_etree(inst.detail)))
+        elif inst.detail is None:
+            pass
         else:
             raise TypeError('Must be lxml.etree._Element or dict, got',
                                                               type(inst.detail))
