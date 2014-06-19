@@ -56,7 +56,7 @@ from spyne.const.ansi_color import LIGHT_RED
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap_env as _ns_soap_env
-from spyne.const.xml_ns import const_prefmap
+from spyne.const.xml_ns import const_prefmap, DEFAULT_NS
 _pref_soap_env = const_prefmap[_ns_soap_env]
 
 from spyne.model import ModelBase
@@ -703,12 +703,22 @@ class XmlDocument(SubXmlBase):
 
 
     def complex_to_parent(self, ctx, cls, inst, parent, ns, name=None):
+        sub_name = cls.Attributes.sub_name
+        if sub_name is not None:
+            name = sub_name
         if name is None:
             name = cls.get_type_name()
 
-        tag_name = "{%s}%s" % (ns, name)
-        inst = cls.get_serialization_instance(inst)
+        sub_ns = cls.Attributes.sub_ns
+        if not sub_ns in (None, DEFAULT_NS):
+            ns = sub_ns
 
+        if ns is None:
+            tag_name = name
+        else:
+            tag_name = "{%s}%s" % (ns, name)
+
+        inst = cls.get_serialization_instance(inst)
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [])
 
     def fault_to_parent(self, ctx, cls, inst, parent, ns):
