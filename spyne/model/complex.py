@@ -241,12 +241,13 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
                     mixin = b.get_flat_type_info(b)
                 else:
                     if not (extends in (None, b)):
-                        raise Exception("WSDL 1.1 does not support multiple "
-                                        "inheritance")
+                        raise Exception("Spyne objects do not support multiple "
+                            "inheritance. Use mixins if you need to reuse "
+                            "fields from multiple classes.")
 
                     try:
                         if len(base_types) > 0 and issubclass(b, ModelBase):
-                            cls_dict["__extends__"] = b
+                            extends = cls_dict["__extends__"] = b
 
                     except Exception as e:
                         logger.exception(e)
