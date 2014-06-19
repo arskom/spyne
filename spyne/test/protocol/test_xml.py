@@ -42,6 +42,7 @@ from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.util.six import StringIO
+from spyne.model import Fault
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
@@ -683,6 +684,12 @@ class TestIncremental(unittest.TestCase):
         eltstr = etree.tostring(elt)
         print(eltstr)
         assert eltstr == '<ns0:Action xmlns:ns0="SOME_NS" must_understand="y">x</ns0:Action>'
+
+    def test_fault_detail_as_dict(self):
+        elt = get_object_as_xml(Fault(detail={"this": "that"}), Fault)
+        eltstr = etree.tostring(elt)
+        print(eltstr)
+        assert '<detail><this>that</this></detail>' in eltstr
 
 
 if __name__ == '__main__':
