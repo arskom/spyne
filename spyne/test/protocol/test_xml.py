@@ -681,7 +681,7 @@ class TestIncremental(unittest.TestCase):
 
         elt = get_object_as_xml(Action("x", must_understand="y"), Action)
         eltstr = etree.tostring(elt)
-        print()
+        print(eltstr)
         assert eltstr == '<ns0:Action xmlns:ns0="SOME_NS" must_understand="y">x</ns0:Action>'
 
 
