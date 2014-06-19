@@ -85,6 +85,11 @@ def _append(parent, child_elt):
     else:
         parent.write(child_elt)
 
+def _gen_tagname(ns, name):
+    if ns is not None:
+        name = "{%s}%s" % (ns, name)
+    return name
+
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
 
@@ -509,14 +514,14 @@ class XmlDocument(SubXmlBase):
             ctx.out_stream.finish()
 
     def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        _append(parent, E("{%s}%s" % (ns, name),
+        _append(parent, E(_gen_tagname(ns, name),
                         self.to_string(cls, inst, self.default_binary_encoding)))
 
     def base_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        _append(parent, E("{%s}%s" % (ns, name), self.to_string(cls, inst)))
+        _append(parent, E(_gen_tagname(ns, name), self.to_string(cls, inst)))
 
     def null_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        _append(parent, E("{%s}%s" % (ns, name), **{'{%s}nil' % _ns_xsi: 'true'}))
+        _append(parent, E(_gen_tagname(ns, name), **{'{%s}nil' % _ns_xsi: 'true'}))
 
     def null_from_element(self, ctx, cls, element):
         return None
@@ -526,8 +531,7 @@ class XmlDocument(SubXmlBase):
         if ns is None:
             ns = cls.Attributes.sub_ns
 
-        if ns is not None:
-            name = "{%s}%s" % (ns, name)
+        name = _gen_tagname(ns, name)
 
         if inst is not None:
             if issubclass(cls.type, (ByteArray, File)):
@@ -537,7 +541,7 @@ class XmlDocument(SubXmlBase):
                 parent.set(name, self.to_string(cls.type, inst))
 
     def attachment_to_parent(self, cls, inst, ns, parent, name='retval'):
-        _append(parent, E("{%s}%s" % (ns, name),
+        _append(parent, E(_gen_tagname(ns, name),
                         ''.join([b.decode('ascii') for b in cls.to_base64(inst)])))
 
     @coroutine
@@ -713,10 +717,7 @@ class XmlDocument(SubXmlBase):
         if not sub_ns in (None, DEFAULT_NS):
             ns = sub_ns
 
-        if ns is None:
-            tag_name = name
-        else:
-            tag_name = "{%s}%s" % (ns, name)
+        tag_name = _gen_tagname(ns, name)
 
         inst = cls.get_serialization_instance(inst)
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [])
@@ -767,16 +768,16 @@ class XmlDocument(SubXmlBase):
         if isinstance(inst, str) or isinstance(inst, unicode):
             inst = etree.fromstring(inst)
 
-        _append(parent, E('{%s}%s' % (ns, name), inst))
+        _append(parent, E(_gen_tagname(ns, name), inst))
 
     def html_to_parent(self, ctx, cls, inst, parent, ns, name):
         if isinstance(inst, str) or isinstance(inst, unicode):
             inst = html.fromstring(inst)
 
-        _append(parent, E('{%s}%s' % (ns, name), inst))
+        _append(parent, E(_gen_tagname(ns, name), inst))
 
     def dict_to_parent(self, ctx, cls, inst, parent, ns, name):
-        elt = E('{%s}%s' % (ns, name))
+        elt = E(_gen_tagname(ns, name))
         dict_to_etree(inst, elt)
 
         _append(parent, elt)
