@@ -54,7 +54,7 @@ from spyne.model.complex import XmlAttribute
 from spyne.model.complex import Mandatory as M
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.xml import SchemaValidationError
-from spyne.util.xml import get_xml_as_object
+from spyne.util.xml import get_xml_as_object, get_object_as_xml
 from spyne.server.wsgi import WsgiApplication
 
 
@@ -670,6 +670,19 @@ class TestIncremental(unittest.TestCase):
                         namespaces={'x':__name__}) == ['1', '2', '3', '4', '5']
         assert elt.xpath('x:getResult/x:SomeComplexModel/x:s/text()',
                         namespaces={'x':__name__}) == ['a', 'b', 'c', 'd', 'e']
+
+    def test_bare_sub_name_ns(self):
+        class Action (ComplexModel):
+            class Attributes(ComplexModel.Attributes):
+                sub_ns = "SOME_NS"
+                sub_name = "Action"
+            data = XmlData(Unicode)
+            must_understand = XmlAttribute(Unicode)
+
+        elt = get_object_as_xml(Action("x", must_understand="y"), Action)
+        eltstr = etree.tostring(elt)
+        print()
+        assert eltstr == '<ns0:Action xmlns:ns0="SOME_NS" must_understand="y">x</ns0:Action>'
 
 
 if __name__ == '__main__':
