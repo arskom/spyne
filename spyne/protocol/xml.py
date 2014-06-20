@@ -231,7 +231,7 @@ class XmlDocument(SubXmlBase):
             AnyDict: self.dict_to_parent,
             AnyHtml: self.html_to_parent,
             EnumBase: self.enum_to_parent,
-            ModelBase: self.base_to_parent,
+            ModelBase: self.modelbase_to_parent,
             ByteArray: self.byte_array_to_parent,
             Attachment: self.attachment_to_parent,
             XmlAttribute: self.xmlattribute_to_parent,
@@ -515,9 +515,9 @@ class XmlDocument(SubXmlBase):
 
     def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         _append(parent, E(_gen_tagname(ns, name),
-                        self.to_string(cls, inst, self.default_binary_encoding)))
+                       self.to_string(cls, inst, self.default_binary_encoding)))
 
-    def base_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
+    def modelbase_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         _append(parent, E(_gen_tagname(ns, name), self.to_string(cls, inst)))
 
     def null_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
@@ -762,7 +762,7 @@ class XmlDocument(SubXmlBase):
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
     def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        self.base_to_parent(ctx, cls, str(inst), parent, ns, name)
+        self.modelbase_to_parent(ctx, cls, str(inst), parent, ns, name)
 
     def xml_to_parent(self, ctx, cls, inst, parent, ns, name):
         if isinstance(inst, str) or isinstance(inst, unicode):
