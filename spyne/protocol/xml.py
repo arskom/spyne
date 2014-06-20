@@ -740,8 +740,7 @@ class XmlDocument(SubXmlBase):
         elif inst.detail is None:
             pass
         else:
-            raise TypeError('Must be lxml.etree._Element or dict, got',
-                                                              type(inst.detail))
+            raise TypeError('Fault detail Must be dict, got', type(inst.detail))
 
         # add other nonstandard fault subelements with get_members_etree
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
