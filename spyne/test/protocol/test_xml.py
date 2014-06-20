@@ -668,9 +668,9 @@ class TestIncremental(unittest.TestCase):
         print(etree.tostring(elt, pretty_print=True))
 
         assert elt.xpath('x:getResult/x:SomeComplexModel/x:i/text()',
-                        namespaces={'x':__name__}) == ['1', '2', '3', '4', '5']
+                        namespaces={'x': __name__}) == ['1', '2', '3', '4', '5']
         assert elt.xpath('x:getResult/x:SomeComplexModel/x:s/text()',
-                        namespaces={'x':__name__}) == ['a', 'b', 'c', 'd', 'e']
+                        namespaces={'x': __name__}) == ['a', 'b', 'c', 'd', 'e']
 
     def test_bare_sub_name_ns(self):
         class Action (ComplexModel):

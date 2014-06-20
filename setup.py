@@ -282,7 +282,6 @@ class RunDjangoTests(ExtendedTestCommand):
 
 
 class RunMultiPythonTests(TestCommand):
-
     """Run tests compatible with different python implementations. """
 
     def finalize_options(self):
