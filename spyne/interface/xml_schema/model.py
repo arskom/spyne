@@ -74,11 +74,13 @@ def _check_extension_attrs(cls):
             diff.add(k)
 
     attr_names = ATTR_NAMES[cls]
+    retval = None
     while extends is not None:
+        retval = extends
         if len(diff & attr_names) > 0:
             return extends
         extends = extends.__extends__
-
+    return retval
 
 # noinspection PyDefaultArgument
 def simple_get_restriction_tag(document, cls):
