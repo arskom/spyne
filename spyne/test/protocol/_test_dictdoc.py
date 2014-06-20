@@ -1197,7 +1197,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             ctx = _dry_me([SomeService], {"some_call": []})
 
             s = ''.join(ctx.out_string)
-            d = serializer.dumps({"some_callResponse": { "some_callResult": {
+            d = serializer.dumps({"some_callResponse": {"some_callResult": {
                 "C": {
                     'identifier': '00000000-0000-0000-0000-000000000000',
                     'bar': '00000000-0000-0000-0000-000000000001',
