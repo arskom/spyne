@@ -683,7 +683,7 @@ class TestIncremental(unittest.TestCase):
         elt = get_object_as_xml(Action("x", must_understand="y"), Action)
         eltstr = etree.tostring(elt)
         print(eltstr)
-        assert eltstr == '<ns0:Action xmlns:ns0="SOME_NS" must_understand="y">x</ns0:Action>'
+        assert eltstr == b'<ns0:Action xmlns:ns0="SOME_NS" must_understand="y">x</ns0:Action>'
 
     def test_null_mandatory_attribute(self):
         class Action (ComplexModel):
@@ -692,13 +692,13 @@ class TestIncremental(unittest.TestCase):
         elt = get_object_as_xml(Action(), Action)
         eltstr = etree.tostring(elt)
         print(eltstr)
-        assert eltstr == '<Action/>'
+        assert eltstr == b'<Action/>'
 
     def test_fault_detail_as_dict(self):
         elt = get_object_as_xml(Fault(detail={"this": "that"}), Fault)
         eltstr = etree.tostring(elt)
         print(eltstr)
-        assert '<detail><this>that</this></detail>' in eltstr
+        assert b'<detail><this>that</this></detail>' in eltstr
 
 
 if __name__ == '__main__':
