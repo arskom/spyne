@@ -577,9 +577,7 @@ def _fill_empty_type_name(v, parent_ns, parent_tn, k):
             extends = extends.__extends__
 
     else:
-        suff = const.TYPE_SUFFIX
-
-        v.__type_name__ = "%s_%s%s" % (parent_tn, k, suff)
+        v.__type_name__ = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
         extends = v.__extends__
         while extends is not None and extends.__type_name__ is ModelBase.Empty:
             _fill_empty_type_name(v.__extends__, v.get_namespace(),
