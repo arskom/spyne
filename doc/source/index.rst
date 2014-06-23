@@ -3,9 +3,7 @@
 Spyne Documentation
 ###################
 
-Welcome to Spyne documentation! We hope you find it ...
-
-Um, well actually Spyne 2.11 docs are not quite done yet.
+Actually, Spyne 2.11 docs are not quite done yet.
 
 Spyne 2.11 has been in the making for more than a year and received around 1400
 commits on top of the 2.10 branch.
