@@ -6,7 +6,7 @@ Spyne FAQ
 Frequently asked questions about Spyne and related libraries.
 
 Does spyne support the SOAP 1.2 standard?
-==========================================
+=========================================
 
 **Short answer:** No.
 
@@ -251,7 +251,8 @@ because it wastes time converting the incoming byte stream to unicode, an
 operation that may or may not be necessary. The decision whether to perform the
 ``str`` => ``unicode`` conversion should be left to the protocol.
 
-You should fix this -- that's why that warning is there.
+You should get rid of this conversion operation -- that's why that warning is
+there. It is otherwise harmless.
 
 You mock my pain!
 =================
