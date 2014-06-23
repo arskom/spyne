@@ -1,4 +1,6 @@
 
+.. _migration:
+
 ***************
 Migration Guide
 ***************
