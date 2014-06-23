@@ -52,4 +52,5 @@ Other Goodies
    tests
    faq
    h_and_f
+   migration
    ../../CONTRIBUTING.rst
