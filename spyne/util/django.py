@@ -363,7 +363,7 @@ class DjangoComplexModelMeta(ComplexModelMeta):
             raise ImproperlyConfigured('You have to define Attributes and '
                                        'specify Attributes.django_model')
 
-        if attributes.django_model is None:
+        if getattr(attributes, 'django_model', None) is None:
             raise ImproperlyConfigured('You have to define django_model '
                                        'attribute in Attributes')
 
