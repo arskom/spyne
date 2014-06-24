@@ -18,7 +18,7 @@ means you can safely refer to the 2.10 docs, they're still quite relevant.
 Don't forget to read the migration guide first if you're migrating from 2.10 to
 2.11 though, there were still some changes that can break existing code.
 
-Have fun!
+But most important of it all, Have fun!
 
 PS: Feedback about the docs are pure gold to us, simply because the most
 important thing the Spyne committers lack is an outside perspective to the
