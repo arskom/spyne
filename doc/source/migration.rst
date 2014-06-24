@@ -12,7 +12,7 @@ Migration Guide
 
 While Spyne tries very hard not to break backwards compatibility across minor
 releases, fixes to some blatant bugs that we just can't stand having around
-anymore that ships with 2.11 do have the possibility of breaking existing code.
+anymore that ship with 2.11 do have the possibility of breaking existing code.
 
 The good news about this is that, in most of the cases, they find
 inconsistencies in your code and force you to fix them before they hurt you one
