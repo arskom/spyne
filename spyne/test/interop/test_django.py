@@ -63,12 +63,27 @@ class DjangoViewTestCase(TestCase):
         response = client.post('/say_hello/', {})
         self.assertContains(response, 'faultstring', status_code=500)
 
-    def test_wsdl(self):
+    def test_cached_wsdl(self):
+        """Test if wsdl is cached."""
         client = Client()
         response = client.get('/say_hello/')
         self.assertContains(response,
                             'location="http://testserver/say_hello/"')
+        response = client.get('/say_hello/', HTTP_HOST='newtestserver')
+        self.assertNotContains(response,
+                            'location="http://newtestserver/say_hello/"')
 
+    def test_not_cached_wsdl(self):
+        """Test if wsdl is not cached."""
+        client = Client()
+        response = client.get('/say_hello_not_cached/')
+        self.assertContains(
+            response, 'location="http://testserver/say_hello_not_cached/"')
+        response = client.get('/say_hello_not_cached/',
+                              HTTP_HOST='newtestserver')
+
+        self.assertContains(
+            response, 'location="http://newtestserver/say_hello_not_cached/"')
 
 class ModelTestCase(TestCase):
 
