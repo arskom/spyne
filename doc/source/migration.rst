@@ -81,5 +81,6 @@ boot after switching to Spyne 2.11:
 
 We certainly hope that we won't have to add more points to the above list.
 
-However, please don't hesitate to chime in at people@spyne.io if you think you
-have stumbled upon a backwards compatibility issue that wasn't iterated above.
+However, please don't hesitate to contact us via people@spyne.io if you think
+you have stumbled upon a backwards compatibility issue that wasn't iterated
+above.
