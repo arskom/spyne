@@ -17,11 +17,10 @@ spyne-2.11.0
   another.
 * SQLAlchemy: Implement a hybrid file container that puts file metadata in a
   json column in database and and file data in file system. Fully supported by
-  all protocols as a binary File format.
+  all protocols as a binary File.Value instance.
 * Implement an Xml Schema parser.
-* Import all model markers to ``spyne.model``.
-* Import ``@rpc``\, ``@srpc``\, ``ServiceBase`` and ``Application`` inside the
-  ``spyne`` module.
+* Import all model markers as well as the ``@rpc``\, ``@srpc``\, ``@mrpc``,
+  ``ServiceBase`` and ``Application`` to the root ``spyne`` package.
 * Implement JsonP protocol.
 * Implement SpyneJsonRpc 1.0 protocol -- it supports request headers.
 
@@ -31,17 +30,17 @@ spyne-2.11.0
   Sample request:  ``{"ver":1, "body": {"div": {"dividend":4,"divisor":0]}}``
   Sample response: ``{"ver":1, "fault": {"faultcode": "Server", "faultstring": "Internal Error"}}}``
 
-* Steal and integrate the experimental WebSocket tranport for Twisted.
+* Steal and integrate the experimental WebSocket tranport from Twisted.
 * Support Django natively using :class:`spyne.server.django.DjangoView` and
   :class:`spyne.server.django.DjangoServer`.
 * It's now possible to override the ``JsonEncoder`` class ``JsonDocument`` uses.
 * Remove hard-coded utf-8 defaults from almost everywhere.
 * Remove hard-coded pytz.utc defaults from everywhere. Use spyne.LOCAL_TZ to
   configure the default time zone.
-* As a result of the above change, datetime objects deserialized by Spyne are
+* As a result of the above change, ``datetime`` objects deserialized by Spyne
   are forced to the above time zone during soft validation (nothing should have
   changed from the user code perspective).
-* Add default_factory to ModelBase customizer. It's a callable that produces
+* Add ``default_factory`` to ModelBase customizer. It's a callable that produces
   default values on demand. Suitable to be used with e.g. lambdas that return
   mutable defaults.
 * New ``spyne.util.AttrDict`` can be used for passing various dynamic
@@ -50,16 +49,14 @@ spyne-2.11.0
   to make object-specific in-place customizations to child types.
 * Add mapper between Django models and :class:`spyne.util.django.DjangoComplexModel`
   types.
-* Removed ``@nillable_string`` and ``@nillable_string_iterable`` decorators from
-  type (de)serializers from/to string. These methods are meant to be used via the
-  wrapper functions {from,to}_string in ``ProtocolBase``\.
-* Spyne now tracks subclasses and adds them to the interface if they have the same
-  namespace as their parent.
+* Spyne now tracks subclasses and adds them to the interface if they are in the
+  same namespace as their parent.
 * Simple dictionary protocol's ``hier_delim`` default value is now '.'
-* Fixes support for > 1 XmlAttribute referencing the same 'attribute_of' element
-  in a ComplexModel subclass.
-* Render ``spyne.model.File`` as ``twisted.web.static.File`` when using HttpRpc
-  over ``TwistedWebResource``.
+* Fixes support for XmlAttributes with max_occurs>1 referencing the same
+  'attribute_of' element in a ComplexModel subclass.
+* Renders ``spyne.model.File`` as ``twisted.web.static.File`` when using HttpRpc
+  over ``TwistedWebResource``. This lets twisted handle Http 1.1-specific
+  functionality like range requests.
 * Many, many, many bugs fixed.
 
 spyne-2.10.10
@@ -578,7 +575,7 @@ soaplib-2.x
   http to a soap serialization/deserialization library that is architecture and
   transport agnostic.
 * Hard dependency on WSGI removed.
-* Sphinx docs with working examples: http://arskom.github.com/rpclib/
+* Sphinx docs with working examples: http://arskom.github.com/soaplib/
 * Serializers renamed to Models.
 * Standalone xsd generation for ClassSerializer objects has been added. This
   allows soaplib to be used to define generic XML schemas, without SOAP
