@@ -433,8 +433,8 @@ class ProtocolBase(object):
         retval = value
         if isinstance(value, six.text_type):
             if cls.Attributes.encoding is None:
-                raise Exception("You need to define an encoding to convert the "
-                                "incoming unicode values to.")
+                raise Exception("You need to define a source encoding for "
+                                "decoding incoming unicode values.")
             else:
                 retval = value.encode(cls.Attributes.encoding)
 
@@ -746,7 +746,7 @@ class ProtocolBase(object):
     def complex_model_to_string_iterable(self, cls, value):
         if self.ignore_uncap:
             return tuple()
-        raise TypeError("HttpRpc protocol can only serialize primitives.")
+        raise TypeError("This protocol can only serialize primitives.")
 
     def attachment_to_string(self, cls, value):
         if not (value.data is None):
