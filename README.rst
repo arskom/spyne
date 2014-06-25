@@ -121,7 +121,7 @@ that are only needed when running Spyne testsuite.
 Getting Support
 ===============
 
-The official mailing list for both users and developers alike can be found at
+The official mailing list for both users and developers alike can be found at:
 http://lists.spyne.io/listinfo/people.
 
 You can also use the 'spyne' tag to ask questions on
