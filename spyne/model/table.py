@@ -61,6 +61,9 @@ Here, The AlternativeUser object is automatically populated using columns from
 the table definition.
 """
 
+import warnings
+warnings.warn("%r module is deprecated. Please switch to "
+              "spyne.model.complex.TTableModel" % __name__)
 
 import logging
 logger = logging.getLogger(__name__)
