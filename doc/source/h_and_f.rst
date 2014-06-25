@@ -1,9 +1,9 @@
 
 .. _changelog:
 
-******************
-History and Future
-******************
+*******************
+Development History
+*******************
 
 Versioning
 ==========
@@ -44,8 +44,6 @@ These labels apply to the project as a whole. Thus, we won't tag the whole
 project as beta because some new feature is not yet well-tested, but we will
 clearly denote experimental code in its documentation.
 
-.. include:: ../../ROADMAP.rst
-.. include:: comparison.rst
 .. include:: ../../CHANGELOG.rst
 
 spyne-2.9.5
