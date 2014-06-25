@@ -81,7 +81,8 @@ to boot after switching to Spyne 2.11:
    which may break break SOAP clients that use statically compiled copies of the
    WSDL document.
 
-   **Fix:** Pass `type_name='...'` to every Spyne type marker you customize.
+   **Fix:** Explicitly set type names of the markers you customize using the
+   ``type_name`` argument.
 
 6) **String or Unicode types may fail to (de)serialize:** As we removed
    hard-coded utf8 defaults from everywhere, code that silently worked before
