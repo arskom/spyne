@@ -1,8 +1,8 @@
 .. image:: https://travis-ci.org/arskom/spyne.png?branch=master
         :target: http://travis-ci.org/arskom/spyne
 
-**WARNING:** This is from spyne's development branch. This version is not released
-yet! Latest stable release can be found in the ``2_10`` branch.
+**WARNING:** This is from spyne's development branch. This version is not
+released yet! Latest stable release can be found in the ``2_11`` branch.
 
 About
 =====
@@ -124,7 +124,7 @@ that are only needed when running Spyne testsuite.
 Getting Support
 ===============
 
-The official mailing list for both users and developers alike can be found at
+The official mailing list for both users and developers alike can be found at:
 http://lists.spyne.io/listinfo/people.
 
 You can also use the 'spyne' tag to ask questions on
