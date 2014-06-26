@@ -1,0 +1,17 @@
+pytest
+coverage
+junitxml
+werkzeug
+sqlalchemy
+lxml>=2.3
+pyyaml
+pyzmq
+twisted
+colorama
+msgpack-python
+webtest
+django
+pytest_django
+python-subunit
+pyramid
+tox
