@@ -324,23 +324,7 @@ class RunMultiPythonTests(TestCommand):
         raise SystemExit(ret)
 
 
-multi_python_test_reqs = ['pytest', 'coverage', 'junitxml']
 
-if 'test_multi_python' in sys.argv:
-    test_reqs = multi_python_test_reqs
-else:
-    test_reqs = multi_python_test_reqs + [
-        'pytest', 'werkzeug', 'sqlalchemy',
-        'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
-        'msgpack-python', 'webtest', 'django', 'pytest_django',
-        'python-subunit', 'pyramid',
-        'tox'
-    ]
-
-    if sys.version_info < (3,0):
-        test_reqs.extend(['pyparsing<1.99', 'suds'])
-    else:
-        test_reqs.extend(['pyparsing', 'suds-jurko'])
 
 
 class SubUnitTee(object):
@@ -430,7 +414,6 @@ setup(
         ]
     },
 
-    tests_require = test_reqs,
     cmdclass = {'test': RunTests, 'install_test_deps': InstallTestDeps,
                 'test_django': RunDjangoTests,
                 'test_multi_python': RunMultiPythonTests

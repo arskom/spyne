@@ -1,0 +1,3 @@
+-r test_requirements.txt
+pyparsing>=1.99
+suds
