@@ -527,7 +527,10 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
             request.finish()
             p_ctx.close()
         else:
-            request.notifyFinish().addCallback(lambda x: p_ctx.close())
+            def _close_only_context(ret):
+                p_ctx.close()
+
+            request.notifyFinish().addCallback(_close_only_context)
             request.notifyFinish().addErrback(_eb_request_finished, request, p_ctx)
 
     else:
