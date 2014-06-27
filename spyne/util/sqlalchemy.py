@@ -33,6 +33,7 @@ import sqlalchemy
 
 from mmap import mmap, ACCESS_READ
 from spyne.util.six import string_types
+from spyne.util.fileproxy import SeekableFileProxy
 
 try:
     import simplejson as json
@@ -472,9 +473,10 @@ class PGFileJson(PGObjectJson):
                 retval.data = ['']
 
                 if ret:
-                    h = retval.handle = open(path, 'rb')
-                    if fstat(h.fileno()).st_size > 0:
-                        retval.data = [mmap(h.fileno(), 0, access=ACCESS_READ)]
+                    h = retval.handle = SeekableFileProxy(open(path, 'rb'))
+                    if fstat(retval.handle.fileno()).st_size > 0:
+                        h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
+                        retval.data = [h.mmap]
                     else:
                         retval.data = ['']
                 else:
