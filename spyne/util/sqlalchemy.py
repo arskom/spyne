@@ -472,10 +472,11 @@ class PGFileJson(PGObjectJson):
                 retval.data = ['']
 
                 if ret:
-                    retval.handle = open(path, 'rb')
-                    if fstat(retval.handle.fileno()).st_size > 0:
-                        retval.data = [mmap(retval.handle.fileno(), 0,
-                                                            access=ACCESS_READ)]
+                    h = retval.handle = open(path, 'rb')
+                    if fstat(h.fileno()).st_size > 0:
+                        retval.data = [mmap(h.fileno(), 0, access=ACCESS_READ)]
+                    else:
+                        retval.data = ['']
                 else:
                     logger.error("File %r is not readable", path)
 
