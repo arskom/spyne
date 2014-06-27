@@ -2,6 +2,10 @@
 Changelog
 =========
 
+spyne-2.11.1
+------------
+* Fix PGFileJson-related fd leaks.
+
 spyne-2.11.0
 ------------
 * Experimental Python 3 Support for all of the Xml-related (non-Html)
