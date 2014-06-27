@@ -156,8 +156,6 @@ class DjangoServer(HttpBase):
         else:
             response = HttpResponse(''.join(p_ctx.out_string))
 
-        p_ctx.close()
-
         return self.response(response, p_ctx, others)
 
     def handle_wsdl(self, request, *args, **kwargs):
@@ -174,8 +172,7 @@ class DjangoServer(HttpBase):
             # create and build interface documents in current thread. This
             # section can be safely repeated in another concurrent thread.
             doc = AllYourInterfaceDocuments(self.app.interface)
-            doc.wsdl11.build_interface_document(
-                request.build_absolute_uri())
+            doc.wsdl11.build_interface_document(request.build_absolute_uri())
             wsdl = doc.wsdl11.get_interface_document()
 
             if self._cache_wsdl:
@@ -184,7 +181,6 @@ class DjangoServer(HttpBase):
             wsdl = self._wsdl
 
         ctx.transport.wsdl = wsdl
-        ctx.close()
 
         response = HttpResponse(ctx.transport.wsdl)
         return self.response(response, ctx, ())
@@ -242,6 +238,8 @@ class DjangoServer(HttpBase):
         except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
+
+        p_ctx.close()
 
         return response
 
