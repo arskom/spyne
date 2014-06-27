@@ -525,6 +525,10 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
         if retval != NOT_DONE_YET and cb:
             request.write(retval)
             request.finish()
+            p_ctx.close()
+        else:
+            request.notifyFinish().addCallback(lambda x: p_ctx.close())
+            request.notifyFinish().addErrback(_eb_request_finished, request, p_ctx)
 
     else:
         resource.http_transport.get_out_string(p_ctx)
