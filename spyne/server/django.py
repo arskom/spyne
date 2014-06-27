@@ -155,8 +155,6 @@ class DjangoServer(HttpBase):
         else:
             response = HttpResponse(''.join(p_ctx.out_string))
 
-        p_ctx.close()
-
         return self.response(response, p_ctx, others)
 
     def handle_wsdl(self, request, *args, **kwargs):
@@ -177,7 +175,6 @@ class DjangoServer(HttpBase):
             self._wsdl = doc.wsdl11.get_interface_document()
 
         ctx.transport.wsdl = self._wsdl
-        ctx.close()
 
         response = HttpResponse(ctx.transport.wsdl)
         return self.response(response, ctx, ())
@@ -235,6 +232,8 @@ class DjangoServer(HttpBase):
         except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
+
+        p_ctx.close()
 
         return response
 

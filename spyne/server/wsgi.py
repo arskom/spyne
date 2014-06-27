@@ -289,9 +289,11 @@ class WsgiApplication(HttpBase):
                                                     str(len(ctx.transport.wsdl))
         start_response(HTTP_200, _gen_http_headers(ctx.transport.resp_headers))
 
+        retval = ctx.transport.wsdl
+
         ctx.close()
 
-        return [ctx.transport.wsdl]
+        return [retval]
 
     def handle_error(self, p_ctx, others, error, start_response):
         """Serialize errors to an iterable of strings and return them.

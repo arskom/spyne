@@ -318,6 +318,12 @@ class MethodContext(object):
         self.call_end = time()
         self.app.event_manager.fire_event("method_context_closed", self)
 
+        # break cycles
+        del self.udc
+        del self.event
+        del self.transport
+        del self.protocol
+
     def set_out_protocol(self, what):
         self._out_protocol = what
 
