@@ -922,9 +922,11 @@ _datetime_smap = {
 }
 
 def _file_to_iter(f):
-    data = f.read(65536)
-    while len(data) > 0:
-        yield data
+    try:
         data = f.read(65536)
+        while len(data) > 0:
+            yield data
+            data = f.read(65536)
 
-    f.close()
+    finally:
+        f.close()
