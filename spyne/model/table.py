@@ -63,7 +63,11 @@ the table definition.
 
 import warnings
 warnings.warn("%r module is deprecated. Please switch to "
-              "spyne.model.complex.TTableModel" % __name__)
+              "spyne.model.complex.TTableModel.\nHere's where the import"
+              "comes from:" % __name__)
+import traceback
+traceback.print_stack()
+
 
 import logging
 logger = logging.getLogger(__name__)
