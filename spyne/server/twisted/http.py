@@ -451,8 +451,6 @@ def _eb_request_finished(retval, request, p_ctx):
 def _init_push(ret, request, p_ctx, others, resource):
     assert isinstance(ret, PushBase)
 
-    p_ctx.out_stream = request
-
     # fire events
     p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
     if p_ctx.service_class is not None:
@@ -511,6 +509,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
     retval = NOT_DONE_YET
 
+    p_ctx.out_stream = request
     if isinstance(ret, PushBase):
         retval = _init_push(ret, request, p_ctx, others, resource)
 
