@@ -323,6 +323,7 @@ class MethodContext(object):
         del self.event
         del self.transport
         del self.protocol
+        del self.out_object
 
     def set_out_protocol(self, what):
         self._out_protocol = what
