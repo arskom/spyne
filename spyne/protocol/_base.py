@@ -433,8 +433,8 @@ class ProtocolBase(object):
         retval = value
         if isinstance(value, six.text_type):
             if cls.Attributes.encoding is None:
-                raise Exception("You need to define an encoding to convert the "
-                                "incoming unicode values to.")
+                raise Exception("You need to define a source encoding for "
+                                "decoding incoming unicode values.")
             else:
                 retval = value.encode(cls.Attributes.encoding)
 
@@ -708,34 +708,32 @@ class ProtocolBase(object):
             return binary_encoding_handlers[encoding](value)
 
     def file_to_string_iterable(self, cls, value):
-        if value.data is None:
-            if value.handle is None:
-                assert value.path is not None, "You need to write data to " \
-                         "persistent storage first if you want to read it back."
-
-                try:
-                    path = value.path
-                    if not isabs(value.path):
-                        path = join(value.store, value.path)
-                    f = open(path, 'rb')
-                except IOError as e:
-                    if e.errno == errno.ENOENT:
-                        raise ResourceNotFoundError(value.path)
-                    else:
-                        raise InternalError("Error accessing requested file")
-
-            else:
-                f = value.handle
-                f.seek(0)
-
-            return _file_to_iter(f)
-
-        else:
-            if isinstance(value.data, (list,tuple)) and \
-                                                isinstance(value.data[0], mmap):
+        if value.data is not None:
+            if isinstance(value.data, (list, tuple)) and \
+                    isinstance(value.data[0], mmap):
                 return _file_to_iter(value.data[0])
             else:
                 return iter(value.data)
+
+        if value.handle is not None:
+            f = value.handle
+            f.seek(0)
+            return _file_to_iter(f)
+
+        assert value.path is not None, "You need to write data to " \
+                 "persistent storage first if you want to read it back."
+
+        try:
+            path = value.path
+            if not isabs(value.path):
+                path = join(value.store, value.path)
+            return _file_to_iter(open(path, 'rb'))
+
+        except IOError as e:
+            if e.errno == errno.ENOENT:
+                raise ResourceNotFoundError(value.path)
+            else:
+                raise InternalError("Error accessing requested file")
 
     def simple_model_to_string_iterable(self, cls, value):
         retval = self.to_string(cls, value)
@@ -746,7 +744,7 @@ class ProtocolBase(object):
     def complex_model_to_string_iterable(self, cls, value):
         if self.ignore_uncap:
             return tuple()
-        raise TypeError("HttpRpc protocol can only serialize primitives.")
+        raise TypeError("This protocol can only serialize primitives.")
 
     def attachment_to_string(self, cls, value):
         if not (value.data is None):
@@ -924,9 +922,11 @@ _datetime_smap = {
 }
 
 def _file_to_iter(f):
-    data = f.read(65536)
-    while len(data) > 0:
-        yield data
+    try:
         data = f.read(65536)
+        while len(data) > 0:
+            yield data
+            data = f.read(65536)
 
-    f.close()
+    finally:
+        f.close()

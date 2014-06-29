@@ -39,5 +39,9 @@ urlpatterns = patterns('',
     url(r'^say_hello/', DjangoView.as_view(
         services=[HelloWorldService], tns='spyne.examples.django',
         in_protocol=Soap11(validator='lxml'), out_protocol=Soap11())),
+    url(r'^say_hello_not_cached/', DjangoView.as_view(
+        services=[HelloWorldService], tns='spyne.examples.django',
+        in_protocol=Soap11(validator='lxml'), out_protocol=Soap11(),
+        cache_wsdl=False)),
     url(r'^api/', DjangoView.as_view(application=app)),
 )

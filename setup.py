@@ -282,7 +282,6 @@ class RunDjangoTests(ExtendedTestCommand):
 
 
 class RunMultiPythonTests(TestCommand):
-
     """Run tests compatible with different python implementations. """
 
     def finalize_options(self):
@@ -314,7 +313,7 @@ class RunMultiPythonTests(TestCommand):
 
     def run_tests(self):
         flavour = self.get_python_flavour()
-        file_name = 'test_result_multi_python_{0}.xml'.format(flavour)
+        file_name = 'test_result.multi_python_{0}.xml'.format(flavour)
         ret = run_tests_and_create_report(file_name, 'multipython')
 
         if ret == 0:

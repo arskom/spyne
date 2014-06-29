@@ -78,6 +78,8 @@ from spyne.model.enum import EnumBase
 
 from spyne.protocol import ProtocolBase
 
+NIL_ATTR = {'{%s}nil' % _ns_xsi: 'true'}
+
 
 def _append(parent, child_elt):
     if hasattr(parent, 'append'):
@@ -231,7 +233,8 @@ class XmlDocument(SubXmlBase):
             AnyDict: self.dict_to_parent,
             AnyHtml: self.html_to_parent,
             EnumBase: self.enum_to_parent,
-            ModelBase: self.base_to_parent,
+            XmlData: self.xmldata_to_parent,
+            ModelBase: self.modelbase_to_parent,
             ByteArray: self.byte_array_to_parent,
             Attachment: self.attachment_to_parent,
             XmlAttribute: self.xmlattribute_to_parent,
@@ -515,16 +518,32 @@ class XmlDocument(SubXmlBase):
 
     def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         _append(parent, E(_gen_tagname(ns, name),
-                        self.to_string(cls, inst, self.default_binary_encoding)))
+                       self.to_string(cls, inst, self.default_binary_encoding)))
 
-    def base_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
+    def modelbase_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         _append(parent, E(_gen_tagname(ns, name), self.to_string(cls, inst)))
 
     def null_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        _append(parent, E(_gen_tagname(ns, name), **{'{%s}nil' % _ns_xsi: 'true'}))
+        if issubclass(cls, XmlAttribute):
+            return
+
+        elif issubclass(cls, XmlData):
+            parent.attrib.update(NIL_ATTR)
+
+        else:
+            _append(parent, E(_gen_tagname(ns, name), **NIL_ATTR))
 
     def null_from_element(self, ctx, cls, element):
         return None
+
+    def xmldata_to_parent(self, ctx, cls, inst, parent, ns, name):
+        ns = cls._ns
+        if ns is None:
+            ns = cls.Attributes.sub_ns
+
+        name = _gen_tagname(ns, name)
+
+        cls.marshall(self, name, inst, parent)
 
     def xmlattribute_to_parent(self, ctx, cls, inst, parent, ns, name):
         ns = cls._ns
@@ -618,13 +637,9 @@ class XmlDocument(SubXmlBase):
                 if sub_name is None:
                     sub_name = k
 
-                if issubclass(v, XmlAttribute):
-                    if v.attribute_of in cls._type_info.keys():
-                        delay.add(k)
-                        continue
-
-                elif issubclass(v, XmlData):
-                    v.marshall(self, sub_name, subvalue, parent)
+                if issubclass(v, XmlAttribute) and \
+                                        v.attribute_of in cls._type_info.keys():
+                    delay.add(k)
                     continue
 
                 mo = v.Attributes.max_occurs
@@ -740,8 +755,7 @@ class XmlDocument(SubXmlBase):
         elif inst.detail is None:
             pass
         else:
-            raise TypeError('Must be lxml.etree._Element or dict, got',
-                                                              type(inst.detail))
+            raise TypeError('Fault detail Must be dict, got', type(inst.detail))
 
         # add other nonstandard fault subelements with get_members_etree
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
@@ -762,7 +776,7 @@ class XmlDocument(SubXmlBase):
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
     def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        self.base_to_parent(ctx, cls, str(inst), parent, ns, name)
+        self.modelbase_to_parent(ctx, cls, str(inst), parent, ns, name)
 
     def xml_to_parent(self, ctx, cls, inst, parent, ns, name):
         if isinstance(inst, str) or isinstance(inst, unicode):

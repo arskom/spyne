@@ -1,8 +1,8 @@
 .. image:: https://travis-ci.org/arskom/spyne.png?branch=master
         :target: http://travis-ci.org/arskom/spyne
 
-**WARNING:** This is from spyne's development branch. This version is not released
-yet! Latest stable release can be found in the ``2_10`` branch.
+**WARNING:** This is from spyne's development branch. This version is not
+released yet! Latest stable release can be found in the ``2_11`` branch.
 
 About
 =====
@@ -37,23 +37,27 @@ The following are the primary sources of information about spyne:
   `github <http://github.com/arskom/spyne/downloads>`_ or
   `pypi <http://pypi.python.org/pypi/spyne>`_.
 
-Spyne is a generalized version of a Soap library known as soaplib. The following
-legacy versions of soaplib are also available in the source repository at github
-as branches:
-
-* Soaplib-0.8 branch: http://github.com/arskom/spyne/tree/soaplib-0_8
-* Soaplib-1.0 branch: http://github.com/arskom/spyne/tree/soaplib-1_0
-* Soaplib-2.0 was never released as a stable package, but the branch is still
-  available: http://github.com/arskom/spyne/tree/soaplib-2_0
-
 Requirements
 ============
 
-Spyne is known to work on Python versions 2.6 and 2.7. We're also looking for
-volunteers to test Python 3.x.
+Spyne source distribution is a collection of highly decoupled components, which
+makes it a bit difficult to put a simple list of requirements, as literally
+everything except ``pytz`` is optional.
+
+Python version
+--------------
+
+First things first: Spyne is known to fully work on Python versions 2.6 and 2.7.
+However Spyne's Soap (and all of its subcomponents like XmlDocument, Wsdl, etc.)
+subsystem also works on Python 3.3 and up. You can track the Python 3 porting
+progress from our jenkins deployment, here:
+https://spyne.ci.cloudbees.com/job/spyne/PYFLAV=3.3/
 
 The only hard requirement is `pytz <http://pytz.sourceforge.net/>`_ which is
 available via pypi.
+
+Libraries
+---------
 
 Additionally the following software packages are needed for various subsystems
 of Spyne:
@@ -69,14 +73,13 @@ of Spyne:
   ``spyne.server.zeromq.ZeroMQServer``.
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for using
   ``spyne.protocol.http.HttpRpc`` under a wsgi transport.
-* `PyParsing<2.0 <http://pypi.python.org/pypi/pyparsing>`_ is needed for
-  using ``HttpPattern``'s with ``spyne.protocol.http.HttpRpc``\. (PyParsing>=2.x
-  is Python 3 only).
-* `Twisted <http://twistedmatrix.com/>`_ is needed for
-  ``spyne.server.twisted.TwistedWebResource`` and
-  ``spyne.client.twisted.TwistedHttpClient``.
-* `Django <http://djangoproject.com/>`_ (tested with 1.2 and up) is needed for
-  :class:`spyne.server.django.DjangoApplication` and :class:`spyne.server.django.DjangoServer`.
+* `PyParsing <http://pypi.python.org/pypi/pyparsing>`_ is needed for
+  using ``HttpPattern``'s with ``spyne.protocol.http.HttpRpc``\. Use
+  PyParsing<2.0 on Python 2 as PyParsing>=2.x is Python 3 only.
+* `Twisted <http://twistedmatrix.com/>`_ is needed for anything in
+  ``spyne.server.twisted`` and ``spyne.client.twisted``.
+* `Django <http://djangoproject.com/>`_ (tested with 1.4 and up) is needed for
+  anything in ``spyne.server.django``.
 * `Pyramid <http://pylonsproject.org/>`_ is needed for
   ``spyne.server.pyramid.PyramidApplication``.
 * `msgpack-python <http://github.com/msgpack/msgpack-python/>`_ is needed for
@@ -100,7 +103,7 @@ or you can clone the latest master tree from github: ::
 
     git clone git://github.com/arskom/spyne.git
 
-To install from source distribution, you should run the setup script as usual: ::
+To install from source distribution, you can run the setup script as usual: ::
 
     python setup.py install [--user]
 
@@ -115,19 +118,21 @@ Finally, to run the tests use: ::
     pyhon setup.py test
 
 The test script should first install every single library that Spyne integrates
-with to the current directory. You should have a python development envrionment
-already set up so that packages like lxml can be compiled.
-
+with to the current directory, along with additional packages like pytest or tox
+that are only needed when running Spyne testsuite.
 
 Getting Support
 ===============
 
-The official mailing list for both users and developers alike can be found at
+The official mailing list for both users and developers alike can be found at:
 http://lists.spyne.io/listinfo/people.
 
 You can also use the 'spyne' tag to ask questions on
 `Stack Overflow <http://stackoverflow.com>`_.
 
+Please don't use the issue tracker for asking questions. It's the database that
+holds the most important information for the project, so we must avoid
+cluttering it as much as possible.
 
 Contributing
 ============

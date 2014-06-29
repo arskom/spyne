@@ -106,9 +106,10 @@ class StreamingDjangoApplication(DjangoApplication):
 class DjangoServer(HttpBase):
     """Server talking in Django request/response objects."""
 
-    def __init__(self, app, chunked=False):
+    def __init__(self, app, chunked=False, cache_wsdl=True):
         super(DjangoServer, self).__init__(app, chunked=chunked)
         self._wsdl = None
+        self._cache_wsdl = cache_wsdl
 
     def handle_rpc(self, request, *args, **kwargs):
         """Handle rpc request.
@@ -155,8 +156,6 @@ class DjangoServer(HttpBase):
         else:
             response = HttpResponse(''.join(p_ctx.out_string))
 
-        p_ctx.close()
-
         return self.response(response, p_ctx, others)
 
     def handle_wsdl(self, request, *args, **kwargs):
@@ -174,10 +173,14 @@ class DjangoServer(HttpBase):
             # section can be safely repeated in another concurrent thread.
             doc = AllYourInterfaceDocuments(self.app.interface)
             doc.wsdl11.build_interface_document(request.build_absolute_uri())
-            self._wsdl = doc.wsdl11.get_interface_document()
+            wsdl = doc.wsdl11.get_interface_document()
 
-        ctx.transport.wsdl = self._wsdl
-        ctx.close()
+            if self._cache_wsdl:
+                self._wsdl = wsdl
+        else:
+            wsdl = self._wsdl
+
+        ctx.transport.wsdl = wsdl
 
         response = HttpResponse(ctx.transport.wsdl)
         return self.response(response, ctx, ())
@@ -236,6 +239,8 @@ class DjangoServer(HttpBase):
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
 
+        p_ctx.close()
+
         return response
 
 
@@ -251,6 +256,7 @@ class DjangoView(object):
     out_protocol = Soap11()
     interface = None
     chunked = False
+    cache_wsdl = True
 
     http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head',
                          'options', 'trace']
@@ -281,7 +287,9 @@ class DjangoView(object):
                                 "attributes of the class." % (cls.__name__,
                                                               key))
 
-        get = lambda key: initkwargs.get(key) or getattr(cls, key)
+        def get(key):
+            value = initkwargs.get(key)
+            return value if value is not None else getattr(cls, key)
 
         application = get('application') or Application(
             services=get('services'),
@@ -292,7 +300,8 @@ class DjangoView(object):
             interface=get('interface')
         )
         server = get('server') or DjangoServer(application,
-                                               chunked=get('chunked'))
+                                               chunked=get('chunked'),
+                                               cache_wsdl=get('cache_wsdl'))
 
         def view(request, *args, **kwargs):
             self = cls(server=server, **initkwargs)
