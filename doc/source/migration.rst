@@ -87,8 +87,9 @@ to boot after switching to Spyne 2.11:
 6) **String or Unicode types may fail to (de)serialize:** As we removed
    hard-coded utf8 defaults from everywhere, code that silently worked before
    now can fail with ``"You need to define a source encoding for decoding
-   incoming unicode values``. Just add ``'encoding='utf8'`` to the relevant
-   types.
+   incoming unicode values``.
+
+   **Fix:** Just add ``'encoding='utf8'`` to the relevant types.
 
 Please don't hesitate to contact us via people@spyne.io if you think
 you have stumbled upon a backwards compatibility issue that wasn't elaborated
