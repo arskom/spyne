@@ -240,7 +240,7 @@ class Soap11(XmlDocument):
             #  header elements are returned in header_class order which need not match the incoming XML
             if (ctx.in_header_doc is not None and header_class is not None):
                 headers = [None] * len(header_class)
-                in_header_dict = { element.tag : element for element in ctx.in_header_doc }
+                in_header_dict = dict( [(element.tag, element) for element in ctx.in_header_doc])
                 for i, head_class in enumerate(header_class):
                     if i < len(header_class):
                         header_doc = in_header_dict.get("{%s}%s" % (head_class.__namespace__, head_class.__type_name__), None)
