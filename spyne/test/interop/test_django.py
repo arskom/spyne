@@ -22,11 +22,13 @@
 from __future__ import absolute_import
 
 import datetime
+import re
 from django.test import TestCase, TransactionTestCase, Client
 
 from spyne.client.django import DjangoTestClient
 from spyne.model.fault import Fault
-from spyne.util.django import DjangoComplexModel
+from spyne.util.django import (DjangoComplexModel, default_model_mapper,
+                               email_re)
 
 from rpctest.core.models import (FieldContainer, RelatedFieldContainer,
                                  UserProfile as DjUserProfile)
@@ -98,6 +100,13 @@ class ModelTestCase(TestCase):
         self.assertIn('id', type_info)
         self.assertNotIn('excluded_field', type_info)
 
+    def test_regex_pattern_mappiing(self):
+        """Test if regex pattern is mapped from django model."""
+        type_info = Container.get_flat_type_info(Container)
+        field_mapper = default_model_mapper.get_field_mapper('EmailField')
+        self.assertEqual(type_info['email_field'].__name__, 'Unicode')
+        self.assertIsNotNone(type_info['email_field'].Attributes.pattern)
+
     def test_get_container(self):
         """Test mapping from Django model to spyne model."""
         get_container = lambda: self.client.service.get_container(2)
@@ -106,6 +115,7 @@ class ModelTestCase(TestCase):
         FieldContainer.objects.create(slug_field='container2',
                                       foreign_key=container,
                                       one_to_one_field=container,
+                                      email_field='email@example.com',
                                       char_field='yo')
         c = get_container()
         self.assertIsInstance(c, Container)
@@ -116,6 +126,7 @@ class ModelTestCase(TestCase):
         new_container = FieldContainer(slug_field='container',
                                        date_field=datetime.date.today(),
                                        datetime_field=datetime.datetime.now(),
+                                       email_field='email@example.com',
                                        time_field=datetime.time(),
                                        custom_foreign_key=related_container,
                                        custom_one_to_one_field=related_container)
@@ -158,3 +169,20 @@ class ModelTestCase(TestCase):
                 django_optional_relations = True
 
         self.assertTrue(UserProfile._type_info['user_id'].Attributes.nullable)
+
+
+class EmailRegexTestCase(TestCase):
+
+    """Tests for email_re."""
+
+    def test_empty(self):
+        """Empty string is invalid email."""
+        self.assertIsNone(re.match(email_re, ''))
+
+    def test_valid(self):
+        """Test valid email."""
+        self.assertIsNotNone(re.match(email_re, 'valid.email@example.com'))
+
+    def test_invalid(self):
+        """Test invalid email."""
+        self.assertIsNone(re.match(email_re, '@example.com'))
