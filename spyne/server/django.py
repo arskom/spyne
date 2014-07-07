@@ -31,6 +31,7 @@ from functools import update_wrapper
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed, Http404
 from django.views.decorators.csrf import csrf_exempt
+from spyne.util import _bytes_join
 
 try:
     from django.http import StreamingHttpResponse
@@ -89,7 +90,7 @@ class DjangoApplication(WsgiApplication):
         return retval
 
     def set_response(self, retval, response):
-        retval.content = ''.join(response)
+        retval.content = _bytes_join(response, b"")
 
 
 class StreamingDjangoApplication(DjangoApplication):
