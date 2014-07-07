@@ -23,12 +23,15 @@ from __future__ import absolute_import
 
 import datetime
 import re
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, TransactionTestCase, Client
 
 from spyne.client.django import DjangoTestClient
 from spyne.model.fault import Fault
-from spyne.util.django import (DjangoComplexModel, default_model_mapper,
-                               email_re)
+from spyne.model.complex import ComplexModelBase
+from spyne.util.django import (DjangoComplexModel, DjangoComplexModelMeta,
+                               default_model_mapper, email_re)
+from spyne.util.six import add_metaclass
 
 from rpctest.core.models import (FieldContainer, RelatedFieldContainer,
                                  UserProfile as DjUserProfile)
@@ -169,6 +172,41 @@ class ModelTestCase(TestCase):
                 django_optional_relations = True
 
         self.assertTrue(UserProfile._type_info['user_id'].Attributes.nullable)
+
+    def test_abstract_custom_djangomodel(self):
+        """Test if can create custom DjangoComplexModel."""
+        @add_metaclass(DjangoComplexModelMeta)
+        class OrderedDjangoComplexModel(ComplexModelBase):
+            __abstract__ = True
+
+            class Attributes(ComplexModelBase.Attributes):
+                declare_order = 'declared'
+
+        class OrderedFieldContainer(OrderedDjangoComplexModel):
+            class Attributes(OrderedDjangoComplexModel.Attributes):
+                django_model = FieldContainer
+
+        field_container = OrderedFieldContainer()
+        type_info_fields = field_container._type_info.keys()
+        django_field_names = [field.get_attname() for field in
+                              FieldContainer._meta.fields]
+        # file field is not mapped
+        django_field_names.remove('file_field')
+        # check if ordering is the same as defined in Django model
+        self.assertEqual(type_info_fields, django_field_names)
+
+    def test_nonabstract_custom_djangomodel(self):
+        """Test if can't create non abstract custom model."""
+        try:
+            @add_metaclass(DjangoComplexModelMeta)
+            class CustomNotAbstractDjangoComplexModel(ComplexModelBase):
+
+                class Attributes(ComplexModelBase.Attributes):
+                    declare_order = 'declared'
+        except ImproperlyConfigured:
+            pass
+        else:
+            assert False, 'Can create non abstract custom model'
 
 
 class EmailRegexTestCase(TestCase):
