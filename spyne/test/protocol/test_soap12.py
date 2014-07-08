@@ -1,5 +1,7 @@
 from lxml import etree
 import unittest
+import pytest
+from spyne import Fault
 from spyne.application import Application
 from spyne.interface import Wsdl11
 from spyne.protocol.soap.soap12 import Soap12
@@ -28,4 +30,30 @@ class TestMultipleSoap12(TestMultiple):
 
 
 class TestSoap12(unittest.TestCase):
-    pass
+
+    def test_soap12(self):
+        element = etree.fromstring("""
+        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+          <soap:Body>
+            <soap:Fault>
+                <soap:Code>
+                    <soap:Value>env:Sender</soap:Value>
+                    <soap:Subcode>
+                        <soap:Value>st:SomeDomainProblem</soap:Value>
+                    </soap:Subcode>
+                </soap:Code>
+                <soap:Reason>
+                    <soap:Text xml:lang="en-US">
+                        Some_Policy
+                    </soap:Text>
+                </soap:Reason>
+            </soap:Fault>
+          </soap:Body>
+        </soap:Envelope>""")
+
+#       TODO: make from element -> Fault(1.1)
+#        pytest.set_trace()
+#        ret = Soap12().from_element(None, Fault, element[0][0])
+#        assert ret.faultcode == "soap:Client"
+
+

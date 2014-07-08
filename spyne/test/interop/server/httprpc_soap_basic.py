@@ -23,7 +23,6 @@ logger = logging.getLogger('spyne.protocol.xml')
 logger.setLevel(logging.DEBUG)
 
 from spyne.application import Application
-from spyne.interface.wsdl import Wsdl11
 from spyne.test.interop.server._service import services
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11

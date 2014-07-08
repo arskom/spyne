@@ -24,7 +24,7 @@ logger.setLevel(logging.DEBUG)
 
 import os
 
-from spyne.test.interop.server.soap_http_basic import soap_application
+from spyne.test.interop.server.soap_http_basic import soap11_application
 from spyne.server.twisted import TwistedWebResource
 
 host = '127.0.0.1'
@@ -45,7 +45,7 @@ def main(argv):
     logging.info("registering static folder %r on /" % static_dir)
     root = File(static_dir)
 
-    wr = TwistedWebResource(soap_application)
+    wr = TwistedWebResource(soap11_application)
     logging.info("registering %r on /%s" % (wr, url))
     root.putChild(url, wr)
 

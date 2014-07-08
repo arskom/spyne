@@ -18,6 +18,7 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 logger = logging.getLogger('spyne.test.interop.server.soap_http_basic')
@@ -25,11 +26,15 @@ logger = logging.getLogger('spyne.test.interop.server.soap_http_basic')
 from spyne.server.wsgi import WsgiApplication
 from spyne.test.interop.server._service import services
 from spyne.application import Application
-from spyne.protocol.soap import Soap11
+from spyne.protocol.soap import Soap11, Soap12
 
-soap_application = Application(services, 'spyne.test.interop.server',
+soap11_application = Application(services, 'spyne.test.interop.server',
                  in_protocol=Soap11(validator='lxml', cleanup_namespaces=True),
                  out_protocol=Soap11())
+
+soap12_application = Application(services, 'spyne.test.interop.server',
+                 in_protocol=Soap12(validator='lxml', cleanup_namespaces=True),
+                 out_protocol=Soap12())
 
 host = '127.0.0.1'
 port = 9754
@@ -39,7 +44,7 @@ def main():
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
 
-        wsgi_application = WsgiApplication(soap_application)
+        wsgi_application = WsgiApplication(soap11_application)
         server = make_server(host, port, validator(wsgi_application))
 
         logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9754))
