@@ -148,6 +148,7 @@ class ModelTestCase(TestCase):
             char_field=u'спайн',
             text_field=u'спайн',
             slug_field='spyne',
+            email_field='email@example.com',
             date_field=datetime.date.today(),
             datetime_field=datetime.datetime.now(),
             time_field=datetime.time()
