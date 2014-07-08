@@ -156,7 +156,7 @@ class DjangoServer(HttpBase):
         if self.chunked:
             response = StreamingHttpResponse(p_ctx.out_string)
         else:
-            response = HttpResponse(''.join(p_ctx.out_string))
+            response = HttpResponse(b''.join(p_ctx.out_string))
 
         return self.response(response, p_ctx, others)
 
@@ -204,7 +204,7 @@ class DjangoServer(HttpBase):
                            p_ctx.out_protocol.fault_to_http_response_code(error)
 
         self.get_out_string(p_ctx)
-        resp = HttpResponse(''.join(p_ctx.out_string))
+        resp = HttpResponse(b''.join(p_ctx.out_string))
         return self.response(resp, p_ctx, others, error)
 
     def get_contexts(self, request):
