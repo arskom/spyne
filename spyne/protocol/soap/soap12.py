@@ -98,18 +98,17 @@ class Soap12(Soap11):
         # add other nonstandard fault subelements with get_members_etree
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
-    # TODO
     def fault_from_element(self, ctx, cls, element):
-        pass
-        # code = element.find('faultcode').text
-        # string = element.find('faultstring').text
-        # factor = element.find('faultactor')
-        # if factor is not None:
-        #     factor = factor.text
-        # detail = element.find('detail')
-        #
-        # return cls(faultcode=code, faultstring=string, faultactor=factor,
-        #                                                           detail=detail)
+        code = element.find("{%s}Code" % _pref_soap_env)
+        reason = element.find("{%s}Reason" % _pref_soap_env).text
+        role = element.find("{%s}Role" % _pref_soap_env)
+        if role:
+            role = role.text
+        node = element.find("{%s}Node" % _pref_soap_env)
+        if node:
+            node = node.text
+        detail = element.find("{%s}Detail" % _pref_soap_env)
+        return cls(code=code, reason=reason, role=role, node = node, detail=detail)
 
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
         pass
