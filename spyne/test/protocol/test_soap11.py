@@ -180,7 +180,7 @@ class TestMultiple(unittest.TestCase):
         self.assertEqual(response_data[2], 'c')
 
 
-class TestSoap(unittest.TestCase):
+class TestSoap11(unittest.TestCase):
     def test_simple_message(self):
         m = ComplexModel.produce(
             namespace=None,
@@ -346,20 +346,20 @@ class TestSoap(unittest.TestCase):
                                                 Address.get_namespace()).text)
 
     def test_fault_deserialization_missing_fault_actor(self):
-        element = etree.fromstring("""<soap:Envelope
-                        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-  <soap:Body>
-    <soap:Fault>
-      <faultcode>soap:Client</faultcode>
-      <faultstring>Some String</faultstring>
-      <detail>
-        <Detail xmlns="some_ns">
-          <Policy>Some_Policy</Policy>
-        </Detail>
-      </detail>
-    </soap:Fault>
-  </soap:Body>
-</soap:Envelope>""")
+        element = etree.fromstring("""
+        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <soap:Fault>
+              <faultcode>soap:Client</faultcode>
+              <faultstring>Some String</faultstring>
+              <detail>
+                <Detail xmlns="some_ns">
+                  <Policy>Some_Policy</Policy>
+                </Detail>
+              </detail>
+            </soap:Fault>
+          </soap:Body>
+        </soap:Envelope>""")
 
         ret = Soap11().from_element(None, Fault, element[0][0])
         assert ret.faultcode == "soap:Client"
