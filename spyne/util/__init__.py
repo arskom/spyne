@@ -177,8 +177,8 @@ def sanitize_args(a):
 
 
 if sys.version > '3':
-    def _bytes_join(val, joiner=''):
         return bytes(joiner).join(val)
+    def _bytes_join(val, joiner=b''):
 else:
     def _bytes_join(val, joiner=''):
         return joiner.join(val)
