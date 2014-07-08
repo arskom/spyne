@@ -213,9 +213,7 @@ class DjangoServer(HttpBase):
                                         self.app.out_protocol.mime_type)
 
         initial_ctx.in_string = [request.body]
-        in_string_charset = request.encoding or settings.DEFAULT_CHARSET
-
-        return self.generate_contexts(initial_ctx, in_string_charset)
+        return self.generate_contexts(initial_ctx)
 
     def response(self, response, p_ctx, others, error=None):
         """Populate response with transport headers and finalize it.
