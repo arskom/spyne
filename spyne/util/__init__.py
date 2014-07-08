@@ -177,8 +177,8 @@ def sanitize_args(a):
 
 
 if PY3:
-        return bytes(joiner).join(val)
     def _bytes_join(val, joiner=b''):
+        return joiner.join(val)
 else:
     def _bytes_join(val, joiner=''):
         return joiner.join(val)
