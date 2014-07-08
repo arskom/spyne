@@ -224,3 +224,11 @@ class EmailRegexTestCase(TestCase):
     def test_invalid(self):
         """Test invalid email."""
         self.assertIsNone(re.match(email_re, '@example.com'))
+
+
+class DjangoServiceTestCase(TestCase):
+
+    """Tests for Django specific service."""
+
+    def test_handle_does_not_exist(self):
+        """Test if service handles DoesNotExistExceptions."""

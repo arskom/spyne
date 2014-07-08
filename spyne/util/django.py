@@ -17,7 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Support for Django model <-> spyne type mapping.
+"""Useful stuff to integrate Spyne with Django.
+
+* Django model <-> spyne type mapping
+* Service for common exception handling
 
 This module is EXPERIMENTAL. Tests and patches are welcome.
 
@@ -29,10 +32,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 import re
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import (ImproperlyConfigured, ObjectDoesNotExist,
+                                    ValidationError as DjValidationError)
 from django.core.validators import slug_re, comma_separated_int_list_re
-from spyne.model.complex import ComplexModelMeta, ComplexModelBase
+from spyne.error import (ResourceNotFoundError, ValidationError as
+                         BaseValidationError, Fault)
 from spyne.model import primitive
+from spyne.model.complex import ComplexModelMeta, ComplexModelBase
+from spyne.service import ServiceBase
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
@@ -420,3 +427,44 @@ class DjangoComplexModel(ComplexModelBase):
     """
 
     __abstract__ = True
+
+
+class ObjectNotFoundError(ResourceNotFoundError):
+
+    """Fault constructed from `model.DoesNotExist` exception."""
+
+    def __init__(self, does_not_exist_exc):
+        """Construct fault with code Client.<object_name>NotFound."""
+        message = str(does_not_exist_exc)
+        object_name = message.split()[0]
+        # we do not want to reuse initialization of ResourceNotFoundError
+        super(Fault, self).__init__(
+            'Client.{0}NotFound'.format(object_name), message)
+
+
+class ValidationError(BaseValidationError):
+
+    """Fault constructed from `ValidationError` exception."""
+
+    def __init__(self, validation_error_exc):
+        """Construct fault with code Client.<validation_error_type_name>."""
+        message = str(validation_error_exc)
+        # we do not want to reuse initialization of BaseValidationError
+        super(Fault, self).__init__(
+            'Client.{0}'.format(type(validation_error_exc).__name__), message)
+
+
+class DjangoServiceBase(ServiceBase):
+
+    """Service with common Django exception handling."""
+
+    @classmethod
+    def call_wrapper(cls, ctx):
+        """Handle common Django exceptions."""
+        try:
+            out_object = super(DjangoServiceBase, cls).call_wrapper(ctx)
+        except ObjectDoesNotExist as e:
+            raise ObjectNotFoundError(e)
+        except DjValidationError as e:
+            raise ValidationError(e)
+        return out_object
