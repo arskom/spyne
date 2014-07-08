@@ -47,7 +47,6 @@ from spyne.protocol.soap import Soap11
 from spyne.protocol.http import HttpRpc
 from spyne.server.http import HttpBase, HttpMethodContext
 from spyne.server.wsgi import WsgiApplication
-from spyne.util.six import PY3
 
 
 logger = logging.getLogger(__name__)
@@ -156,7 +155,7 @@ class DjangoServer(HttpBase):
         if self.chunked:
             response = StreamingHttpResponse(p_ctx.out_string)
         else:
-            response = HttpResponse(''.join(p_ctx.out_string))
+            response = HttpResponse(b''.join(p_ctx.out_string))
 
         return self.response(response, p_ctx, others)
 
@@ -176,10 +175,6 @@ class DjangoServer(HttpBase):
             doc = AllYourInterfaceDocuments(self.app.interface)
             doc.wsdl11.build_interface_document(request.build_absolute_uri())
             wsdl = doc.wsdl11.get_interface_document()
-
-            # Django in Python 3 seems to expect strings and not bytes
-            if PY3:
-                wsdl = wsdl.decode('utf8')
 
             if self._cache_wsdl:
                 self._wsdl = wsdl
@@ -204,7 +199,7 @@ class DjangoServer(HttpBase):
                            p_ctx.out_protocol.fault_to_http_response_code(error)
 
         self.get_out_string(p_ctx)
-        resp = HttpResponse(''.join(p_ctx.out_string))
+        resp = HttpResponse(b''.join(p_ctx.out_string))
         return self.response(resp, p_ctx, others, error)
 
     def get_contexts(self, request):
@@ -217,10 +212,8 @@ class DjangoServer(HttpBase):
         initial_ctx = HttpMethodContext(self, request,
                                         self.app.out_protocol.mime_type)
 
-        initial_ctx.in_string = request.body
-        in_string_charset = request.encoding or settings.DEFAULT_CHARSET
-
-        return self.generate_contexts(initial_ctx, in_string_charset)
+        initial_ctx.in_string = [request.body]
+        return self.generate_contexts(initial_ctx)
 
     def response(self, response, p_ctx, others, error=None):
         """Populate response with transport headers and finalize it.
