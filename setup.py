@@ -231,22 +231,24 @@ class RunTests(ExtendedTestCommand):
         # test different versions of Django
         # FIXME: better to use tox in CI script
         # For now we run it here
-        from tox._config import parseconfig
-        from tox._cmdline import Session
-        tox_args = ['-ctox.django.ini']
-        config = parseconfig(tox_args, 'tox')
-        ret = Session(config).runcommand() or ret
 
-        ret = call_pytest_subprocess('interop/test_httprpc.py',
-                                     capture=self.capture) or ret
-        ret = call_pytest_subprocess('interop/test_soap_client_http.py',
-                                     capture=self.capture) or ret
-        ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py',
-                                     capture=self.capture) or ret
-        ret = call_pytest_subprocess('interop/test_suds.py',
-                                     capture=self.capture) or ret
-        ret = call_trial('interop/test_soap_client_http_twisted.py',
-                         'transport/test_msgpack.py', capture=self.capture) or ret
+        # TODO: CHANGE that to something more convenient.
+        # from tox._config import parseconfig
+        # from tox._cmdline import Session
+        # tox_args = ['-ctox.django.ini']
+        # config = parseconfig(tox_args, 'tox')
+        # ret = Session(config).runcommand() or ret
+        #
+        # ret = call_pytest_subprocess('interop/test_httprpc.py',
+        #                              capture=self.capture) or ret
+        # ret = call_pytest_subprocess('interop/test_soap_client_http.py',
+        #                              capture=self.capture) or ret
+        # ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py',
+        #                              capture=self.capture) or ret
+        # ret = call_pytest_subprocess('interop/test_suds.py',
+        #                              capture=self.capture) or ret
+        # ret = call_trial('interop/test_soap_client_http_twisted.py',
+        #                  'transport/test_msgpack.py', capture=self.capture) or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)

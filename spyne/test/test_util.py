@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import unittest
-import pytest
 import pytz
 import decimal
 import json
@@ -315,14 +314,18 @@ class TestYaml(unittest.TestCase):
 
 class TestJson(unittest.TestCase):
     def test_deser(self):
+        # Because the ordering in C's declaration is not explicit, the elements
+        # in list can have any order. use explicit _type_info sequence to get
+        # consistent results
         class C(ComplexModel):
             a = Unicode
             b = Decimal
-        model = C(a='burak', b=D(30))
-        ret = get_object_as_json(model, C)
+            _type_info = [('a', Unicode), ('b', Decimal)]
 
-        assert 'burak' in ret
-        assert '30' in ret
+        model = C(a='burak', b=D(30))
+        ret = json.loads(get_object_as_json(model, C))
+
+        assert ret == json.loads('["burak", "30"]')
         ret = json.loads(get_object_as_json(C(a='burak', b=D(30)), C, complex_as=dict))
         assert ret == json.loads('{"a": "burak", "b": "30"}')
 
