@@ -136,7 +136,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         try:
             with etree.xmlfile(ctx.out_stream) as xf:
                 ret = self.subserialize(ctx, cls, inst, xf, name)
-                if isgenerator(ret): # Poor man's yield from
+                if isgenerator(ret):  # Poor man's yield from
                     try:
                         while True:
                             sv2 = (yield)

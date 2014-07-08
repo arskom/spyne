@@ -30,25 +30,19 @@ logger = logging.getLogger(__name__)
 
 import re
 from django.core.exceptions import ImproperlyConfigured
-from django.core.validators import (slug_re,
-                                    comma_separated_int_list_re, URLValidator)
+from django.core.validators import slug_re, comma_separated_int_list_re
 from spyne.model.complex import ComplexModelMeta, ComplexModelBase
 from spyne.model import primitive
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
 
+# regex is based on http://www.w3.org/TR/xforms20/#xforms:email
 email_re = re.compile(
-    # dot-atom
-    r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"
-    # quoted-string, see also http://tools.ietf.org/html/rfc2822#section-3.2.5
-    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]'
-    r'|\\[\001-\011\013\014\016-\177])*"'
-    r')@((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
-    r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)$)'  # domain
-    # literal form, ipv4 address (SMTP 4.1.3)
-    r'|\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
-    r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)
+    r"[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
+    r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*@"
+    r"[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
+    r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*", re.IGNORECASE)
 
 
 class BaseDjangoFieldMapper(object):
@@ -143,7 +137,7 @@ class RelationMapper(BaseDjangoFieldMapper):
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model configured by related field."""
         related_field = field.rel.get_related_field()
-        field_type = related_field.get_internal_type()
+        field_type = related_field.__class__.__name__
         field_mapper = self.django_model_mapper.get_field_mapper(field_type)
 
         _, related_spyne_model = field_mapper.map(related_field, **kwargs)
@@ -247,7 +241,8 @@ class DjangoModelMapper(object):
         field_map = odict()
 
         for field in self._get_fields(django_model, exclude):
-            field_type = field.get_internal_type()
+            field_type = field.__class__.__name__
+
             try:
                 field_mapper = self._registry[field_type]
             except KeyError:
@@ -299,9 +294,7 @@ DEFAULT_FIELD_MAP = (
     ('CommaSeparatedIntegerField', primitive.Unicode(
         type_name='CommaSeparatedField',
         pattern=strip_regex_metachars(comma_separated_int_list_re.pattern))),
-    ('UrlField', primitive.AnyUri(
-        type_name='Url',
-        pattern=strip_regex_metachars(URLValidator.regex.pattern))),
+    ('URLField', primitive.AnyUri),
     ('FilePathField', primitive.Unicode),
 
     ('BooleanField', primitive.Boolean),
@@ -355,15 +348,10 @@ class DjangoComplexModelMeta(ComplexModelMeta):
         """Populate new complex type from configured Django model."""
         super_new = super(DjangoComplexModelMeta, mcs).__new__
 
-        try:
-            parents = [b for b in bases if issubclass(b, DjangoComplexModel)]
-        except NameError:
-            # we are defining DjangoComplexModel itself
-            parents = None
+        abstract = bool(attrs.get('__abstract__', False))
 
-        if not parents:
-            # If this isn't a subclass of DjangoComplexModel, don't do
-            # anything special.
+        if abstract:
+            # skip processing of abstract models
             return super_new(mcs, name, bases, attrs)
 
         attributes = attrs.get('Attributes')
@@ -372,7 +360,7 @@ class DjangoComplexModelMeta(ComplexModelMeta):
             raise ImproperlyConfigured('You have to define Attributes and '
                                        'specify Attributes.django_model')
 
-        if attributes.django_model is None:
+        if getattr(attributes, 'django_model', None) is None:
             raise ImproperlyConfigured('You have to define django_model '
                                        'attribute in Attributes')
 
@@ -430,3 +418,5 @@ class DjangoComplexModel(ComplexModelBase):
     not yet available.
 
     """
+
+    __abstract__ = True

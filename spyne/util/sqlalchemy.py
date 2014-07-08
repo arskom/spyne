@@ -33,6 +33,7 @@ import sqlalchemy
 
 from mmap import mmap, ACCESS_READ
 from spyne.util.six import string_types
+from spyne.util.fileproxy import SeekableFileProxy
 
 try:
     import simplejson as json
@@ -472,10 +473,12 @@ class PGFileJson(PGObjectJson):
                 retval.data = ['']
 
                 if ret:
-                    retval.handle = open(path, 'rb')
+                    h = retval.handle = SeekableFileProxy(open(path, 'rb'))
                     if fstat(retval.handle.fileno()).st_size > 0:
-                        retval.data = [mmap(retval.handle.fileno(), 0,
-                                                            access=ACCESS_READ)]
+                        h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
+                        retval.data = [h.mmap]
+                    else:
+                        retval.data = ['']
                 else:
                     logger.error("File %r is not readable", path)
 

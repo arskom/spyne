@@ -20,6 +20,7 @@
 """The ``spyne.interface.xml_schema.model`` module contains type-specific logic
 for schema generation."""
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ from collections import deque, defaultdict
 
 from lxml import etree
 
-from spyne.model import ModelBase, XmlAttribute, AnyXml, Unicode, XmlData,\
+from spyne.model import ModelBase, XmlAttribute, AnyXml, Unicode, XmlData, \
     Decimal, Integer
 from spyne.const.xml_ns import xsd as _ns_xsd
 from spyne.util import memoize
@@ -38,6 +39,13 @@ from spyne.util.six import string_types
 from spyne.protocol.xml import XmlDocument
 _prot = XmlDocument()
 
+XSD = lambda s: '{%s}%s' % (_ns_xsd, s)
+
+# In Xml Schema, some customizations do not need a class to be extended -- they
+# are specified in-line in the parent class definition, like nullable or
+# min_occurs. The dict below contains list of parameters that do warrant a
+# proper subclass definition for each type. This must be updated as the Xml
+# Schema implementation makes progress.
 ATTR_NAMES = cdict({
     ModelBase: set(['values']),
     Decimal: set(['pattern', 'gt', 'ge', 'lt', 'le', 'values', 'total_digits',
@@ -88,16 +96,16 @@ def simple_get_restriction_tag(document, cls):
     if extends is None:
         return
 
-    simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
+    simple_type = etree.Element(XSD('simpleType'))
 
     simple_type.set('name', cls.get_type_name())
     document.add_simple_type(cls, simple_type)
 
-    restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xsd)
+    restriction = etree.SubElement(simple_type, XSD('restriction'))
     restriction.set('base', extends.get_type_name_ns(document.interface))
 
     for v in cls.Attributes.values:
-        enumeration = etree.SubElement(restriction, '{%s}enumeration' % _ns_xsd)
+        enumeration = etree.SubElement(restriction, XSD('enumeration'))
         enumeration.set('value', str(v))
 
     return restriction
@@ -112,14 +120,14 @@ def byte_array_add(document, cls, tags):
 
 
 def complex_add(document, cls, tags):
-    complex_type = etree.Element("{%s}complexType" % _ns_xsd)
+    complex_type = etree.Element(XSD('complexType'))
     complex_type.set('name', cls.get_type_name())
 
     if cls.Annotations.doc != '' or cls.Annotations.appinfo != None or \
                                              cls.Annotations.__use_parent_doc__:
-        annotation = etree.SubElement(complex_type, "{%s}annotation" % _ns_xsd)
+        annotation = etree.SubElement(complex_type, XSD('annotation'))
         if cls.Annotations.doc != '' or cls.Annotations.__use_parent_doc__:
-            doc = etree.SubElement(annotation, "{%s}documentation" % _ns_xsd)
+            doc = etree.SubElement(annotation, XSD('documentation'))
             if cls.Annotations.__use_parent_doc__:
                 doc.text = getattr(cls, '__doc__')
             else:
@@ -127,7 +135,7 @@ def complex_add(document, cls, tags):
 
         _ai = cls.Annotations.appinfo;
         if _ai != None:
-            appinfo = etree.SubElement(annotation, "{%s}appinfo" % _ns_xsd)
+            appinfo = etree.SubElement(annotation, XSD('appinfo'))
             if isinstance(_ai, dict):
                 dict_to_etree(_ai, appinfo)
 
@@ -159,23 +167,22 @@ def complex_add(document, cls, tags):
 
         else:
             complex_content = etree.SubElement(complex_type,
-                                                "{%s}complexContent" % _ns_xsd)
-            extension = etree.SubElement(complex_content,
-                                                     "{%s}extension" % _ns_xsd)
+                                                          XSD('complexContent'))
+            extension = etree.SubElement(complex_content, XSD('extension'))
             extension.set('base', extends.get_type_name_ns(document.interface))
             sequence_parent = extension
 
     xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
     if xtba_key is not None:
-        _sc = etree.SubElement(sequence_parent, '{%s}simpleContent' % _ns_xsd)
-        xtba_ext = etree.SubElement(_sc, '{%s}extension' % _ns_xsd)
+        _sc = etree.SubElement(sequence_parent, XSD('simpleContent'))
+        xtba_ext = etree.SubElement(_sc, XSD('extension'))
         xtba_ext.attrib['base'] = xtba_type.type.get_type_name_ns(
                                                              document.interface)
 
-    sequence = etree.Element('{%s}sequence' % _ns_xsd)
+    sequence = etree.Element(XSD('sequence'))
 
     deferred = deque()
-    choice_tags = defaultdict(lambda: etree.Element('{%s}choice' % _ns_xsd))
+    choice_tags = defaultdict(lambda: etree.Element(XSD('choice')))
 
     for k, v in type_info.items():
         assert isinstance(k, string_types)
@@ -203,15 +210,15 @@ def complex_add(document, cls, tags):
 
         type_name_ns = v.get_type_name_ns(document.interface)
         if v.__extends__ is not None and v.__orig__ is not None and \
-                                                _check_extension_attrs(v) is None:
+                                              _check_extension_attrs(v) is None:
             type_name_ns = v.__orig__.get_type_name_ns(document.interface)
 
         member = etree.Element(a.schema_tag)
-        if a.schema_tag == '{%s}element' % _ns_xsd:
+        if a.schema_tag == XSD('element'):
             member.set('name', name)
             member.set('type', type_name_ns)
 
-        elif a.schema_tag == '{%s}any' % _ns_xsd and issubclass(v, AnyXml):
+        elif a.schema_tag == XSD('any') and issubclass(v, AnyXml):
             if a.namespace is not None:
                 member.set('namespace', a.namespace)
             if a.process_contents is not None:
@@ -241,9 +248,8 @@ def complex_add(document, cls, tags):
 
         if v.Annotations.doc != '':
             # Doesn't support multi-language documentation
-            annotation = etree.SubElement(member, "{%s}annotation" % _ns_xsd)
-
-            doc = etree.SubElement(annotation, "{%s}documentation" % _ns_xsd)
+            annotation = etree.SubElement(member, XSD('annotation'))
+            doc = etree.SubElement(annotation, XSD('documentation'))
             doc.text = v.Annotations.doc
 
         if a.xml_choice_group is None:
@@ -260,7 +266,7 @@ def complex_add(document, cls, tags):
     for k,v in deferred:
         ao = v.attribute_of
         if ao is None:
-            attribute = etree.Element('{%s}attribute' % _ns_xsd)
+            attribute = etree.Element(XSD('attribute'))
             xml_attribute_add(v, k, attribute, document)
             if xtba_key is None:
                 complex_type.append(attribute)
@@ -283,21 +289,21 @@ def complex_add(document, cls, tags):
 
         _ext = _ext_elements.get(ao, None)
         if _ext is None:
-            _ct = etree.SubElement(elt, '{%s}complexType' % _ns_xsd)
-            _sc = etree.SubElement(_ct, '{%s}simpleContent' % _ns_xsd)
-            _ext = etree.SubElement(_sc, '{%s}extension' % _ns_xsd)
+            _ct = etree.SubElement(elt, XSD('complexType'))
+            _sc = etree.SubElement(_ct, XSD('simpleContent'))
+            _ext = etree.SubElement(_sc, XSD('extension'))
             _ext_elements[ao] = _ext
             _ext.attrib['base'] = elt.attrib['type']
             del elt.attrib['type']
 
-        attribute = etree.SubElement(_ext, '{%s}attribute' % _ns_xsd)
+        attribute = etree.SubElement(_ext, XSD('attribute'))
         xml_attribute_add(v, k, attribute, document)
 
     document.add_complex_type(cls, complex_type)
 
     # simple node
     complex_type_name = cls.Attributes.sub_name or cls.get_type_name()
-    element = etree.Element('{%s}element' % _ns_xsd)
+    element = etree.Element(XSD('element'))
     element.set('name', complex_type_name)
     element.set('type', cls.get_type_name_ns(document.interface))
 
@@ -305,17 +311,15 @@ def complex_add(document, cls, tags):
 
 
 def enum_add(document, cls, tags):
-    simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
+    simple_type = etree.Element(XSD('simpleType'))
     simple_type.set('name', cls.get_type_name())
 
-    restriction = etree.SubElement(simple_type,
-                                        '{%s}restriction' % _ns_xsd)
+    restriction = etree.SubElement(simple_type, XSD('restriction'))
     restriction.set('base', '%s:string' %
-                            document.interface.get_namespace_prefix(_ns_xsd))
+                               document.interface.get_namespace_prefix(_ns_xsd))
 
     for v in cls.__values__:
-        enumeration = etree.SubElement(restriction,
-                                        '{%s}enumeration' % _ns_xsd)
+        enumeration = etree.SubElement(restriction, XSD('enumeration'))
         enumeration.set('value', v)
 
     document.add_simple_type(cls, simple_type)
@@ -330,21 +334,21 @@ def unicode_get_restriction_tag(document, cls):
 
     # length
     if cls.Attributes.min_len == cls.Attributes.max_len:
-        length = etree.SubElement(restriction, '{%s}length' % _ns_xsd)
+        length = etree.SubElement(restriction, XSD('length'))
         length.set('value', str(cls.Attributes.min_len))
 
     else:
         if cls.Attributes.min_len != Unicode.Attributes.min_len:
-            min_l = etree.SubElement(restriction, '{%s}minLength' % _ns_xsd)
+            min_l = etree.SubElement(restriction, XSD('minLength'))
             min_l.set('value', str(cls.Attributes.min_len))
 
         if cls.Attributes.max_len != Unicode.Attributes.max_len:
-            max_l = etree.SubElement(restriction, '{%s}maxLength' % _ns_xsd)
+            max_l = etree.SubElement(restriction, XSD('maxLength'))
             max_l.set('value', str(cls.Attributes.max_len))
 
     # pattern
     if cls.Attributes.pattern != Unicode.Attributes.pattern:
-        pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xsd)
+        pattern = etree.SubElement(restriction, XSD('pattern'))
         pattern.set('value', cls.Attributes.pattern)
 
     return restriction
@@ -362,13 +366,15 @@ def Tget_range_restriction_tag(T):
     if issubclass(T, Decimal):
         def _get_float_restrictions(prot, restriction, cls):
             if cls.Attributes.fraction_digits != T.Attributes.fraction_digits:
-                elt = etree.SubElement(restriction, '{%s}fractionDigits' % _ns_xsd)
-                elt.set('value', prot.to_string(cls, cls.Attributes.fraction_digits))
+                elt = etree.SubElement(restriction, XSD('fractionDigits'))
+                elt.set('value', prot.to_string(cls,
+                                                cls.Attributes.fraction_digits))
 
         def _get_integer_restrictions(prot, restriction, cls):
             if cls.Attributes.total_digits != T.Attributes.total_digits:
-                elt = etree.SubElement(restriction, '{%s}totalDigits' % _ns_xsd)
-                elt.set('value', prot.to_string(cls, cls.Attributes.total_digits))
+                elt = etree.SubElement(restriction, XSD('totalDigits'))
+                elt.set('value', prot.to_string(cls,
+                                                   cls.Attributes.total_digits))
 
         if issubclass(T, Integer):
             def _get_additional_restrictions(prot, restriction, cls):
@@ -390,23 +396,23 @@ def Tget_range_restriction_tag(T):
             return
 
         if cls.Attributes.gt != T.Attributes.gt:
-            elt = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xsd)
+            elt = etree.SubElement(restriction, XSD('minExclusive'))
             elt.set('value', prot.to_string(cls, cls.Attributes.gt))
 
         if cls.Attributes.ge != T.Attributes.ge:
-            elt = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xsd)
+            elt = etree.SubElement(restriction, XSD('minInclusive'))
             elt.set('value', prot.to_string(cls, cls.Attributes.ge))
 
         if cls.Attributes.lt != T.Attributes.lt:
-            elt = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xsd)
+            elt = etree.SubElement(restriction, XSD('maxExclusive'))
             elt.set('value', prot.to_string(cls, cls.Attributes.lt))
 
         if cls.Attributes.le != T.Attributes.le:
-            elt = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xsd)
+            elt = etree.SubElement(restriction, XSD('maxInclusive'))
             elt.set('value', prot.to_string(cls, cls.Attributes.le))
 
         if cls.Attributes.pattern != T.Attributes.pattern:
-            elt = etree.SubElement(restriction, '{%s}pattern' % _ns_xsd)
+            elt = etree.SubElement(restriction, XSD('pattern'))
             elt.set('value', cls.Attributes.pattern)
 
         _get_additional_restrictions(prot, restriction, cls)

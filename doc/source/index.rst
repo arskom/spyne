@@ -49,6 +49,6 @@ Other Goodies
 
    tests
    faq
-   h_and_f
+   history
    migration
    ../../CONTRIBUTING.rst

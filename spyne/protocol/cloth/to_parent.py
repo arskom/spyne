@@ -62,8 +62,8 @@ class ToParentMixin(ProtocolBase):
         })
 
     def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        #if issubclass(inst.__class__, cls.__orig__ or cls):
-        #    cls = inst.__class__
+        if issubclass(inst.__class__, cls.__orig__ or cls):
+            cls = inst.__class__
 
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self):
