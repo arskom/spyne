@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import unittest
+import pytest
 import pytz
 import decimal
+import json
 
 from pprint import pprint
 from decimal import Decimal as D
@@ -316,11 +318,13 @@ class TestJson(unittest.TestCase):
         class C(ComplexModel):
             a = Unicode
             b = Decimal
+        model = C(a='burak', b=D(30))
+        ret = get_object_as_json(model, C)
 
-        ret = get_object_as_json(C(a='burak', b=D(30)), C)
-        assert ret == '["burak", "30"]'
-        ret = get_object_as_json(C(a='burak', b=D(30)), C, complex_as=dict)
-        assert ret == '{"a": "burak", "b": "30"}'
+        assert 'burak' in ret
+        assert '30' in ret
+        ret = json.loads(get_object_as_json(C(a='burak', b=D(30)), C, complex_as=dict))
+        assert ret == json.loads('{"a": "burak", "b": "30"}')
 
 class TestFifo(unittest.TestCase):
     def test_msgpack_fifo(self):

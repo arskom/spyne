@@ -15,3 +15,4 @@ pytest_django
 python-subunit
 pyramid
 tox
+git+git://github.com/mverteuil/pytest-ipdb.git
