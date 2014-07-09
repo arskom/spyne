@@ -20,10 +20,10 @@ you can use the following as dependency string:
 * ``spyne<2.4.99`` if you only want backwards-compatible bug fixes.
 * ``spyne=2.4.8`` if you rather like that version.
 
-We have a policy of pushing to pypi as soon as possible, so be sure to at
-least use the second option to prevent things from breaking unexpectedly. It's
-recommended to use the third option in you production and only upgrade after
-you've tested new Spyne in your staging environment. While we make every effort
+We have a policy of pushing to pypi as soon as possible, so be sure to at least
+use the second option to prevent things from breaking unexpectedly. It's
+recommended to use the third option in production and only upgrade after you've
+tested any new version in your staging environment. While we make every effort
 to keep to our compatibility promise, Spyne is a fast moving open-source
 project that may break in ways that can't be cought by our test suite between
 feature releases.
