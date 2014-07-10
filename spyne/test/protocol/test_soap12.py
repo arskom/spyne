@@ -51,9 +51,8 @@ class TestSoap12(unittest.TestCase):
           </soap:Body>
         </soap:Envelope>""")
 
-#       TODO: make from element -> Fault(1.1)
-#        pytest.set_trace()
-#        ret = Soap12().from_element(None, Fault, element[0][0])
-#        assert ret.faultcode == "soap:Client"
+        so = Soap12()
+        ret = so.from_element(None, Fault, element[0][0])
+        assert ret.faultcode == "env:Sender.st:SomeDomainProblem"
 
 

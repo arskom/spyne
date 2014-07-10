@@ -53,6 +53,30 @@ class Soap12(Soap11):
             subcode_node.append(subcode)
         return subcode_node
 
+    def upgrade_fault_codes(self, faultstring):
+        faultstrings = faultstring.split('.')
+        value = faultstrings.pop(0)
+
+        if value == 'Client':
+            value = 'Sender'
+        elif value == 'Server':
+            value = 'Receiver'
+        else:
+            raise TypeError('Wrong fault code, got', type(faultstring))
+
+        return value, faultstrings
+
+    def generate_faultcode(self, element):
+        nsmap = element.nsmap
+        faultcode = []
+        faultcode.append(element.find('soap:Code/soap:Value', namespaces=nsmap).text)
+        subcode = element.find('soap:Code/soap:Subcode', namespaces=nsmap)
+        while subcode:
+            faultcode.append(subcode.find('soap:Value', namespaces=nsmap).text)
+            subcode = subcode.find('soap:Subcode', namespaces=nsmap)
+
+        return '.'.join(faultcode)
+
     def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
         tag_name = "{%s}Fault" % _ns_soap_env
 
@@ -61,21 +85,14 @@ class Soap12(Soap11):
             E("{%s}Role" % _pref_soap_env, inst.faultactor),
         ]
 
-        if isinstance(inst.faultstring, string_types):
-            faultstrings = inst.faultstring.split('.')
-            value = faultstrings.pop(0)
-            if value == 'Client':
-                value = 'Sender'
-            elif value == 'Server':
-                value = 'Receiver'
-            else:
-                raise TypeError('Wrong fault code, got', type(inst.faultstring))
+        if isinstance(inst.faultcode, string_types):
+            value, faultcodes  = self.upgrade_fault_codes(inst.faultcode)
 
             code = E("{%s}Code" % _pref_soap_env)
             code.append(E("{%s}Value" % _pref_soap_env, value))
 
             child_subcode = 0
-            for value in inst.faultstring.split('.')[::-1]:
+            for value in faultcodes:
                 if child_subcode:
                     child_subcode = self.generate_subcode(value, child_subcode)
                 else:
@@ -98,30 +115,52 @@ class Soap12(Soap11):
         # add other nonstandard fault subelements with get_members_etree
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
-    def fault_from_element(self, ctx, cls, element):
-        code = element.find("{%s}Code" % _pref_soap_env)
-        reason = element.find("{%s}Reason" % _pref_soap_env).text
-        role = element.find("{%s}Role" % _pref_soap_env)
-        if role:
-            role = role.text
-        node = element.find("{%s}Node" % _pref_soap_env)
-        if node:
-            node = node.text
-        detail = element.find("{%s}Detail" % _pref_soap_env)
-        return cls(code=code, reason=reason, role=role, node = node, detail=detail)
 
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
-        pass
-    #     tag_name = "{%s}Fault" % _ns_soap_env
-    #
-    #     subelts = [
-    #         E("faultcode", '%s:%s' % (_pref_soap_env, inst.faultcode)),
-    #         # HACK: Does anyone know a better way of injecting raw xml entities?
-    #         E("faultstring", html.fromstring(inst.faultstring).text),
-    #         E("faultactor", inst.faultactor),
-    #     ]
-    #     if inst.detail != None:
-    #         _append(subelts, E('detail', inst.detail))
-    #
-    #     # add other nonstandard fault subelements with get_members_etree
-    #     return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+        tag_name = "{%s}Fault" % _ns_soap_env
+
+        subelts = [
+            E("{%s}Reason" % _pref_soap_env, inst.faultstring),
+            E("{%s}Role" % _pref_soap_env, inst.faultactor),
+        ]
+
+        if isinstance(inst.faultcode, string_types):
+            value, faultcodes  = self.upgrade_fault_codes(inst.faultcode)
+
+            code = E("{%s}Code" % _pref_soap_env)
+            code.append(E("{%s}Value" % _pref_soap_env, value))
+
+            child_subcode = 0
+            for value in faultcodes:
+                if child_subcode:
+                    child_subcode = self.generate_subcode(value, child_subcode)
+                else:
+                    child_subcode = self.generate_subcode(value)
+            code.append(child_subcode)
+
+            _append(subelts, code)
+
+        _append(subelts, E('{%s}Detail' % _pref_soap_env, inst.detail))
+
+        # add other nonstandard fault subelements with get_members_etree
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+
+
+    def fault_from_element(self, ctx, cls, element):
+        nsmap  = element.nsmap
+
+        code = self.generate_faultcode(element)
+        reason = element.find("soap:Reason/soap:Text", namespaces=nsmap).text.strip()
+        role = element.find("soap:Role", namespaces=nsmap)
+        faultactor = ''
+        if role:
+            faultactor += role.text
+        node = element.find("soap:Node", namespaces=nsmap)
+        if node:
+            faultactor += node.text
+        detail = element.find("soap:Detail", namespaces=nsmap)
+
+
+
+        return cls(faultcode=code, faultstring=reason,
+                   faultactor = faultactor, detail=detail)
