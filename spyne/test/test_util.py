@@ -3,6 +3,7 @@
 import unittest
 import pytz
 import decimal
+import json
 
 from pprint import pprint
 from decimal import Decimal as D
@@ -313,14 +314,20 @@ class TestYaml(unittest.TestCase):
 
 class TestJson(unittest.TestCase):
     def test_deser(self):
+        # Because the ordering in C's declaration is not explicit, the elements
+        # in list can have any order. use explicit _type_info sequence to get
+        # consistent results
         class C(ComplexModel):
             a = Unicode
             b = Decimal
+            _type_info = [('a', Unicode), ('b', Decimal)]
 
-        ret = get_object_as_json(C(a='burak', b=D(30)), C)
-        assert ret == '["burak", "30"]'
-        ret = get_object_as_json(C(a='burak', b=D(30)), C, complex_as=dict)
-        assert ret == '{"a": "burak", "b": "30"}'
+        model = C(a='burak', b=D(30))
+        ret = json.loads(get_object_as_json(model, C))
+
+        assert ret == json.loads('["burak", "30"]')
+        ret = json.loads(get_object_as_json(C(a='burak', b=D(30)), C, complex_as=dict))
+        assert ret == json.loads('{"a": "burak", "b": "30"}')
 
 class TestFifo(unittest.TestCase):
     def test_msgpack_fifo(self):
