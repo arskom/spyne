@@ -223,8 +223,7 @@ class ToParentMixin(ProtocolBase):
         parent.write(retval)
 
     def byte_array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(E(name,
-                        self.to_string(cls, inst, self.default_binary_encoding)))
+        parent.write(E(name, self.to_string(cls, inst, self.binary_encoding)))
 
     def base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_string(cls, inst)))

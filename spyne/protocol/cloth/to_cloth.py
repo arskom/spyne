@@ -283,6 +283,7 @@ class ToClothMixin(ProtocolBase):
         # exit from prev cloth write to the first common ancestor
         anc = _revancestors(cloth)
         last_elt = None
+
         while anc[:len(stack)] != list([s for s, sc in stack]):
             elt, elt_ctx = ctx.protocol.stack.pop()
             elt_ctx.__exit__(None, None, None)
