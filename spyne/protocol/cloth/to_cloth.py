@@ -91,8 +91,8 @@ class ToClothMixin(ProtocolBase):
 
     def _get_elts(self, elt, tag_id=None):
         if tag_id is None:
-            return elt.xpath('//*[@%s]' % self.attr_name)
-        return elt.xpath('//*[@%s="%s"]' % (self.attr_name, tag_id))
+            return elt.xpath('.//*[@%s]' % self.attr_name)
+        return elt.xpath('.//*[@%s="%s"]' % (self.attr_name, tag_id))
 
     def _get_outmost_elts(self, tmpl, tag_id=None):
         ids = set()
