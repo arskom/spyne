@@ -44,10 +44,12 @@ from spyne.util.six import string_types
 
 class ToParentMixin(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
-                                     ignore_uncap=False, ignore_wrappers=False):
+                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
         super(ToParentMixin, self).__init__(app=app, validator=validator,
                                  mime_type=mime_type, ignore_uncap=ignore_uncap,
                                  ignore_wrappers=ignore_wrappers)
+
+        self.polymorphic = polymorphic
 
         self.serialization_handlers = cdict({
             AnyXml: self.xml_to_parent,
@@ -62,7 +64,7 @@ class ToParentMixin(ProtocolBase):
         })
 
     def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        if issubclass(inst.__class__, cls.__orig__ or cls):
+        if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
             cls = inst.__class__
 
         subprot = getattr(cls.Attributes, 'prot', None)

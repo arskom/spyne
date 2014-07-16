@@ -44,7 +44,9 @@ class ToClothMixin(ProtocolBase):
                  ignore_uncap=False, ignore_wrappers=False):
         super(ToClothMixin, self).__init__(app=app, validator=validator,
                            mime_type=mime_type, ignore_uncap=ignore_uncap,
-                                                ignore_wrappers=ignore_wrappers)
+                              ignore_wrappers=ignore_wrappers, polymorphic=True)
+
+        self.polymorphic = polymorphic
 
         self.rendering_handlers = cdict({
             ModelBase: self.model_base_to_cloth,
@@ -233,7 +235,7 @@ class ToClothMixin(ProtocolBase):
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        if issubclass(inst.__class__, cls.__orig__ or cls):
+        if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
             cls = inst.__class__
 
         if inst is None:
