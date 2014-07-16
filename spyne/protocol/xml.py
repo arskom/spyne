@@ -518,7 +518,7 @@ class XmlDocument(SubXmlBase):
 
     def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         _append(parent, E(_gen_tagname(ns, name),
-                       self.to_string(cls, inst, self.default_binary_encoding)))
+                       self.to_string(cls, inst, self.binary_encoding)))
 
     def modelbase_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         _append(parent, E(_gen_tagname(ns, name), self.to_string(cls, inst)))
@@ -555,7 +555,7 @@ class XmlDocument(SubXmlBase):
         if inst is not None:
             if issubclass(cls.type, (ByteArray, File)):
                 parent.set(name, self.to_string(cls.type, inst,
-                                                 self.default_binary_encoding))
+                                                 self.binary_encoding))
             else:
                 parent.set(name, self.to_string(cls.type, inst))
 
@@ -808,7 +808,7 @@ class XmlDocument(SubXmlBase):
         if xtba_key is not None:
             if issubclass(xtba_type.type, (ByteArray, File)):
                 value = self.from_string(xtba_type.type, elt.text,
-                                                    self.default_binary_encoding)
+                                                    self.binary_encoding)
             else:
                 value = self.from_string(xtba_type.type, elt.text)
             setattr(inst, xtba_key, value)
@@ -874,7 +874,7 @@ class XmlDocument(SubXmlBase):
 
             if issubclass(member.type, (ByteArray, File)):
                 value = self.from_string(member.type, value_str,
-                                                       self.default_binary_encoding)
+                                                       self.binary_encoding)
             else:
                 value = self.from_string(member.type, value_str)
 
@@ -973,7 +973,7 @@ class XmlDocument(SubXmlBase):
                                         cls.validate_string(cls, element.text)):
             raise ValidationError(element.text)
 
-        retval = self.from_string(cls, element.text, self.default_binary_encoding)
+        retval = self.from_string(cls, element.text, self.binary_encoding)
 
         if self.validator is self.SOFT_VALIDATION and not (
                                             cls.validate_native(cls, retval)):

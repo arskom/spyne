@@ -135,7 +135,7 @@ class ProtocolBase(object):
     default_binary_encoding = None
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                                       ignore_uncap=False, ignore_wrappers=False):
+               ignore_uncap=False, ignore_wrappers=False, binary_encoding=None):
         self.__app = None
         self.set_app(app)
 
@@ -146,6 +146,9 @@ class ProtocolBase(object):
         self.ignore_uncap = ignore_uncap
         self.ignore_wrappers = ignore_wrappers
         self.message = None
+        self.binary_encoding = binary_encoding
+        if self.binary_encoding is None:
+            self.binary_encoding = self.default_binary_encoding
 
         if mime_type is not None:
             self.mime_type = mime_type
@@ -663,6 +666,7 @@ class ProtocolBase(object):
         encoding = cls.Attributes.encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
+        print cls
         return binary_decoding_handlers[encoding](value)
 
     def byte_array_to_string(self, cls, value, suggested_encoding=None):

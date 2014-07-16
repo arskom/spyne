@@ -365,11 +365,11 @@ class SimpleDictDocument(DictDocument):
                         native_v2 = v2
                     else:
                         native_v2 = self.from_string(member.type, v2,
-                                                   self.default_binary_encoding)
+                                                           self.binary_encoding)
 
                 elif issubclass(member.type, ByteArray):
                     native_v2 = self.from_string(member.type, v2,
-                                                   self.default_binary_encoding)
+                                                           self.binary_encoding)
                 else:
                     try:
                         native_v2 = self.from_string(member.type, v2)
@@ -638,8 +638,7 @@ class HierDictDocument(DictDocument):
                 raise ValidationError((key, value))
 
             if issubclass(class_, (ByteArray, File)):
-                retval = self.from_string(class_, value,
-                                                   self.default_binary_encoding)
+                retval = self.from_string(class_, value, self.binary_encoding)
             else:
                 retval = self.from_string(class_, value)
 
@@ -779,7 +778,7 @@ class HierDictDocument(DictDocument):
             return retval
 
         if issubclass(cls, (ByteArray, File)):
-            return self.to_string(cls, value, self.default_binary_encoding)
+            return self.to_string(cls, value, self.binary_encoding)
 
         return self.to_string(cls, value)
 
