@@ -289,7 +289,10 @@ class ToClothMixin(ProtocolBase):
             elt_ctx.__exit__(None, None, None)
             last_elt = elt
             print("\texit ", elt.tag, "norm")
+
             for sibl in elt.itersiblings():
+                if sibl is cloth:
+                    break
                 if sibl in anc:
                     break
                 print("\twrite", sibl.tag, "exit sibl")
