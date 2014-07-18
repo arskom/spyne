@@ -89,7 +89,7 @@ class HtmlTableBase(HtmlBase):
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
                 cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
-                                    cloth_parser=cloth_parser, polymorphic=True)
+                             cloth_parser=cloth_parser, polymorphic=polymorphic)
 
         self.produce_header = produce_header
         self.table_name_attr = table_name_attr
