@@ -43,8 +43,8 @@ class ToClothMixin(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
                  ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
         super(ToClothMixin, self).__init__(app=app, validator=validator,
-                           mime_type=mime_type, ignore_uncap=ignore_uncap,
-                              ignore_wrappers=ignore_wrappers)
+                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
+                                                ignore_wrappers=ignore_wrappers)
 
         self.polymorphic = polymorphic
 
@@ -262,11 +262,11 @@ class ToClothMixin(ProtocolBase):
         return retval
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print(cls, inst)
+        print('-' * 8, 'modb', cls, inst)
         parent.write(self.to_string(cls, inst))
 
     def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print(cls, inst)
+        print('-' * 8, 'elt ', cls, inst)
         parent.write(inst)
 
     def _enter_cloth(self, ctx, cloth, parent):
@@ -354,7 +354,7 @@ class ToClothMixin(ProtocolBase):
         for elt, elt_ctx in reversed(ctx.protocol.stack):
             print("exit ", elt.tag, "close")
             elt_ctx.__exit__(None, None, None)
-            for sibl in elt.itersiblings():
+            for sibl in elt.itersiblings(preceding=False):
                 print("write", sibl.tag, "close sibl")
                 parent.write(sibl)
 
