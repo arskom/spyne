@@ -36,7 +36,8 @@ from spyne.util.cdict import cdict
 def HtmlTable(app=None, ignore_uncap=False, ignore_wrappers=True,
                      produce_header=True, table_name_attr='class',
                      field_name_attr='class', border=0, fields_as='columns',
-                     row_class=None, cell_class=None, header_cell_class=None):
+                     row_class=None, cell_class=None, header_cell_class=None,
+                     polymorphic=True):
     """Protocol that returns the response object as a html table.
 
     The simple flavour is like the HtmlMicroFormatprotocol, but returns data
@@ -82,12 +83,13 @@ class HtmlTableBase(HtmlBase):
                                                               cloth_parser=None,
                              produce_header=True, table_name_attr='class',
                             field_name_attr='class', border=0, row_class=None,
-                                cell_class=None, header_cell_class=None):
+                                cell_class=None, header_cell_class=None,
+                                polymorphic=True):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
                 cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
-                                                      cloth_parser=cloth_parser)
+                                    cloth_parser=cloth_parser, polymorphic=True)
 
         self.produce_header = produce_header
         self.table_name_attr = table_name_attr

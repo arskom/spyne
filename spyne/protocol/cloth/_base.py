@@ -42,10 +42,10 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     def __init__(self, app=None, mime_type=None,
                        ignore_uncap=False, ignore_wrappers=False,
                        cloth=None, attr_name='spyne_id', root_attr_name='spyne',
-                                                             cloth_parser=None):
+                                            cloth_parser=None, polymorphic=True):
         super(XmlCloth, self).__init__(app=app,
                                  mime_type=mime_type, ignore_uncap=ignore_uncap,
-                                 ignore_wrappers=ignore_wrappers)
+                       ignore_wrappers=ignore_wrappers, polymorphic=polymorphic)
 
         self._init_cloth(cloth, attr_name, root_attr_name, cloth_parser)
 

@@ -41,10 +41,10 @@ _revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
 
 class ToClothMixin(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
-                 ignore_uncap=False, ignore_wrappers=False):
+                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
         super(ToClothMixin, self).__init__(app=app, validator=validator,
                            mime_type=mime_type, ignore_uncap=ignore_uncap,
-                              ignore_wrappers=ignore_wrappers, polymorphic=True)
+                              ignore_wrappers=ignore_wrappers)
 
         self.polymorphic = polymorphic
 
