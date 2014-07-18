@@ -215,8 +215,10 @@ class XmlDocument(SubXmlBase):
                 resolve_entities=False,
                 huge_tree=False,
                 compact=True,
+                binary_encoding=None,
             ):
-        super(XmlDocument, self).__init__(app, validator)
+        super(XmlDocument, self).__init__(app, validator,
+                                                binary_encoding=binary_encoding)
         self.xml_declaration = xml_declaration
         self.cleanup_namespaces = cleanup_namespaces
 
