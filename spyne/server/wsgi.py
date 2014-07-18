@@ -114,11 +114,11 @@ def _gen_http_headers(headers):
     retval = []
 
     for k,v in headers.items():
-        if isinstance(v, (list,tuple)):
+        if isinstance(v, (list, tuple)):
             for v2 in v:
-                retval.append((k,v2))
+                retval.append((k, v2))
         else:
-            retval.append((k,v))
+            retval.append((k, v))
 
     return retval
 
@@ -399,7 +399,7 @@ class WsgiApplication(HttpBase):
         # code run until first yield, which lets it set response headers and
         # whatnot before calling start_response. Is there a better way?
         try:
-            len(p_ctx.out_string) # generator?
+            len(p_ctx.out_string)  # generator?
 
             # nope
             p_ctx.transport.resp_headers['Content-Length'] = \
