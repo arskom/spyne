@@ -295,7 +295,7 @@ class ToParentMixin(ProtocolBase):
             if ret is not None:
                 try:
                     while True:
-                        sv2 = (yield) # may throw Break
+                        sv2 = (yield)  # may throw Break
                         ret.send(sv2)
 
                 except Break:
