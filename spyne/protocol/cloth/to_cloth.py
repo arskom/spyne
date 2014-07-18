@@ -290,7 +290,7 @@ class ToClothMixin(ProtocolBase):
             last_elt = elt
             print("\texit ", elt.tag, "norm")
 
-            for sibl in elt.itersiblings():
+            for sibl in elt.itersiblings(preceding=False):
                 if sibl is cloth:
                     break
                 if sibl in anc:
