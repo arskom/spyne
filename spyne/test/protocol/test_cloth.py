@@ -76,3 +76,13 @@ class TestXmlCloth(unittest.TestCase):
 
         assert elt[0].text is None
 
+    def test_simple_empty_nonoptional_clear(self):
+        class SomeObject(ComplexModel):
+            s = Unicode(min_occurs=1)
+
+        tmpl = etree.fromstring("""<a><b spyne_id="s">oi punk!</b></a>""")
+
+        elt = self._run(SomeObject(), tmpl=tmpl)
+
+        assert elt[0].text is None
+
