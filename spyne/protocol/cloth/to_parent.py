@@ -89,6 +89,7 @@ class ToParentMixin(ProtocolBase):
         except KeyError:
             logger.error("%r is missing handler for %r", self, cls)
             raise
+
         return handler(ctx, cls, inst, parent, name, **kwargs)
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
