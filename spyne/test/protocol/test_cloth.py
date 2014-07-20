@@ -54,3 +54,12 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run('s', SomeObject(s=v))
 
         assert elt[0].text == v
+
+    def test_simple_empty(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        elt = self._run('s', SomeObject())
+
+        assert len(elt) == 0
+
