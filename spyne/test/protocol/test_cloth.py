@@ -63,3 +63,11 @@ class TestXmlCloth(unittest.TestCase):
 
         assert len(elt) == 0
 
+    def test_simple_empty_nonoptional(self):
+        class SomeObject(ComplexModel):
+            s = Unicode(min_occurs=1)
+
+        elt = self._run('s', SomeObject())
+
+        assert elt[0].text is None
+
