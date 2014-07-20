@@ -334,13 +334,8 @@ else:
         'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
         'msgpack-python', 'webtest', 'django', 'pytest_django',
         'python-subunit', 'pyramid',
-        'tox'
+        'tox', 'suds-jurko', 'pyparsing>=2.0.2'
     ]
-
-    if sys.version_info < (3,0):
-        test_reqs.extend(['pyparsing<1.99', 'suds'])
-    else:
-        test_reqs.extend(['pyparsing', 'suds-jurko'])
 
 
 class SubUnitTee(object):
