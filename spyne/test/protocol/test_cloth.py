@@ -86,3 +86,13 @@ class TestXmlCloth(unittest.TestCase):
 
         assert elt[0].text is None
 
+    def test_simple_value_xmlattribute(self):
+        v = 'punk.'
+
+        class SomeObject(ComplexModel):
+            s = XmlAttribute(Unicode(min_occurs=1))
+
+        tmpl = etree.fromstring("""<a></a>""")
+        elt = self._run(SomeObject(s=v), tmpl=tmpl)
+
+        assert elt.attrib['s'] == v
