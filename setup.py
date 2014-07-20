@@ -334,7 +334,7 @@ else:
         'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
         'msgpack-python', 'webtest', 'django', 'pytest_django',
         'python-subunit', 'pyramid',
-        'tox', 'suds-jurko', 'pyparsing'
+        'tox', 'suds-jurko', 'pyparsing>=2.0.2'
     ]
 
 
