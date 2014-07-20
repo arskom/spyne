@@ -114,3 +114,14 @@ class TestXmlCloth(unittest.TestCase):
 
         assert elt.xpath('//c/text()') == [str(i) for i in v]
 
+    def test_array_empty(self):
+        class SomeObject(ComplexModel):
+            s = Array(Integer)
+
+        elt_str = '<a><b spyne_id="s"><c spyne_id="integer"></c></b></a>'
+        tmpl = etree.fromstring(elt_str)
+
+        elt = self._run(SomeObject(), tmpl=tmpl)
+
+        assert elt.xpath('//c') == []
+
