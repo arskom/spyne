@@ -77,16 +77,6 @@ class ToClothMixin(ProtocolBase):
             if len(elts) > 0:
                 self._root_cloth = elts[0]
 
-            q = "//*[@%s]" % self.attr_name
-            elts = self._cloth.xpath(q)
-            if len(elts) == 0:
-                self._cloth = None
-
-            if self._cloth is None and self._root_cloth is None:
-                raise Exception("Invalid cloth: It does not contain any "
-                                "element with '%s' or '%s' attribute defined."
-                                % (self.root_attr_name, self.attr_name))
-
         if self._cloth is not None:
             self._mrpc_cloth = self._pop_elt(self._cloth, 'mrpc_entry')
 
