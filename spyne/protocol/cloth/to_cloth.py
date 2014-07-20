@@ -191,7 +191,7 @@ class ToClothMixin(ProtocolBase):
             print("\texit ", elt.tag, "norm")
 
             for sibl in elt.itersiblings(preceding=False):
-                if sibl is cloth:
+                if sibl is cloth or cloth in sibl.xpath(".//*"):
                     break
                 if sibl in anc:
                     break
