@@ -30,13 +30,18 @@ from collections import deque
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
-    PushBase, XmlAttribute
+    PushBase, XmlAttribute, File, ByteArray
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
 
 _prevsibs = lambda elt: list(elt.itersiblings(preceding=True))
 _revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
+
+def _gen_tagname(ns, name):
+    if ns is not None:
+        name = "{%s}%s" % (ns, name)
+    return name
 
 
 class ToClothMixin(ProtocolBase):
@@ -170,15 +175,26 @@ class ToClothMixin(ProtocolBase):
         automatically with subsequent calls to _enter_cloth and finally to
         _close_cloth."""
 
-        if cloth is self._cloth:
-            print("entering", cloth.tag, "return same")
-            return
+
+        def write_cloth_itself(cl):
+            attrib = dict([(k2, v2) for k2, v2 in cloth.attrib.items()
+                           if not (k2 in (self.attr_name, self.root_attr_name))])
+            attrib.update(attrs)
+
+            curtag = parent.element(cl.tag, attrib)
+            curtag.__enter__()
+            stack.append((cl, curtag))
+
 
         print("entering", cloth.tag)
 
-        assert len(list(cloth.iterancestors())) > 0
         stack = ctx.protocol.stack
         tags = ctx.protocol.tags
+
+        if cloth is self._cloth:
+            write_cloth_itself(cloth)
+            print("entering", cloth.tag, "top-level")
+            return
 
         # exit from prev cloth write to the first common ancestor
         anc = _revancestors(cloth)
@@ -241,15 +257,7 @@ class ToClothMixin(ProtocolBase):
 
                 tags.add(id(elt))
 
-        # write the element itself
-        attrib = dict([(k2, v2) for k2, v2 in cloth.attrib.items()
-                       if not (k2 in (self.attr_name, self.root_attr_name))])
-
-        attrib.update(attrs)
-
-        curtag = parent.element(cloth.tag, attrib)
-        curtag.__enter__()
-        stack.append((cloth, curtag))
+        write_cloth_itself(cloth)
         print("entering", cloth.tag, 'ok')
 
     def _close_cloth(self, ctx, parent):
@@ -328,12 +336,30 @@ class ToClothMixin(ProtocolBase):
         parent.write(inst)
 
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
-        self._enter_cloth(ctx, cloth, parent)
+        fti = cls.get_flat_type_info(cls)
+
+        attrs = {}
+        for k, v in fti.items():
+            if issubclass(v, XmlAttribute):
+                ns = v._ns
+                if ns is None:
+                    ns = v.Attributes.sub_ns
+
+                k = _gen_tagname(ns, k)
+                val = getattr(inst, k, None)
+
+                if val is not None:
+                    if issubclass(v.type, (ByteArray, File)):
+                        attrs[k] = self.to_string(v.type, val,
+                                                           self.binary_encoding)
+                    else:
+                        attrs[k] = self.to_string(v.type, val)
+
+        self._enter_cloth(ctx, cloth, parent, attrs=attrs)
 
         for elt in self._get_elts(cloth, "mrpc"):
             self._actions_to_cloth(ctx, cls, inst, elt)
 
-        fti = cls.get_flat_type_info(cls)
 
         print("\t", cls, sorted(cls._type_info.keys()))
         print("\titerating over", sorted([e.attrib['spyne_id'] for e in
