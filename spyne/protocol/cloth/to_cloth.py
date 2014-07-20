@@ -179,12 +179,21 @@ class ToClothMixin(ProtocolBase):
             self._actions_to_cloth(ctx, cls, inst, elt)
 
         fti = cls.get_flat_type_info(cls)
+
+        print("\t", cls, sorted(cls._type_info.keys()))
+        print("\titerating over", sorted([e.attrib['spyne_id'] for e in
+                                          self._get_outmost_elts(cloth)]))
         for i, elt in enumerate(self._get_outmost_elts(cloth)):
             k = elt.attrib[self.attr_name]
             v = fti.get(k, None)
+
             if v is None:
                 logger.warning("elt id %r not in %r", k, cls)
+                if getattr(cls, '_type_info', None):
+                    print("We got:", sorted(cls._type_info.keys()))
                 continue
+            else:
+                print("!!!!!!", 'writing', k)
 
             # if cls is an array, inst should already be a sequence type
             # (eg list), so there's no point in doing a getattr -- we will

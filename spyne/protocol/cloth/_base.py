@@ -89,7 +89,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             ctx.out_document = E.div()
             with etree.xmlfile(ctx.out_stream) as xf:
                 # as XmlDocument is not push-ready yet, this is what we do.
-                # this is a huge hack, bear with me.
+                # this is an ugly hack, bear with me.
                 retval = XmlCloth.HtmlMicroFormat() \
                                             .to_parent(ctx, cls, inst, xf, name)
 
