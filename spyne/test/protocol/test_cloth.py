@@ -96,3 +96,21 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(SomeObject(s=v), tmpl=tmpl)
 
         assert elt.attrib['s'] == v
+
+    def test_array(self):
+        v = range(3)
+
+        class SomeObject(ComplexModel):
+            s = Array(Integer)
+
+        tmpl = E.a(
+            E.b(
+                E.c(spyne_id="integer"),
+                spyne_id="s",
+            )
+        )
+
+        elt = self._run(SomeObject(s=v), tmpl=tmpl)
+
+        assert elt.xpath('//c/text()') == [str(i) for i in v]
+
