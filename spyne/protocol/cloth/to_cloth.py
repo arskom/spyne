@@ -245,6 +245,8 @@ class ToClothMixin(ProtocolBase):
         attrib = dict([(k2, v2) for k2, v2 in cloth.attrib.items()
                        if not (k2 in (self.attr_name, self.root_attr_name))])
 
+        attrib.update(attrs)
+
         curtag = parent.element(cloth.tag, attrib)
         curtag.__enter__()
         stack.append((cloth, curtag))
