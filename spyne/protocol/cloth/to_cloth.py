@@ -30,7 +30,7 @@ from collections import deque
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
-    PushBase
+    PushBase, XmlAttribute
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
@@ -164,7 +164,12 @@ class ToClothMixin(ProtocolBase):
 
                 elt.append(mrpc_template)
 
-    def _enter_cloth(self, ctx, cloth, parent):
+                                           # mutable default ok because readonly
+    def _enter_cloth(self, ctx, cloth, parent, attrs={}):
+        """There is no _exit_cloth because exiting from tags is done
+        automatically with subsequent calls to _enter_cloth and finally to
+        _close_cloth."""
+
         if cloth is self._cloth:
             print("entering", cloth.tag, "return same")
             return
@@ -295,8 +300,6 @@ class ToClothMixin(ProtocolBase):
         if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
 
-        self._enter_cloth(ctx, cloth, parent)
-
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self):
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
@@ -313,14 +316,18 @@ class ToClothMixin(ProtocolBase):
         return retval
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+        self._enter_cloth(ctx, cloth, parent)
         print('-' * 8, 'modb', cls, inst)
         parent.write(self.to_string(cls, inst))
 
     def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+        self._enter_cloth(ctx, cloth, parent)
         print('-' * 8, 'elt ', cls, inst)
         parent.write(inst)
 
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
+        self._enter_cloth(ctx, cloth, parent)
+
         for elt in self._get_elts(cloth, "mrpc"):
             self._actions_to_cloth(ctx, cls, inst, elt)
 
@@ -354,6 +361,8 @@ class ToClothMixin(ProtocolBase):
 
     @coroutine
     def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
+        self._enter_cloth(ctx, cloth, parent)
+
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
