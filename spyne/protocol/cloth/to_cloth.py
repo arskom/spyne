@@ -174,110 +174,6 @@ class ToClothMixin(ProtocolBase):
 
                 elt.append(mrpc_template)
 
-    def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
-        for elt in self._get_elts(cloth, "mrpc"):
-            self._actions_to_cloth(ctx, cls, inst, elt)
-
-        fti = cls.get_flat_type_info(cls)
-
-        print("\t", cls, sorted(cls._type_info.keys()))
-        print("\titerating over", sorted([e.attrib['spyne_id'] for e in
-                                          self._get_outmost_elts(cloth)]))
-        for i, elt in enumerate(self._get_outmost_elts(cloth)):
-            k = elt.attrib[self.attr_name]
-            v = fti.get(k, None)
-
-            if v is None:
-                logger.warning("elt id %r not in %r", k, cls)
-                if getattr(cls, '_type_info', None):
-                    print("We got:", sorted(cls._type_info.keys()))
-                continue
-            else:
-                print("!!!!!!", 'writing', k)
-
-            # if cls is an array, inst should already be a sequence type
-            # (eg list), so there's no point in doing a getattr -- we will
-            # unwrap it and serialize it in the next round of to_cloth call.
-            if issubclass(cls, Array):
-                val = inst
-            else:
-                val = getattr(inst, k, None)
-
-            self.to_cloth(ctx, v, val, elt, parent, name=k)
-
-    @coroutine
-    def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
-        if isinstance(inst, PushBase):
-            while True:
-                sv = (yield)
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
-                                                                       **kwargs)
-                if isgenerator(ret):
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as e:
-                        try:
-                            ret.throw(e)
-                        except StopIteration:
-                            pass
-
-        else:
-            for sv in inst:
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
-                                                                       **kwargs)
-                if isgenerator(ret):
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as e:
-                        try:
-                            ret.throw(e)
-                        except StopIteration:
-                            pass
-
-    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
-                                                                      **kwargs):
-
-        if cloth is None:
-            return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
-
-        if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
-            cls = inst.__class__
-
-        if inst is None:
-            inst = cls.Attributes.default
-
-        if not from_arr and cls.Attributes.max_occurs > 1:
-            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
-
-        self._enter_cloth(ctx, cloth, parent)
-
-        subprot = getattr(cls.Attributes, 'prot', None)
-        if subprot is not None and not (subprot is self):
-            return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
-
-        retval = None
-        if inst is None:
-            if cls.Attributes.min_occurs > 0:
-                parent.write(cloth)
-
-        else:
-            handler = self.rendering_handlers[cls]
-            retval = handler(ctx, cls, inst, cloth, parent, name=name)
-
-        return retval
-
-    def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print('-' * 8, 'modb', cls, inst)
-        parent.write(self.to_string(cls, inst))
-
-    def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print('-' * 8, 'elt ', cls, inst)
-        parent.write(inst)
-
     def _enter_cloth(self, ctx, cloth, parent):
         if cloth is self._cloth:
             print("entering", cloth.tag, "return same")
@@ -393,3 +289,108 @@ class ToClothMixin(ProtocolBase):
                     ret.throw(e)
                 except (Break, StopIteration, GeneratorExit):
                     self._close_cloth(ctx, parent)
+
+    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
+                                                                      **kwargs):
+
+        if cloth is None:
+            return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+
+        if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
+            cls = inst.__class__
+
+        if inst is None:
+            inst = cls.Attributes.default
+
+        if not from_arr and cls.Attributes.max_occurs > 1:
+            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+
+        self._enter_cloth(ctx, cloth, parent)
+
+        subprot = getattr(cls.Attributes, 'prot', None)
+        if subprot is not None and not (subprot is self):
+            return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
+
+        retval = None
+        if inst is None:
+            if cls.Attributes.min_occurs > 0:
+                parent.write(cloth)
+
+        else:
+            handler = self.rendering_handlers[cls]
+            retval = handler(ctx, cls, inst, cloth, parent, name=name)
+
+        return retval
+
+    def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+        print('-' * 8, 'modb', cls, inst)
+        parent.write(self.to_string(cls, inst))
+
+    def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+        print('-' * 8, 'elt ', cls, inst)
+        parent.write(inst)
+
+    def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
+        for elt in self._get_elts(cloth, "mrpc"):
+            self._actions_to_cloth(ctx, cls, inst, elt)
+
+        fti = cls.get_flat_type_info(cls)
+
+        print("\t", cls, sorted(cls._type_info.keys()))
+        print("\titerating over", sorted([e.attrib['spyne_id'] for e in
+                                          self._get_outmost_elts(cloth)]))
+
+        for i, elt in enumerate(self._get_outmost_elts(cloth)):
+            k = elt.attrib[self.attr_name]
+            v = fti.get(k, None)
+
+            if v is None:
+                logger.warning("elt id %r not in %r", k, cls)
+                if getattr(cls, '_type_info', None):
+                    print("We got:", sorted(cls._type_info.keys()))
+                continue
+            else:
+                print("!!!!!!", 'writing', k)
+
+            # if cls is an array, inst should already be a sequence type
+            # (eg list), so there's no point in doing a getattr -- we will
+            # unwrap it and serialize it in the next round of to_cloth call.
+            if issubclass(cls, Array):
+                val = inst
+            else:
+                val = getattr(inst, k, None)
+
+            self.to_cloth(ctx, v, val, elt, parent, name=k)
+
+    @coroutine
+    def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
+        if isinstance(inst, PushBase):
+            while True:
+                sv = (yield)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
+                                                                       **kwargs)
+                if isgenerator(ret):
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as e:
+                        try:
+                            ret.throw(e)
+                        except StopIteration:
+                            pass
+
+        else:
+            for sv in inst:
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
+                                                                       **kwargs)
+                if isgenerator(ret):
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as e:
+                        try:
+                            ret.throw(e)
+                        except StopIteration:
+                            pass
