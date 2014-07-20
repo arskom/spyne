@@ -37,9 +37,14 @@ class TestXmlCloth(unittest.TestCase):
         self.stream = BytesIO()
         logging.basicConfig(level=logging.DEBUG)
 
-    def _run(self, spid, inst):
+    def _run(self, inst, spid=None, tmpl=None):
         cls = inst.__class__
-        tmpl = etree.fromstring("""<a><b spyne_id="%s"></b></a>""" % spid)
+        if tmpl is None:
+            assert spid is not None
+            tmpl = etree.fromstring("""<a><b spyne_id="%s"></b></a>""" % spid)
+        else:
+            assert spid is None
+
         with etree.xmlfile(self.stream) as parent:
             XmlCloth(tmpl).subserialize(self.ctx, cls, inst, parent)
         elt = etree.fromstring(self.stream.getvalue())
@@ -51,7 +56,7 @@ class TestXmlCloth(unittest.TestCase):
             s = Unicode
 
         v = 'punk.'
-        elt = self._run('s', SomeObject(s=v))
+        elt = self._run(SomeObject(s=v), spid='s')
 
         assert elt[0].text == v
 
@@ -59,7 +64,7 @@ class TestXmlCloth(unittest.TestCase):
         class SomeObject(ComplexModel):
             s = Unicode
 
-        elt = self._run('s', SomeObject())
+        elt = self._run(SomeObject(), spid='s')
 
         assert len(elt) == 0
 
@@ -67,7 +72,7 @@ class TestXmlCloth(unittest.TestCase):
         class SomeObject(ComplexModel):
             s = Unicode(min_occurs=1)
 
-        elt = self._run('s', SomeObject())
+        elt = self._run(SomeObject(), spid='s')
 
         assert elt[0].text is None
 
