@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -169,3 +169,7 @@ class TestXmlCloth(unittest.TestCase):
         assert elt[2][1].tag == 'g2'
         assert elt[2][1].text == '5'
         assert elt[2][2].tag == 'g3'
+
+
+if __name__ == '__main__':
+    unittest.main()
