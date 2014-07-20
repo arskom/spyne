@@ -136,3 +136,36 @@ class TestXmlCloth(unittest.TestCase):
 
         assert elt.xpath('//c') == [tmpl[0][0]]
 
+    def test_simple_two_tags(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = SomeObject(s='s', i=5)
+
+        tmpl = E.a(
+            E.b1(),
+            E.b2(
+                E.c1(spyne_id="s"),
+                E.c2(),
+            ),
+            E.e(
+                E.g1(),
+                E.g2(spyne_id="i"),
+                E.g3(),
+            ),
+        )
+
+        elt = self._run(v, tmpl=tmpl)
+
+        print etree.tostring(elt, pretty_print=True)
+        assert elt[0].tag == 'b1'
+        assert elt[1].tag == 'b2'
+        assert elt[1][0].tag == 'c1'
+        assert elt[1][0].text == 's'
+        assert elt[1][1].tag == 'c2'
+        assert elt[2].tag == 'e'
+        assert elt[2][0].tag == 'g1'
+        assert elt[2][1].tag == 'g2'
+        assert elt[2][1].text == '5'
+        assert elt[2][2].tag == 'g3'
