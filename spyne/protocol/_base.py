@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -666,7 +668,6 @@ class ProtocolBase(object):
         encoding = cls.Attributes.encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
-        print cls
         return binary_decoding_handlers[encoding](value)
 
     def byte_array_to_string(self, cls, value, suggested_encoding=None):
