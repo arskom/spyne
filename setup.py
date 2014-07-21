@@ -309,6 +309,47 @@ class RunPython3Tests(TestCommand):
 
         raise SystemExit(ret)
 
+
+class SubUnitTee(object):
+    def __init__(self, name):
+        self.name = name
+    def __enter__(self):
+        self.file = open(self.name, 'wb')
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+        sys.stdout = sys.stderr = self
+
+    def __exit__(self, *args):
+        sys.stdout = self.stdout
+        sys.stderr = self.stderr
+        print("CLOSED")
+        self.file.close()
+
+    def writelines(self, data):
+        for d in data:
+            self.write(data)
+            self.write('\n')
+
+    def write(self, data):
+        if data.startswith("test:") \
+                or data.startswith("successful:") \
+                or data.startswith("error:") \
+                or data.startswith("failure:") \
+                or data.startswith("skip:") \
+                or data.startswith("notsupported:"):
+            self.file.write(data)
+            if not data.endswith("\n"):
+                self.file.write("\n")
+
+        self.stdout.write(data)
+
+    def read(self,d=0):
+        return ''
+
+    def flush(self):
+        self.stdout.flush()
+        self.stderr.flush()
+
 # Testing stuff ends here.
 ###############################
 

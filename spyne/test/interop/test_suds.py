@@ -19,8 +19,11 @@
 
 import unittest
 
+from suds.sax.parser import Parser
 from suds.client import Client
+from suds.plugin import MessagePlugin
 from suds import WebFault
+
 from datetime import datetime
 
 from spyne.test.interop._test_soap_client_base import SpyneClientTestBase
@@ -29,12 +32,17 @@ import logging
 suds_logger = logging.getLogger('suds')
 suds_logger.setLevel(logging.INFO)
 
+class LastReceivedPlugin(MessagePlugin):
+    def received(self, context):
+        sax = Parser()
+        self.reply = sax.parse(string=context.reply)
+
 
 class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def setUp(self):
         SpyneClientTestBase.setUp(self, 'http')
 
-        self.client = Client("http://localhost:9754/?wsdl", cache=None)
+        self.client = Client("http://localhost:9754/?wsdl", cache=None, plugins=[LastReceivedPlugin()])
         self.ns = "spyne.test.interop.server"
 
     def test_echo_datetime(self):
@@ -179,7 +187,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEquals(ret[1].returnDate, out_trace_header.returnDate)
         # Control the reply soap header (in an unelegant way but this is the
         # only way with suds)
-        soapheaders = self.client.last_received().getChild("Envelope").getChild("Header")
+        soapheaders = self.client.options.plugins[0].reply.getChild("Envelope").getChild("Header")
         soap_out_header = soapheaders.getChild('OutHeader')
         self.assertEquals('T'.join((out_header.dt.date().isoformat(),
                                     out_header.dt.time().isoformat())),

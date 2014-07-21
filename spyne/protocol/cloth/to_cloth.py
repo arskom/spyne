@@ -30,7 +30,7 @@ from collections import deque
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
-    PushBase
+    PushBase, XmlAttribute, File, ByteArray
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
@@ -38,13 +38,20 @@ from spyne.util.cdict import cdict
 _prevsibs = lambda elt: list(elt.itersiblings(preceding=True))
 _revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
 
+def _gen_tagname(ns, name):
+    if ns is not None:
+        name = "{%s}%s" % (ns, name)
+    return name
+
 
 class ToClothMixin(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
-                 ignore_uncap=False, ignore_wrappers=False):
+                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
         super(ToClothMixin, self).__init__(app=app, validator=validator,
-                           mime_type=mime_type, ignore_uncap=ignore_uncap,
+                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
                                                 ignore_wrappers=ignore_wrappers)
+
+        self.polymorphic = polymorphic
 
         self.rendering_handlers = cdict({
             ModelBase: self.model_base_to_cloth,
@@ -75,24 +82,14 @@ class ToClothMixin(ProtocolBase):
             if len(elts) > 0:
                 self._root_cloth = elts[0]
 
-            q = "//*[@%s]" % self.attr_name
-            elts = self._cloth.xpath(q)
-            if len(elts) == 0:
-                self._cloth = None
-
-            if self._cloth is None and self._root_cloth is None:
-                raise Exception("Invalid cloth: It does not contain any "
-                                "element with '%s' or '%s' attribute defined."
-                                % (self.root_attr_name, self.attr_name))
-
         if self._cloth is not None:
             self._mrpc_cloth = self._pop_elt(self._cloth, 'mrpc_entry')
 
 
     def _get_elts(self, elt, tag_id=None):
         if tag_id is None:
-            return elt.xpath('//*[@%s]' % self.attr_name)
-        return elt.xpath('//*[@%s="%s"]' % (self.attr_name, tag_id))
+            return elt.xpath('.//*[@%s]' % self.attr_name)
+        return elt.xpath('.//*[@%s="%s"]' % (self.attr_name, tag_id))
 
     def _get_outmost_elts(self, tmpl, tag_id=None):
         ids = set()
@@ -172,121 +169,46 @@ class ToClothMixin(ProtocolBase):
 
                 elt.append(mrpc_template)
 
-    def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
-        for elt in self._get_elts(cloth, "mrpc"):
-            self._actions_to_cloth(ctx, cls, inst, elt)
+                                           # mutable default ok because readonly
+    def _enter_cloth(self, ctx, cloth, parent, attrs={}):
+        """There is no _exit_cloth because exiting from tags is done
+        automatically with subsequent calls to _enter_cloth and finally to
+        _close_cloth."""
 
-        fti = cls.get_flat_type_info(cls)
-        for i, elt in enumerate(self._get_outmost_elts(cloth)):
-            k = elt.attrib[self.attr_name]
-            v = fti.get(k, None)
-            if v is None:
-                logger.warning("elt id %r not in %r", k, cls)
-                continue
 
-            # if cls is an array, inst should already be a sequence type
-            # (eg list), so there's no point in doing a getattr -- we will
-            # unwrap it and serialize it in the next round of to_cloth call.
-            if issubclass(cls, Array):
-                val = inst
-            else:
-                val = getattr(inst, k, None)
+        def write_cloth_itself(cl):
+            attrib = dict([(k2, v2) for k2, v2 in cloth.attrib.items()
+                           if not (k2 in (self.attr_name, self.root_attr_name))])
+            attrib.update(attrs)
 
-            self.to_cloth(ctx, v, val, elt, parent, name=k)
+            curtag = parent.element(cl.tag, attrib)
+            curtag.__enter__()
+            stack.append((cl, curtag))
 
-    @coroutine
-    def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
-        if isinstance(inst, PushBase):
-            while True:
-                sv = (yield)
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
-                                                                       **kwargs)
-                if isgenerator(ret):
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as e:
-                        try:
-                            ret.throw(e)
-                        except StopIteration:
-                            pass
-
-        else:
-            for sv in inst:
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
-                                                                       **kwargs)
-                if isgenerator(ret):
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as e:
-                        try:
-                            ret.throw(e)
-                        except StopIteration:
-                            pass
-
-    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
-                                                                      **kwargs):
-
-        if cloth is None:
-            return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
-
-        if issubclass(inst.__class__, cls.__orig__ or cls):
-            cls = inst.__class__
-
-        if inst is None:
-            inst = cls.Attributes.default
-
-        if not from_arr and cls.Attributes.max_occurs > 1:
-            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
-
-        self._enter_cloth(ctx, cloth, parent)
-
-        subprot = getattr(cls.Attributes, 'prot', None)
-        if subprot is not None and not (subprot is self):
-            return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
-
-        retval = None
-        if inst is None:
-            if cls.Attributes.min_occurs > 0:
-                parent.write(cloth)
-
-        else:
-            handler = self.rendering_handlers[cls]
-            retval = handler(ctx, cls, inst, cloth, parent, name=name)
-
-        return retval
-
-    def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print(cls, inst)
-        parent.write(self.to_string(cls, inst))
-
-    def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
-        print(cls, inst)
-        parent.write(inst)
-
-    def _enter_cloth(self, ctx, cloth, parent):
-        if cloth is self._cloth:
-            print("entering", cloth.tag, "return same")
-            return
 
         print("entering", cloth.tag)
 
-        assert len(list(cloth.iterancestors())) > 0
         stack = ctx.protocol.stack
         tags = ctx.protocol.tags
+
+        if cloth is self._cloth:
+            write_cloth_itself(cloth)
+            print("entering", cloth.tag, "top-level")
+            return
 
         # exit from prev cloth write to the first common ancestor
         anc = _revancestors(cloth)
         last_elt = None
+
         while anc[:len(stack)] != list([s for s, sc in stack]):
             elt, elt_ctx = ctx.protocol.stack.pop()
             elt_ctx.__exit__(None, None, None)
             last_elt = elt
             print("\texit ", elt.tag, "norm")
-            for sibl in elt.itersiblings():
+
+            for sibl in elt.itersiblings(preceding=False):
+                if sibl is cloth or cloth in sibl.xpath(".//*"):
+                    break
                 if sibl in anc:
                     break
                 print("\twrite", sibl.tag, "exit sibl")
@@ -335,20 +257,14 @@ class ToClothMixin(ProtocolBase):
 
                 tags.add(id(elt))
 
-        # write the element itself
-        attrib = dict([(k2, v2) for k2, v2 in cloth.attrib.items()
-                       if not (k2 in (self.attr_name, self.root_attr_name))])
-
-        curtag = parent.element(cloth.tag, attrib)
-        curtag.__enter__()
-        stack.append((cloth, curtag))
+        write_cloth_itself(cloth)
         print("entering", cloth.tag, 'ok')
 
     def _close_cloth(self, ctx, parent):
         for elt, elt_ctx in reversed(ctx.protocol.stack):
             print("exit ", elt.tag, "close")
             elt_ctx.__exit__(None, None, None)
-            for sibl in elt.itersiblings():
+            for sibl in elt.itersiblings(preceding=False):
                 print("write", sibl.tag, "close sibl")
                 parent.write(sibl)
 
@@ -378,3 +294,130 @@ class ToClothMixin(ProtocolBase):
                     ret.throw(e)
                 except (Break, StopIteration, GeneratorExit):
                     self._close_cloth(ctx, parent)
+
+    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
+                                                                      **kwargs):
+
+        if cloth is None:
+            return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+
+        if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
+            cls = inst.__class__
+
+        if inst is None:
+            inst = cls.Attributes.default
+
+        if not from_arr and cls.Attributes.max_occurs > 1:
+            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+
+        subprot = getattr(cls.Attributes, 'prot', None)
+        if subprot is not None and not (subprot is self):
+            return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
+
+        retval = None
+        if inst is None:
+            if cls.Attributes.min_occurs > 0:
+                parent.write(cloth)
+
+        else:
+            handler = self.rendering_handlers[cls]
+            retval = handler(ctx, cls, inst, cloth, parent, name=name)
+
+        return retval
+
+    def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+        self._enter_cloth(ctx, cloth, parent)
+        print('-' * 8, 'modb', cls, inst)
+        parent.write(self.to_string(cls, inst))
+
+    def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+        self._enter_cloth(ctx, cloth, parent)
+        print('-' * 8, 'elt ', cls, inst)
+        parent.write(inst)
+
+    def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
+        fti = cls.get_flat_type_info(cls)
+
+        attrs = {}
+        for k, v in fti.items():
+            if issubclass(v, XmlAttribute):
+                ns = v._ns
+                if ns is None:
+                    ns = v.Attributes.sub_ns
+
+                k = _gen_tagname(ns, k)
+                val = getattr(inst, k, None)
+
+                if val is not None:
+                    if issubclass(v.type, (ByteArray, File)):
+                        attrs[k] = self.to_string(v.type, val,
+                                                           self.binary_encoding)
+                    else:
+                        attrs[k] = self.to_string(v.type, val)
+
+        self._enter_cloth(ctx, cloth, parent, attrs=attrs)
+
+        for elt in self._get_elts(cloth, "mrpc"):
+            self._actions_to_cloth(ctx, cls, inst, elt)
+
+
+        print("\t", cls, sorted(cls._type_info.keys()))
+        print("\titerating over", sorted([e.attrib['spyne_id'] for e in
+                                          self._get_outmost_elts(cloth)]))
+
+        for i, elt in enumerate(self._get_outmost_elts(cloth)):
+            k = elt.attrib[self.attr_name]
+            v = fti.get(k, None)
+
+            if v is None:
+                logger.warning("elt id %r not in %r", k, cls)
+                if getattr(cls, '_type_info', None):
+                    print("We got:", sorted(cls._type_info.keys()))
+                continue
+            else:
+                print("!!!!!!", 'writing', k)
+
+            # if cls is an array, inst should already be a sequence type
+            # (eg list), so there's no point in doing a getattr -- we will
+            # unwrap it and serialize it in the next round of to_cloth call.
+            if issubclass(cls, Array):
+                val = inst
+            else:
+                val = getattr(inst, k, None)
+
+            self.to_cloth(ctx, v, val, elt, parent, name=k)
+
+    @coroutine
+    def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
+        self._enter_cloth(ctx, cloth, parent)
+
+        if isinstance(inst, PushBase):
+            while True:
+                sv = (yield)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
+                                                                       **kwargs)
+                if isgenerator(ret):
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as e:
+                        try:
+                            ret.throw(e)
+                        except StopIteration:
+                            pass
+
+        else:
+            for sv in inst:
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
+                                                                       **kwargs)
+                if isgenerator(ret):
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as e:
+                        try:
+                            ret.throw(e)
+                        except StopIteration:
+                            pass
