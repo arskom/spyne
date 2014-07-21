@@ -28,6 +28,7 @@ except ImportError:
     GREEN = ''
     RED = ''
 
+IS_PYPY = '__pypy__' in sys.builtin_module_names
 OWN_PATH = abspath(inspect.getfile(inspect.currentframe()))
 EXAMPLES_DIR = join(dirname(OWN_PATH), 'examples')
 
@@ -270,7 +271,9 @@ class RunTests(ExtendedTestCommand):
                                      capture=self.capture) or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py',
                                      capture=self.capture) or ret
-        ret = call_pytest_subprocess('interop/test_suds.py',
+        # excluding PyPy as it brokes here on LXML
+        if not IS_PYPY:
+            ret = call_pytest_subprocess('interop/test_suds.py',
                                      capture=self.capture) or ret
         ret = call_trial('interop/test_soap_client_http_twisted.py',
                          'transport/test_msgpack.py',
