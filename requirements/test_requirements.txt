@@ -11,6 +11,7 @@ colorama
 msgpack-python
 webtest
 pytest_django
+django
 python-subunit
 pyramid
 tox
