@@ -31,7 +31,7 @@ from spyne.test import FakeContext
 from spyne.util.six import BytesIO
 
 
-class TestXmlWithCloth(unittest.TestCase):
+class TestXmlCloth(unittest.TestCase):
     def setUp(self):
         self.ctx = FakeContext()
         self.stream = BytesIO()
