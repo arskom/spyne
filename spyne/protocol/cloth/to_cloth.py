@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 from lxml import html, etree
 from copy import deepcopy
 from inspect import isgenerator
-from collections import deque
 
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
@@ -195,12 +194,17 @@ class ToClothMixin(ProtocolBase):
             elt_ctx.__exit__(None, None, None)
             print("\texit norm", elt.tag, elt.attrib)
 
+            # unless we're at the same level as the relevant ancestor of the
+            # target node
             if ancestors[:len(eltstack)] != eltstack:
+                # write following siblings before closing parent node
                 for sibl in elt.itersiblings(preceding=False):
                     print("\twrite exit sibl", sibl.tag, sibl.attrib)
                     parent.write(sibl)
 
+        # write remaining ancestors of the target node.
         for anc in ancestors[len(eltstack):]:
+            # write previous siblins of ancestors (if any)
             prevsibls = _prevsibls(anc)
             for elt in prevsibls:
                 if elt is last_elt:
@@ -211,13 +215,16 @@ class ToClothMixin(ProtocolBase):
                 print("\twrite anc prevsibl", elt.tag, elt.attrib)
                 parent.write(elt)
 
+            # enter the ancestor node
             anc_ctx = parent.element(anc.tag, anc.attrib)
             anc_ctx.__enter__()
             print("\tenter norm", anc.tag, anc.attrib)
             eltstack.append(anc)
             ctxstack.append(anc_ctx)
 
-        if last_elt is not None and last_elt is not cloth:
+        # now that at the same level as the target node,
+        # write its previous siblings
+        if not last_elt in (None, cloth):
             prevsibls = _prevsibls(cloth)
             for elt in prevsibls:
                 if elt is last_elt:
@@ -228,8 +235,10 @@ class ToClothMixin(ProtocolBase):
                 print("\twrite cloth prevsibl", elt.tag, elt.attrib)
                 parent.write(elt)
 
+        # finally, enter the target node.
         attrib = dict([(k, v) for k, v in cloth.attrib.items()
                        if not (k in (self.attr_name, self.root_attr_name))])
+
         attrib.update(attrs)
         if len(eltstack) == 0:
             curtag = parent.element(cloth.tag, attrib, nsmap=cloth.nsmap)
