@@ -262,15 +262,18 @@ class RunTests(ExtendedTestCommand):
     def run_tests(self):
         print("Running tests")
         ret = 0
-        configure_django() # this is only because of interop/test_django.py
-        ret = call_pytest('interface', 'model', 'multipython', 'protocol',
+        tests = ['interface', 'model', 'multipython', 'protocol',
                           'test_null_server.py', 'test_service.py',
                           'test_soft_validation.py', 'test_util.py',
                           'test_sqlalchemy.py',
                           'test_sqlalchemy_deprecated.py',
-                          'interop/test_django.py',
-                          'interop/test_pyramid.py',
-                          capture=self.capture) or ret
+                          'interop/test_pyramid.py']
+
+        if not IS_PYPY:
+            tests.append('interop/test_django.py')
+            configure_django() # this is only because of interop/test_django.py
+
+        ret = call_pytest(*tests,capture=self.capture) or ret
 
         ret = call_pytest_subprocess('interop/test_httprpc.py',
                                      capture=self.capture) or ret
