@@ -262,6 +262,7 @@ class RunTests(ExtendedTestCommand):
                           'test_soft_validation.py', 'test_util.py',
                           'test_sqlalchemy.py',
                           'test_sqlalchemy_deprecated.py',
+                          'interop/test_django.py',
                           'interop/test_pyramid.py',
                           capture=self.capture) or ret
 
