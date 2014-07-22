@@ -192,6 +192,11 @@ def subunit2junitxml(ctr):
                      passthrough_subunit=True, input_stream=subunit2)
 
 
+def configure_django():
+    sys.path.append(join(EXAMPLES_DIR, 'django'))
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
+
+
 class SubUnitTee(object):
     def __init__(self, name):
         self.name = name
@@ -255,8 +260,9 @@ class ExtendedTestCommand(TestCommand):
 
 class RunTests(ExtendedTestCommand):
     def run_tests(self):
-        print("running tests")
+        print("Running tests")
         ret = 0
+        configure_django() # this is only because of interop/test_django.py
         ret = call_pytest('interface', 'model', 'multipython', 'protocol',
                           'test_null_server.py', 'test_service.py',
                           'test_soft_validation.py', 'test_util.py',
