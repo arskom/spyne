@@ -173,8 +173,7 @@ if [ ! -x "$EASY" ]; then
   )
 fi;
 
-$EASY `cat requirements/test_requirements.txt`
-
+while read line; do $EASY $line; done < requirements/test_requirements.txt
 
 if [ $PYIMPL == 'cpy' ]; then
     # Set up coverage
