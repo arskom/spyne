@@ -17,4 +17,3 @@ pyramid
 tox
 pyparsing>=2.0.2
 suds-jurko
-git+git://github.com/mverteuil/pytest-ipdb.git
