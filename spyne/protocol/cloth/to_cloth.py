@@ -306,6 +306,7 @@ class ToClothMixin(ProtocolBase):
 
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self):
+            self._enter_cloth(ctx, cloth, parent)
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
         retval = None
