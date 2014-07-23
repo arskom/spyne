@@ -309,9 +309,6 @@ class ToClothMixin(ProtocolBase):
         if inst is None:
             inst = cls.Attributes.default
 
-        if not from_arr and cls.Attributes.max_occurs > 1:
-            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
-
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self):
             self._enter_cloth(ctx, cloth, parent)
@@ -324,6 +321,9 @@ class ToClothMixin(ProtocolBase):
                 parent.write(cloth)
 
         else:
+            if not from_arr and cls.Attributes.max_occurs > 1:
+                return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+
             handler = self.rendering_handlers[cls]
             retval = handler(ctx, cls, inst, cloth, parent, name=name)
 
