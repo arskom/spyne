@@ -168,12 +168,12 @@ class ToClothMixin(ProtocolBase):
 
                 elt.append(mrpc_template)
                                            # mutable default ok because readonly
-    def _enter_cloth(self, ctx, cloth, parent, attrs={}):
+    def _enter_cloth(self, ctx, cloth, parent, attrs={}, skip=False):
         """There is no _exit_cloth because exiting from tags is done
         automatically with subsequent calls to _enter_cloth and finally to
         _close_cloth."""
 
-        print("entering", cloth.tag, cloth.attrib)
+        print("entering", cloth.tag, cloth.attrib, "skip=%s" % skip)
 
         tags = ctx.protocol.tags
         eltstack = ctx.protocol.eltstack
@@ -191,8 +191,9 @@ class ToClothMixin(ProtocolBase):
             elt_ctx = ctxstack.pop()
 
             last_elt = elt
-            elt_ctx.__exit__(None, None, None)
-            print("\texit norm", elt.tag, elt.attrib)
+            if elt_ctx is not None:
+                elt_ctx.__exit__(None, None, None)
+                print("\texit norm", elt.tag, elt.attrib)
 
             # unless we're at the same level as the relevant ancestor of the
             # target node
@@ -235,16 +236,21 @@ class ToClothMixin(ProtocolBase):
                 print("\twrite cloth prevsibl", elt.tag, elt.attrib)
                 parent.write(elt)
 
-        # finally, enter the target node.
-        attrib = dict([(k, v) for k, v in cloth.attrib.items()
-                       if not (k in (self.attr_name, self.root_attr_name))])
+        if skip:
+            tags.add(id(cloth))
+            curtag = None
 
-        attrib.update(attrs)
-        if len(eltstack) == 0:
-            curtag = parent.element(cloth.tag, attrib, nsmap=cloth.nsmap)
         else:
-            curtag = parent.element(cloth.tag, attrib)
-        curtag.__enter__()
+            # finally, enter the target node.
+            attrib = dict([(k, v) for k, v in cloth.attrib.items()
+                           if not (k in (self.attr_name, self.root_attr_name))])
+
+            attrib.update(attrs)
+            if len(eltstack) == 0:
+                curtag = parent.element(cloth.tag, attrib, nsmap=cloth.nsmap)
+            else:
+                curtag = parent.element(cloth.tag, attrib)
+            curtag.__enter__()
 
         eltstack.append(cloth)
         ctxstack.append(curtag)
@@ -254,8 +260,10 @@ class ToClothMixin(ProtocolBase):
     def _close_cloth(self, ctx, parent):
         for elt, elt_ctx in reversed(zip(ctx.protocol.eltstack,
                                                         ctx.protocol.ctxstack)):
-            print("exit ", elt.tag, "close")
-            elt_ctx.__exit__(None, None, None)
+            if elt_ctx is not None:
+                elt_ctx.__exit__(None, None, None)
+                print("exit ", elt.tag, "close")
+
             for sibl in elt.itersiblings(preceding=False):
                 print("write", sibl.tag, "close sibl")
                 parent.write(sibl)
@@ -360,6 +368,7 @@ class ToClothMixin(ProtocolBase):
 
             if v is None:
                 logger.warning("elt id %r not in %r", k, cls)
+                self._enter_cloth(ctx, elt, parent, skip=True)
                 continue
 
             # if cls is an array, inst should already be a sequence type
