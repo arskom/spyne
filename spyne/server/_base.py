@@ -47,7 +47,9 @@ class ServerBase(object):
 
     def __init__(self, app):
         self.app = app
-        self.app.transport = self.transport
+        self.app.transport = self.transport  # FIXME: this is weird
+        self.app.reinitialize(self)
+
         self.event_manager = EventManager(self)
         self.doc = AllYourInterfaceDocuments(app.interface)
 

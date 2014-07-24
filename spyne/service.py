@@ -207,3 +207,7 @@ class ServiceBase(object):
                 return ctx.function(*ctx.in_object)
             else:
                 return ctx.function(ctx, *ctx.in_object)
+
+    @classmethod
+    def initialize(cls, app):
+        pass

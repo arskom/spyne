@@ -123,8 +123,6 @@ class Application(object):
 
         register_application(self)
 
-        self.reinitialize()
-
     def process_request(self, ctx):
         """Takes a MethodContext instance. Returns the response to the request
         as a native python object. If the function throws an exception, it
@@ -240,15 +238,20 @@ class Application(object):
     def _has_callbacks(self):
         return self.interface._has_callbacks()
 
-    def reinitialize(self):
-        from spyne.server import ServerBase
+    def reinitialize(self, server):
+        seen = set()
 
-        server = ServerBase(self)
-        aux_memo = set()
+        from spyne import MethodDescriptor
         for d in self.interface.method_id_map.values():
-            if d.aux is not None and not id(d.aux) in aux_memo:
+            assert isinstance(d, MethodDescriptor)
+
+            if d.aux is not None and not id(d.aux) in seen:
                 d.aux.initialize(server)
-                aux_memo.add(id(d.aux))
+                seen.add(id(d.aux))
+
+            if d.service_class is not None and not id(d.service_class) in seen:
+                d.service_class.initialize(server)
+                seen.add(id(d.service_class))
 
     def __hash__(self):
         return hash(tuple((id(s) for s in self.services)))
