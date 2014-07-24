@@ -173,12 +173,7 @@ if [ ! -x "$EASY" ]; then
   )
 fi;
 
-
-# hack to work around dependency graph resolution bugs... ??? I guess??
-$PYTHON setup.py install_test_deps;
-$PYTHON setup.py install_test_deps;
-$PYTHON setup.py install_test_deps;
-
+while read line; do $EASY $line; done < requirements/test_requirements.txt
 
 if [ $PYIMPL == 'cpy' ]; then
     # Set up coverage
