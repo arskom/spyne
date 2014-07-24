@@ -142,7 +142,7 @@ information about how you can help Spyne get more awesome.
 Acknowledgments
 ===============
 
-.. image:: http://www.jetbrains.com/img/logos/pycharm_logo142x29.gif
+.. image:: http://www.jetbrains.com/pycharm/docs/logo_pycharm.png
         :target: http://www.jetbrains.com/pycharm/
 
 Spyne committers get a free license for PyCharm Professional Edition, courtesy
