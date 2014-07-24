@@ -320,7 +320,11 @@ class SimpleDictDocument(DictDocument):
         if issubclass(inst_class, AnyDict):
             return doc
 
-        assert issubclass(inst_class, ComplexModelBase), "Patches are welcome"
+        if not issubclass(inst_class, ComplexModelBase):
+            raise NotImplementedError("Interestingly, deserializing non complex"
+                                      " types is not yet implemented. You can"
+                                      " use a ComplexModel to wrap that field."
+                                      " Otherwise, patches are welcome.")
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
