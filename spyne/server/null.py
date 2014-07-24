@@ -58,13 +58,19 @@ class NullServer(ServerBase):
 
     transport = 'noconn://null.spyne'
 
-    def __init__(self, app, ostr=False, locale='C'):
+    def __init__(self, app, ostr=False, locale='C', appinit=True):
+        self.do_appinit = appinit
+
         super(NullServer, self).__init__(app)
 
         self.service = _FunctionProxy(self, self.app)
         self.factory = Factory(self.app)
         self.ostr = ostr
         self.locale = locale
+
+    def appinit(self):
+        if self.do_appinit:
+            super(NullServer, self).appinit()
 
     def get_wsdl(self):
         return self.app.get_interface_document(self.url)

@@ -72,7 +72,8 @@ def register_application(app):
                                    '====================\n'.join(stack_traces))
 
     _applications[key] = _ApplicationMetaData(app=app, inst_stack=[stack],
-                          null=NullServer(app), ostr=NullServer(app, ostr=True))
+                          null=NullServer(app, appinit=False),
+                          ostr=NullServer(app, appinit=False, ostr=True))
 
     logger.debug("Registering %r as %r" % (app, key))
 
