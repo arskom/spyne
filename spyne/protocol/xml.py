@@ -245,6 +245,7 @@ class XmlDocument(SubXmlBase):
         })
 
         self.deserialization_handlers = cdict({
+            AnyHtml: self.html_from_element,
             AnyXml: self.xml_from_element,
             Array: self.array_from_element,
             Fault: self.fault_from_element,
@@ -930,6 +931,17 @@ class XmlDocument(SubXmlBase):
 
         if children:
             retval = element.getchildren()[0]
+
+        return retval
+
+    def html_from_element(self, ctx, cls, element):
+        children = element.getchildren()
+        retval = None
+
+        if len(children) == 1:
+            retval = children[0]
+        elif len(children) > 1:
+            retval = E.p(*children)
 
         return retval
 
