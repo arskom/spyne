@@ -60,6 +60,7 @@ from twisted.web.http import CACHED
 from twisted.python.log import err
 from twisted.internet.defer import Deferred
 
+from spyne import BODY_STYLE_BARE, BODY_STYLE_EMPTY
 from spyne.error import InternalError
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
@@ -504,11 +505,16 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
     om = p_ctx.descriptor.out_message
     single_class = None
-    if cb and ((not issubclass(om, ComplexModelBase)) or len(om._type_info) <= 1):
-        p_ctx.out_object = [ret]
-        if len(om._type_info) == 1:
-            single_class, = om._type_info.values()
+    if cb:
+        if p_ctx.descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
+            p_ctx.out_object = [ret]
 
+        elif (not issubclass(om, ComplexModelBase)) or len(om._type_info) <= 1:
+            p_ctx.out_object = [ret]
+            if len(om._type_info) == 1:
+                single_class, = om._type_info.values()
+        else:
+            p_ctx.out_object = ret
     else:
         p_ctx.out_object = ret
 
