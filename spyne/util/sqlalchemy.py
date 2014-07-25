@@ -979,7 +979,7 @@ def _add_complex_type(cls, props, table, k, v):
         else:
             # v has the Attribute values we need whereas real_v is what the
             # user instantiates (thus what sqlalchemy needs)
-            if v.__orig__ is None: # vanilla class
+            if v.__orig__ is None:  # vanilla class
                 real_v = v
             else: # customized class
                 real_v = v.__orig__
