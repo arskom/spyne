@@ -405,7 +405,13 @@ class ProtocolBase(object):
         return html.tostring(value)
 
     def any_html_from_string(self, cls, string):
-        return html.fromstring(string)
+        try:
+            return html.fromstring(string)
+        except etree.ParserError as e:
+            if e.args[0] == "Document is empty":
+                pass
+            else:
+                raise
 
     def uuid_to_string(self, cls, value):
         return _uuid_serialize[cls.Attributes.serialize_as](value)
