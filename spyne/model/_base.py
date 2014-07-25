@@ -567,9 +567,10 @@ class xml:
         information. This is generally a stupid thing to do. Use with caution.
     """
 
-    def __init__(self, root_tag=None, no_ns=False):
+    def __init__(self, root_tag=None, no_ns=False, pretty_print=False):
         self.root_tag = root_tag
         self.no_ns = no_ns
+        self.pretty_print = pretty_print
 
 
 class table:
