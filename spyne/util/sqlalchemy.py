@@ -335,7 +335,8 @@ class PGObjectXml(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            return etree.tostring(get_object_as_xml(value, self.cls,
+            if value is not None:
+                return etree.tostring(get_object_as_xml(value, self.cls,
                                         self.root_tag_name, self.no_namespace),
                      pretty_print=False, encoding='utf8', xml_declaration=False)
         return process
