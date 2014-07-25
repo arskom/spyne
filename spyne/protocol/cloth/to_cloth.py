@@ -371,10 +371,10 @@ class ToClothMixin(ProtocolBase):
                 self._enter_cloth(ctx, elt, parent, skip=True)
                 continue
 
-            # if cls is an array, inst should already be a sequence type
-            # (eg list), so there's no point in doing a getattr -- we will
-            # unwrap it and serialize it in the next round of to_cloth call.
             if issubclass(cls, Array):
+                # if cls is an array, inst should already be a sequence type
+                # (eg list), so there's no point in doing a getattr -- we will
+                # unwrap it and serialize it in the next round of to_cloth call.
                 val = inst
             else:
                 val = getattr(inst, k, None)
