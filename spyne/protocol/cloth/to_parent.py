@@ -44,10 +44,12 @@ from spyne.util.six import string_types
 
 class ToParentMixin(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
-                                     ignore_uncap=False, ignore_wrappers=False):
+                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
         super(ToParentMixin, self).__init__(app=app, validator=validator,
                                  mime_type=mime_type, ignore_uncap=ignore_uncap,
                                  ignore_wrappers=ignore_wrappers)
+
+        self.polymorphic = polymorphic
 
         self.serialization_handlers = cdict({
             AnyXml: self.xml_to_parent,
@@ -62,8 +64,8 @@ class ToParentMixin(ProtocolBase):
         })
 
     def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        #if issubclass(inst.__class__, cls.__orig__ or cls):
-        #    cls = inst.__class__
+        if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
+            cls = inst.__class__
 
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self):
@@ -87,6 +89,7 @@ class ToParentMixin(ProtocolBase):
         except KeyError:
             logger.error("%r is missing handler for %r", self, cls)
             raise
+
         return handler(ctx, cls, inst, parent, name, **kwargs)
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
@@ -221,8 +224,7 @@ class ToParentMixin(ProtocolBase):
         parent.write(retval)
 
     def byte_array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(E(name,
-                        self.to_string(cls, inst, self.default_binary_encoding)))
+        parent.write(E(name, self.to_string(cls, inst, self.binary_encoding)))
 
     def base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_string(cls, inst)))
@@ -294,7 +296,7 @@ class ToParentMixin(ProtocolBase):
             if ret is not None:
                 try:
                     while True:
-                        sv2 = (yield) # may throw Break
+                        sv2 = (yield)  # may throw Break
                         ret.send(sv2)
 
                 except Break:

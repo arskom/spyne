@@ -74,8 +74,7 @@ of Spyne:
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for using
   ``spyne.protocol.http.HttpRpc`` under a wsgi transport.
 * `PyParsing <http://pypi.python.org/pypi/pyparsing>`_ is needed for
-  using ``HttpPattern``'s with ``spyne.protocol.http.HttpRpc``\. Use
-  PyParsing<2.0 on Python 2 as PyParsing>=2.x is Python 3 only.
+  using ``HttpPattern``'s with ``spyne.protocol.http.HttpRpc``\.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for anything in
   ``spyne.server.twisted`` and ``spyne.client.twisted``.
 * `Django <http://djangoproject.com/>`_ (tested with 1.4 and up) is needed for
@@ -143,7 +142,7 @@ information about how you can help Spyne get more awesome.
 Acknowledgments
 ===============
 
-.. image:: http://www.jetbrains.com/img/logos/pycharm_logo142x29.gif
+.. image:: http://www.jetbrains.com/pycharm/docs/logo_pycharm.png
         :target: http://www.jetbrains.com/pycharm/
 
 Spyne committers get a free license for PyCharm Professional Edition, courtesy

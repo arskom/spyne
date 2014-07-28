@@ -31,8 +31,8 @@ spyne-2.11.0
   Sample response: ``{"ver":1, "fault": {"faultcode": "Server", "faultstring": "Internal Error"}}}``
 
 * Steal and integrate the experimental WebSocket tranport from Twisted.
-* Support Django natively using :class:`spyne.server.django.DjangoView` and
-  :class:`spyne.server.django.DjangoServer`.
+* Support Django natively using `spyne.server.django.DjangoView` and
+  `spyne.server.django.DjangoServer`.
 * It's now possible to override the ``JsonEncoder`` class ``JsonDocument`` uses.
 * Remove hard-coded utf-8 defaults from almost everywhere.
 * Remove hard-coded pytz.utc defaults from everywhere. Use spyne.LOCAL_TZ to
@@ -47,7 +47,7 @@ spyne-2.11.0
   configuration data.
 * ``child_attrs`` can now be passed to the ComplexModelBase customizer in order
   to make object-specific in-place customizations to child types.
-* Add mapper between Django models and :class:`spyne.util.django.DjangoComplexModel`
+* Add mapper between Django models and `spyne.util.django.DjangoComplexModel`
   types.
 * Spyne now tracks subclasses and adds them to the interface if they are in the
   same namespace as their parent.
@@ -181,3 +181,5 @@ spyne-2.10.0
   added as a way to customize protocol output without hindering other parts
   of the interface.
 
+Check the documentation at http://spyne.io/docs for changelogs of the older
+versions

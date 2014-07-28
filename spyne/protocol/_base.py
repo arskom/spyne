@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -135,7 +137,7 @@ class ProtocolBase(object):
     default_binary_encoding = None
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                                       ignore_uncap=False, ignore_wrappers=False):
+               ignore_uncap=False, ignore_wrappers=False, binary_encoding=None):
         self.__app = None
         self.set_app(app)
 
@@ -146,6 +148,9 @@ class ProtocolBase(object):
         self.ignore_uncap = ignore_uncap
         self.ignore_wrappers = ignore_wrappers
         self.message = None
+        self.binary_encoding = binary_encoding
+        if self.binary_encoding is None:
+            self.binary_encoding = self.default_binary_encoding
 
         if mime_type is not None:
             self.mime_type = mime_type
@@ -708,34 +713,32 @@ class ProtocolBase(object):
             return binary_encoding_handlers[encoding](value)
 
     def file_to_string_iterable(self, cls, value):
-        if value.data is None:
-            if value.handle is None:
-                assert value.path is not None, "You need to write data to " \
-                         "persistent storage first if you want to read it back."
-
-                try:
-                    path = value.path
-                    if not isabs(value.path):
-                        path = join(value.store, value.path)
-                    f = open(path, 'rb')
-                except IOError as e:
-                    if e.errno == errno.ENOENT:
-                        raise ResourceNotFoundError(value.path)
-                    else:
-                        raise InternalError("Error accessing requested file")
-
-            else:
-                f = value.handle
-                f.seek(0)
-
-            return _file_to_iter(f)
-
-        else:
-            if isinstance(value.data, (list,tuple)) and \
-                                                isinstance(value.data[0], mmap):
+        if value.data is not None:
+            if isinstance(value.data, (list, tuple)) and \
+                    isinstance(value.data[0], mmap):
                 return _file_to_iter(value.data[0])
             else:
                 return iter(value.data)
+
+        if value.handle is not None:
+            f = value.handle
+            f.seek(0)
+            return _file_to_iter(f)
+
+        assert value.path is not None, "You need to write data to " \
+                 "persistent storage first if you want to read it back."
+
+        try:
+            path = value.path
+            if not isabs(value.path):
+                path = join(value.store, value.path)
+            return _file_to_iter(open(path, 'rb'))
+
+        except IOError as e:
+            if e.errno == errno.ENOENT:
+                raise ResourceNotFoundError(value.path)
+            else:
+                raise InternalError("Error accessing requested file")
 
     def simple_model_to_string_iterable(self, cls, value):
         retval = self.to_string(cls, value)
@@ -924,9 +927,11 @@ _datetime_smap = {
 }
 
 def _file_to_iter(f):
-    data = f.read(65536)
-    while len(data) > 0:
-        yield data
+    try:
         data = f.read(65536)
+        while len(data) > 0:
+            yield data
+            data = f.read(65536)
 
-    f.close()
+    finally:
+        f.close()

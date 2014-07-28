@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 import sys
 import datetime
 
-from collections import deque
 from inspect import isgeneratorfunction
+from spyne.util.six import PY3
 
 
 try:
@@ -176,9 +176,9 @@ def sanitize_args(a):
     return args, kwargs
 
 
-if sys.version > '3':
-    def _bytes_join(val, joiner=''):
-        return bytes(joiner).join(val)
+if PY3:
+    def _bytes_join(val, joiner=b''):
+        return joiner.join(val)
 else:
     def _bytes_join(val, joiner=''):
         return joiner.join(val)

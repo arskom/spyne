@@ -22,11 +22,16 @@
 from __future__ import absolute_import
 
 import datetime
+import re
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, TransactionTestCase, Client
 
 from spyne.client.django import DjangoTestClient
 from spyne.model.fault import Fault
-from spyne.util.django import DjangoComplexModel
+from spyne.model.complex import ComplexModelBase
+from spyne.util.django import (DjangoComplexModel, DjangoComplexModelMeta,
+                               default_model_mapper, email_re)
+from spyne.util.six import add_metaclass
 
 from rpctest.core.models import (FieldContainer, RelatedFieldContainer,
                                  UserProfile as DjUserProfile)
@@ -98,6 +103,13 @@ class ModelTestCase(TestCase):
         self.assertIn('id', type_info)
         self.assertNotIn('excluded_field', type_info)
 
+    def test_regex_pattern_mappiing(self):
+        """Test if regex pattern is mapped from django model."""
+        type_info = Container.get_flat_type_info(Container)
+        field_mapper = default_model_mapper.get_field_mapper('EmailField')
+        self.assertEqual(type_info['email_field'].__name__, 'Unicode')
+        self.assertIsNotNone(type_info['email_field'].Attributes.pattern)
+
     def test_get_container(self):
         """Test mapping from Django model to spyne model."""
         get_container = lambda: self.client.service.get_container(2)
@@ -106,6 +118,7 @@ class ModelTestCase(TestCase):
         FieldContainer.objects.create(slug_field='container2',
                                       foreign_key=container,
                                       one_to_one_field=container,
+                                      email_field='email@example.com',
                                       char_field='yo')
         c = get_container()
         self.assertIsInstance(c, Container)
@@ -116,6 +129,7 @@ class ModelTestCase(TestCase):
         new_container = FieldContainer(slug_field='container',
                                        date_field=datetime.date.today(),
                                        datetime_field=datetime.datetime.now(),
+                                       email_field='email@example.com',
                                        time_field=datetime.time(),
                                        custom_foreign_key=related_container,
                                        custom_one_to_one_field=related_container)
@@ -128,12 +142,13 @@ class ModelTestCase(TestCase):
         self.assertEqual(c.custom_foreign_key_id, 'related')
         self.assertRaises(Fault, create_container)
 
-    def _test_create_container_unicode(self):
+    def test_create_container_unicode(self):
         """Test complex unicode input to create Django model."""
         new_container = FieldContainer(
             char_field=u'спайн',
             text_field=u'спайн',
-            slug_field=u'спайн',
+            slug_field='spyne',
+            email_field='email@example.com',
             date_field=datetime.date.today(),
             datetime_field=datetime.datetime.now(),
             time_field=datetime.time()
@@ -158,3 +173,63 @@ class ModelTestCase(TestCase):
                 django_optional_relations = True
 
         self.assertTrue(UserProfile._type_info['user_id'].Attributes.nullable)
+
+    def test_abstract_custom_djangomodel(self):
+        """Test if can create custom DjangoComplexModel."""
+        @add_metaclass(DjangoComplexModelMeta)
+        class OrderedDjangoComplexModel(ComplexModelBase):
+            __abstract__ = True
+
+            class Attributes(ComplexModelBase.Attributes):
+                declare_order = 'declared'
+
+        class OrderedFieldContainer(OrderedDjangoComplexModel):
+            class Attributes(OrderedDjangoComplexModel.Attributes):
+                django_model = FieldContainer
+
+        field_container = OrderedFieldContainer()
+        type_info_fields = field_container._type_info.keys()
+        django_field_names = [field.get_attname() for field in
+                              FieldContainer._meta.fields]
+        # file field is not mapped
+        django_field_names.remove('file_field')
+        # check if ordering is the same as defined in Django model
+        self.assertEqual(type_info_fields, django_field_names)
+
+    def test_nonabstract_custom_djangomodel(self):
+        """Test if can't create non abstract custom model."""
+        try:
+            @add_metaclass(DjangoComplexModelMeta)
+            class CustomNotAbstractDjangoComplexModel(ComplexModelBase):
+
+                class Attributes(ComplexModelBase.Attributes):
+                    declare_order = 'declared'
+        except ImproperlyConfigured:
+            pass
+        else:
+            assert False, 'Can create non abstract custom model'
+
+
+class EmailRegexTestCase(TestCase):
+
+    """Tests for email_re."""
+
+    def test_empty(self):
+        """Empty string is invalid email."""
+        self.assertIsNone(re.match(email_re, ''))
+
+    def test_valid(self):
+        """Test valid email."""
+        self.assertIsNotNone(re.match(email_re, 'valid.email@example.com'))
+
+    def test_invalid(self):
+        """Test invalid email."""
+        self.assertIsNone(re.match(email_re, '@example.com'))
+
+
+class DjangoServiceTestCase(TestCase):
+
+    """Tests for Django specific service."""
+
+    def test_handle_does_not_exist(self):
+        """Test if service handles DoesNotExistExceptions."""

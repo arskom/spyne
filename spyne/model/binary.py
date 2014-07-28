@@ -149,7 +149,8 @@ binary_decoding_handlers = {
 
 class HybridFileStore(object):
     def __init__(self, store_path, db_format='json'):
-        """Hybrid Sql/Filesystem store.
+        """Marker to be passed to File's store_as to denote a hybrid
+        Sql/Filesystem storage scheme.
 
         :param store_path: The path where the file contents are stored. This is
             converted to an absolute path if it's not already one.

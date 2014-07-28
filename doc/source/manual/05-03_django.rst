@@ -86,10 +86,10 @@ Now we are going to define our RPC service: ::
     from spyne.decorator import rpc
     from spyne.error import ResourceNotFoundError
     from spyne.model import primitive
-    from spyne.service import ServiceBase
+    from spyne.util.django import DjangoServiceBase
 
 
-    class TodoService(ServiceBase):
+    class TodoService(DjangoServiceBase):
 
         """Todo list RPC service."""
 
@@ -100,18 +100,18 @@ Now we are going to define our RPC service: ::
             :param list_name: string
             :returns: TodoList
             :raises:
-                Client.ResourceNotFound fault when todo list with given name is not found
+                Client.TodoListNotFound fault when todo list with given name is not found
 
             """
 
-            try:
-                return DjTodoList.objects.get(name=list_name)
-            except DjTodoList.DoesNotExist:
-                raise ResourceNotFoundError(list_name)
+            return DjTodoList.objects.get(name=list_name)
 
 You may notice that we defined ``TodoList`` as return value of `get_todo_list` RPC
 method but in fact ``DjTodoList`` instance is returned.  This trick works
 because our Django models and Spyne types have common attribute interface.
+
+Django specific `spyne.util.django` service captures `DjTodoList.DoesNotExist`
+exception and transforms it to `Client.TodoListNotFound` fault.
 
 By default Spyne creates types that are nullable and optional. Let's override
 defaults and make our API more strict. We are going to define configuration

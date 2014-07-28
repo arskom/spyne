@@ -114,11 +114,11 @@ def _gen_http_headers(headers):
     retval = []
 
     for k,v in headers.items():
-        if isinstance(v, (list,tuple)):
+        if isinstance(v, (list, tuple)):
             for v2 in v:
-                retval.append((k,v2))
+                retval.append((k, v2))
         else:
-            retval.append((k,v))
+            retval.append((k, v))
 
     return retval
 
@@ -289,9 +289,11 @@ class WsgiApplication(HttpBase):
                                                     str(len(ctx.transport.wsdl))
         start_response(HTTP_200, _gen_http_headers(ctx.transport.resp_headers))
 
+        retval = ctx.transport.wsdl
+
         ctx.close()
 
-        return [ctx.transport.wsdl]
+        return [retval]
 
     def handle_error(self, p_ctx, others, error, start_response):
         """Serialize errors to an iterable of strings and return them.
@@ -397,7 +399,7 @@ class WsgiApplication(HttpBase):
         # code run until first yield, which lets it set response headers and
         # whatnot before calling start_response. Is there a better way?
         try:
-            len(p_ctx.out_string) # generator?
+            len(p_ctx.out_string)  # generator?
 
             # nope
             p_ctx.transport.resp_headers['Content-Length'] = \

@@ -31,6 +31,7 @@ from functools import update_wrapper
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed, Http404
 from django.views.decorators.csrf import csrf_exempt
+from spyne.util import _bytes_join
 
 try:
     from django.http import StreamingHttpResponse
@@ -88,7 +89,7 @@ class DjangoApplication(WsgiApplication):
         return retval
 
     def set_response(self, retval, response):
-        retval.content = ''.join(response)
+        retval.content = _bytes_join(response, b"")
 
 
 class StreamingDjangoApplication(DjangoApplication):
@@ -154,9 +155,7 @@ class DjangoServer(HttpBase):
         if self.chunked:
             response = StreamingHttpResponse(p_ctx.out_string)
         else:
-            response = HttpResponse(''.join(p_ctx.out_string))
-
-        p_ctx.close()
+            response = HttpResponse(b''.join(p_ctx.out_string))
 
         return self.response(response, p_ctx, others)
 
@@ -174,8 +173,7 @@ class DjangoServer(HttpBase):
             # create and build interface documents in current thread. This
             # section can be safely repeated in another concurrent thread.
             doc = AllYourInterfaceDocuments(self.app.interface)
-            doc.wsdl11.build_interface_document(
-                request.build_absolute_uri())
+            doc.wsdl11.build_interface_document(request.build_absolute_uri())
             wsdl = doc.wsdl11.get_interface_document()
 
             if self._cache_wsdl:
@@ -184,7 +182,6 @@ class DjangoServer(HttpBase):
             wsdl = self._wsdl
 
         ctx.transport.wsdl = wsdl
-        ctx.close()
 
         response = HttpResponse(ctx.transport.wsdl)
         return self.response(response, ctx, ())
@@ -202,7 +199,7 @@ class DjangoServer(HttpBase):
                            p_ctx.out_protocol.fault_to_http_response_code(error)
 
         self.get_out_string(p_ctx)
-        resp = HttpResponse(''.join(p_ctx.out_string))
+        resp = HttpResponse(b''.join(p_ctx.out_string))
         return self.response(resp, p_ctx, others, error)
 
     def get_contexts(self, request):
@@ -215,10 +212,8 @@ class DjangoServer(HttpBase):
         initial_ctx = HttpMethodContext(self, request,
                                         self.app.out_protocol.mime_type)
 
-        initial_ctx.in_string = request.body
-        in_string_charset = request.encoding or settings.DEFAULT_CHARSET
-
-        return self.generate_contexts(initial_ctx, in_string_charset)
+        initial_ctx.in_string = [request.body]
+        return self.generate_contexts(initial_ctx)
 
     def response(self, response, p_ctx, others, error=None):
         """Populate response with transport headers and finalize it.
@@ -242,6 +237,8 @@ class DjangoServer(HttpBase):
         except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
+
+        p_ctx.close()
 
         return response
 

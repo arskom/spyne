@@ -429,6 +429,69 @@ class TestSoapHeader(unittest.TestCase):
         self.assertEquals(ctx.in_header[1], 'SomeMessageID')
         self.assertEquals(ctx.in_header[2], 'SomeRelatesToID')
 
+    def test_soap_input_header_order(self):
+        """
+        Tests supports for input headers whose elements are provided in
+        different order than that defined in rpc declaration _in_header parameter.
+        """
+        server = ServerBase(self.app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = [
+            '<senv:Envelope xmlns:tns="tns"'
+                'xmlns:wsa="http://www.w3.org/2005/08/addressing"'
+                'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
+                '<senv:Header>'
+                    '<wsa:MessageID>SomeMessageID</wsa:MessageID>'
+                    '<wsa:RelatesTo>SomeRelatesToID</wsa:RelatesTo>'
+                    '<wsa:Action>/SomeAction</wsa:Action>'
+                '</senv:Header>'
+                '<senv:Body>'
+                    '<tns:someRequest>'
+                        '<tns:status>OK</tns:status>'
+                    '</tns:someRequest>'
+                '</senv:Body>'
+                '</senv:Envelope>'
+        ]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+
+        self.assertEquals(ctx.in_header[0], '/SomeAction')
+        self.assertEquals(ctx.in_header[1], 'SomeMessageID')
+        self.assertEquals(ctx.in_header[2], 'SomeRelatesToID')
+
+
+    def test_soap_input_header_order_and_missing(self):
+        """
+        Test that header ordering logic also works when an input header
+        element is missing.  Confirm that it returns None for the missing
+        parameter.
+        """
+        server = ServerBase(self.app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = [
+            '<senv:Envelope xmlns:tns="tns"'
+                'xmlns:wsa="http://www.w3.org/2005/08/addressing"'
+                'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
+                '<senv:Header>'
+                    '<wsa:MessageID>SomeMessageID</wsa:MessageID>'
+                    '<wsa:Action>/SomeAction</wsa:Action>'
+                '</senv:Header>'
+                '<senv:Body>'
+                    '<tns:someRequest>'
+                        '<tns:status>OK</tns:status>'
+                    '</tns:someRequest>'
+                '</senv:Body>'
+                '</senv:Envelope>'
+        ]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+
+        self.assertEquals(ctx.in_header[0], '/SomeAction')
+        self.assertEquals(ctx.in_header[1], 'SomeMessageID')
+        self.assertEquals(ctx.in_header[2], None)
+
 
 if __name__ == '__main__':
     unittest.main()
