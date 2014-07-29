@@ -219,7 +219,7 @@ class TestMultipleMethods(unittest.TestCase):
                 ctx.out_header.Elem1 = 'Test1'
 
         elt, nsmap = self.__run_service(SomeService)
-        query = '/senv:Envelope/senv:Header/tns:RespHeader/tns:Elem1/text()'
+        query = '/soap11env:Envelope/soap11env:Header/tns:RespHeader/tns:Elem1/text()'
         assert elt.xpath(query, namespaces=nsmap)[0] == 'Test1'
 
         # test header in decorator
@@ -230,7 +230,7 @@ class TestMultipleMethods(unittest.TestCase):
                 ctx.out_header.Elem1 = 'Test1'
 
         elt, nsmap = self.__run_service(SomeService)
-        query = '/senv:Envelope/senv:Header/tns:RespHeader/tns:Elem1/text()'
+        query = '/soap11env:Envelope/soap11env:Header/tns:RespHeader/tns:Elem1/text()'
         assert elt.xpath(query, namespaces=nsmap)[0] == 'Test1'
 
         # test no header
@@ -241,7 +241,7 @@ class TestMultipleMethods(unittest.TestCase):
                 ctx.out_header.Elem1 = 'Test1'
 
         elt, nsmap = self.__run_service(SomeService)
-        query = '/senv:Envelope/senv:Header/tns:RespHeader/tns:Elem1/text()'
+        query = '/soap11env:Envelope/soap11env:Header/tns:RespHeader/tns:Elem1/text()'
         assert len(elt.xpath(query, namespaces=nsmap)) == 0
 
 
@@ -278,12 +278,12 @@ class TestBodyStyle(unittest.TestCase):
                                    out_protocol=Soap11(cleanup_namespaces=True))
 
         req = """
-        <senv:Envelope  xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
+        <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
                         xmlns:tns="tns">
-            <senv:Body>
+            <soap11env:Body>
                 <tns:some_call>abc</tns:some_call>
-            </senv:Body>
-        </senv:Envelope>
+            </soap11env:Body>
+        </soap11env:Envelope>
         """
 
         server = WsgiApplication(app)
@@ -312,12 +312,12 @@ class TestBodyStyle(unittest.TestCase):
                                                 out_protocol=Soap11(cleanup_namespaces=True))
 
         req = """
-        <senv:Envelope  xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
+        <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
                         xmlns:tns="tns">
-            <senv:Body>
+            <soap11env:Body>
                 <tns:some_call/>
-            </senv:Body>
-        </senv:Envelope>
+            </soap11env:Body>
+        </soap11env:Envelope>
         """
 
         server = WsgiApplication(app)
@@ -363,12 +363,12 @@ class TestBodyStyle(unittest.TestCase):
                                 out_protocol=Soap11(cleanup_namespaces=True))
 
         req = """
-        <senv:Envelope  xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
+        <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
                         xmlns:tns="tns">
-            <senv:Body>
+            <soap11env:Body>
                 <tns:some_call/>
-            </senv:Body>
-        </senv:Envelope>
+            </soap11env:Body>
+        </soap11env:Envelope>
         """
 
         server = WsgiApplication(app)

@@ -48,7 +48,7 @@ from spyne.model.binary import ByteArray
 
 import spyne.const.xml_ns
 _ns_xop = spyne.const.xml_ns.xop
-_ns_soap_env = spyne.const.xml_ns.soap_env
+_ns_soap_env = spyne.const.xml_ns.soap11_env
 
 
 def _join_attachment(href_id, envelope, payload, prefix=True):

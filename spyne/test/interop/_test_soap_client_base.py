@@ -120,7 +120,7 @@ class SpyneClientTestBase(object):
             raise Exception("must fail")
 
         except Fault as e:
-            assert e.faultcode in ('senv:Client.SchemaValidationError', 'senv:Client.ValidationError')
+            assert e.faultcode in ('soap11env:Client.SchemaValidationError', 'soap11env:Client.ValidationError')
 
     def test_echo_in_header(self):
         in_header = self.client.factory.create('{spyne.test.interop.server}InHeader')

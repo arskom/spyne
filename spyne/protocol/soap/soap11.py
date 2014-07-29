@@ -67,14 +67,14 @@ def _from_soap(in_envelope_xml, xmlids=None):
     if xmlids:
         resolve_hrefs(in_envelope_xml, xmlids)
 
-    if in_envelope_xml.tag != '{%s}Envelope' % ns.soap_env:
+    if in_envelope_xml.tag != '{%s}Envelope' % ns.soap11_env:
         raise Fault('Client.SoapError', 'No {%s}Envelope element was found!' %
-                                                            ns.soap_env)
+                                                            ns.soap11_env)
 
     header_envelope = in_envelope_xml.xpath('e:Header',
-                                          namespaces={'e': ns.soap_env})
+                                          namespaces={'e': ns.soap11_env})
     body_envelope = in_envelope_xml.xpath('e:Body',
-                                          namespaces={'e': ns.soap_env})
+                                          namespaces={'e': ns.soap11_env})
 
     if len(header_envelope) == 0 and len(body_envelope) == 0:
         raise Fault('Client.SoapError', 'Soap envelope is empty!')
@@ -200,7 +200,7 @@ class Soap11(XmlDocument):
 
         ctx.in_document = envelope_xml
 
-        if body_document.tag == '{%s}Fault' % ns.soap_env:
+        if body_document.tag == '{%s}Fault' % ns.soap11_env:
             ctx.in_body_doc = body_document
 
         else:
@@ -221,7 +221,7 @@ class Soap11(XmlDocument):
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        if ctx.in_body_doc.tag == "{%s}Fault" % ns.soap_env:
+        if ctx.in_body_doc.tag == "{%s}Fault" % ns.soap11_env:
             ctx.in_object = None
             ctx.in_error = self.from_element(ctx, Fault, ctx.in_body_doc)
 
@@ -272,12 +272,12 @@ class Soap11(XmlDocument):
 
         # construct the soap response, and serialize it
         nsmap = self.app.interface.nsmap
-        ctx.out_document = etree.Element('{%s}Envelope' % ns.soap_env,
+        ctx.out_document = etree.Element('{%s}Envelope' % ns.soap11_env,
                                                                     nsmap=nsmap)
         if ctx.out_error is not None:
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
-                            '{%s}Body' % ns.soap_env, nsmap=nsmap)
+                            '{%s}Body' % ns.soap11_env, nsmap=nsmap)
             self.to_parent(ctx, ctx.out_error.__class__, ctx.out_error,
                                     out_body_doc, self.app.interface.get_tns())
 
@@ -292,7 +292,7 @@ class Soap11(XmlDocument):
 
             # body
             ctx.out_body_doc = out_body_doc = etree.Element(
-                                                    '{%s}Body' % ns.soap_env)
+                                                    '{%s}Body' % ns.soap11_env)
 
             # assign raw result to its wrapper, result_message
             if ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
@@ -334,7 +334,7 @@ class Soap11(XmlDocument):
             # header
             if ctx.out_header is not None and header_message_class is not None:
                 ctx.out_header_doc = soap_header_elt = etree.SubElement(
-                                ctx.out_document, '{%s}Header' % ns.soap_env)
+                                ctx.out_document, '{%s}Header' % ns.soap11_env)
 
                 if isinstance(ctx.out_header, (list, tuple)):
                     out_headers = ctx.out_header

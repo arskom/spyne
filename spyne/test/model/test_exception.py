@@ -54,7 +54,8 @@ class FaultTests(unittest.TestCase):
     def test_to_parent_wo_detail(self):
         from lxml.etree import Element
         import spyne.const.xml_ns
-        ns_soap_env = spyne.const.xml_ns.soap_env
+        ns_soap_env = spyne.const.xml_ns.soap11_env
+        soap_env = spyne.const.xml_ns.const_prefmap[spyne.const.xml_ns.soap11_env]
 
         element = Element('testing')
         fault = Fault()
@@ -64,7 +65,7 @@ class FaultTests(unittest.TestCase):
 
         (child,) = element.getchildren()
         self.assertEqual(child.tag, '{%s}Fault' % ns_soap_env)
-        self.assertEqual(child.find('faultcode').text, 'senv:Server')
+        self.assertEqual(child.find('faultcode').text, '%s:Server' % soap_env)
         self.assertEqual(child.find('faultstring').text, 'Fault')
         self.assertEqual(child.find('faultactor').text, '')
         self.failIf(child.findall('detail'))
@@ -85,11 +86,12 @@ class FaultTests(unittest.TestCase):
         from lxml.etree import Element
         from lxml.etree import SubElement
         import spyne.const.xml_ns
-        ns_soap_env = spyne.const.xml_ns.soap_env
-
+        ns_soap_env = spyne.const.xml_ns.soap11_env
+        soap_env = spyne.const.xml_ns.const_prefmap[spyne.const.xml_ns.soap11_env]
         element = Element('{%s}Fault' % ns_soap_env)
+
         fcode = SubElement(element, 'faultcode')
-        fcode.text = 'senv:other'
+        fcode.text = '%s:other' % soap_env
         fstr = SubElement(element, 'faultstring')
         fstr.text = 'Testing'
         actor = SubElement(element, 'faultactor')
@@ -97,7 +99,7 @@ class FaultTests(unittest.TestCase):
 
         fault = XmlDocument().from_element(None, Fault, element)
 
-        self.assertEqual(fault.faultcode, 'senv:other')
+        self.assertEqual(fault.faultcode, '%s:other' % soap_env)
         self.assertEqual(fault.faultstring, 'Testing')
         self.assertEqual(fault.faultactor, 'phreddy')
         self.assertEqual(fault.detail, None)
@@ -106,11 +108,11 @@ class FaultTests(unittest.TestCase):
         from lxml.etree import Element
         from lxml.etree import SubElement
         import spyne.const.xml_ns
-        ns_soap_env = spyne.const.xml_ns.soap_env
+        ns_soap_env = spyne.const.xml_ns.soap11_env
 
         element = Element('{%s}Fault' % ns_soap_env)
         fcode = SubElement(element, 'faultcode')
-        fcode.text = 'senv:other'
+        fcode.text = 'soap11env:other'
         fstr = SubElement(element, 'faultstring')
         fstr.text = 'Testing'
         actor = SubElement(element, 'faultactor')

@@ -22,18 +22,19 @@ subset of the Soap 1.2 standard.
 """
 
 import logging
+import warnings
 
 from lxml import etree
 from lxml.builder import E
+from spyne import Fault
 
 from spyne.protocol.soap.soap11 import Soap11
 from spyne.protocol.xml import _append
 from spyne.util.six import string_types
 from spyne.util.etreeconv import root_dict_to_etree
-from spyne.const.xml_ns import soap_env as _ns_soap_env
-from spyne.const.xml_ns import const_prefmap
+from spyne.const.xml_ns import soap12_env, const_prefmap
 
-_pref_soap_env = const_prefmap[_ns_soap_env]
+
 
 logger = logging.getLogger(__name__)
 logger_invalid = logging.getLogger(__name__ + ".invalid")
@@ -45,10 +46,14 @@ class Soap12(Soap11):
     The base implementation of a subset of the Soap 1.2 standard. The
     document is available here: http://www.w3.org/TR/soap12/
     """
+    mime_type = 'application/soap+xml; charset=utf-8'
+
+    soap_env = const_prefmap[soap12_env]
+    ns_soap_env = soap12_env
 
     def generate_subcode(self, value, subcode=None):
-        subcode_node = E("{%s}Subcode" % _pref_soap_env)
-        subcode_node.append(E("{%s}Value" % _pref_soap_env, value))
+        subcode_node = E("{%s}Subcode" % self.soap_env)
+        subcode_node.append(E("{%s}Value" % self.soap_env, value))
         if subcode:
             subcode_node.append(subcode)
         return subcode_node
@@ -78,18 +83,18 @@ class Soap12(Soap11):
         return '.'.join(faultcode)
 
     def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
-        tag_name = "{%s}Fault" % _ns_soap_env
+        tag_name = "{%s}Fault" % self.ns_soap_env
 
         subelts = [
-            E("{%s}Reason" % _pref_soap_env, inst.faultstring),
-            E("{%s}Role" % _pref_soap_env, inst.faultactor),
+            E("{%s}Reason" % self.soap_env, inst.faultstring),
+            E("{%s}Role" % self.soap_env, inst.faultactor),
         ]
 
         if isinstance(inst.faultcode, string_types):
             value, faultcodes  = self.upgrade_fault_codes(inst.faultcode)
 
-            code = E("{%s}Code" % _pref_soap_env)
-            code.append(E("{%s}Value" % _pref_soap_env, value))
+            code = E("{%s}Code" % self.soap_env)
+            code.append(E("{%s}Value" % self.soap_env, value))
 
             child_subcode = 0
             for value in faultcodes:
@@ -101,34 +106,33 @@ class Soap12(Soap11):
 
             _append(subelts, code)
 
-        if isinstance(inst.detail, string_types + (etree._Element,)):
-            _append(subelts, E('{%s}Detail' % _pref_soap_env, inst.detail))
+        if isinstance(inst.detail, string_types + (etree.Element,)):
+            _append(subelts, E('{%s}Detail' % self.soap_env, inst.detail))
 
         elif isinstance(inst.detail, dict):
-            _append(subelts, E('{%s}Detail' % _pref_soap_env, root_dict_to_etree(inst.detail)))
+            _append(subelts, E('{%s}Detail' % self.soap_env, root_dict_to_etree(inst.detail)))
 
         elif inst.detail is None:
             pass
         else:
             raise TypeError('Fault detail Must be dict, got', type(inst.detail))
 
-        # add other nonstandard fault subelements with get_members_etree
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
 
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
-        tag_name = "{%s}Fault" % _ns_soap_env
+        tag_name = "{%s}Fault" % self.ns_soap_env
 
         subelts = [
-            E("{%s}Reason" % _pref_soap_env, inst.faultstring),
-            E("{%s}Role" % _pref_soap_env, inst.faultactor),
+            E("{%s}Reason" % self.soap_env, inst.faultstring),
+            E("{%s}Role" % self.soap_env, inst.faultactor),
         ]
 
         if isinstance(inst.faultcode, string_types):
             value, faultcodes  = self.upgrade_fault_codes(inst.faultcode)
 
-            code = E("{%s}Code" % _pref_soap_env)
-            code.append(E("{%s}Value" % _pref_soap_env, value))
+            code = E("{%s}Code" % self.soap_env)
+            code.append(E("{%s}Value" % self.soap_env, value))
 
             child_subcode = 0
             for value in faultcodes:
@@ -140,27 +144,30 @@ class Soap12(Soap11):
 
             _append(subelts, code)
 
-        _append(subelts, E('{%s}Detail' % _pref_soap_env, inst.detail))
+        _append(subelts, E('{%s}Detail' % self.soap_env, inst.detail))
 
-        # add other nonstandard fault subelements with get_members_etree
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
 
     def fault_from_element(self, ctx, cls, element):
-        nsmap  = element.nsmap
+        if cls == Fault:
+            warnings.warn("""Using old Fault object is deprecated in Soap 1.2.\n
+                          Please use instead spyne.model.fault.Fault12""")
+            nsmap  = element.nsmap
 
-        code = self.generate_faultcode(element)
-        reason = element.find("soap:Reason/soap:Text", namespaces=nsmap).text.strip()
-        role = element.find("soap:Role", namespaces=nsmap)
-        faultactor = ''
-        if role:
-            faultactor += role.text
-        node = element.find("soap:Node", namespaces=nsmap)
-        if node:
-            faultactor += node.text
-        detail = element.find("soap:Detail", namespaces=nsmap)
+            code = self.generate_faultcode(element)
+            reason = element.find("soap:Reason/soap:Text", namespaces=nsmap).text.strip()
+            role = element.find("soap:Role", namespaces=nsmap)
+            faultactor = ''
+            if role:
+                faultactor += role.text
+            node = element.find("soap:Node", namespaces=nsmap)
+            if node:
+                faultactor += node.text
+            detail = element.find("soap:Detail", namespaces=nsmap)
 
-
-
-        return cls(faultcode=code, faultstring=reason,
-                   faultactor = faultactor, detail=detail)
+            return cls(faultcode=code, faultstring=reason,
+                       faultactor = faultactor, detail=detail)
+        else:
+            # TODO: add Fault12 errors
+            pass

@@ -92,3 +92,33 @@ class Fault(ComplexModelBase, Exception):
     @classmethod
     def to_string_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]
+
+
+
+
+@add_metaclass(ComplexModelMeta)
+class Fault12(ComplexModelBase, Exception):
+    """
+    """
+
+    __type_name__ = "Fault"
+
+    def __init__(self):
+        pass
+
+    def __len__(self):
+        return 1
+
+    def __str__(self):
+        return repr(self)
+
+    def __repr__(self):
+        return "Fault"
+
+    @staticmethod
+    def to_dict(cls, value):
+        pass
+
+    @classmethod
+    def to_string_iterable(cls, value):
+        pass

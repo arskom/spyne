@@ -55,9 +55,9 @@ from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import LIGHT_RED
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.xml_ns import xsi as _ns_xsi
-from spyne.const.xml_ns import soap_env as _ns_soap_env
+from spyne.const.xml_ns import soap11_env
 from spyne.const.xml_ns import const_prefmap, DEFAULT_NS
-_pref_soap_env = const_prefmap[_ns_soap_env]
+
 
 from spyne.model import ModelBase
 from spyne.model import Array
@@ -200,6 +200,9 @@ class XmlDocument(SubXmlBase):
 
     type = set(ProtocolBase.type)
     type.add('xml')
+
+    soap_env = const_prefmap[soap11_env]
+    ns_soap_env = soap11_env
 
     def __init__(self, app=None, validator=None, xml_declaration=True,
                 cleanup_namespaces=True, encoding=None, pretty_print=False,
@@ -740,10 +743,10 @@ class XmlDocument(SubXmlBase):
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [])
 
     def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
-        tag_name = "{%s}Fault" % _ns_soap_env
+        tag_name = "{%s}Fault" % self.ns_soap_env
 
         subelts = [
-            E("faultcode", '%s:%s' % (_pref_soap_env, inst.faultcode)),
+            E("faultcode", '%s:%s' % (self.soap_env, inst.faultcode)),
             E("faultstring", inst.faultstring),
             E("faultactor", inst.faultactor),
         ]
@@ -763,10 +766,10 @@ class XmlDocument(SubXmlBase):
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
-        tag_name = "{%s}Fault" % _ns_soap_env
+        tag_name = "{%s}Fault" % self.ns_soap_env
 
         subelts = [
-            E("faultcode", '%s:%s' % (_pref_soap_env, inst.faultcode)),
+            E("faultcode", '%s:%s' % (self.soap_env, inst.faultcode)),
             # HACK: Does anyone know a better way of injecting raw xml entities?
             E("faultstring", html.fromstring(inst.faultstring).text),
             E("faultactor", inst.faultactor),

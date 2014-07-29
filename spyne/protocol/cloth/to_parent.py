@@ -27,7 +27,7 @@ from inspect import isgenerator
 from lxml import etree, html
 from lxml.builder import E
 
-from spyne.const.xml_ns import xsi as NS_XSI, soap_env as NS_SOAP_ENV
+from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
     AnyHtml, ModelBase, ByteArray, XmlData
 from spyne.model.enum import EnumBase
