@@ -99,12 +99,17 @@ class Fault(ComplexModelBase, Exception):
 @add_metaclass(ComplexModelMeta)
 class Fault12(ComplexModelBase, Exception):
     """
+    The Fault object adheres to the
+    `SOAP 1.2 Fault definition <http://www.w3.org/TR/soap12-part1/#soapfault>`_,
     """
 
     __type_name__ = "Fault"
 
-    def __init__(self):
-        pass
+    def __init__(self, code="Receiver", reason="", node="", role="", detail=None):
+        self.code = code
+        self.reason = reason
+        self.node = node
+        self.detail = detail
 
     def __len__(self):
         return 1
@@ -113,12 +118,26 @@ class Fault12(ComplexModelBase, Exception):
         return repr(self)
 
     def __repr__(self):
-        return "Fault"
+        return "Fault(%s)" % self.code
 
     @staticmethod
     def to_dict(cls, value):
-        pass
+        if issubclass(cls, Fault12):
+            retval =  {
+                "code": value.faultcode,
+                "reason": value.faultstring,
+            }
+            if value.detail is not None:
+                retval["detail"] = value.detail
+            return retval
+
+        else:
+            return {
+                "code": str(cls),
+                "reason": cls.__class__.__name__,
+                "detail": str(value),
+            }
 
     @classmethod
     def to_string_iterable(cls, value):
-        pass
+        return [value.code, '\n\n', value.reason]

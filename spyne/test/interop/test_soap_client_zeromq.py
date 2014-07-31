@@ -22,7 +22,7 @@ import unittest
 from spyne.client.zeromq import ZeroMQClient
 
 from spyne.test.interop._test_soap_client_base import SpyneClientTestBase
-from spyne.test.interop.server.soap_http_basic import soap11_application
+from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
 
 
 class TestSpyneZmqClient(SpyneClientTestBase, unittest.TestCase):

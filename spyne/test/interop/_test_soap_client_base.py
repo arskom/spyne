@@ -48,12 +48,12 @@ def test_port_open(port):
 
 def run_server(server_type):
     if server_type == 'http':
-        from spyne.test.interop.server.soap_http_basic import main
-        from spyne.test.interop.server.soap_http_basic import port
+        from spyne.test.interop.server.soap11.soap_http_basic import main
+        from spyne.test.interop.server.soap11.soap_http_basic import port
 
     elif server_type == 'zeromq':
-        from spyne.test.interop.server.soap_zeromq import main
-        from spyne.test.interop.server.soap_zeromq import port
+        from spyne.test.interop.server.soap11.soap_zeromq import main
+        from spyne.test.interop.server.soap11.soap_zeromq import port
 
     else:
         raise ValueError(server_type)

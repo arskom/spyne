@@ -19,7 +19,7 @@
 
 import logging
 
-from spyne.test.interop.server.soap_http_basic import soap11_application
+from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
 
 from spyne.server.zeromq import ZeroMQServer
 

@@ -17,19 +17,33 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('spyne.wsgi')
+logger.setLevel(logging.DEBUG)
 
-from spyne.client.http import HttpClient
-from spyne.test.interop._test_soap_client_base import SpyneClientTestBase
-from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
+from spyne.test.interop.server.soap12.soap_http_basic import soap12_application
+from spyne.server.twisted import TwistedWebResource
 
-class TestSpyneHttpClient(SpyneClientTestBase, unittest.TestCase):
-    def setUp(self):
-        SpyneClientTestBase.setUp(self, 'http')
+host = '127.0.0.1'
+port = 9755
 
-        self.client = HttpClient('http://localhost:9754/', soap11_application)
-        self.ns = "spyne.test.interop.server"
+def main(argv):
+    from twisted.web.server import Site
+    from twisted.internet import reactor
+    from twisted.python import log
 
+    observer = log.PythonLoggingObserver('twisted')
+    log.startLoggingWithObserver(observer.emit, setStdout=False)
+
+    wr = TwistedWebResource(soap12_application)
+    site = Site(wr)
+
+    reactor.listenTCP(port, site)
+    logging.info("listening on: %s:%d" % (host,port))
+
+    return reactor.run()
 
 if __name__ == '__main__':
-    unittest.main()
+    import sys
+    sys.exit(main(sys.argv))

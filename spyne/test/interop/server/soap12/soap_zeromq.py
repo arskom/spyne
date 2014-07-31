@@ -17,19 +17,30 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
+import logging
 
-from spyne.client.http import HttpClient
-from spyne.test.interop._test_soap_client_base import SpyneClientTestBase
-from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
+from spyne.test.interop.server.soap12.soap_http_basic import soap12_application
 
-class TestSpyneHttpClient(SpyneClientTestBase, unittest.TestCase):
-    def setUp(self):
-        SpyneClientTestBase.setUp(self, 'http')
+from spyne.server.zeromq import ZeroMQServer
 
-        self.client = HttpClient('http://localhost:9754/', soap11_application)
-        self.ns = "spyne.test.interop.server"
+host = '127.0.0.1'
+port = 55555
 
+def main():
+    url = "tcp://%s:%d" % (host,port)
+
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
+    server = ZeroMQServer(soap12_application, url)
+    logging.info("************************")
+    logging.info("Use Ctrl+\\ to exit if Ctrl-C does not work.")
+    logging.info("See the 'I can't Ctrl-C my Python/Ruby application. Help!' "
+                 "question in http://www.zeromq.org/area:faq for more info.")
+    logging.info("listening on %r" % url)
+    logging.info("************************")
+
+    server.serve_forever()
 
 if __name__ == '__main__':
-    unittest.main()
+    main()

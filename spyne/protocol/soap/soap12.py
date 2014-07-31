@@ -27,6 +27,7 @@ import warnings
 from lxml import etree
 from lxml.builder import E
 from spyne import Fault
+from spyne.model.fault import Fault12
 
 from spyne.protocol.soap.soap11 import Soap11
 from spyne.protocol.xml import _append
@@ -58,7 +59,7 @@ class Soap12(Soap11):
             subcode_node.append(subcode)
         return subcode_node
 
-    def upgrade_fault_codes(self, faultstring):
+    def gen_fault_codes(self, faultstring):
         faultstrings = faultstring.split('.')
         value = faultstrings.pop(0)
 
@@ -83,91 +84,170 @@ class Soap12(Soap11):
         return '.'.join(faultcode)
 
     def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
-        tag_name = "{%s}Fault" % self.ns_soap_env
+        if isinstance(inst, Fault):
+            warnings.warn("""Using old Fault object is deprecated in Soap 1.2.\n
+                          Please use instead spyne.model.fault.Fault12""")
+            tag_name = "{%s}Fault" % self.ns_soap_env
 
-        subelts = [
-            E("{%s}Reason" % self.soap_env, inst.faultstring),
-            E("{%s}Role" % self.soap_env, inst.faultactor),
-        ]
+            subelts = [
+                E("{%s}Reason" % self.soap_env, inst.faultstring),
+                E("{%s}Role" % self.soap_env, inst.faultactor),
+            ]
 
-        if isinstance(inst.faultcode, string_types):
-            value, faultcodes  = self.upgrade_fault_codes(inst.faultcode)
+            if isinstance(inst.faultcode, string_types):
+                value, faultcodes  = self.gen_fault_codes(inst.faultcode)
 
-            code = E("{%s}Code" % self.soap_env)
-            code.append(E("{%s}Value" % self.soap_env, value))
+                code = E("{%s}Code" % self.soap_env)
+                code.append(E("{%s}Value" % self.soap_env, value))
 
-            child_subcode = 0
-            for value in faultcodes:
-                if child_subcode:
-                    child_subcode = self.generate_subcode(value, child_subcode)
-                else:
-                    child_subcode = self.generate_subcode(value)
-            code.append(child_subcode)
+                child_subcode = 0
+                for value in faultcodes:
+                    if child_subcode:
+                        child_subcode = self.generate_subcode(value, child_subcode)
+                    else:
+                        child_subcode = self.generate_subcode(value)
+                code.append(child_subcode)
 
-            _append(subelts, code)
+                _append(subelts, code)
 
-        if isinstance(inst.detail, string_types + (etree.Element,)):
-            _append(subelts, E('{%s}Detail' % self.soap_env, inst.detail))
+            if isinstance(inst.detail, dict):
+                _append(subelts, E('{%s}Detail' % self.soap_env, root_dict_to_etree(inst.detail)))
 
-        elif isinstance(inst.detail, dict):
-            _append(subelts, E('{%s}Detail' % self.soap_env, root_dict_to_etree(inst.detail)))
+            elif inst.detail is None:
+                raise TypeError('Fault detail Must be dict, got', type(inst.detail))
+            else:
+                raise TypeError('Fault detail Must be dict, got', type(inst.detail))
 
-        elif inst.detail is None:
-            pass
-        else:
-            raise TypeError('Fault detail Must be dict, got', type(inst.detail))
+            return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+        if isinstance(inst, Fault12):
+            tag_name = "{%s}Fault" % self.ns_soap_env
+
+            subelts = [
+                E("{%s}Reason" % self.soap_env, inst.reason),
+            ]
+
+            if inst.role:
+                subelts.append(E("{%s}Role" % self.soap_env, inst.role))
+
+            if inst.node:
+                subelts.append(E("{%s}Node" % self.soap_env, inst.node))
+
+            if isinstance(inst.faultcode, string_types):
+                value, faultcodes  = self.gen_fault_codes(inst.code)
+
+                code = E("{%s}Code" % self.soap_env)
+                code.append(E("{%s}Value" % self.soap_env, value))
+
+                child_subcode = 0
+                for value in faultcodes:
+                    if child_subcode:
+                        child_subcode = self.generate_subcode(value, child_subcode)
+                    else:
+                        child_subcode = self.generate_subcode(value)
+                code.append(child_subcode)
+
+                _append(subelts, code)
+
+            if isinstance(inst.detail, dict):
+                _append(subelts, E('{%s}Detail' % self.soap_env, root_dict_to_etree(inst.detail)))
+
+            elif inst.detail is None:
+                raise TypeError('Fault12 detail Must be dict, got', type(inst.detail))
+            else:
+                raise TypeError('Fault12 detail Must be dict, got', type(inst.detail))
+
+            return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+
 
 
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
-        tag_name = "{%s}Fault" % self.ns_soap_env
+        if isinstance(inst, Fault):
+            warnings.warn("""Using old Fault object is deprecated in Soap 1.2.\n
+                          Please use instead spyne.model.fault.Fault12""")
+            tag_name = "{%s}Fault" % self.ns_soap_env
 
-        subelts = [
-            E("{%s}Reason" % self.soap_env, inst.faultstring),
-            E("{%s}Role" % self.soap_env, inst.faultactor),
-        ]
+            subelts = [
+                E("{%s}Reason" % self.soap_env, inst.faultstring),
+                E("{%s}Role" % self.soap_env, inst.faultactor),
+            ]
 
-        if isinstance(inst.faultcode, string_types):
-            value, faultcodes  = self.upgrade_fault_codes(inst.faultcode)
+            if isinstance(inst.faultcode, string_types):
+                value, faultcodes  = self.gen_fault_codes(inst.faultcode)
 
-            code = E("{%s}Code" % self.soap_env)
-            code.append(E("{%s}Value" % self.soap_env, value))
+                code = E("{%s}Code" % self.soap_env)
+                code.append(E("{%s}Value" % self.soap_env, value))
 
-            child_subcode = 0
-            for value in faultcodes:
-                if child_subcode:
-                    child_subcode = self.generate_subcode(value, child_subcode)
-                else:
-                    child_subcode = self.generate_subcode(value)
-            code.append(child_subcode)
+                child_subcode = 0
+                for value in faultcodes:
+                    if child_subcode:
+                        child_subcode = self.generate_subcode(value, child_subcode)
+                    else:
+                        child_subcode = self.generate_subcode(value)
+                code.append(child_subcode)
 
-            _append(subelts, code)
+                _append(subelts, code)
 
-        _append(subelts, E('{%s}Detail' % self.soap_env, inst.detail))
+            _append(subelts, E('{%s}Detail' % self.soap_env, inst.detail))
 
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+            return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+        if isinstance(inst, Fault12):
+            warnings.warn("""Using old Fault object is deprecated in Soap 1.2.\n
+                          Please use instead spyne.model.fault.Fault12""")
+            tag_name = "{%s}Fault" % self.ns_soap_env
+
+            subelts = [
+                E("{%s}Reason" % self.soap_env, inst.reason),
+            ]
+
+            if inst.role:
+                subelts.append(E("{%s}Role" % self.soap_env, inst.role))
+
+            if inst.node:
+                subelts.append(E("{%s}Node" % self.soap_env, inst.node))
+
+            if isinstance(inst.faultcode, string_types):
+                value, faultcodes  = self.gen_fault_codes(inst.code)
+
+                code = E("{%s}Code" % self.soap_env)
+                code.append(E("{%s}Value" % self.soap_env, value))
+
+                child_subcode = 0
+                for value in faultcodes:
+                    if child_subcode:
+                        child_subcode = self.generate_subcode(value, child_subcode)
+                    else:
+                        child_subcode = self.generate_subcode(value)
+                code.append(child_subcode)
+
+                _append(subelts, code)
+
+            _append(subelts, E('{%s}Detail' % self.soap_env, inst.detail))
+
+            return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
 
     def fault_from_element(self, ctx, cls, element):
-        if cls == Fault:
+
+        nsmap  = element.nsmap
+
+        code = self.generate_faultcode(element)
+        reason = element.find("soap:Reason/soap:Text", namespaces=nsmap).text.strip()
+        role = element.find("soap:Role", namespaces=nsmap)
+        node = element.find("soap:Node", namespaces=nsmap)
+        detail = element.find("soap:Detail", namespaces=nsmap)
+        if cls == Fault or issubclass(cls, Fault):
             warnings.warn("""Using old Fault object is deprecated in Soap 1.2.\n
                           Please use instead spyne.model.fault.Fault12""")
-            nsmap  = element.nsmap
-
-            code = self.generate_faultcode(element)
-            reason = element.find("soap:Reason/soap:Text", namespaces=nsmap).text.strip()
-            role = element.find("soap:Role", namespaces=nsmap)
             faultactor = ''
             if role:
-                faultactor += role.text
-            node = element.find("soap:Node", namespaces=nsmap)
+                faultactor += role.text.strip()
             if node:
-                faultactor += node.text
-            detail = element.find("soap:Detail", namespaces=nsmap)
-
+                faultactor += node.text.strip()
             return cls(faultcode=code, faultstring=reason,
                        faultactor = faultactor, detail=detail)
-        else:
-            # TODO: add Fault12 errors
-            pass
+        elif cls == Fault12 or issubclass(cls, Fault12):
+            role_text = role.text.strip() if role else ''
+            node_text = node.text.strip() if node else ''
+            return cls(code=code, reason=reason,
+                       node=node_text, role=role_text, detail=detail)
