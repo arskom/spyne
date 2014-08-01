@@ -490,11 +490,6 @@ def _init_push(ret, request, p_ctx, others, resource):
 
 
 def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
-    if isinstance(ret, Deferred):
-        ret.addCallback(_cb_deferred, request, p_ctx, others, self)
-        ret.addErrback(_eb_deferred, request, p_ctx, others, self)
-        return NOT_DONE_YET
-
     resp_code = p_ctx.transport.resp_code
     # If user code set its own response code, don't touch it.
     if resp_code is None:
