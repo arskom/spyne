@@ -325,6 +325,7 @@ class ModelBase(object):
 
         return retval
 
+    # FIXME: Rename this to get_type_name_with_ns_pref
     @classmethod
     def get_type_name_ns(cls, interface):
         """Returns the type name with a namespace prefix, separated by a column.
