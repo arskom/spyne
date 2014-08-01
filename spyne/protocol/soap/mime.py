@@ -45,7 +45,7 @@ from email import message_from_string
 
 from spyne.model.binary import Attachment
 from spyne.model.binary import ByteArray
-from spyne.util.six.moves.urllib import unquote
+from spyne.util.six.moves.urllib.parse import unquote
 
 
 def _join_attachment(href_id, envelope, payload, prefix=True):
