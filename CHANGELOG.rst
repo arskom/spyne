@@ -2,6 +2,10 @@
 Changelog
 =========
 
+spyne-2.12.0
+------------
+* NullServer now supports async.
+
 spyne-2.11.0
 ------------
 * Experimental Python 3 Support for all of the Xml-related (non-Html)
