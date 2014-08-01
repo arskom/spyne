@@ -221,7 +221,7 @@ class Soap11(XmlDocument):
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        if ctx.in_body_doc.tag == "{%s}Fault" % nsval.soap_env:
+        if ctx.in_body_doc.tag == "{%s}Fault" % ns.soap_env:
             ctx.in_object = None
             ctx.in_error = self.from_element(ctx, Fault, ctx.in_body_doc)
 
