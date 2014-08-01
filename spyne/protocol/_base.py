@@ -871,9 +871,9 @@ def _datetime_to_string(cls, value):
     if not cls.Attributes.timezone:
         value = value.replace(tzinfo=None)
 
-    format = cls.Attributes.format
+    format = cls.Attributes.out_format
     if format is None:
-        format = cls.Attributes.out_format
+        format = cls.Attributes.format
 
     if format is None:
         ret_str = value.isoformat()
