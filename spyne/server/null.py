@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -76,7 +75,8 @@ class NullServer(ServerBase):
         return self.app.get_interface_document(self.url)
 
     def set_options(self, **kwargs):
-        self.service.in_header = kwargs.get('soapheaders', self.service.in_header)
+        self.service.in_header = kwargs.get('soapheaders',
+                                                         self.service.in_header)
 
 
 class _FunctionProxy(object):
@@ -114,7 +114,7 @@ class _FunctionCall(object):
 
         cnt = 0
         retval = None
-        logger.warning( "%s start request %s" % (_big_header, _big_footer)  )
+        logger.warning("%s start request %s" % (_big_header, _big_footer))
 
         for ctx in contexts:
             # this reconstruction is quite costly. I wonder whether it's a
@@ -125,7 +125,7 @@ class _FunctionCall(object):
             for i in range(len(args)):
                 ctx.in_object[i] = args[i]
 
-            for i,k in enumerate(_type_info.keys()):
+            for i, k in enumerate(_type_info.keys()):
                 val = kwargs.get(k, None)
                 if val is not None:
                     ctx.in_object[i] = val
@@ -141,12 +141,15 @@ class _FunctionCall(object):
 
             # do logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
             # to hide the following
-            logger.warning( "%s start context %s" % (_small_header, _small_footer) )
-            logger.warning( "%r.%r" % (ctx.service_class, ctx.descriptor.function) )
+            logger.warning("%s start context %s" % (_small_header,
+                                                                 _small_footer))
+            logger.warning("%r.%r" % (ctx.service_class,
+                                                       ctx.descriptor.function))
             try:
                 self.app.process_request(ctx)
             finally:
-                logger.warning( "%s  end context  %s" % (_small_header, _small_footer) )
+                logger.warning("%s  end context  %s" % (_small_header,
+                                                                 _small_footer))
 
             if ctx.out_error:
                 raise ctx.out_error
@@ -174,6 +177,6 @@ class _FunctionCall(object):
 
         p_ctx.close()
 
-        logger.warning( "%s  end request  %s" % (_big_header, _big_footer)  )
+        logger.warning("%s  end request  %s" % (_big_header, _big_footer))
 
         return retval
