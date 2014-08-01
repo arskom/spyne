@@ -414,7 +414,7 @@ class PGFileJson(PGObjectJson):
                             file.write(d)
 
                 elif value.handle is not None:
-                    value.path = uuid1().get_hex()
+                    value.path = uuid1().hex
                     fp = join(self.store, value.path)
                     if not abspath(fp).startswith(self.store):
                         raise ValidationError(value.path, "Path %r contains "
