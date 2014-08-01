@@ -18,14 +18,33 @@ your own fork of Spyne with travis-ci.org, which should come in handy even if
 you don't plan to be a long-time contributor to Spyne. Just sign in with your
 Github account and follow instructions.
 
-If you want to run the tests locally, just run: ::
+If you want to run the tests locally, first you have to install all dependencies
+(you want to use virtualenv for that). ::
+
+    pip install -r requirements/test_requirements.txt
+
+and after all dependencies are installed you can run tests like that. ::
 
     python setup.py test
 
-This call will install *every* possible dependency of Spyne in the current
-working directory, which takes care of most of the tedium of setting up a
-testing environment. The last thing you need to do is to make sure there is a
-live PostgreSQL instance, so that all of the db integration tests also work.
+The last thing you need to do is to make sure there is a live PostgreSQL
+instance, so that all of the db integration tests also work.
+
+If you want to simplify that and run test for every python interpreter then you
+can use tox. ::
+
+    tox
+
+Tox have py26, py27, py33, py34, pypy. There is also one distinction for Python 3
+environment will run all tests suite. If you want to check against only tests
+that are passing for Python 3 you have to run py33-travis and py34-travis. ::
+
+    tox -e py33-travis
+    tox -e py34-travis
+
+Or if you don't want use tox then. ::
+
+    python setup.py test_python3
 
 Spyne's generic test script does not run WS-I tests. Also see the related
 section below.
@@ -57,8 +76,8 @@ The interoperability servers require twisted.web.
 Python
 ------
 
-Python interop tests currently use Spyne's own clients and suds. The suds test
-is the first thing we check and try not to break.
+Python interop tests currently use Spyne's own clients and suds (specifically
+suds-jurko fork). The suds test is the first thing we check and try not to break.
 
 Ruby
 ----
