@@ -5,6 +5,7 @@ Changelog
 spyne-2.12.0
 ------------
 * NullServer now supports async.
+* XmlCloth was rewritten while less sleep-deprived.
 
 spyne-2.11.0
 ------------
