@@ -26,7 +26,7 @@ The name comes from the "null modem connection". Look it up.
 import logging
 logger = logging.getLogger(__name__)
 
-from spyne import MethodContext
+from spyne import MethodContext, BODY_STYLE_BARE
 
 from spyne.client import Factory
 from spyne.const.ansi_color import LIGHT_RED
@@ -129,6 +129,10 @@ class _FunctionCall(object):
                 val = kwargs.get(k, None)
                 if val is not None:
                     ctx.in_object[i] = val
+
+            if ctx.descriptor.body_style == BODY_STYLE_BARE:
+                ctx.in_object = ctx.descriptor.in_message \
+                                      .get_serialization_instance(ctx.in_object)
 
             if cnt == 0:
                 p_ctx = ctx
