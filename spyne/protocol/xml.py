@@ -788,7 +788,8 @@ class XmlDocument(SubXmlBase):
         _append(parent, E(_gen_tagname(ns, name), inst))
 
     def html_to_parent(self, ctx, cls, inst, parent, ns, name):
-        if isinstance(inst, str) or isinstance(inst, unicode):
+        if isinstance(inst, string_types):
+            print inst
             inst = html.fromstring(inst)
 
         _append(parent, E(_gen_tagname(ns, name), inst))
