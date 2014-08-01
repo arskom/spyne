@@ -100,7 +100,7 @@ def _render_file(file, request):
 
     try:
         fileForReading = file.openForReading()
-    except IOError, e:
+    except IOError as e:
         import errno
 
         if e[0] == errno.EACCES:
