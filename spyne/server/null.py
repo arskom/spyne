@@ -1,3 +1,4 @@
+
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -59,16 +60,16 @@ class NullServer(ServerBase):
 
     transport = 'noconn://null.spyne'
 
-    def __init__(self, app, ostr=False, locale='C', appinit=True, async=False):
+    def __init__(self, app, ostr=False, locale='C', appinit=True):
         self.do_appinit = appinit
 
         super(NullServer, self).__init__(app)
 
-        self.service = _FunctionProxy(self, self.app)
+        self.service = _FunctionProxy(self, self.app, async=False)
+        self.async = _FunctionProxy(self, self.app, async=True)
         self.factory = Factory(self.app)
         self.ostr = ostr
         self.locale = locale
-        self.async = async
         self.url = "http://spyne.io/null"
 
     def appinit(self):
@@ -84,14 +85,15 @@ class NullServer(ServerBase):
 
 
 class _FunctionProxy(object):
-    def __init__(self, server, app):
+    def __init__(self, server, app, async):
         self._app = app
         self._server = server
         self.in_header = None
+        self.async = async
 
     def __getattr__(self, key):
         return _FunctionCall(self._app, self._server, key, self.in_header,
-                  self._server.ostr, self._server.locale, self._server.async)
+                  self._server.ostr, self._server.locale, self.async)
 
     def __getitem__(self, key):
         return self.__getattr__(key)
