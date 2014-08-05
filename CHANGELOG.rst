@@ -6,6 +6,7 @@ spyne-2.12.0
 ------------
 * NullServer now supports async.
 * XmlCloth was rewritten while less sleep-deprived.
+* ProtocolBase now also implements serializing primitives to unicode.
 
 spyne-2.11.0
 ------------
