@@ -84,6 +84,7 @@ from spyne.model import Date
 from spyne.model import Duration
 from spyne.model import Boolean
 from spyne.model.binary import Attachment # DEPRECATED
+from spyne.model.enum import EnumBase
 from spyne.util import DefaultAttrDict, memoize_id, six
 
 from spyne.util.cdict import cdict
@@ -222,6 +223,7 @@ class ProtocolBase(object):
             DateTime: self.datetime_from_string,
             Duration: self.duration_from_string,
             ByteArray: self.byte_array_from_string,
+            EnumBase: self.enum_base_from_string,
             ModelBase: self.model_base_from_string,
             Attachment: self.attachment_from_string,
             XmlAttribute: self.xmlattribute_from_string,
@@ -588,6 +590,12 @@ class ProtocolBase(object):
                 return date(int(match.group('year')), int(match.group('month')), int(match.group('day')))
             else:
                 raise ValidationError(string)
+
+    def enum_base_from_string(self, cls, value):
+        if self.validator is self.SOFT_VALIDATION and not (
+                                        cls.validate_string(cls, value)):
+            raise ValidationError(value)
+        return getattr(cls, value)
 
     def model_base_from_string(self, cls, value):
         return cls.from_string(value)

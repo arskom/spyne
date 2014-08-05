@@ -803,6 +803,24 @@ class XmlDocument(SubXmlBase):
     def complex_from_element(self, ctx, cls, elt):
         inst = cls.get_deserialization_instance()
 
+        # if present, use the xsi:type="ns0:ObjectName"
+        # attribute to instantiate subclass objects
+        xsi_type = elt.get('{%s}type' % _ns_xsi)
+        if xsi_type:
+            orig_inst = inst
+            orig_cls = cls
+            try:
+                prefix, objtype = xsi_type.split(':')
+                classkey = xsi_type.replace("%s:" % prefix,
+                                            "{%s}" % elt.nsmap[prefix])
+                newclass = ctx.app.interface.classes[classkey]
+                inst = newclass()
+                cls = newclass
+            except:
+                # bail out and revert to original instance and class
+                inst = orig_inst
+                cls = orig_cls
+
         flat_type_info = cls.get_flat_type_info(cls)
 
         # this is for validating cls.Attributes.{min,max}_occurs
