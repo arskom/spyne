@@ -806,20 +806,22 @@ class XmlDocument(SubXmlBase):
         # if present, use the xsi:type="ns0:ObjectName"
         # attribute to instantiate subclass objects
         xsi_type = elt.get('{%s}type' % _ns_xsi)
-        if xsi_type:
-            orig_inst = inst
-            orig_cls = cls
+        if xsi_type is not None:
             try:
                 prefix, objtype = xsi_type.split(':')
                 classkey = xsi_type.replace("%s:" % prefix,
                                             "{%s}" % elt.nsmap[prefix])
-                newclass = ctx.app.interface.classes[classkey]
-                inst = newclass()
-                cls = newclass
+
+                newclass = ctx.app.interface.classes.get(classkey, None)
+                if newclass is not None:
+                    inst = newclass.get_deserialization_instance()
+                    cls = newclass
+                    logger.debug("xsi:type overrides %r to %r", cls, newclass)
             except:
                 # bail out and revert to original instance and class
                 inst = orig_inst
                 cls = orig_cls
+                logger.debug("xsi:type %r not found", xsi_type)
 
         flat_type_info = cls.get_flat_type_info(cls)
 
