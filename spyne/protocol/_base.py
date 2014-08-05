@@ -183,11 +183,17 @@ class ProtocolBase(object):
             Uuid: self.uuid_to_string,
             Null: self.null_to_string,
             Double: self.double_to_string,
+            AnyXml: self.any_xml_to_unicode,
+            Unicode: self.unicode_to_unicode,
             Boolean: self.boolean_to_string,
             Decimal: self.decimal_to_string,
             Integer: self.integer_to_string,
+            AnyHtml: self.any_html_to_unicode,
+            # FIXME: Would we need a to_unicode for localized dates?
             DateTime: self.datetime_to_string,
             Duration: self.duration_to_string,
+            ByteArray: self.byte_array_to_unicode,
+            XmlAttribute: self.xmlattribute_to_unicode,
             ComplexModelBase: self.complex_model_base_to_string,
         })
 
@@ -417,6 +423,9 @@ class ProtocolBase(object):
     def any_xml_to_string(self, cls, value):
         return etree.tostring(value)
 
+    def any_xml_to_unicode(self, cls, value):
+        return etree.tostring(value, encoding='unicode')
+
     def any_xml_from_string(self, cls, string):
         try:
             return etree.fromstring(string)
@@ -425,6 +434,9 @@ class ProtocolBase(object):
 
     def any_html_to_string(self, cls, value):
         return html.tostring(value)
+
+    def any_html_to_unicode(self, cls, value):
+        return html.tostring(value, encoding='unicode')
 
     def any_html_from_string(self, cls, string):
         try:
@@ -446,6 +458,17 @@ class ProtocolBase(object):
         if cls.Attributes.encoding is not None and \
                                                isinstance(value, six.text_type):
             retval = value.encode(cls.Attributes.encoding)
+        if cls.Attributes.format is None:
+            return retval
+        else:
+            return cls.Attributes.format % retval
+
+    def unicode_to_unicode(self, cls, value):
+        retval = value
+        if cls.Attributes.encoding is not None and \
+                                           isinstance(value, six.binary_type):
+            retval = value.decode(cls.Attributes.encoding)
+
         if cls.Attributes.format is None:
             return retval
         else:
@@ -704,6 +727,15 @@ class ProtocolBase(object):
             encoding = suggested_encoding
         return binary_encoding_handlers[encoding](value)
 
+    def byte_array_to_unicode(self, cls, value, suggested_encoding=None):
+        encoding = cls.Attributes.encoding
+        if encoding is BINARY_ENCODING_USE_DEFAULT:
+            encoding = suggested_encoding
+        if encoding is None:
+            raise ValueError("Arbitrary binary data can't be serialized to "
+                             "unicode")
+        return binary_encoding_handlers[encoding](value)
+
     def byte_array_to_string_iterable(self, cls, value):
         return value
 
@@ -823,6 +855,9 @@ class ProtocolBase(object):
 
     def xmlattribute_to_string(self, cls, string):
         return self.to_string(cls.type, string)
+
+    def xmlattribute_to_unicode(self, cls, string):
+        return self.to_unicode(cls.type, string)
 
     def xmlattribute_from_string(self, cls, value):
         return self.from_string(cls.type, value)
