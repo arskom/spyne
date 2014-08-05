@@ -108,7 +108,7 @@ class HtmlTableBase(HtmlBase):
                             "field_name_attr should be != 'class'")
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
-        parent.write(self.to_string(cls, inst))
+        parent.write(self.to_unicode(cls, inst))
 
     def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         pass
@@ -137,13 +137,13 @@ class HtmlColumnTable(HtmlTableBase):
             #    td_attrs[self.field_name_attr] = name
             parent.write(E.tr(
                 E.td(
-                    self.to_string(cls, inst),
+                    self.to_unicode(cls, inst),
                     **td_attrs
                 )
             ))
 
         else:
-            parent.write(self.to_string(cls, inst))
+            parent.write(self.to_unicode(cls, inst))
 
     @coroutine
     def _gen_row(self, ctx, cls, inst, parent, name, **kwargs):
@@ -296,9 +296,9 @@ class HtmlRowTable(HtmlTableBase):
             if False and self.field_name_attr:
                 td_attrs[self.field_name_attr] = name
 
-            parent.write(E.tr(E.td(self.to_string(cls, inst), **td_attrs)))
+            parent.write(E.tr(E.td(self.to_unicode(cls, inst), **td_attrs)))
         else:
-            parent.write(self.to_string(cls, inst))
+            parent.write(self.to_unicode(cls, inst))
 
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name,
