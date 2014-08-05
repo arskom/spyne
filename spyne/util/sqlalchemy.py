@@ -847,7 +847,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
     child_left_col_name = p.left
 
     # get right(data) column info
-    child_right_col_type = get_sqlalchemy_type(child_cust).__class__
+    child_right_col_type = get_sqlalchemy_type(child_cust)
     child_right_col_name = p.right  # this is the data column
     if child_right_col_name is None:
         child_right_col_name = k
@@ -861,9 +861,9 @@ def _gen_array_simple(cls, props, k, child_cust, p):
         child_t = metadata.tables[child_table_name]
 
         # if we have the table, make sure have the right column (data column)
-        assert child_right_col_type is \
+        assert child_right_col_type.__class__ is \
                child_t.c[child_right_col_name].type.__class__, "%s.%s: %r != %r" % \
-                   (cls, child_right_col_name, child_right_col_type,
+                   (cls, child_right_col_name, child_right_col_type.__class__,
                                child_t.c[child_right_col_name].type.__class__)
 
         if child_left_col_name in child_t.c:
