@@ -176,6 +176,9 @@ class ProtocolBase(object):
             ComplexModelBase: self.complex_model_base_to_string,
         })
 
+        self._to_unicode_handlers = cdict({
+        })
+
         self._to_string_iterable_handlers = cdict({
             File: self.file_to_string_iterable,
             ByteArray: self.byte_array_to_string_iterable,
@@ -368,6 +371,13 @@ class ProtocolBase(object):
             return None
 
         handler = self._to_string_handlers[class_]
+        return handler(class_, value, *args, **kwargs)
+
+    def to_unicode(self, class_, value, *args, **kwargs):
+        if value is None:
+            return None
+
+        handler = self._to_unicode_handlers[class_]
         return handler(class_, value, *args, **kwargs)
 
     def to_string_iterable(self, class_, value):
