@@ -2,6 +2,12 @@
 Changelog
 =========
 
+
+spyne-2.12.0
+------------
+* Add stub implementation for SOAP 1.2
+* Add initial implementation for SOAP 1.2 Faults.
+
 spyne-2.11.0
 ------------
 * Experimental Python 3 Support for all of the Xml-related (non-Html)
