@@ -178,6 +178,16 @@ class ProtocolBase(object):
 
         self._to_unicode_handlers = cdict({
             ModelBase: self.model_base_to_unicode,
+            Time: self.time_to_string,
+            Uuid: self.uuid_to_string,
+            Null: self.null_to_string,
+            Double: self.double_to_string,
+            Boolean: self.boolean_to_string,
+            Decimal: self.decimal_to_string,
+            Integer: self.integer_to_string,
+            DateTime: self.datetime_to_string,
+            Duration: self.duration_to_string,
+            ComplexModelBase: self.complex_model_base_to_string,
         })
 
         self._to_string_iterable_handlers = cdict({
