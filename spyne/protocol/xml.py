@@ -217,6 +217,7 @@ class XmlDocument(SubXmlBase):
                 huge_tree=False,
                 compact=True,
                 binary_encoding=None,
+                parse_xsi_type=True,
             ):
         super(XmlDocument, self).__init__(app, validator,
                                                 binary_encoding=binary_encoding)
@@ -229,6 +230,7 @@ class XmlDocument(SubXmlBase):
             self.encoding = encoding
 
         self.pretty_print = pretty_print
+        self.parse_xsi_type = parse_xsi_type
 
         self.serialization_handlers = cdict({
             AnyXml: self.xml_to_parent,
@@ -372,6 +374,21 @@ class XmlDocument(SubXmlBase):
                                                         cls.Attributes.nillable:
                 raise ValidationError('')
             return cls.Attributes.default
+
+        # if present, use the xsi:type="ns0:ObjectName"
+        # attribute to instantiate subclass objects
+        if self.parse_xsi_type:
+            xsi_type = element.get('{%s}type' % _ns_xsi, None)
+            if xsi_type is not None:
+                prefix, objtype = xsi_type.split(':', 1)
+                classkey = "{%s}%s" % (element.nsmap[prefix], objtype)
+
+                newclass = ctx.app.interface.classes.get(classkey, None)
+                if newclass is None:
+                    raise ValidationError("Unknown type %r", classkey)
+
+                cls = newclass
+                logger.debug("xsi:type overrides %r to %r", cls, newclass)
 
         handler = self.deserialization_handlers[cls]
         return handler(ctx, cls, element)
@@ -802,26 +819,6 @@ class XmlDocument(SubXmlBase):
 
     def complex_from_element(self, ctx, cls, elt):
         inst = cls.get_deserialization_instance()
-
-        # if present, use the xsi:type="ns0:ObjectName"
-        # attribute to instantiate subclass objects
-        xsi_type = elt.get('{%s}type' % _ns_xsi)
-        if xsi_type is not None:
-            try:
-                prefix, objtype = xsi_type.split(':')
-                classkey = xsi_type.replace("%s:" % prefix,
-                                            "{%s}" % elt.nsmap[prefix])
-
-                newclass = ctx.app.interface.classes.get(classkey, None)
-                if newclass is not None:
-                    inst = newclass.get_deserialization_instance()
-                    cls = newclass
-                    logger.debug("xsi:type overrides %r to %r", cls, newclass)
-            except:
-                # bail out and revert to original instance and class
-                inst = orig_inst
-                cls = orig_cls
-                logger.debug("xsi:type %r not found", xsi_type)
 
         flat_type_info = cls.get_flat_type_info(cls)
 
