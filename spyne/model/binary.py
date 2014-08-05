@@ -167,6 +167,9 @@ class HybridFileStore(object):
         assert isdir(self.store)
 
 
+_BINARY = type('FileTypeBinary', (object,), {})
+_TEXT = type('FileTypeText', (object,), {})
+
 class File(SimpleModel):
     """A compact way of dealing with incoming files for protocols with a
     standard way of encoding file metadata along with binary data. (E.g. Http)
@@ -175,12 +178,23 @@ class File(SimpleModel):
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
+    BINARY = _BINARY
+    TEXT = _BINARY
+
     class Attributes(SimpleModel.Attributes):
         encoding = BINARY_ENCODING_USE_DEFAULT
         """The binary encoding to use when the protocol does not enforce an
         encoding for binary data.
 
         One of (None, 'base64', 'hex')
+        """
+
+        type = _BINARY
+        """Set this to type=File.TEXT if you're sure you're handling unicode
+        data. This lets serializers like HtmlCloth avoid base64 encoding. Do
+        note that you still need to set encoding attribute explicitly!..
+
+        One of (File.BINARY, File.TEXT)
         """
 
     class Value(ComplexModel):

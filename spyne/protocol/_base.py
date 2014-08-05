@@ -178,6 +178,7 @@ class ProtocolBase(object):
 
         self._to_unicode_handlers = cdict({
             ModelBase: self.model_base_to_unicode,
+            File: self.file_to_unicode,
             Time: self.time_to_string,
             Uuid: self.uuid_to_string,
             Null: self.null_to_string,
@@ -738,6 +739,23 @@ class ProtocolBase(object):
 
         else:
             return binary_encoding_handlers[encoding](value)
+
+    def file_to_unicode(self, cls, value, suggested_encoding=None):
+        """
+        :param cls: A :class:`spyne.model.File` subclass
+        :param value: Either a sequence of byte chunks or a
+            :class:`spyne.model.File.Value` instance.
+        """
+
+        encoding = cls.Attributes.encoding
+        if encoding is BINARY_ENCODING_USE_DEFAULT:
+            encoding = suggested_encoding
+
+        if encoding is None and cls.Attributes.type is File.BINARY:
+            raise ValueError("Arbitrary binary data can't be serialized to "
+                             "unicode.")
+
+        return self.file_to_string(cls, value, suggested_encoding)
 
     def file_to_string_iterable(self, cls, value):
         if value.data is not None:
