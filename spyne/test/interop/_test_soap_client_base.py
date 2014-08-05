@@ -55,6 +55,10 @@ def run_server(server_type):
         from spyne.test.interop.server.soap_zeromq import main
         from spyne.test.interop.server.soap_zeromq import port
 
+    elif server_type == 'msgpack_rpc_http':
+        from spyne.test.interop.server.msgpackrpc_http_basic import main
+        from spyne.test.interop.server.msgpackrpc_http_basic import port
+
     else:
         raise ValueError(server_type)
 
@@ -120,7 +124,7 @@ class SpyneClientTestBase(object):
             raise Exception("must fail")
 
         except Fault as e:
-            assert e.faultcode in ('senv:Client.SchemaValidationError', 'senv:Client.ValidationError')
+            assert 'ValidationError' in e.faultcode
 
     def test_echo_in_header(self):
         in_header = self.client.factory.create('{spyne.test.interop.server}InHeader')
