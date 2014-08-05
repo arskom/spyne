@@ -290,7 +290,7 @@ class MethodContext(object):
 
     def __setattr__(self, k, v):
         if not self.frozen or k in self.__dict__ or k in \
-                                                ('descriptor', 'out_protocol'):
+                                                 ('descriptor', 'out_protocol'):
             object.__setattr__(self, k, v)
         else:
             raise ValueError("use the udc member for storing arbitrary data "
@@ -553,8 +553,8 @@ class EventManager(object):
 
 
 class FakeContext(object):
-    def __init__(self, app=None, descriptor=None, out_object=None, out_error=None,
-                                             out_document=None, out_string=None):
+    def __init__(self, app=None, descriptor=None, out_object=None,
+                            out_error=None, out_document=None, out_string=None):
         self.app = app
         self.descriptor = descriptor
         self.out_error = out_error

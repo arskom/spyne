@@ -405,7 +405,13 @@ class ProtocolBase(object):
         return html.tostring(value)
 
     def any_html_from_string(self, cls, string):
-        return html.fromstring(string)
+        try:
+            return html.fromstring(string)
+        except etree.ParserError as e:
+            if e.args[0] == "Document is empty":
+                pass
+            else:
+                raise
 
     def uuid_to_string(self, cls, value):
         return _uuid_serialize[cls.Attributes.serialize_as](value)
@@ -805,16 +811,13 @@ class ProtocolBase(object):
 
 _uuid_serialize = {
     None: str,
-    'hex': lambda u:u.hex,
-    'urn': lambda u:u.urn,
-    'bytes': lambda u:u.bytes,
-    'bytes_le': lambda u:u.bytes_le,
-    'fields': lambda u:u.fields,
-    'int': lambda u:u.int,
+    'hex': lambda u: u.hex,
+    'urn': lambda u: u.urn,
+    'bytes': lambda u: u.bytes,
+    'bytes_le': lambda u: u.bytes_le,
+    'fields': lambda u: u.fields,
+    'int': lambda u: u.int,
 }
-
-if six.PY3:
-    long = int
 
 _uuid_deserialize = {
     None: lambda s: uuid.UUID(s),
@@ -823,11 +826,14 @@ _uuid_deserialize = {
     'bytes': lambda s: uuid.UUID(bytes=s),
     'bytes_le': lambda s: uuid.UUID(bytes_le=s),
     'fields': lambda s: uuid.UUID(fields=s),
-    'int': lambda s: _uuid_deserialize[('int', type(s))](s),
+    'int': lambda s: uuid.UUID(int=s),
     ('int', int): lambda s: uuid.UUID(int=s),
-    ('int', long): lambda s: uuid.UUID(int=s),
     ('int', str): lambda s: uuid.UUID(int=int(s)),
 }
+
+if six.PY2:
+    _uuid_deserialize[('int', long)] = _uuid_deserialize[('int', int)]
+
 
 
 if hasattr(timedelta, 'total_seconds'):
@@ -843,7 +849,7 @@ def _parse_datetime_iso_match(date_match, tz=None):
     fields = date_match.groupdict()
 
     year = int(fields.get('year'))
-    month =  int(fields.get('month'))
+    month = int(fields.get('month'))
     day = int(fields.get('day'))
     hour = int(fields.get('hr'))
     min = int(fields.get('min'))
@@ -865,7 +871,10 @@ def _datetime_to_string(cls, value):
     if not cls.Attributes.timezone:
         value = value.replace(tzinfo=None)
 
-    format = cls.Attributes.format
+    format = cls.Attributes.out_format
+    if format is None:
+        format = cls.Attributes.format
+
     if format is None:
         ret_str = value.isoformat()
     else:

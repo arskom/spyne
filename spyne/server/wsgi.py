@@ -30,10 +30,7 @@ import cgi
 import threading
 import itertools
 
-try:
-    from urllib.parse import unquote
-except ImportError: # Python 2
-    from urlparse import unquote
+from spyne.util.six.moves.urllib.parse import unquote
 
 try:
     from werkzeug.formparser import parse_form_data

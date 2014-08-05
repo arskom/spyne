@@ -47,9 +47,14 @@ class ServerBase(object):
 
     def __init__(self, app):
         self.app = app
-        self.app.transport = self.transport
+        self.app.transport = self.transport  # FIXME: this is weird
+        self.appinit()
+
         self.event_manager = EventManager(self)
         self.doc = AllYourInterfaceDocuments(app.interface)
+
+    def appinit(self):
+        self.app.reinitialize(self)
 
     def generate_contexts(self, ctx, in_string_charset=None):
         """Calls create_in_document and decompose_incoming_envelope to get

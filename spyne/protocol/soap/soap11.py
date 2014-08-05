@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.protoco.soap.soap11`` module contains the implementation of a
+"""The ``spyne.protocol.soap.soap11`` module contains the implementation of a
 subset of the Soap 1.1 standard.
 
 Except the binary optimizations (MtoM, attachments, etc) that mostly
@@ -238,12 +238,16 @@ class Soap11(XmlDocument):
             #  header elements are returned in header_class order which need not match the incoming XML
             if (ctx.in_header_doc is not None and header_class is not None):
                 headers = [None] * len(header_class)
-                in_header_dict = dict( [(element.tag, element) for element in ctx.in_header_doc])
+                in_header_dict = dict( [(element.tag, element)
+                                              for element in ctx.in_header_doc])
                 for i, head_class in enumerate(header_class):
                     if i < len(header_class):
-                        header_doc = in_header_dict.get("{%s}%s" % (head_class.__namespace__, head_class.__type_name__), None)
+                        nsval = "{%s}%s" % (head_class.__namespace__,
+                                                       head_class.__type_name__)
+                        header_doc = in_header_dict.get(nsval, None)
                         if header_doc is not None:
-                            headers[i] = self.from_element(ctx, head_class, header_doc)
+                            headers[i] = self.from_element(ctx, head_class,
+                                                                     header_doc)
 
                 if len(headers) == 1:
                     ctx.in_header = headers[0]

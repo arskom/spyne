@@ -668,6 +668,13 @@ class DateTime(SimpleModel):
         Ignored by protocols like SOAP which have their own ideas about how
         DateTime objects should be serialized."""
 
+        out_format = None
+        """DateTime format fed to the ``strftime`` function only when
+        serializing. See:
+        http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior
+        Ignored by protocols like SOAP which have their own ideas about how
+        DateTime objects should be serialized."""
+
         string_format = None
         """A regular python string formatting string. %s will contain the date
         string. See here for more info:

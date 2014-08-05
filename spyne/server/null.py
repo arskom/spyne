@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -23,10 +22,12 @@ objects.
 The name comes from the "null modem connection". Look it up.
 """
 
+from __future__ import absolute_import
+
 import logging
 logger = logging.getLogger(__name__)
 
-from spyne import MethodContext
+from spyne import MethodContext, BODY_STYLE_BARE, ComplexModelBase
 
 from spyne.client import Factory
 from spyne.const.ansi_color import LIGHT_RED
@@ -58,59 +59,71 @@ class NullServer(ServerBase):
 
     transport = 'noconn://null.spyne'
 
-    def __init__(self, app, ostr=False, locale='C'):
+    def __init__(self, app, ostr=False, locale='C', appinit=True, async=False):
+        self.do_appinit = appinit
+
         super(NullServer, self).__init__(app)
 
         self.service = _FunctionProxy(self, self.app)
         self.factory = Factory(self.app)
         self.ostr = ostr
         self.locale = locale
+        self.async = async
+        self.url = "http://spyne.io/null"
+
+    def appinit(self):
+        if self.do_appinit:
+            super(NullServer, self).appinit()
 
     def get_wsdl(self):
         return self.app.get_interface_document(self.url)
 
     def set_options(self, **kwargs):
-        self.service.in_header = kwargs.get('soapheaders', self.service.in_header)
+        self.service.in_header = kwargs.get('soapheaders',
+                                                         self.service.in_header)
 
 
 class _FunctionProxy(object):
     def __init__(self, server, app):
-        self.__app = app
-        self.__server = server
+        self._app = app
+        self._server = server
         self.in_header = None
 
     def __getattr__(self, key):
-        return _FunctionCall(self.__app, self.__server, key, self.in_header,
-                                       self.__server.ostr, self.__server.locale)
+        return _FunctionCall(self._app, self._server, key, self.in_header,
+                  self._server.ostr, self._server.locale, self._server.async)
 
     def __getitem__(self, key):
         return self.__getattr__(key)
 
 
 class _FunctionCall(object):
-    def __init__(self, app, server, key, in_header, ostr, locale):
+    def __init__(self, app, server, key, in_header, ostr, locale, async):
         self.app = app
 
-        self.__key = key
-        self.__server = server
-        self.__in_header = in_header
-        self.__ostr = ostr
-        self.__locale = locale
+        self._key = key
+        self._server = server
+        self._in_header = in_header
+        self._ostr = ostr
+        self._locale = locale
+        self._async = async
 
     def __call__(self, *args, **kwargs):
         initial_ctx = MethodContext(self)
-        initial_ctx.method_request_string = self.__key
-        initial_ctx.in_header = self.__in_header
+        initial_ctx.method_request_string = self._key
+        initial_ctx.in_header = self._in_header
         initial_ctx.transport.type = NullServer.transport
-        initial_ctx.locale = self.__locale
+        initial_ctx.locale = self._locale
 
         contexts = self.app.in_protocol.generate_method_contexts(initial_ctx)
 
-        cnt = 0
         retval = None
-        logger.warning( "%s start request %s" % (_big_header, _big_footer)  )
+        logger.warning("%s start request %s" % (_big_header, _big_footer))
 
-        for ctx in contexts:
+        if self._async:
+            from twisted.internet.defer import Deferred
+
+        for cnt, ctx in enumerate(contexts):
             # this reconstruction is quite costly. I wonder whether it's a
             # problem though.
 
@@ -119,10 +132,14 @@ class _FunctionCall(object):
             for i in range(len(args)):
                 ctx.in_object[i] = args[i]
 
-            for i,k in enumerate(_type_info.keys()):
+            for i, k in enumerate(_type_info.keys()):
                 val = kwargs.get(k, None)
                 if val is not None:
                     ctx.in_object[i] = val
+
+            if ctx.descriptor.body_style == BODY_STYLE_BARE:
+                ctx.in_object = ctx.descriptor.in_message \
+                                      .get_serialization_instance(ctx.in_object)
 
             if cnt == 0:
                 p_ctx = ctx
@@ -131,39 +148,70 @@ class _FunctionCall(object):
 
             # do logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
             # to hide the following
-            logger.warning( "%s start context %s" % (_small_header, _small_footer) )
-            logger.warning( "%r.%r" % (ctx.service_class, ctx.descriptor.function) )
+            logger.warning("%s start context %s" % (_small_header,
+                                                                 _small_footer))
+            logger.warning("%r.%r" % (ctx.service_class,
+                                                       ctx.descriptor.function))
             try:
                 self.app.process_request(ctx)
             finally:
-                logger.warning( "%s  end context  %s" % (_small_header, _small_footer) )
-
-            if ctx.out_error:
-                raise ctx.out_error
-
-            else:
-                if len(ctx.descriptor.out_message._type_info) == 0:
-                    _retval = None
-
-                elif len(ctx.descriptor.out_message._type_info) == 1:
-                    _retval = ctx.out_object[0]
-
-                else:
-                    _retval = ctx.out_object
-
-                if cnt == 0 and self.__ostr:
-                    self.__server.get_out_string(ctx)
-                    _retval = ctx.out_string
+                logger.warning("%s  end context  %s" % (_small_header,
+                                                                 _small_footer))
 
             if cnt == 0:
-                retval = _retval
-            else:
-                ctx.close()
+                if self._async and isinstance(ctx.out_object[0], Deferred):
+                    retval = ctx.out_object[0]
+                    retval.addCallback(_cb_async, ctx, cnt, self)
 
-            cnt += 1
+                else:
+                    retval = _cb_sync(ctx, cnt, self)
 
-        p_ctx.close()
+        if not self._async:
+            p_ctx.close()
 
-        logger.warning( "%s  end request  %s" % (_big_header, _big_footer)  )
+        logger.warning("%s  end request  %s" % (_big_header, _big_footer))
 
         return retval
+
+
+def _cb_async(ret, ctx, cnt, fc):
+    if issubclass(ctx.descriptor.out_message, ComplexModelBase):
+        if len(ctx.descriptor.out_message._type_info) == 0:
+            ctx.out_object = [None]
+
+        elif len(ctx.descriptor.out_message._type_info) == 1:
+            ctx.out_object = [ret]
+
+        else:
+            ctx.out_object = ret
+
+    else:
+        ctx.out_object = [ret]
+
+    return _cb_sync(ctx, cnt, fc)
+
+
+def _cb_sync(ctx, cnt, fc):
+    retval = None
+
+    if ctx.out_error:
+        raise ctx.out_error
+
+    else:
+        if len(ctx.descriptor.out_message._type_info) == 0:
+            retval = None
+
+        elif len(ctx.descriptor.out_message._type_info) == 1:
+            retval = ctx.out_object[0]
+
+        else:
+            retval = ctx.out_object
+
+        if cnt == 0 and fc._ostr:
+            fc._server.get_out_string(ctx)
+            retval = ctx.out_string
+
+    if cnt > 0:
+        ctx.close()
+
+    return retval

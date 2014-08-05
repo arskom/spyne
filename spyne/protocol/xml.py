@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 """The ``spyne.protocol.xml`` module contains an xml-based protocol that
 serializes python objects to xml using Xml Schema conventions.
 
@@ -248,6 +249,7 @@ class XmlDocument(SubXmlBase):
         })
 
         self.deserialization_handlers = cdict({
+            AnyHtml: self.html_from_element,
             AnyXml: self.xml_from_element,
             Array: self.array_from_element,
             Fault: self.fault_from_element,
@@ -790,7 +792,7 @@ class XmlDocument(SubXmlBase):
         _append(parent, E(_gen_tagname(ns, name), inst))
 
     def html_to_parent(self, ctx, cls, inst, parent, ns, name):
-        if isinstance(inst, str) or isinstance(inst, unicode):
+        if isinstance(inst, string_types) and len(inst) > 0:
             inst = html.fromstring(inst)
 
         _append(parent, E(_gen_tagname(ns, name), inst))
@@ -933,6 +935,17 @@ class XmlDocument(SubXmlBase):
 
         if children:
             retval = element.getchildren()[0]
+
+        return retval
+
+    def html_from_element(self, ctx, cls, element):
+        children = element.getchildren()
+        retval = None
+
+        if len(children) == 1:
+            retval = children[0]
+        elif len(children) > 1:
+            retval = E.p(*children)
 
         return retval
 

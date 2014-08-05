@@ -325,19 +325,22 @@ sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGJson
 
 
 class PGObjectXml(UserDefinedType):
-    def __init__(self, cls, root_tag_name=None, no_namespace=False):
+    def __init__(self, cls, root_tag_name=None, no_namespace=False,
+                                                            pretty_print=False):
         self.cls = cls
         self.root_tag_name = root_tag_name
         self.no_namespace = no_namespace
+        self.pretty_print = pretty_print
 
     def get_col_spec(self):
         return "xml"
 
     def bind_processor(self, dialect):
         def process(value):
-            return etree.tostring(get_object_as_xml(value, self.cls,
-                                        self.root_tag_name, self.no_namespace),
-                     pretty_print=False, encoding='utf8', xml_declaration=False)
+            if value is not None:
+                return etree.tostring(get_object_as_xml(value, self.cls,
+                    self.root_tag_name, self.no_namespace), encoding='utf8',
+                          pretty_print=self.pretty_print, xml_declaration=False)
         return process
 
     def result_processor(self, dialect, col_type):
@@ -411,7 +414,7 @@ class PGFileJson(PGObjectJson):
                             file.write(d)
 
                 elif value.handle is not None:
-                    value.path = uuid1().get_hex()
+                    value.path = uuid1().hex
                     fp = join(self.store, value.path)
                     if not abspath(fp).startswith(self.store):
                         raise ValidationError(value.path, "Path %r contains "
@@ -976,7 +979,7 @@ def _add_complex_type(cls, props, table, k, v):
         else:
             # v has the Attribute values we need whereas real_v is what the
             # user instantiates (thus what sqlalchemy needs)
-            if v.__orig__ is None: # vanilla class
+            if v.__orig__ is None:  # vanilla class
                 real_v = v
             else: # customized class
                 real_v = v.__orig__
@@ -1010,7 +1013,7 @@ def _add_complex_type(cls, props, table, k, v):
         if k in table.c:
             col = table.c[k]
         else:
-            t = PGObjectXml(v, p.root_tag, p.no_ns)
+            t = PGObjectXml(v, p.root_tag, p.no_ns, p.pretty_print)
             col = Column(k, t, *col_args, **col_kwargs)
 
         props[k] = col

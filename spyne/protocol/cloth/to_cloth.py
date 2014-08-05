@@ -55,8 +55,8 @@ class ToClothMixin(ProtocolBase):
 
         self.rendering_handlers = cdict({
             ModelBase: self.model_base_to_cloth,
-            AnyXml: self.element_to_cloth,
-            AnyHtml: self.element_to_cloth,
+            AnyXml: self.xml_to_cloth,
+            AnyHtml: self.html_to_cloth,
             ComplexModelBase: self.complex_to_cloth,
         })
 
@@ -333,8 +333,16 @@ class ToClothMixin(ProtocolBase):
         self._enter_cloth(ctx, cloth, parent)
         parent.write(self.to_string(cls, inst))
 
-    def element_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+    def xml_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         self._enter_cloth(ctx, cloth, parent)
+        if isinstance(inst, string_types):
+            inst = etree.fromstring(inst)
+        parent.write(inst)
+
+    def html_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+        self._enter_cloth(ctx, cloth, parent)
+        if isinstance(inst, string_types):
+            inst = html.fromstring(inst)
         parent.write(inst)
 
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
@@ -371,10 +379,10 @@ class ToClothMixin(ProtocolBase):
                 self._enter_cloth(ctx, elt, parent, skip=True)
                 continue
 
-            # if cls is an array, inst should already be a sequence type
-            # (eg list), so there's no point in doing a getattr -- we will
-            # unwrap it and serialize it in the next round of to_cloth call.
             if issubclass(cls, Array):
+                # if cls is an array, inst should already be a sequence type
+                # (eg list), so there's no point in doing a getattr -- we will
+                # unwrap it and serialize it in the next round of to_cloth call.
                 val = inst
             else:
                 val = getattr(inst, k, None)

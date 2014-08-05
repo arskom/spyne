@@ -2,9 +2,11 @@
 Changelog
 =========
 
+<<<<<<< HEAD
 
 spyne-2.12.0
 ------------
+* NullServer now supports async.
 * Add stub implementation for SOAP 1.2
 * Add initial implementation for SOAP 1.2 Faults.
 
