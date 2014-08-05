@@ -177,6 +177,7 @@ class ProtocolBase(object):
         })
 
         self._to_unicode_handlers = cdict({
+            ModelBase: self.model_base_to_unicode,
         })
 
         self._to_string_iterable_handlers = cdict({
@@ -803,6 +804,9 @@ class ProtocolBase(object):
 
     def model_base_to_string(self, cls, value):
         return cls.to_string(value)
+
+    def model_base_to_unicode(self, cls, value):
+        return cls.to_unicode(value)
 
     def _datetime_from_string(self, cls, string):
         attrs = cls.Attributes

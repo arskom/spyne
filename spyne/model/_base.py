@@ -356,6 +356,13 @@ class ModelBase(object):
         return str(value)
 
     @classmethod
+    def to_unicode(cls, value):
+        """
+        Returns unicode(value). This should be overridden if this is not enough.
+        """
+        return unicode(value)
+
+    @classmethod
     def customize(cls, **kwargs):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
