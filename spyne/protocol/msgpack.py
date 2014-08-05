@@ -121,6 +121,9 @@ class MessagePackRpc(MessagePackDocument):
     MSGPACK_RESPONSE = 1
     MSGPACK_NOTIFY = 2
 
+    def create_out_string(self, ctx, out_string_encoding='utf8'):
+        ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
+
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.
 
@@ -151,10 +154,10 @@ class MessagePackRpc(MessagePackDocument):
         # FIXME: Msgid is ignored. Is this a problem?
         msgparams = []
         if len(ctx.in_document) == 3:
-            msgtype, msgid, msgname = ctx.in_document
+            msgtype, msgid, msgname_or_error = ctx.in_document
 
         else:
-            msgtype, msgid, msgname, msgparams = ctx.in_document[:4]
+            msgtype, msgid, msgname_or_error, msgparams = ctx.in_document
 
         if msgtype == MessagePackRpc.MSGPACK_REQUEST:
             assert message == MessagePackRpc.REQUEST
@@ -169,10 +172,15 @@ class MessagePackRpc(MessagePackDocument):
             raise MessagePackDecodeError("Unknown message type %r" % msgtype)
 
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                                        msgname)
+                                                                        msgname_or_error)
 
         ctx.in_header_doc = None # MessagePackRpc does not seem to have Header support
-        ctx.in_body_doc = msgparams
+
+        if isinstance(msgname_or_error, dict) and msgname_or_error:
+            # we got an error
+            ctx.in_error = msgname_or_error
+        else:
+            ctx.in_body_doc = msgparams
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
@@ -194,9 +202,11 @@ class MessagePackRpc(MessagePackDocument):
         else:
             raise Exception("what?")
 
-        if body_class:
-            ctx.in_object = body_class.get_serialization_instance(
-                                                                ctx.in_body_doc)
+        if ctx.in_error:
+            ctx.in_error = Fault(**ctx.in_error)
+
+        elif body_class:
+            ctx.in_object = self._doc_to_object(body_class, ctx.in_body_doc, self.validator)
 
         else:
             ctx.in_object = []
@@ -209,15 +219,18 @@ class MessagePackRpc(MessagePackDocument):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [MessagePackRpc.MSGPACK_RESPONSE, 0,
-                         Fault.to_dict(ctx.out_error.__class__,  ctx.out_error)]
+            ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, Fault.to_dict(ctx.out_error.__class__, ctx.out_error)]]
 
         else:
             # get the result message
             if message is self.REQUEST:
                 out_type = ctx.descriptor.in_message
+                msgtype = MessagePackRpc.MSGPACK_REQUEST
+                method_name_or_error = ctx.descriptor.operation_name
             elif message is self.RESPONSE:
                 out_type = ctx.descriptor.out_message
+                msgtype = MessagePackRpc.MSGPACK_RESPONSE
+                method_name_or_error = None
             else:
                 raise Exception("what?")
 
@@ -230,17 +243,16 @@ class MessagePackRpc(MessagePackDocument):
             out_instance = out_type()
 
             # assign raw result to its wrapper, result_message
-            for i in range(len(out_type_info)):
-                attr_name = out_type_info.keys()[i]
-                setattr(out_instance, attr_name, ctx.out_object[i])
+            for i, (k, v) in enumerate(out_type_info.items()):
+                attr_name = k
+                out_instance._safe_set(attr_name, ctx.out_object[i], v)
 
             # transform the results into a dict:
             if out_type.Attributes.max_occurs > 1:
-                ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
-                     (self._to_value(out_type, inst) for inst in out_instance)]]
+                params = (self._to_value(out_type, inst) for inst in out_instance)
             else:
-                ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
-                                        self._to_value(out_type, out_instance)]]
+                params = self._to_value(out_type, out_instance)
 
-            self.event_manager.fire_event('after_serialize', ctx)
+            ctx.out_document = [[msgtype, 0, method_name_or_error, params]]
 
+        self.event_manager.fire_event('after_serialize', ctx)
