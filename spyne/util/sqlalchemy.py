@@ -843,12 +843,12 @@ def _gen_array_simple(cls, props, k, child_cust, p):
     # get left (fk) column info
     _gen_col = _get_col_o2m(cls, p.left)
     col_info = next(_gen_col) # gets the column name
-    p.left, child_left_col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+    p.left, child_left_col_type = col_info[0]  # FIXME: Add support for multi-column primary keys.
     child_left_col_name = p.left
 
     # get right(data) column info
-    child_right_col_type = get_sqlalchemy_type(child_cust)
-    child_right_col_name = p.right # this is the data column
+    child_right_col_type = get_sqlalchemy_type(child_cust).__class__
+    child_right_col_name = p.right  # this is the data column
     if child_right_col_name is None:
         child_right_col_name = k
 
@@ -860,19 +860,19 @@ def _gen_array_simple(cls, props, k, child_cust, p):
     if child_table_name in metadata.tables:
         child_t = metadata.tables[child_table_name]
 
-        # if we have the table, we sure have the right column (data column)
-        assert child_right_col_type.__class__ is \
+        # if we have the table, make sure have the right column (data column)
+        assert child_right_col_type is \
                child_t.c[child_right_col_name].type.__class__, "%s.%s: %r != %r" % \
-                   (cls, child_right_col_name, child_right_col_type.__class__,
+                   (cls, child_right_col_name, child_right_col_type,
                                child_t.c[child_right_col_name].type.__class__)
 
-        # Table exists but our own foreign key doesn't.
         if child_left_col_name in child_t.c:
-            assert child_left_col_type.__class__ is \
+            assert child_left_col_type is \
                 child_t.c[child_left_col_name].type.__class__, "%r != %r" % \
-                   (child_left_col_type.__class__,
+                   (child_left_col_type,
                                child_t.c[child_left_col_name].type.__class__)
         else:
+            # Table exists but our own foreign key doesn't.
             child_left_col = next(_gen_col)
             _sp_attrs_to_sqla_constraints(cls, child_cust, col=child_left_col)
             child_t.append_column(child_left_col)
