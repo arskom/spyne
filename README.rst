@@ -20,11 +20,6 @@ Spyne comes with the implementations of popular transport, protocol and
 interface document standards along with a well-defined API that lets you
 build on existing functionality.
 
-Spyne currently supports the WSDL 1.1 interface description standard, along with
-SOAP 1.1 and the so-called HttpRpc, XmlDocument, JsonDocument, YamlDocument,
-MessagePackDocument and MessagePackRpc protocols which can be transported via
-Http or ZeroMQ. The transports can be used in both a client or server setting.
-
 The following are the primary sources of information about spyne:
 
 * Spyne's home page is: http://spyne.io/
