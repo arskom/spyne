@@ -350,7 +350,8 @@ class ModelBase(object):
 
     @classmethod
     def to_string(cls, value):
-        """Returns str(value). This should be overridden if this is not enough.
+        """
+        Returns str(value). This should be overridden if this is not enough.
         """
         return str(value)
 
