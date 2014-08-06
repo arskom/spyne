@@ -92,3 +92,6 @@ test_result*
 
 # vim cruft
 *.swp
+
+# nuitka cruft
+*.build
