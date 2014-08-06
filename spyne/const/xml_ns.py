@@ -21,7 +21,7 @@
 namespace prefixes, namespace values and schema uris.
 """
 
-#SHOULDHAVEFIXEDME: These are constants, so should have been all UPPERCASE.
+# FIXME: These are constants, so should have been all UPPERCASE.
 
 xml = 'http://www.w3.org/XML/1998/namespace'
 xsd = 'http://www.w3.org/2001/XMLSchema'
