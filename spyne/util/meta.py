@@ -26,7 +26,7 @@ import inspect
 
 from functools import wraps
 from itertools import chain
-from traceback import print_stack
+from warnings import warn
 
 from spyne.util.odict import odict
 
@@ -130,5 +130,10 @@ class Prepareable(type):
 
             return new_cls
 
-        attributes["__new__"] = wraps(constructor)(preparing_constructor)
+        try:
+            attributes["__new__"] = wraps(constructor)(preparing_constructor)
+        except:
+            warn("Wrapping class initializer failed. This is normal "
+                          "when runnign under Nuitka")
+
         return type.__new__(cls, name, bases, attributes)
