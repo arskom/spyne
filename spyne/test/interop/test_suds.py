@@ -19,7 +19,6 @@
 
 import unittest
 
-from suds.sax.parser import Parser
 from suds.client import Client
 from suds.plugin import MessagePlugin
 from suds import WebFault
@@ -32,17 +31,31 @@ import logging
 suds_logger = logging.getLogger('suds')
 suds_logger.setLevel(logging.INFO)
 
-class LastReceivedPlugin(MessagePlugin):
-    def received(self, context):
-        sax = Parser()
-        self.reply = sax.parse(string=context.reply)
+
+# suds-jurko
+try:
+    from suds.sax.parser import Parser
+
+    class LastReceivedPlugin(MessagePlugin):
+        def received(self, context):
+            sax = Parser()
+            self.reply = sax.parse(string=context.reply)
+
+# vanilla suds
+except ImportError:
+    LastReceivedPlugin = None
+
 
 
 class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def setUp(self):
         SpyneClientTestBase.setUp(self, 'http')
 
-        self.client = Client("http://localhost:9754/?wsdl", cache=None, plugins=[LastReceivedPlugin()])
+        if LastReceivedPlugin is None:
+            self.client = Client("http://localhost:9754/?wsdl", cache=None)
+        else:
+            self.client = Client("http://localhost:9754/?wsdl", cache=None,
+                             plugins=[LastReceivedPlugin()])
         self.ns = "spyne.test.interop.server"
 
     def test_echo_datetime(self):
