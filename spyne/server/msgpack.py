@@ -48,7 +48,7 @@ def _process_v1_msg(prot, msg):
         header = msg[2]
         if not isinstance(header, dict):
             raise ValidationError(header, "Header must be a dict.")
-        for k,v in header.items():
+        for k, v in header.items():
             header[k] = msgpack.unpackb(v)
 
     ctx = MessagePackMethodContext(prot)
