@@ -37,7 +37,7 @@ from __future__ import print_function, absolute_import
 
 # These are analogues from spyne.server.msgpack. What's IN_REQUEST there is
 # OUT_REQUEST here because an outgoing request from a client's perspective is an
-# incoming requests from a server's perspective.
+# incoming request from a server's perspective.
 IN_RESPONSE_NO_ERROR = 0
 IN_RESPONSE_CLIENT_ERROR = 1
 IN_RESPONSE_SERVER_ERROR = 2
