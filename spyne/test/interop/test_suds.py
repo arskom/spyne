@@ -32,6 +32,7 @@ import logging
 suds_logger = logging.getLogger('suds')
 suds_logger.setLevel(logging.INFO)
 
+
 class LastReceivedPlugin(MessagePlugin):
     def received(self, context):
         sax = Parser()
@@ -106,7 +107,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
 
     def test_validation(self):
         non_nillable_class = self.client.factory.create(
-                                                "{hunk.sunk}NonNillableClass")
+                                                  "{hunk.sunk}NonNillableClass")
         non_nillable_class.i = 6
         non_nillable_class.s = None
 
@@ -211,7 +212,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         return {
             "test_sub": {
                 "test_subsub1": {
-                    "test_subsubsub1" : ["subsubsub1 value"]
+                    "test_subsubsub1": ["subsubsub1 value"]
                 },
                 "test_subsub2": ["subsub2 value 1", "subsub2 value 2"],
                 "test_subsub3": [
@@ -284,12 +285,13 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEqual(ret.other.dt, val.other.dt)
 
     def test_huge_number(self):
-        self.assertEquals(self.client.service.huge_number(), 2**int(1e5))
+        self.assertEquals(self.client.service.huge_number(), 2 ** int(1e5))
 
     def test_long_string(self):
-        self.assertEquals(self.client.service.long_string(), ('0123456789abcdef' * 16384))
+        self.assertEquals(self.client.service.long_string(),
+                                                   ('0123456789abcdef' * 16384))
 
-    def test_long_string(self):
+    def test_empty(self):
         self.client.service.test_empty()
 
     def test_echo_extension_class(self):
