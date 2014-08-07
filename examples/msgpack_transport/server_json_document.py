@@ -31,7 +31,7 @@
 
 """
 This is a simple HelloWorld example to show the basics of writing a
-MessagePack-via-vanilla-TCP-sockets server.
+MessagePack-via-vanilla-TCP-sockets server using the JsonDocument protocol.
 """
 
 

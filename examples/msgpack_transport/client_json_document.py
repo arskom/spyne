@@ -30,7 +30,7 @@
 #
 
 """
-Raw socket client example for MessagePackDocument via MessagePack server.
+Raw socket client example for JsonDocument via MessagePack server.
 """
 
 from __future__ import print_function, absolute_import
@@ -67,6 +67,12 @@ request_wrapper_document = [OUT_REQUEST, request_bytestream]
 
 # and we serialize the request wrapper document to msgpack bytestream as well
 request_wrapper_bytestream = msgpack.packb(request_wrapper_document)
+
+# Some numbers to show how efficient this is:
+print("Raw message length:", len(request_bytestream))
+print("Wrapped message length:", len(request_wrapper_bytestream))
+print("Overhead:", len(request_wrapper_bytestream) - len(request_bytestream),
+      "byte(s).")
 
 # which we push to the socket.
 s.sendall(request_wrapper_bytestream)
