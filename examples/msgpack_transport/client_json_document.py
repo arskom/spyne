@@ -71,28 +71,41 @@ request_wrapper_bytestream = msgpack.packb(request_wrapper_document)
 # which we push to the socket.
 s.sendall(request_wrapper_bytestream)
 
+# This is straight from Python example in msgpack.org
 in_buffer = msgpack.Unpacker()
+
 while True:
+    # We wait for the full message to arrive.
     in_buffer.feed(s.recv(1))
+
+    # Again, straight from the Python example in MessagePack homepage.
     for msg in in_buffer:
-        print("Response document:", msg)
-        for resp_code, data in msg.items():
-            if resp_code == IN_RESPONSE_NO_ERROR:
-                print("Success. Response: ", json.loads(data))
+        print("Raw response document:", msg)
 
-            elif resp_code == IN_RESPONSE_CLIENT_ERROR:
-                print("Invalid Request. Details: ", json.loads(data))
+        # There should be only one entry in the response dict. We ignore the
+        # rest here but we could whine about invalid response just as well.
+        resp_code, data = iter(msg.items()).next()
 
-            elif resp_code == IN_RESPONSE_SERVER_ERROR:
-                print("Internal Error. Details: ", json.loads(data))
+        # We finally parse the response. We should probably be doing a dict
+        # lookup here instead.
+        if resp_code == IN_RESPONSE_NO_ERROR:
+            print("Success. Response: ", json.loads(data))
+            # now that we have the response in a structured format, we could
+            # further deserialize it to a Python object, depending on our needs.
 
-            else:
-                print ("Unknown response. Update the client. "
-                       "Additional data:", data)
+        elif resp_code == IN_RESPONSE_CLIENT_ERROR:
+            print("Invalid Request. Details: ", json.loads(data))
+
+        elif resp_code == IN_RESPONSE_SERVER_ERROR:
+            print("Internal Error. Details: ", json.loads(data))
+
+        else:
+            print("Unknown response. Update the client. Additional data:", data)
+
         # As we only sent one request, we must break after
         # receiving its response.
         break
     else:
         continue
 
-    break  # break after receiving one message
+    break  # break after receiving one message. See above for why.
