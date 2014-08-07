@@ -68,7 +68,6 @@ class TwistedMessagePackProtocol(Protocol):
         self._buffer.feed(data)
 
         for msg in self._buffer:
-            p_ctx = others = None
             try:
                 self.process_incoming_message(msg)
 
@@ -76,6 +75,9 @@ class TwistedMessagePackProtocol(Protocol):
                 import traceback
                 traceback.print_exc()
                 logger.exception(e)
+
+                p_ctx = MessagePackMethodContext(prot)
+                p_ctx.in_string = [body]
                 self.handle_error(p_ctx, others, e)
 
     def process_incoming_message(self, msg):
