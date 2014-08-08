@@ -286,6 +286,9 @@ class ModelBase(object):
             return False
         tags.add(cls)
 
+        if cls.__type_name__ is cls.Empty:
+            cls.__type_name__ = cls.__name__
+
         if cls.__namespace__ is spyne.const.xml_ns.DEFAULT_NS:
             cls.__namespace__ = default_ns
 

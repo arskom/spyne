@@ -205,6 +205,8 @@ class Interface(object):
             yield method.in_message
 
         method.out_message.resolve_namespace(method.out_message, self.get_tns())
+        assert not method.out_message.get_type_name() is method.out_message.Empty
+
         if method.aux is None:
             yield method.out_message
 
@@ -352,7 +354,7 @@ class Interface(object):
 
         assert not (cls.get_type_name() is cls.Empty)
 
-        self.deps[cls]
+        self.deps[cls]  # despite the appearances, this is not totally useless.
         self.classes[class_key] = cls
         if ns == self.get_tns():
             self.classes[tn] = cls
