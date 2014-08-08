@@ -28,7 +28,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
-from spyne import MethodContext, BODY_STYLE_BARE, ComplexModelBase
+from spyne import MethodContext, BODY_STYLE_BARE, ComplexModelBase, \
+    BODY_STYLE_EMPTY
 
 from spyne.client import Factory
 from spyne.const.ansi_color import LIGHT_RED
@@ -200,7 +201,13 @@ def _cb_sync(ctx, cnt, fc):
         raise ctx.out_error
 
     else:
-        if len(ctx.descriptor.out_message._type_info) == 0:
+        if ctx.descriptor.body_style is BODY_STYLE_BARE:
+            _retval = ctx.out_object[0]
+
+        elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
+            _retval = None
+
+        elif len(ctx.descriptor.out_message._type_info) == 0:
             retval = None
 
         elif len(ctx.descriptor.out_message._type_info) == 1:
