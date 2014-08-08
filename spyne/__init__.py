@@ -37,6 +37,10 @@ from spyne.decorator import mrpc
 from spyne.service import ServiceBase
 from spyne.application import Application
 from spyne.model import *
+from spyne.client import ClientBase
+from spyne.server import ServerBase
+from spyne.server import NullServer
+
 
 def _vercheck():
     import sys
