@@ -43,26 +43,26 @@ from sqlalchemy import create_engine
 
 from sqlalchemy.orm import sessionmaker
 
-from spyne import MethodContext
-from spyne.application import Application
-from spyne.client import Service
-from spyne.client import RemoteProcedureBase
-from spyne.client import ClientBase
-from spyne.decorator import rpc
+from spyne import MethodContext, Application, rpc, TTableModel, Integer32, \
+    UnsignedInteger, ByteArray, Mandatory as M
+
+# client stuff
+from spyne import RemoteService, RemoteProcedureBase, ClientBase
+
+# server stuff
+from spyne import ServerBase, ServiceBase
+
 from spyne.protocol.soap import Soap11
-from spyne.model.complex import TTableModel
-from spyne.model.primitive import Integer32
-from spyne.model.primitive import Mandatory
-from spyne.model.binary  import ByteArray
-from spyne.server import ServerBase
-from spyne.service import ServiceBase
+
 
 db = create_engine('sqlite:///:memory:')
 TableModel = TTableModel(MetaData(bind=db))
 
+
 #
 # The database tables used to store tasks and worker status
 #
+
 
 class TaskQueue(TableModel):
     __tablename__ = 'task_queue'
@@ -176,14 +176,14 @@ class Producer(ClientBase):
     def __init__(self, db, app):
         super(Producer, self).__init__(db, app)
 
-        self.service = Service(RemoteProcedure, db, app)
+        self.service = RemoteService(RemoteProcedure, db, app)
 
 #
 # The service to call.
 #
 
 class AsyncService(ServiceBase):
-    @rpc(Mandatory.UnsignedInteger)
+    @rpc(M(UnsignedInteger))
     def sleep(ctx, integer):
         print("Sleeping for %d seconds..." % (integer))
         time.sleep(integer)

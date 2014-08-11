@@ -34,24 +34,18 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.yaml import YamlDocument
+from spyne import Application, rpc, Mandatory as M, Unicode, UnsignedInteger32, \
+    Array, Iterable, TTableModel, ServiceBase
+
+from spyne.util import memoize
+
+from spyne.server.wsgi import WsgiApplication
+
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData
 from sqlalchemy.orm import sessionmaker
-
-from spyne.application import Application
-from spyne.decorator import rpc
-
-from spyne.protocol.http import HttpRpc
-from spyne.protocol.yaml import YamlDocument
-from spyne.model.primitive import Mandatory
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import UnsignedInteger32
-from spyne.model.complex import Array
-from spyne.model.complex import Iterable
-from spyne.model.complex import TTableModel
-from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
-from spyne.util import memoize
 
 
 db = create_engine('sqlite:///:memory:')
@@ -146,7 +140,7 @@ application.event_manager.add_listener("method_context_closed",
                                                       _on_method_context_closed)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     from wsgiref.simple_server import make_server
 
     wsgi_app = WsgiApplication(application)

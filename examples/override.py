@@ -45,7 +45,6 @@ from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 
 
-
 class SomeClass(ComplexModel):
     _type_info = odict([
         ('and', String),
