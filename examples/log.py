@@ -2,8 +2,7 @@
 
 from __future__ import absolute_import
 
-from spyne import ServiceBase, rpc, Application
-from spyne.model import Fault
+from spyne import ServiceBase, rpc, Application, Fault
 from spyne.server.null import NullServer
 from spyne.util.color import G
 

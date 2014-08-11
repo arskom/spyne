@@ -29,32 +29,29 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 This is a simple HelloWorld example to show the basics of writing a Http api
 using Spyne. Here's a sample:
 
 $ curl http://localhost:8000/say_hello?name=Dave\&times=3
 ["Hello, Dave", "Hello, Dave", "Hello, Dave"]
-'''
+"""
 
 
 import logging
 
-from spyne.application import Application
-from spyne.decorator import srpc
+from spyne import Application, srpc, ServiceBase, Iterable, UnsignedInteger, \
+    String
+
 from spyne.protocol.json import JsonDocument
 from spyne.protocol.http import HttpRpc
-from spyne.service import ServiceBase
-from spyne.model.complex import Iterable
-from spyne.model.primitive import UnsignedInteger
-from spyne.model.primitive import String
 from spyne.server.wsgi import WsgiApplication
 
 
 class HelloWorldService(ServiceBase):
     @srpc(String, UnsignedInteger, _returns=Iterable(String))
     def say_hello(name, times):
-        '''
+        """
         Docstrings for service methods do appear as documentation in the
         interface documents. <b>What fun!</b>
 
@@ -62,7 +59,7 @@ class HelloWorldService(ServiceBase):
         :param times: The number of times to say hello
 
         :returns: An array of 'Hello, <name>' strings, repeated <times> times.
-        '''
+        """
 
         for i in range(times):
             yield 'Hello, %s' % name

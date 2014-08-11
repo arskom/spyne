@@ -30,24 +30,20 @@
 #
 
 
-'''
+"""
 This example shows how to override the variable names for fun and profit.
 This is very useful for situations that require the use of variable names
-that are python keywords like, from, import, return, etc.
-'''
+that are python keywords like from, import, return, etc.
+"""
 
 
-import logging
-
-from spyne.application import Application
-from spyne.decorator import srpc
-from spyne.protocol.soap import Soap11
-from spyne.service import ServiceBase
-from spyne.model.primitive import String
-from spyne.model.complex import ComplexModel
-from spyne.server.wsgi import WsgiApplication
+from spyne import Application, srpc, ServiceBase, String, ComplexModel
 
 from spyne.util.odict import odict
+
+from spyne.protocol.soap import Soap11
+from spyne.server.wsgi import WsgiApplication
+
 
 
 class SomeClass(ComplexModel):
@@ -65,14 +61,17 @@ class EmailManager(ServiceBase):
         # do email sending here
         return repr((to, from_, message, 'sent!'))
 
-if __name__=='__main__':
+
+application = Application([EmailManager], 'spyne.examples.events',
+                                in_protocol=Soap11(), out_protocol=Soap11())
+
+if __name__ == '__main__':
+    import logging
+
     from wsgiref.simple_server import make_server
 
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-
-    application = Application([EmailManager], 'spyne.examples.events',
-                                    in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 8000, WsgiApplication(application))
 

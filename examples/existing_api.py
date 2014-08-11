@@ -32,26 +32,23 @@
 import logging
 import random
 
-from spyne.application import Application
-from spyne.decorator import srpc
+from spyne import Application, srpc, ServiceBase, Integer, UnsignedInteger, \
+    Mandatory as M
+
 from spyne.protocol.http import HttpRpc
-from spyne.service import ServiceBase
-from spyne.model.primitive import Mandatory
-from spyne.model.primitive import Integer
-from spyne.model.primitive import UnsignedInteger
 from spyne.server.wsgi import WsgiApplication
 
 
 class RandomService(ServiceBase):
     # We need the _args argument here because we only want to expose the
     # `a` and `b` arguments and not the `self` argument.
-    randint = srpc(Mandatory.Integer, Mandatory.Integer, _returns=Integer,
-                                                _args=('a','b'))(random.randint)
+    randint = srpc(M(Integer), M(Integer), _returns=Integer,
+                                               _args=('a', 'b'))(random.randint)
 
     # We need the _args argument here because `getrandbits` is a builtin, which
     # means it's not ready for introspection.
-    randbits = srpc(Mandatory.UnsignedInteger, _returns=UnsignedInteger,
-                                                _args=('k'))(random.getrandbits)
+    randbits = srpc(M(UnsignedInteger), _returns=UnsignedInteger,
+                                               _args=('k',))(random.getrandbits)
 
 
 if __name__=='__main__':
