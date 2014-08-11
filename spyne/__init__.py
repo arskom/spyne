@@ -51,9 +51,8 @@ from spyne.error import ResourceNotFoundError
 from spyne.error import RespawnError
 from spyne.error import ResourceAlreadyExistsError
 
-from spyne.client import ClientBase
-from spyne.server import ServerBase
-from spyne.server import NullServer
+from spyne.client import ClientBase, RemoteProcedureBase, RemoteService
+from spyne.server import ServerBase, NullServer
 
 
 def _vercheck():

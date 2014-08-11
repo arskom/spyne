@@ -21,7 +21,7 @@
 
 from spyne import __version__ as VERSION
 
-from spyne.client import Service
+from spyne.client import RemoteService
 from spyne.client import RemoteProcedureBase
 from spyne.client import ClientBase
 
@@ -142,4 +142,4 @@ class TwistedHttpClient(ClientBase):
     def __init__(self, url, app):
         super(TwistedHttpClient, self).__init__(url, app)
 
-        self.service = Service(_RemoteProcedure, url, app)
+        self.service = RemoteService(_RemoteProcedure, url, app)
