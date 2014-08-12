@@ -19,16 +19,13 @@
 
 from inspect import isgenerator
 
-from spyne.model import ModelBase, AnyHtml
-from spyne.model import ByteArray
-from spyne.model import ComplexModelBase
-from spyne.model import Array
-from spyne.model import AnyUri
-from spyne.model import ImageUri
-from spyne.model.binary import Attachment
-from spyne.protocol.html import HtmlBase
-from spyne.protocol.html import NSMAP
 from lxml.html.builder import E
+
+from spyne import ModelBase, AnyHtml, ByteArray, ComplexModelBase, Array, \
+    AnyUri, ImageUri
+from spyne.model.binary import Attachment
+from spyne.protocol.html import HtmlBase, NSMAP
+
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
