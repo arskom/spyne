@@ -296,7 +296,11 @@ class ToClothMixin(ProtocolBase):
                 try:
                     ret.throw(e)
                 except (Break, StopIteration, GeneratorExit):
+                    pass
+                finally:
                     self._close_cloth(ctx, parent)
+        else:
+            self._close_cloth(ctx, parent)
 
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
