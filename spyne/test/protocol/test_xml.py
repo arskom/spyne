@@ -31,9 +31,6 @@ from pprint import pprint
 
 from lxml import etree
 
-from webtest import TestApp
-from webtest.app import AppError
-
 from spyne import MethodContext, rpc
 from spyne._base import FakeContext
 from spyne.const import RESULT_SUFFIX

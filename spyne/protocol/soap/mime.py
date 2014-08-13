@@ -29,10 +29,6 @@ Patches are welcome.
 import logging
 logger = logging.getLogger(__name__)
 
-import spyne.const.xml_ns
-_ns_xop = spyne.const.xml_ns.xop
-_ns_soap_env = spyne.const.xml_ns.soap_env
-
 from lxml import etree
 from base64 import b64encode
 
@@ -45,6 +41,11 @@ from email import message_from_string
 
 from spyne.model.binary import Attachment
 from spyne.model.binary import ByteArray
+
+import spyne.const.xml_ns
+_ns_xop = spyne.const.xml_ns.xop
+_ns_soap_env = spyne.const.xml_ns.soap11_env
+
 from spyne.util.six.moves.urllib.parse import unquote
 
 

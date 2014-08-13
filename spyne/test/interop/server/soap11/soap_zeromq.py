@@ -18,34 +18,29 @@
 #
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('spyne.wsgi')
-logger.setLevel(logging.DEBUG)
 
-from spyne.test.interop.server.soap_http_basic import soap_application
-from spyne.server.twisted import TwistedWebResource
+from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
+
+from spyne.server.zeromq import ZeroMQServer
 
 host = '127.0.0.1'
-port = 9755
+port = 55555
 
-def main(argv):
-    from twisted.python import log
-    from twisted.web.server import Site
-    from twisted.web.static import File
-    from twisted.internet import reactor
-    from twisted.python import log
+def main():
+    url = "tcp://%s:%d" % (host,port)
 
-    observer = log.PythonLoggingObserver('twisted')
-    log.startLoggingWithObserver(observer.emit, setStdout=False)
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    wr = TwistedWebResource(soap_application)
-    site = Site(wr)
+    server = ZeroMQServer(soap11_application, url)
+    logging.info("************************")
+    logging.info("Use Ctrl+\\ to exit if Ctrl-C does not work.")
+    logging.info("See the 'I can't Ctrl-C my Python/Ruby application. Help!' "
+                 "question in http://www.zeromq.org/area:faq for more info.")
+    logging.info("listening on %r" % url)
+    logging.info("************************")
 
-    reactor.listenTCP(port, site)
-    logging.info("listening on: %s:%d" % (host,port))
-
-    return reactor.run()
+    server.serve_forever()
 
 if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
+    main()

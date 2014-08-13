@@ -43,14 +43,14 @@ class TestOperationRequestSuffix(unittest.TestCase):
 
     # output is not affected, will use soap output for all tests
     result_body = '''
-        <senv:Body>
+        <soap11env:Body>
             <tns:echoResponse>
                 <tns:echoResult>
                     <tns:string>Echo, test</tns:string>
                     <tns:string>Echo, test</tns:string>
                 </tns:echoResult>
             </tns:echoResponse>
-        </senv:Body>'''
+        </soap11env:Body>'''
 
 
     def get_function_names(self, suffix, _operation_name=None, _in_message_name=None):

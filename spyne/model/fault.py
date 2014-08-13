@@ -92,3 +92,4 @@ class Fault(ComplexModelBase, Exception):
     @classmethod
     def to_string_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]
+

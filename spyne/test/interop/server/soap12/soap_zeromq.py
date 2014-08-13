@@ -19,7 +19,7 @@
 
 import logging
 
-from spyne.test.interop.server.soap_http_basic import soap_application
+from spyne.test.interop.server.soap12.soap_http_basic import soap12_application
 
 from spyne.server.zeromq import ZeroMQServer
 
@@ -32,7 +32,7 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    server = ZeroMQServer(soap_application, url)
+    server = ZeroMQServer(soap12_application, url)
     logging.info("************************")
     logging.info("Use Ctrl+\\ to exit if Ctrl-C does not work.")
     logging.info("See the 'I can't Ctrl-C my Python/Ruby application. Help!' "
