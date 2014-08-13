@@ -158,7 +158,6 @@ class ToParentMixin(ProtocolBase):
     @coroutine
     def _get_members(self, ctx, cls, inst, parent, **kwargs):
         for k, v in cls.get_flat_type_info(cls).items():
-            print("_get_members", k, v)
             try:
                 subvalue = getattr(inst, k, None)
             except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
