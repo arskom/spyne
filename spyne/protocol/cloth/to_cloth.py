@@ -218,7 +218,10 @@ class ToClothMixin(ProtocolBase):
                 parent.write(elt)
 
             # enter the ancestor node
-            anc_ctx = parent.element(anc.tag, anc.attrib)
+            if len(eltstack) == 0:
+                anc_ctx = parent.element(anc.tag, anc.attrib, nsmap=anc.nsmap)
+            else:
+                anc_ctx = parent.element(anc.tag, anc.attrib)
             anc_ctx.__enter__()
             print("\tenter norm", anc.tag, anc.attrib)
             eltstack.append(anc)
