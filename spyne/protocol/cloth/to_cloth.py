@@ -77,6 +77,7 @@ class ToClothMixin(ProtocolBase):
             self._cloth = self._cloth.getroot()
 
         if self._cloth is not None:
+            logger.debug("Using cloth as root.")
             q = "//*[@%s]" % self.root_attr_name
             elts = self._cloth.xpath(q)
             if len(elts) > 0:
@@ -284,8 +285,8 @@ class ToClothMixin(ProtocolBase):
         ctx.protocol.tags = set()
 
         self._enter_cloth(ctx, cloth, parent)
-        ret = self.to_parent(ctx, cls, inst, parent, name)
 
+        ret = self.to_parent(ctx, cls, inst, parent, name)
         if isgenerator(ret):
             try:
                 while True:
