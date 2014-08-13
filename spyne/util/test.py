@@ -56,7 +56,7 @@ def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
 from os import mkdir
 from os.path import join
 
-def show(elt, tn=None):
+def show(elt, tn=None, stdout=True):
     if tn is None:
         import inspect
 
@@ -70,7 +70,9 @@ def show(elt, tn=None):
 
     from lxml import html, etree
     out_string = etree.tostring(elt, pretty_print=True)
-    print(out_string)
+    if stdout:
+        print(out_string)
+
     try:
         mkdir('html')
     except OSError:
