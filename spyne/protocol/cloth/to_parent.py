@@ -50,6 +50,7 @@ class ToParentMixin(ProtocolBase):
                                  ignore_wrappers=ignore_wrappers)
 
         self.polymorphic = polymorphic
+        self.use_global_null_handler = True
 
         self.serialization_handlers = cdict({
             AnyXml: self.xml_to_parent,
@@ -74,7 +75,7 @@ class ToParentMixin(ProtocolBase):
         if inst is None:
             inst = cls.Attributes.default
 
-        if inst is None:
+        if inst is None and self.use_global_null_handler:
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
