@@ -226,7 +226,7 @@ class ToClothMixin(ProtocolBase):
 
         # now that at the same level as the target node,
         # write its previous siblings
-        if not last_elt in (None, cloth):
+        if not last_elt is cloth:
             prevsibls = _prevsibls(cloth)
             for elt in prevsibls:
                 if elt is last_elt:
