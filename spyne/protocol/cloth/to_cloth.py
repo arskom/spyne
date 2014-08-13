@@ -174,7 +174,7 @@ class ToClothMixin(ProtocolBase):
         automatically with subsequent calls to _enter_cloth and finally to
         _close_cloth."""
 
-        print("entering", cloth.tag, cloth.attrib, "skip=%s" % skip)
+        print("entering", cloth.tag, cloth.attrib, cloth.nsmap, "skip=%s" % skip)
 
         tags = ctx.protocol.tags
         eltstack = ctx.protocol.eltstack
