@@ -111,7 +111,7 @@ print(etree.tostring(docs['s2'], pretty_print=True))
 print()
 
 # Object serialization and deserialization
-foo = Foo(a='a', b=1, c=3.4, d=datetime(2011,02,20),e=5,f='f')
+foo = Foo(a='a', b=1, c=3.4, d=datetime(2011, 02, 20), e=5, f='f')
 doc = get_object_as_xml(foo, Foo)
 print(etree.tostring(doc, pretty_print=True))
 print(get_xml_as_object(doc, Foo))

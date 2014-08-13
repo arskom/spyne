@@ -50,8 +50,9 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         self._init_cloth(cloth, attr_name, root_attr_name, cloth_parser)
 
     @staticmethod
-    def translate(cls, locale, default):
-        """
+    def trc(cls, locale, default):
+        """Translate a class.
+
         :param cls: class
         :param locale: locale string
         :param default: default string if no translation found
@@ -63,6 +64,25 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         if cls.Attributes.translations is not None:
             return cls.Attributes.translations.get(locale, default)
         return default
+
+    @staticmethod
+    def trd(trdict, locale, default):
+        """Translate from a translations dict.
+
+        :param trdict: translation dict
+        :param locale: locale string
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
+        if locale is None:
+            locale = 'en_US'
+        if trdict is None:
+            return default
+        if isinstance(trdict, string_types):
+            return trdict
+
+        return trdict.get(locale, default)
 
     def serialize(self, ctx, message):
         """Uses ``ctx.out_object``, ``ctx.out_header`` or ``ctx.out_error`` to

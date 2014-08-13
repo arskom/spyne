@@ -50,7 +50,12 @@ class ServiceBaseMeta(type):
                 setattr(self, k, staticmethod(descriptor.function))
                 descriptor.reset_function(getattr(self, k))
 
-                getattr(self, k).descriptor = descriptor
+                try:
+                    getattr(self, k).descriptor = descriptor
+                except AttributeError as e:
+                    pass
+                    # FIXME: this fails with builtins. Temporary hack while we
+                    # investigate whether we really need this or not
                 descriptor.service_class = self
 
                 self.public_methods[k] = descriptor

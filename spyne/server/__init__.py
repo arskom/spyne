@@ -20,3 +20,4 @@
 """The ``spyne.server`` package contains the server transports."""
 
 from spyne.server._base import ServerBase
+from spyne.server.null import NullServer

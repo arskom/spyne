@@ -466,6 +466,17 @@ class SimpleModelAttributesMeta(AttributesMeta):
 
     pattern = property(get_pattern, set_pattern)
 
+    def get_unicode_pattern(self):
+        return self._pattern
+
+    def set_unicode_pattern(self, pattern):
+        self._pattern = pattern
+        if pattern is not None:
+            self._pattern_re = re.compile(pattern, re.UNICODE)
+
+    unicode_pattern = property(get_unicode_pattern, set_unicode_pattern)
+    upattern = property(get_unicode_pattern, set_unicode_pattern)
+
 
 class SimpleModel(ModelBase):
     """The base class for primitives."""

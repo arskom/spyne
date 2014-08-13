@@ -64,7 +64,7 @@ class TestInclude(unittest.TestCase):
 
         soaptree = etree.fromstring(joinedmsg)
 
-        body = soaptree.find("{%s}Body" % ns.soap_env)
+        body = soaptree.find("{%s}Body" % ns.soap11_env)
         response = body.getchildren()[0]
         result = response.getchildren()[0]
         r = XmlDocument().from_element(None, DownloadPartFileResult, result)

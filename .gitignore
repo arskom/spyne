@@ -89,6 +89,7 @@ spyne/test/store
 test_result*
 /html
 /store
+Test*.html
 
 # vim cruft
 *.swp

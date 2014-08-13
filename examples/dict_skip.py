@@ -30,11 +30,10 @@
 #
 
 
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import String
-from spyne.model.complex import ComplexModel
+from spyne import Boolean, String, ComplexModel
 
 from spyne.util.dictdoc import get_object_as_dict
+
 
 class SomeMapping(ComplexModel):
     compact = Boolean
@@ -46,6 +45,7 @@ class SomeMapping(ComplexModel):
     can_delete = Boolean
     can_insert= Boolean
     can_update = Boolean
+
 
 print(list(get_object_as_dict(SomeMapping(
     compact=True,

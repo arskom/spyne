@@ -32,8 +32,8 @@ soap = 'http://schemas.xmlsoap.org/wsdl/soap/'
 wsdl = 'http://schemas.xmlsoap.org/wsdl/'
 xhtml = 'http://www.w3.org/1999/xhtml'
 plink = 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/'
-soap_enc = 'http://schemas.xmlsoap.org/soap/encoding/'
-soap_env = 'http://schemas.xmlsoap.org/soap/envelope/'
+soap11_enc = 'http://schemas.xmlsoap.org/soap/encoding/'
+soap11_env = 'http://schemas.xmlsoap.org/soap/envelope/'
 soap12_env = 'http://www.w3.org/2003/05/soap-envelope/'
 soap12_enc = 'http://www.w3.org/2003/05/soap-encoding/'
 
@@ -44,8 +44,8 @@ const_nsmap = {
     'plink': plink,
     'soap': soap,
     'wsdl': wsdl,
-    'senc': soap_enc,
-    'senv': soap_env,
+    'soap11enc': soap11_enc,
+    'soap11env': soap11_env,
     'soap12env': soap12_env,
     'soap12enc': soap12_enc,
     'wsa': wsa,

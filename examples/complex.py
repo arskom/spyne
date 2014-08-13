@@ -39,18 +39,13 @@ dictionary to store the User objects.
 import logging
 import random
 
-from spyne.application import Application
-from spyne.decorator import srpc
+from spyne import Application, srpc, Array, ComplexModel, Integer, String, \
+    ServiceBase, ResourceNotFoundError
+
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.http import HttpRpc
-from spyne.service import ServiceBase
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.primitive import Integer
-from spyne.model.primitive import String
 from spyne.server.wsgi import WsgiApplication
-from spyne.error import ResourceNotFoundError
 
 
 user_database = {}
@@ -135,7 +130,7 @@ class UserManager(ServiceBase):
     def get_user(userid):
         global user_database
 
-        # If rely on dict lookup raising KeyError here, you'll return an
+        # If you rely on dict lookup raising KeyError here, you'll return an
         # internal error to the client, which tells the client that there's
         # something wrong in the server. However in this case, KeyError means
         # invalid request, so it's best to return a client error.
@@ -178,7 +173,7 @@ if __name__=='__main__':
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
     application = Application([UserManager], 'spyne.examples.complex',
-                interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=XmlDocument())
+                              in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
     server = make_server('127.0.0.1', 8000, WsgiApplication(application))
 

@@ -21,11 +21,10 @@
 
 import zmq
 
-from spyne.client import Service
-from spyne.client import RemoteProcedureBase
-from spyne.client import ClientBase
+from spyne import RemoteService, ClientBase, RemoteProcedureBase
 
 context = zmq.Context()
+
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
@@ -47,8 +46,9 @@ class _RemoteProcedure(RemoteProcedureBase):
         else:
             return self.ctx.in_object
 
+
 class ZeroMQClient(ClientBase):
     def __init__(self, url, app):
         super(ZeroMQClient, self).__init__(url, app)
 
-        self.service = Service(_RemoteProcedure, url, app)
+        self.service = RemoteService(_RemoteProcedure, url, app)

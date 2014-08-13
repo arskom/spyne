@@ -37,9 +37,9 @@ client.
 
 Here's how to call it using suds:
 
->>> from suds.client import Client
->>> c = Client('http://localhost:8000/?wsdl')
->>> c.service.say_hello('punk', 5)
+#>>> from suds.client import Client
+#>>> c = Client('http://localhost:8000/?wsdl')
+#>>> c.service.say_hello('punk', 5)
 (stringArray){
    string[] =
       "Hello, punk",
@@ -48,21 +48,15 @@ Here's how to call it using suds:
       "Hello, punk",
       "Hello, punk",
  }
->>>
+#>>>
 """
 
 
-import logging
+from spyne import Application, rpc, ServiceBase, Iterable, Integer, Unicode
 
-from spyne.application import Application
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 
-from spyne.decorator import rpc
-from spyne.service import ServiceBase
-from spyne.model import Iterable
-from spyne.model import Integer
-from spyne.model import Unicode
 
 
 class HelloWorldService(ServiceBase):
@@ -80,7 +74,17 @@ class HelloWorldService(ServiceBase):
             yield u'Hello, %s' % name
 
 
-if __name__=='__main__':
+application = Application([HelloWorldService], 'spyne.examples.hello.soap',
+        in_protocol=Soap11(validator='lxml'),
+        out_protocol=Soap11()
+    )
+
+wsgi_application = WsgiApplication(application)
+
+
+if __name__ == '__main__':
+    import logging
+
     from wsgiref.simple_server import make_server
 
     logging.basicConfig(level=logging.DEBUG)
@@ -88,12 +92,6 @@ if __name__=='__main__':
 
     logging.info("listening to http://127.0.0.1:8000")
     logging.info("wsdl is at: http://localhost:8000/?wsdl")
-
-    application = Application([HelloWorldService], 'spyne.examples.hello.soap',
-                in_protocol=Soap11(validator='lxml'),
-                out_protocol=Soap11()
-            )
-    wsgi_application = WsgiApplication(application)
 
     server = make_server('127.0.0.1', 8000, wsgi_application)
     server.serve_forever()

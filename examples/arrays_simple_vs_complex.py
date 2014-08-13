@@ -29,23 +29,20 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 For testing different kind of arrays with different protocols.
-'''
+"""
 
 
 import logging
 
-from spyne.application import Application
-from spyne.decorator import srpc
+from spyne import Application, srpc, ServiceBase, Unicode, ComplexModel, Array
+
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.json import JsonDocument
 from spyne.protocol.http import HttpRpc
-from spyne.service import ServiceBase
-from spyne.model.primitive import Unicode
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import Array
 from spyne.server.wsgi import WsgiApplication
+
 
 class Permission(ComplexModel):
     __namespace__ = 'some_ns'

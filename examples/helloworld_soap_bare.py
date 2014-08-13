@@ -30,7 +30,7 @@
 #
 
 
-'''
+"""
 This is a simple HelloWorld example to show the basics of writing
 a webservice using spyne, starting a server, and creating a service
 client.
@@ -50,17 +50,10 @@ Here's how to call it using suds:
  }
 >>>
 
-'''
+"""
 
 
-import logging
-
-from spyne.decorator import rpc
-from spyne.service import ServiceBase
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import Iterable
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Unicode
+from spyne import rpc, ServiceBase, ComplexModel, Iterable, Integer, Unicode
 
 from spyne.util.simple import wsgi_soap_application
 
@@ -68,18 +61,18 @@ from spyne.util.simple import wsgi_soap_application
 class HelloWorldService(ServiceBase):
     @rpc(Unicode, _returns=Iterable(Unicode), _body_style='bare')
     def say_hello(ctx, name):
-        '''
+        """
         Docstrings for service methods appear as documentation in the wsdl
         <b>what fun</b>
         @param name the name to say hello to
         @param the number of times to say hello
         @return the completed array
-        '''
+        """
 
         return u'Hello, %s' % name
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     from wsgiref.simple_server import make_server
 
     logging.basicConfig(level=logging.DEBUG)

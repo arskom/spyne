@@ -27,9 +27,9 @@ from inspect import isgenerator
 from lxml import etree, html
 from lxml.builder import E
 
-from spyne.const.xml_ns import xsi as NS_XSI, soap_env as NS_SOAP_ENV
+from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
-    AnyHtml, ModelBase, ByteArray, XmlData
+    AnyHtml, ModelBase, ByteArray, XmlData, Array
 from spyne.model.enum import EnumBase
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import SchemaValidationError
@@ -50,6 +50,7 @@ class ToParentMixin(ProtocolBase):
                                  ignore_wrappers=ignore_wrappers)
 
         self.polymorphic = polymorphic
+        self.use_global_null_handler = True
 
         self.serialization_handlers = cdict({
             AnyXml: self.xml_to_parent,
@@ -74,7 +75,7 @@ class ToParentMixin(ProtocolBase):
         if inst is None:
             inst = cls.Attributes.default
 
-        if inst is None:
+        if inst is None and self.use_global_null_handler:
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
@@ -98,7 +99,16 @@ class ToParentMixin(ProtocolBase):
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         with parent.element(name):
-            ret = self._get_members(ctx, cls, inst, parent, **kwargs)
+            if issubclass(cls, Array):
+                # if cls is an array, inst should already be a sequence type
+                # we leave  it to the next round of to_cloth call to unwrap and
+                # deserialize it.
+                v = iter(cls._type_info.values()).next()
+                ret = self.to_parent(ctx, v, inst, parent, **kwargs)
+
+            else:
+                ret = self._get_members(ctx, cls, inst, parent, **kwargs)
+
             if isgenerator(ret):
                 try:
                     while True:
@@ -148,7 +158,6 @@ class ToParentMixin(ProtocolBase):
     @coroutine
     def _get_members(self, ctx, cls, inst, parent, **kwargs):
         for k, v in cls.get_flat_type_info(cls).items():
-            print("_get_members", k, v)
             try:
                 subvalue = getattr(inst, k, None)
             except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError

@@ -19,19 +19,11 @@
 
 """The HTTP (urllib2) client transport."""
 
-try:
-    from urllib2 import Request
-    from urllib2 import urlopen
-    from urllib2 import HTTPError
+from spyne import RemoteService, ClientBase, RemoteProcedureBase
 
-except ImportError: # Python 3
-    from urllib.request import Request
-    from urllib.request import urlopen
-    from urllib.error import HTTPError
+from spyne.util.six.moves.urllib.request import Request, urlopen
+from spyne.util.six.moves.urllib.error import HTTPError
 
-from spyne.client import Service
-from spyne.client import ClientBase
-from spyne.client import RemoteProcedureBase
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
@@ -70,8 +62,9 @@ class _RemoteProcedure(RemoteProcedureBase):
         else:
             return self.ctx.in_object
 
+
 class HttpClient(ClientBase):
     def __init__(self, url, app):
         super(HttpClient, self).__init__(url, app)
 
-        self.service = Service(_RemoteProcedure, url, app)
+        self.service = RemoteService(_RemoteProcedure, url, app)

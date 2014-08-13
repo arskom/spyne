@@ -34,6 +34,15 @@
 # it. Please ignore this.
 #
 
+"""
+This is a very simple async service that sleeps for a specified
+number of seconds and then call back the caller with a message.
+This kicks off a new Thread for each request, which is not recommended
+for a real-world application.  Spyne does not provide any thread
+management or scheduling mechanism, the service is responsible for the
+execution of the async process.
+"""
+
 import time
 from threading import Thread
 
@@ -49,15 +58,6 @@ from spyne.model.primitive import String
 from spyne.model.primitive import Integer
 from spyne.util import get_callback_info
 from spyne.server.wsgi import WsgiApplication
-
-'''
-This is a very simple async service that sleeps for a specified
-number of seconds and then call back the caller with a message.
-This kicks off a new Thread for each request, which is not recommended
-for a real-world application.  Spyne does not provide any thread
-management or scheduling mechanism, the service is responsible for the
-execution of the async process.
-'''
 
 
 class SleepingService(ServiceBase):
@@ -87,7 +87,7 @@ if __name__=='__main__':
         logger.error("Error: example server code requires Python >= 2.5")
 
     application = Application([SleepingService], 'spyne.examples.async',
-                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                                    in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 8000, WsgiApplication(application))
 

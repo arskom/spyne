@@ -2,12 +2,15 @@
 Changelog
 =========
 
+
 spyne-2.12.0
 ------------
 * NullServer now supports async.
 * XmlCloth was rewritten while less sleep-deprived.
 * ProtocolBase now also implements serializing primitives to unicode.
 * Add initial support for parsing xsi:type. It's an experimental feature.
+* Add stub implementation for SOAP 1.2
+* Add initial implementation for SOAP 1.2 Faults.
 
 spyne-2.11.0
 ------------

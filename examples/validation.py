@@ -37,20 +37,19 @@ to use this service.
 """
 
 host = '127.0.0.1'
-port = 9912
+port = 8000
 
 import logging
 
 from datetime import datetime
-from spyne.model.primitive import Integer,Unicode
-from spyne.decorator import srpc
-from spyne.service import ServiceBase
+
+from spyne import Integer, Unicode, rpc, ServiceBase
 
 
 class NameOfMonthService(ServiceBase):
-    @srpc(Integer(ge=1,le=12), _returns=Unicode)
-    def get_name_of_month(month):
-        return datetime(2000,month,1).strftime("%B")
+    @rpc(Integer(ge=1, le=12), _returns=Unicode)
+    def get_name_of_month(ctx, month):
+        return datetime(2000, month, 1).strftime("%B")
 
 
 from spyne.application import Application
@@ -68,6 +67,6 @@ from wsgiref.simple_server import make_server
 server = make_server(host, port, WsgiApplication(rest))
 
 logging.basicConfig(level=logging.DEBUG)
-logging.info("listening to http://%s:%d" % (host,port))
+logging.info("listening to http://%s:%d" % (host, port))
 
 server.serve_forever()

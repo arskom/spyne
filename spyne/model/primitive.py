@@ -191,6 +191,10 @@ class Unicode(SimpleModel):
         """A regular expression that matches the whole string. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
+        unicode_pattern = None
+        """Same as ``pattern``, but, will be compiled with UNICODE.
+        See: https://docs.python.org/2/library/re.html#re.UNICODE"""
+
         encoding = None
         """The encoding of `str` objects this class may have to deal with."""
 

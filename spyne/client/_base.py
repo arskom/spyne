@@ -22,6 +22,7 @@
 from spyne._base import MethodContext
 from spyne.model.primitive import string_encoding
 
+
 class Factory(object):
     def __init__(self, app):
         self.__app = app
@@ -29,7 +30,8 @@ class Factory(object):
     def create(self, object_name):
         return self.__app.interface.get_class_instance(object_name)
 
-class Service(object):
+
+class RemoteService(object):
     def __init__(self, rpc_class, url, app, *args, **kwargs):
         self.__app = app
         self.__url = url
@@ -41,6 +43,7 @@ class Service(object):
     def __getattr__(self, key):
         return self.rpc_class(self.__url, self.__app, key, self.out_header,
                                                     *self.args, **self.kwargs)
+
 
 class RemoteProcedureBase(object):
     """Abstract base class that handles all (de)serialization.

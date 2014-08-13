@@ -19,16 +19,13 @@
 
 from inspect import isgenerator
 
-from spyne.model import ModelBase, AnyHtml
-from spyne.model import ByteArray
-from spyne.model import ComplexModelBase
-from spyne.model import Array
-from spyne.model import AnyUri
-from spyne.model import ImageUri
-from spyne.model.binary import Attachment
-from spyne.protocol.html import HtmlBase
-from spyne.protocol.html import NSMAP
 from lxml.html.builder import E
+
+from spyne import ModelBase, AnyHtml, ByteArray, ComplexModelBase, Array, \
+    AnyUri, ImageUri
+from spyne.model.binary import Attachment
+from spyne.protocol.html import HtmlBase, NSMAP
+
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
@@ -199,20 +196,20 @@ class HtmlColumnTable(HtmlTableBase):
                         for k, v in fti.items():
                             if getattr(v.Attributes, 'exc_html', None):
                                 continue
-                            header_name = self.translate(v, ctx.locale, k)
+                            header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
                     else:
                         for k, v in fti.items():
                             if getattr(v.Attributes, 'exc_html', None):
                                 continue
                             th_attrs[self.field_name_attr] = k
-                            header_name = self.translate(v, ctx.locale, k)
+                            header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
 
                 else:
                     if self.field_name_attr is not None:
                         th_attrs[self.field_name_attr] = name
-                    header_name = self.translate(cls, ctx.locale, name)
+                    header_name = self.trc(cls, ctx.locale, name)
                     parent.write(E.th(header_name, **th_attrs))
 
                 self.extend_header_row(ctx, cls, name, parent)
@@ -335,7 +332,7 @@ class HtmlRowTable(HtmlTableBase):
                             th_attrs[self.field_name_attr] = sub_name
                         if self.produce_header:
                             parent.write(E.th(
-                                self.translate(v, ctx.locale, sub_name),
+                                self.trc(v, ctx.locale, sub_name),
                                 **th_attrs
                             ))
 
@@ -386,7 +383,7 @@ class HtmlRowTable(HtmlTableBase):
                         tr_attrs['class'] = self.row_class
                     with parent.element('tr', tr_attrs):
                         if self.produce_header:
-                            parent.write(E.th(self.translate(cls, ctx.locale,
+                            parent.write(E.th(self.trc(cls, ctx.locale,
                                                           cls.get_type_name())))
                         td_attrs = {}
                         if self.cell_class is not None:

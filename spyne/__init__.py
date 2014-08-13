@@ -34,9 +34,26 @@ from spyne._base import EventManager
 from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.decorator import mrpc
+
 from spyne.service import ServiceBase
 from spyne.application import Application
+
 from spyne.model import *
+
+from spyne.error import InvalidCredentialsError
+from spyne.error import RequestTooLongError
+from spyne.error import RequestNotAllowed
+from spyne.error import ArgumentError
+from spyne.error import InvalidInputError
+from spyne.error import ValidationError
+from spyne.error import InternalError
+from spyne.error import ResourceNotFoundError
+from spyne.error import RespawnError
+from spyne.error import ResourceAlreadyExistsError
+
+from spyne.client import ClientBase, RemoteProcedureBase, RemoteService
+from spyne.server import ServerBase, NullServer
+
 
 def _vercheck():
     import sys

@@ -35,13 +35,10 @@ import logging
 
 from wsgiref.simple_server import make_server
 
-from spyne.application import Application
-from spyne.decorator import srpc
-from spyne.model.primitive import Integer
-from spyne.protocol.http import HttpRpc
+from spyne import Application, srpc, Integer, HttpRpc, ServiceBase
+
 from spyne.protocol.xml import XmlDocument
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
 
 # Requires Python >=2.7
 from spyne.auxproc.thread import ThreadAuxProc

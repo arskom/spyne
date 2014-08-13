@@ -29,7 +29,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 This example is an enhanced version of the HelloWorld example that
 uses event listeners to apply cross-cutting behavior to the service.
 In this example, the service hooks are used to gather performance
@@ -46,20 +46,17 @@ Use:
     curl 'http://localhost:8000/say_hello?name=Dave&times=5'
 
 to query this code.
-'''
+"""
 
 import logging
 
 from time import time
 
-from spyne.application import Application
-from spyne.decorator import srpc
+from spyne.application import Application, srpc, ServiceBase, String, Integer
+
+from spyne.server.wsgi import WsgiApplication
 from spyne.protocol.json import JsonDocument
 from spyne.protocol.http import HttpRpc
-from spyne.service import ServiceBase
-from spyne.model.primitive import String
-from spyne.model.primitive import Integer
-from spyne.server.wsgi import WsgiApplication
 
 
 class UserDefinedContext(object):

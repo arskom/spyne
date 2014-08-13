@@ -18,34 +18,38 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('spyne.protocol.xml')
-logger.setLevel(logging.DEBUG)
+logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+logger = logging.getLogger('spyne.test.interop.server.soap_http_basic')
 
-from spyne.application import Application
-from spyne.interface.wsdl import Wsdl11
-from spyne.test.interop.server._service import services
-from spyne.protocol.http import HttpRpc
-from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
+from spyne.test.interop.server._service import services
+from spyne.application import Application
+from spyne.protocol.soap import Soap12
 
-httprpc_soap_application = Application(services,
-    'spyne.test.interop.server.httprpc.soap', in_protocol=HttpRpc(), out_protocol=Soap11())
+
+soap12_application = Application(services, 'spyne.test.interop.server',
+                 in_protocol=Soap12(validator='lxml', cleanup_namespaces=True),
+                 out_protocol=Soap12())
 
 host = '127.0.0.1'
-port = 9753
+port = 9754
 
-if __name__ == '__main__':
+def main():
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
 
-        wsgi_application = WsgiApplication(httprpc_soap_application)
+        wsgi_application = WsgiApplication(soap12_application)
         server = make_server(host, port, validator(wsgi_application))
 
-        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9753))
+        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9754))
         logger.info('WSDL is at: /?wsdl')
         server.serve_forever()
 
     except ImportError:
         print("Error: example server code requires Python >= 2.5")
+
+if __name__ == '__main__':
+    main()

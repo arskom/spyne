@@ -24,11 +24,9 @@ apps."""
 
 from __future__ import absolute_import
 
-from django.test.client import Client
+from spyne import RemoteService, ClientBase, RemoteProcedureBase
 
-from spyne.client import Service
-from spyne.client import ClientBase
-from spyne.client import RemoteProcedureBase
+from django.test.client import Client
 
 
 class _RemoteProcedure(RemoteProcedureBase):
@@ -75,4 +73,4 @@ class DjangoTestClient(ClientBase):
     def __init__(self, url, app):
         super(DjangoTestClient, self).__init__(url, app)
 
-        self.service = Service(_RemoteProcedure, url, app)
+        self.service = RemoteService(_RemoteProcedure, url, app)
