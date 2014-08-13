@@ -345,6 +345,7 @@ class ToClothMixin(ProtocolBase):
             inst = html.fromstring(inst)
         parent.write(inst)
 
+    @coroutine
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
         fti = cls.get_flat_type_info(cls)
 
@@ -387,7 +388,17 @@ class ToClothMixin(ProtocolBase):
             else:
                 val = getattr(inst, k, None)
 
-            self.to_cloth(ctx, v, val, elt, parent, name=k)
+            ret = self.to_cloth(ctx, v, val, elt, parent, name=k)
+            if isgenerator(ret):
+                try:
+                    while True:
+                        sv2 = (yield)
+                        ret.send(sv2)
+                except Break as e:
+                    try:
+                        ret.throw(e)
+                    except StopIteration:
+                        pass
 
     @coroutine
     def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
