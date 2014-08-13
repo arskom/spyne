@@ -56,7 +56,18 @@ def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
 from os import mkdir
 from os.path import join
 
-def show(elt, tn):
+def show(elt, tn=None):
+    if tn is None:
+        import inspect
+
+        for frame in inspect.stack():
+            if frame[3].startswith("test_"):
+                tn = frame[3]
+                break
+
+        else:
+            raise Exception("don't be lazy and pass test name.")
+
     from lxml import html, etree
     out_string = etree.tostring(elt, pretty_print=True)
     print(out_string)
