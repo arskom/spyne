@@ -222,6 +222,9 @@ class ModelBase(object):
         #The key is either a ProtocolBase subclass or a ProtocolBase instance.
         #Instances override classes."""
 
+        pa = None
+        """Alias for prot_attrs."""
+
         empty_is_none = False
         """When the incoming object is empty (e.g. '' for strings) treat it as
         None. No effect (yet) for outgoing values."""
@@ -411,6 +414,9 @@ class ModelBase(object):
 
             elif k in ('primary_key', 'pk'):
                 Attributes.sqla_column_args[-1]['primary_key'] = v
+
+            elif k in ('prot_attrs', 'pa'):
+                setattr(Attributes, 'prot_attrs', v)
 
             elif k in ('foreign_key', 'fk'):
                 from sqlalchemy.schema import ForeignKey
