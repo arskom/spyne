@@ -126,7 +126,6 @@ class ToParentMixin(ProtocolBase):
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
-                print(sv)
                 ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True,
                                                                        **kwargs)
                 if isgenerator(ret):
