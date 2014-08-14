@@ -588,29 +588,29 @@ class HierDictDocument(DictDocument):
         if ctx.out_error is not None:
             ctx.out_document = [Fault.to_dict(ctx.out_error.__class__,
                                                                  ctx.out_error)]
+            return
 
-        else:
-            # get the result message
-            if message is self.REQUEST:
-                out_type = ctx.descriptor.in_message
-            elif message is self.RESPONSE:
-                out_type = ctx.descriptor.out_message
-            if out_type is None:
-                return
+        # get the result message
+        if message is self.REQUEST:
+            out_type = ctx.descriptor.in_message
+        elif message is self.RESPONSE:
+            out_type = ctx.descriptor.out_message
+        if out_type is None:
+            return
 
-            out_type_info = out_type.get_flat_type_info(out_type)
+        out_type_info = out_type.get_flat_type_info(out_type)
 
-            # instantiate the result message
-            out_instance = out_type()
+        # instantiate the result message
+        out_instance = out_type()
 
-            # assign raw result to its wrapper, result_message
-            for i, (k, v) in enumerate(out_type_info.items()):
-                attr_name = k
-                out_instance._safe_set(attr_name, ctx.out_object[i], v)
+        # assign raw result to its wrapper, result_message
+        for i, (k, v) in enumerate(out_type_info.items()):
+            attr_name = k
+            out_instance._safe_set(attr_name, ctx.out_object[i], v)
 
-            ctx.out_document = self._object_to_doc(out_type, out_instance),
+        ctx.out_document = self._object_to_doc(out_type, out_instance),
 
-            self.event_manager.fire_event('after_serialize', ctx)
+        self.event_manager.fire_event('after_serialize', ctx)
 
     def validate(self, key, class_, value):
         # validate raw input
