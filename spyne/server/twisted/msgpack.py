@@ -121,7 +121,11 @@ class TwistedMessagePackProtocol(Protocol):
             self.handle_error(p_ctx, others, p_ctx.out_error)
             return
 
-        ret = p_ctx.out_object[0]
+        if len(p_ctx.descriptor.out_message._type_info) > 1:
+            ret = p_ctx.out_object
+        else:
+            ret = p_ctx.out_object[0]
+
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, self, p_ctx, others)
             ret.addErrback(_eb_deferred, self, p_ctx, others)
