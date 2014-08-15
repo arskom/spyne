@@ -146,8 +146,8 @@ class HtmlColumnTable(HtmlTableBase):
     def _gen_row(self, ctx, cls, inst, parent, name, **kwargs):
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
-                # FIXME: To be fixed to work with prot_attrs and renamed to exc
-                if getattr(v.Attributes, 'exc_html', False) == True:
+                # FIXME: To be fixed to work with prot_attrs
+                if getattr(v.Attributes, 'exc', False) == True:
                     continue
                 if getattr(v.Attributes, 'read', True) == False:
                     continue
@@ -189,18 +189,17 @@ class HtmlColumnTable(HtmlTableBase):
                 if self.field_name_attr is not None:
                     th_attrs[self.field_name_attr] = name
 
-                # fti is none when the type inside Array is not a ComplexModel.
                 if issubclass(cls, ComplexModelBase):
                     fti = cls.get_flat_type_info(cls)
                     if self.field_name_attr is None:
                         for k, v in fti.items():
-                            if getattr(v.Attributes, 'exc_html', None):
+                            if getattr(v.Attributes, 'exc', None):
                                 continue
                             header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
                     else:
                         for k, v in fti.items():
-                            if getattr(v.Attributes, 'exc_html', None):
+                            if getattr(v.Attributes, 'exc', None):
                                 continue
                             th_attrs[self.field_name_attr] = k
                             header_name = self.trc(v, ctx.locale, k)
