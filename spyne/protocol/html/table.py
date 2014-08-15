@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 from inspect import isgenerator
 
 from lxml.html.builder import E
@@ -24,6 +26,7 @@ from lxml.html.builder import E
 from spyne import ModelBase, AnyHtml, ByteArray, ComplexModelBase, Array, \
     AnyUri, ImageUri
 from spyne.model.binary import Attachment
+from spyne.protocol import get_cls_attrs
 from spyne.protocol.html import HtmlBase, NSMAP
 
 from spyne.util import coroutine, Break
@@ -144,12 +147,14 @@ class HtmlColumnTable(HtmlTableBase):
 
     @coroutine
     def _gen_row(self, ctx, cls, inst, parent, name, **kwargs):
+        print("Generate row for %r", cls)
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
-                # FIXME: To be fixed to work with prot_attrs
-                if getattr(v.Attributes, 'exc', False) == True:
+                print("\tGenerate field %r type %r" % (k, v))
+                attr = get_cls_attrs(self, cls)
+                if attr.exc:
                     continue
-                if getattr(v.Attributes, 'read', True) == False:
+                if attr.get('read', True) == False:
                     continue
 
                 try:
@@ -157,7 +162,7 @@ class HtmlColumnTable(HtmlTableBase):
                 except: # to guard against e.g. SQLAlchemy throwing NoSuchColumnError
                     sub_value = None
 
-                sub_name = v.Attributes.sub_name
+                sub_name = attr.sub_name
                 if sub_name is None:
                     sub_name = k
 
