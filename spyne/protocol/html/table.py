@@ -19,6 +19,9 @@
 
 from __future__ import print_function
 
+import logging
+logger = logging.getLogger(__name__)
+
 from inspect import isgenerator
 
 from lxml.html.builder import E
@@ -188,6 +191,8 @@ class HtmlColumnTable(HtmlTableBase):
             self.extend_data_row(ctx, cls, inst, parent, name, **kwargs)
 
     def _gen_header(self, ctx, cls, name, parent):
+        logger.debug("Generate header for %r", cls)
+
         with parent.element('thead'):
             with parent.element('tr'):
                 th_attrs = {}
@@ -220,11 +225,13 @@ class HtmlColumnTable(HtmlTableBase):
 
     @coroutine
     def _gen_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
-        attrs = {}
-        if self.table_name_attr is not None:
-            attrs[self.table_name_attr] = cls.get_type_name()
+        logger.debug("Generate table for %r", cls)
 
-        with parent.element('table', attrs, nsmap=NSMAP):
+        attrib = {}
+        if self.table_name_attr is not None:
+            attrib[self.table_name_attr] = cls.get_type_name()
+
+        with parent.element('table', attrib, nsmap=NSMAP):
             if self.produce_header:
                 self._gen_header(ctx, cls, name, parent)
 
@@ -255,7 +262,7 @@ class HtmlColumnTable(HtmlTableBase):
 
     def complex_model_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
-        # If this is direct child of an array, table is already set up in the
+        # If this is direct child of an array, table is already set up in
         # array_to_parent.
         if from_arr:
             return self._gen_row(ctx, cls, inst, parent, name, **kwargs)
@@ -293,22 +300,22 @@ class HtmlRowTable(HtmlTableBase):
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
         if from_arr:
-            td_attrs = {}
+            td_attrib = {}
             if False and self.field_name_attr:
-                td_attrs[self.field_name_attr] = name
+                td_attrib[self.field_name_attr] = name
 
-            parent.write(E.tr(E.td(self.to_unicode(cls, inst), **td_attrs)))
+            parent.write(E.tr(E.td(self.to_unicode(cls, inst), **td_attrib)))
         else:
             parent.write(self.to_unicode(cls, inst))
 
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
-        attrs = {}
+        attrib = {}
         if self.table_name_attr is not None:
-            attrs[self.table_name_attr] = cls.get_type_name()
+            attrib[self.table_name_attr] = cls.get_type_name()
 
-        with parent.element('table', attrs, nsmap=NSMAP):
+        with parent.element('table', attrib, nsmap=NSMAP):
             with parent.element('tbody'):
                 for k, v in cls.get_flat_type_info(cls).items():
                     try:
@@ -325,28 +332,28 @@ class HtmlRowTable(HtmlTableBase):
                                                              sub_name, **kwargs)
                         continue
 
-                    tr_attrs = {}
+                    tr_attrib = {}
                     if self.row_class is not None:
-                        tr_attrs['class'] = self.row_class
-                    with parent.element('tr', tr_attrs):
-                        th_attrs = {}
+                        tr_attrib['class'] = self.row_class
+                    with parent.element('tr', tr_attrib):
+                        th_attrib = {}
                         if self.header_cell_class is not None:
-                            th_attrs['class'] = self.header_cell_class
+                            th_attrib['class'] = self.header_cell_class
                         if self.field_name_attr is not None:
-                            th_attrs[self.field_name_attr] = sub_name
+                            th_attrib[self.field_name_attr] = sub_name
                         if self.produce_header:
                             parent.write(E.th(
                                 self.trc(v, ctx.locale, sub_name),
-                                **th_attrs
+                                **th_attrib
                             ))
 
-                        td_attrs = {}
+                        td_attrib = {}
                         if self.cell_class is not None:
-                            td_attrs['class'] = self.cell_class
+                            td_attrib['class'] = self.cell_class
                         if self.field_name_attr is not None:
-                            td_attrs[self.field_name_attr] = sub_name
+                            td_attrib[self.field_name_attr] = sub_name
 
-                        with parent.element('td', td_attrs):
+                        with parent.element('td', td_attrib):
                             ret = self.to_parent(ctx, v, sub_value, parent,
                                                             sub_name, **kwargs)
                             if isgenerator(ret):
@@ -377,22 +384,22 @@ class HtmlRowTable(HtmlTableBase):
                         except StopIteration:
                             pass
             else:
-                table_attrs = {}
+                table_attrib = {}
                 if self.table_name_attr:
-                    table_attrs = {self.table_name_attr: name}
+                    table_attrib = {self.table_name_attr: name}
 
-                with parent.element('table', table_attrs, nsmap=NSMAP):
-                    tr_attrs = {}
+                with parent.element('table', table_attrib, nsmap=NSMAP):
+                    tr_attrib = {}
                     if self.row_class is not None:
-                        tr_attrs['class'] = self.row_class
-                    with parent.element('tr', tr_attrs):
+                        tr_attrib['class'] = self.row_class
+                    with parent.element('tr', tr_attrib):
                         if self.produce_header:
                             parent.write(E.th(self.trc(cls, ctx.locale,
                                                           cls.get_type_name())))
-                        td_attrs = {}
+                        td_attrib = {}
                         if self.cell_class is not None:
-                            td_attrs['class'] = self.cell_class
-                        with parent.element('td', td_attrs):
+                            td_attrib['class'] = self.cell_class
+                        with parent.element('td', td_attrib):
                             with parent.element('table'):
                                 ret = super(HtmlRowTable, self) \
                                     .array_to_parent(ctx, cls, inst, parent,
