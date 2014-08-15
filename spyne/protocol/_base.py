@@ -1020,6 +1020,7 @@ _datetime_smap = {
     'microseconds': _dt_usec,
 }
 
+
 def _file_to_iter(f):
     try:
         data = f.read(65536)
@@ -1029,3 +1030,12 @@ def _file_to_iter(f):
 
     finally:
         f.close()
+
+@memoize_id
+def get_cls_attrs(prot, cls):
+    attr = DefaultAttrDict([(k, getattr(cls.Attributes, k))
+                    for k in dir(cls.Attributes) if not k.startswith('__')])
+    if cls.Attributes.prot_attrs:
+        attr.update(cls.Attributes.prot_attrs.get(prot.__class__, {}))
+        attr.update(cls.Attributes.prot_attrs.get(prot, {}))
+    return attr
