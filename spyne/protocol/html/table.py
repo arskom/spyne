@@ -150,15 +150,17 @@ class HtmlColumnTable(HtmlTableBase):
 
     @coroutine
     def _gen_row(self, ctx, cls, inst, parent, name, **kwargs):
-        print("Generate row for %r", cls)
+        print("Generate row for", cls)
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
-                print("\tGenerate field %r type %r" % (k, v))
-                attr = get_cls_attrs(self, cls)
+                attr = get_cls_attrs(self, v)
                 if attr.exc:
+                    print("\tExclude field %r type %r" % (k, v), "for", cls)
                     continue
-                if attr.get('read', True) == False:
+                if not attr.get('read', True):
                     continue
+
+                print("\tGenerate field %r type %r" % (k, v), "for", cls)
 
                 try:
                     sub_value = getattr(inst, k, None)
@@ -188,6 +190,7 @@ class HtmlColumnTable(HtmlTableBase):
                             except StopIteration:
                                 pass
 
+            print("Generate row for %r done." % cls)
             self.extend_data_row(ctx, cls, inst, parent, name, **kwargs)
 
     def _gen_header(self, ctx, cls, name, parent):
