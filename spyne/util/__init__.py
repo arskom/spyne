@@ -149,7 +149,7 @@ class memoize_id(memoize):
 
     def get_key(self, args, kwargs):
         return tuple([id(a) for a in args]), \
-                                   tuple([ (k,id(v)) for k,v in kwargs.items()])
+                                  tuple([(k, id(v)) for k, v in kwargs.items()])
 
 
 def sanitize_args(a):

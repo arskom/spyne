@@ -28,6 +28,7 @@ import spyne.const.xml_ns
 from decimal import Decimal
 
 from spyne.util import Break
+from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
@@ -38,20 +39,20 @@ def _decode_pa_dict(d):
     """Decodes dict passed to prot_attrs.
 
     >>> _decode_pa_dict({})
-    {}
+    cdict({})
     >>> _decode_pa_dict({1: 2)})
-    {1: 2}
+    cdict({1: 2})
     >>> _decode_pa_dict({(1,2): 3)})
-    {1: 3, 2: 3}
+    cdict({1: 3, 2: 3})
     """
 
-    retval = {}
-    for k,v in d.items():
+    retval = cdict()
+    for k, v in d.items():
         if isinstance(k, tuple):
             for subk in k:
                 retval[subk] = v
 
-    for k,v in d.items():
+    for k, v in d.items():
         if not isinstance(k, tuple):
             retval[k] = v
 

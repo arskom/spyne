@@ -746,7 +746,6 @@ class XmlDocument(SubXmlBase):
                         self.to_parent(ctx, v, subvalue, attr_parent,
                                                            v.get_namespace(), k)
 
-
     def complex_to_parent(self, ctx, cls, inst, parent, ns, name=None):
         sub_name = cls.Attributes.sub_name
         if sub_name is not None:
