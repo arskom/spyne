@@ -166,7 +166,7 @@ from spyne.model import Time
 from spyne.model import Duration
 from spyne.model import Unicode
 
-from spyne.protocol import ProtocolBase
+from spyne.protocol import ProtocolBase, get_cls_attrs
 
 
 def _check_freq_dict(cls, d, fti=None):
@@ -738,8 +738,10 @@ class HierDictDocument(DictDocument):
             for r in self._get_member_pairs(parent_cls, inst):
                 yield r
 
-        for k, v in cls.get_flat_type_info(cls).items():
-            if getattr(v.Attributes, 'exc_dict', None):
+        for k, v in cls._type_info.items():
+            attr = get_cls_attrs(self, v)
+
+            if getattr(attr, 'exc', None):
                 continue
 
             try:
