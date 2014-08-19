@@ -148,7 +148,7 @@ binary_decoding_handlers = {
 
 
 class HybridFileStore(object):
-    def __init__(self, store_path, db_format='json'):
+    def __init__(self, store_path, db_format='json', type=None):
         """Marker to be passed to File's store_as to denote a hybrid
         Sql/Filesystem storage scheme.
 
@@ -160,6 +160,7 @@ class HybridFileStore(object):
 
         self.store = abspath(store_path)
         self.db_format = db_format
+        self.type = type
 
         if not isdir(self.store):
             os.makedirs(self.store)
@@ -190,7 +191,7 @@ class _Value(ComplexModel):
     ]
 
     def __init__(self, name=None, path=None, type='application/octet-stream',
-                                        data=None, handle=None, move=False):
+                                            data=None, handle=None, move=False):
 
         self.name = name
         if self.name is not None:
