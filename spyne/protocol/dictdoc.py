@@ -626,7 +626,7 @@ class HierDictDocument(DictDocument):
 
         # get native type
         if issubclass(cls, File) and isinstance(inst, self.complex_as):
-            retval = self._doc_to_object(File.Value, inst, validator)
+            retval = self._doc_to_object(cls.Attributes.type, inst, validator)
 
         elif issubclass(cls, ComplexModelBase):
             retval = self._doc_to_object(cls, inst, validator)
@@ -773,8 +773,8 @@ class HierDictDocument(DictDocument):
         if issubclass(cls, ComplexModelBase):
             return self._complex_to_doc(cls, inst)
 
-        if issubclass(cls, File) and isinstance(inst, File.Value):
-            retval = self._complex_to_doc(File.Value, inst)
+        if issubclass(cls, File) and isinstance(inst, cls.Attributes.type):
+            retval = self._complex_to_doc(cls.Attributes.type, inst)
             if self.complex_as is dict and not self.ignore_wrappers:
                 retval = iter(retval.values()).next()
 

@@ -170,6 +170,70 @@ class HybridFileStore(object):
 _BINARY = type('FileTypeBinary', (object,), {})
 _TEXT = type('FileTypeText', (object,), {})
 
+
+class _Value(ComplexModel):
+    """The class for values marked as ``File``.
+
+    :param name: Original name of the file
+    :param path: Current path to the file.
+    :param type: The mime type of the file's contents.
+    :param data: Optional sequence of ``str`` or ``bytes`` instances
+        that contain the file's data.
+    :param handle: :class:`file` object that contains the file's data.
+        It is ignored unless the ``path`` argument is ``None``.
+    """
+
+    _type_info = [
+        ('name', Unicode(encoding='utf8')),
+        ('type', Unicode),
+        ('data', ByteArray(logged=False)),
+    ]
+
+    def __init__(self, name=None, path=None, type='application/octet-stream',
+                                        data=None, handle=None, move=False):
+
+        self.name = name
+        if self.name is not None:
+            if not os.path.basename(self.name) == self.name:
+                raise ValidationError(self.name,
+                             "File name %r should not contain any '/' char")
+
+        self.path = path
+        self.type = type
+        self.data = data
+        self.handle = handle
+        self.move = move
+        self.abspath = None
+        if self.path is not None:
+            self.abspath = abspath(self.path)
+
+    def rollover(self):
+        """This method normalizes the file object by making ``path``,
+        ``name`` and ``handle`` properties consistent. It writes
+        incoming data to the file object and points the ``data`` iterable
+        to the contents of this file.
+        """
+
+        iter(self.data)
+
+        if self.path is None:
+            handle, self.path = tempfile.mkstemp()
+            f = os.fdopen(handle, 'wb')
+        else:
+            assert os.path.isabs(self.path)
+            f = open(self.path, 'wb')
+
+        if self.name is None:
+            self.name = os.path.basename(self.path)
+
+        for data in self.data:
+            f.write(data)
+
+        f.close()
+
+        self.data = None
+
+
 class File(SimpleModel):
     """A compact way of dealing with incoming files for protocols with a
     standard way of encoding file metadata along with binary data. (E.g. Http)
@@ -180,6 +244,7 @@ class File(SimpleModel):
 
     BINARY = _BINARY
     TEXT = _BINARY
+    Value = _Value
 
     class Attributes(SimpleModel.Attributes):
         encoding = BINARY_ENCODING_USE_DEFAULT
@@ -189,75 +254,17 @@ class File(SimpleModel):
         One of (None, 'base64', 'hex')
         """
 
-        type = _BINARY
+        type = _Value
+        """The native type used to serialize the information in the file object.
+        """
+
+        contents = _BINARY
         """Set this to type=File.TEXT if you're sure you're handling unicode
         data. This lets serializers like HtmlCloth avoid base64 encoding. Do
-        note that you still need to set encoding attribute explicitly!..
+        note that you still need to set encoding attribute explicitly to None!..
 
         One of (File.BINARY, File.TEXT)
         """
-
-    class Value(ComplexModel):
-        """The class for values marked as ``File``.
-
-        :param name: Original name of the file
-        :param path: Current path to the file.
-        :param type: The mime type of the file's contents.
-        :param data: Optional sequence of ``str`` or ``bytes`` instances
-            that contain the file's data.
-        :param handle: :class:`file` object that contains the file's data.
-            It is ignored unless the ``path`` argument is ``None``.
-        """
-
-        _type_info = [
-            ('name', Unicode(encoding='utf8')),
-            ('type', Unicode),
-            ('data', ByteArray(logged=False)),
-        ]
-
-        def __init__(self, name=None, path=None, type='application/octet-stream',
-                                            data=None, handle=None, move=False):
-
-            self.name = name
-            if self.name is not None:
-                if not os.path.basename(self.name) == self.name:
-                    raise ValidationError(self.name,
-                                 "File name %r should not contain any '/' char")
-
-            self.path = path
-            self.type = type
-            self.data = data
-            self.handle = handle
-            self.move = move
-            self.abspath = None
-            if self.path is not None:
-                self.abspath = abspath(self.path)
-
-        def rollover(self):
-            """This method normalizes the file object by making ``path``,
-            ``name`` and ``handle`` properties consistent. It writes
-            incoming data to the file object and points the ``data`` iterable
-            to the contents of this file.
-            """
-
-            iter(self.data)
-
-            if self.path is None:
-                handle, self.path = tempfile.mkstemp()
-                f = os.fdopen(handle, 'wb')
-            else:
-                assert os.path.isabs(self.path)
-                f = open(self.path, 'wb')
-
-            if self.name is None:
-                self.name = os.path.basename(self.path)
-
-            for data in self.data:
-                f.write(data)
-
-            f.close()
-
-            self.data = None
 
     @classmethod
     def to_base64(cls, value):
