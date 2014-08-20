@@ -66,6 +66,9 @@ class cdict(dict):
             return dict.__getitem__(self, cls)
 
         except KeyError as e:
+            if not hasattr(cls, '__bases__'):
+                cls = cls.__class__
+
             for b in cls.__bases__:
                 try:
                     retval = self[b]
@@ -74,3 +77,10 @@ class cdict(dict):
                 except KeyError:
                     pass
             raise e
+
+    def get(self, k, d=None):
+        try:
+            return self[k]
+
+        except KeyError:
+            return d

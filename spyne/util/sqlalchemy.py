@@ -394,9 +394,12 @@ class PGFileJson(PGObjectJson):
             ('path', Unicode),
         ]
 
-    def __init__(self, store):
-        super(PGFileJson, self).__init__(PGFileJson.FileData,
-                                         ignore_wrappers=True, complex_as=list)
+    def __init__(self, store, type=None):
+        if type is None:
+            type = PGFileJson.FileData
+
+        super(PGFileJson, self).__init__(type, ignore_wrappers=True,
+                                                                complex_as=list)
         self.store = store
 
     def bind_processor(self, dialect):
@@ -1121,7 +1124,7 @@ def _add_file_type(cls, props, table, k, v):
             assert isabs(p.store)
             #FIXME: Add support for storage markers from spyne.model.complex
             if p.db_format == 'json':
-                t = PGFileJson(p.store)
+                t = PGFileJson(p.store, p.type)
             else:
                 raise NotImplementedError(p.db_format)
 

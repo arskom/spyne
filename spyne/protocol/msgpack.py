@@ -112,6 +112,7 @@ class MessagePackDocument(HierDictDocument):
         else:
             return super(MessagePackDocument, self).integer_to_string(cls, value)
 
+
 class MessagePackRpc(MessagePackDocument):
     """An integration class for the msgpack-rpc protocol."""
 
@@ -219,40 +220,44 @@ class MessagePackRpc(MessagePackDocument):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, Fault.to_dict(ctx.out_error.__class__, ctx.out_error)]]
+            ctx.out_document = [
+                [MessagePackRpc.MSGPACK_RESPONSE, 0, Fault.to_dict(ctx.out_error.__class__, ctx.out_error)]
+            ]
+            return
+
+        # get the result message
+        if message is self.REQUEST:
+            out_type = ctx.descriptor.in_message
+            msgtype = MessagePackRpc.MSGPACK_REQUEST
+            method_name_or_error = ctx.descriptor.operation_name
+
+        elif message is self.RESPONSE:
+            out_type = ctx.descriptor.out_message
+            msgtype = MessagePackRpc.MSGPACK_RESPONSE
+            method_name_or_error = None
 
         else:
-            # get the result message
-            if message is self.REQUEST:
-                out_type = ctx.descriptor.in_message
-                msgtype = MessagePackRpc.MSGPACK_REQUEST
-                method_name_or_error = ctx.descriptor.operation_name
-            elif message is self.RESPONSE:
-                out_type = ctx.descriptor.out_message
-                msgtype = MessagePackRpc.MSGPACK_RESPONSE
-                method_name_or_error = None
-            else:
-                raise Exception("what?")
+            raise Exception("what?")
 
-            if out_type is None:
-                return
+        if out_type is None:
+            return
 
-            out_type_info = out_type._type_info
+        out_type_info = out_type._type_info
 
-            # instantiate the result message
-            out_instance = out_type()
+        # instantiate the result message
+        out_instance = out_type()
 
-            # assign raw result to its wrapper, result_message
-            for i, (k, v) in enumerate(out_type_info.items()):
-                attr_name = k
-                out_instance._safe_set(attr_name, ctx.out_object[i], v)
+        # assign raw result to its wrapper, result_message
+        for i, (k, v) in enumerate(out_type_info.items()):
+            attr_name = k
+            out_instance._safe_set(attr_name, ctx.out_object[i], v)
 
-            # transform the results into a dict:
-            if out_type.Attributes.max_occurs > 1:
-                params = (self._to_value(out_type, inst) for inst in out_instance)
-            else:
-                params = self._to_value(out_type, out_instance)
+        # transform the results into a dict:
+        if out_type.Attributes.max_occurs > 1:
+            params = (self._to_dict_value(out_type, inst) for inst in out_instance)
+        else:
+            params = self._to_dict_value(out_type, out_instance)
 
-            ctx.out_document = [[msgtype, 0, method_name_or_error, params]]
+        ctx.out_document = [[msgtype, 0, method_name_or_error, params]]
 
         self.event_manager.fire_event('after_serialize', ctx)

@@ -28,10 +28,35 @@ import spyne.const.xml_ns
 from decimal import Decimal
 
 from spyne.util import Break
+from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
 from spyne.const.xml_ns import DEFAULT_NS
+
+
+def _decode_pa_dict(d):
+    """Decodes dict passed to prot_attrs.
+
+    >>> _decode_pa_dict({})
+    cdict({})
+    >>> _decode_pa_dict({1: 2)})
+    cdict({1: 2})
+    >>> _decode_pa_dict({(1,2): 3)})
+    cdict({1: 3, 2: 3})
+    """
+
+    retval = cdict()
+    for k, v in d.items():
+        if isinstance(k, tuple):
+            for subk in k:
+                retval[subk] = v
+
+    for k, v in d.items():
+        if not isinstance(k, tuple):
+            retval[k] = v
+
+    return retval
 
 
 # All this code to get rid of a one letter quirk: nillable vs nullable.
@@ -222,6 +247,9 @@ class ModelBase(object):
         #The key is either a ProtocolBase subclass or a ProtocolBase instance.
         #Instances override classes."""
 
+        pa = None
+        """Alias for prot_attrs."""
+
         empty_is_none = False
         """When the incoming object is empty (e.g. '' for strings) treat it as
         None. No effect (yet) for outgoing values."""
@@ -411,6 +439,9 @@ class ModelBase(object):
 
             elif k in ('primary_key', 'pk'):
                 Attributes.sqla_column_args[-1]['primary_key'] = v
+
+            elif k in ('prot_attrs', 'pa'):
+                setattr(Attributes, 'prot_attrs', _decode_pa_dict(v))
 
             elif k in ('foreign_key', 'fk'):
                 from sqlalchemy.schema import ForeignKey

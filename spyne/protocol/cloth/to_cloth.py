@@ -77,6 +77,7 @@ class ToClothMixin(ProtocolBase):
             self._cloth = self._cloth.getroot()
 
         if self._cloth is not None:
+            logger.debug("Using cloth as root.")
             q = "//*[@%s]" % self.root_attr_name
             elts = self._cloth.xpath(q)
             if len(elts) > 0:
@@ -173,7 +174,7 @@ class ToClothMixin(ProtocolBase):
         automatically with subsequent calls to _enter_cloth and finally to
         _close_cloth."""
 
-        print("entering", cloth.tag, cloth.attrib, "skip=%s" % skip)
+        print("entering", cloth.tag, cloth.attrib, cloth.nsmap, "skip=%s" % skip)
 
         tags = ctx.protocol.tags
         eltstack = ctx.protocol.eltstack
@@ -217,7 +218,10 @@ class ToClothMixin(ProtocolBase):
                 parent.write(elt)
 
             # enter the ancestor node
-            anc_ctx = parent.element(anc.tag, anc.attrib)
+            if len(eltstack) == 0:
+                anc_ctx = parent.element(anc.tag, anc.attrib, nsmap=anc.nsmap)
+            else:
+                anc_ctx = parent.element(anc.tag, anc.attrib)
             anc_ctx.__enter__()
             print("\tenter norm", anc.tag, anc.attrib)
             eltstack.append(anc)
@@ -225,7 +229,7 @@ class ToClothMixin(ProtocolBase):
 
         # now that at the same level as the target node,
         # write its previous siblings
-        if not last_elt in (None, cloth):
+        if not last_elt is cloth:
             prevsibls = _prevsibls(cloth)
             for elt in prevsibls:
                 if elt is last_elt:
@@ -284,8 +288,8 @@ class ToClothMixin(ProtocolBase):
         ctx.protocol.tags = set()
 
         self._enter_cloth(ctx, cloth, parent)
-        ret = self.to_parent(ctx, cls, inst, parent, name)
 
+        ret = self.to_parent(ctx, cls, inst, parent, name)
         if isgenerator(ret):
             try:
                 while True:
@@ -295,7 +299,11 @@ class ToClothMixin(ProtocolBase):
                 try:
                     ret.throw(e)
                 except (Break, StopIteration, GeneratorExit):
+                    pass
+                finally:
                     self._close_cloth(ctx, parent)
+        else:
+            self._close_cloth(ctx, parent)
 
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
@@ -345,6 +353,7 @@ class ToClothMixin(ProtocolBase):
             inst = html.fromstring(inst)
         parent.write(inst)
 
+    @coroutine
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
         fti = cls.get_flat_type_info(cls)
 
@@ -387,7 +396,17 @@ class ToClothMixin(ProtocolBase):
             else:
                 val = getattr(inst, k, None)
 
-            self.to_cloth(ctx, v, val, elt, parent, name=k)
+            ret = self.to_cloth(ctx, v, val, elt, parent, name=k)
+            if isgenerator(ret):
+                try:
+                    while True:
+                        sv2 = (yield)
+                        ret.send(sv2)
+                except Break as e:
+                    try:
+                        ret.throw(e)
+                    except StopIteration:
+                        pass
 
     @coroutine
     def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
