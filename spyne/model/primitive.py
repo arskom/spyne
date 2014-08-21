@@ -229,7 +229,13 @@ class Unicode(SimpleModel):
         return (     SimpleModel.validate_string(cls, value)
             and (value is None or (
                 cls.Attributes.min_len <= len(value) <= cls.Attributes.max_len
-                and _re_match_with_span(cls.Attributes, value)
+            )))
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (SimpleModel.validate_string(cls, value)
+            and (value is None or (
+                _re_match_with_span(cls.Attributes, value)
             )))
 
 
