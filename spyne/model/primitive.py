@@ -233,7 +233,7 @@ class Unicode(SimpleModel):
 
     @staticmethod
     def validate_native(cls, value):
-        return (SimpleModel.validate_string(cls, value)
+        return (SimpleModel.validate_native(cls, value)
             and (value is None or (
                 _re_match_with_span(cls.Attributes, value)
             )))
@@ -243,6 +243,7 @@ def _re_match_with_span(attr, value):
     if attr.pattern is None:
         return True
 
+    print(value)
     m = attr._pattern_re.match(value)
     return (m is not None) and (m.span() == (0, len(value)))
 
@@ -840,6 +841,10 @@ class Uuid(Unicode(pattern=UUID_PATTERN)):
     @staticmethod
     def validate_string(cls, value):
         return _uuid_validate[cls.Attributes.serialize_as](cls, value)
+
+    @staticmethod
+    def validate_native(cls, value):
+        return SimpleModel.validate_native(cls, value)
 
 
 class NormalizedString(Unicode):

@@ -494,6 +494,12 @@ class TestPrimitive(unittest.TestCase):
         assert ProtocolBase().from_string(Uuid(serialize_as='int'),
                 24197857161011715162171839636988778104) == value
 
+    def test_uuid_validate(self):
+        assert Uuid.validate_string(Uuid,
+                          '12345678-1234-5678-1234-567812345678')
+        assert Uuid.validate_native(Uuid,
+                uuid.UUID('12345678-1234-5678-1234-567812345678'))
+
     def test_datetime_serialize_as(self):
         i = 1234567890123456
         v = datetime.datetime.fromtimestamp(i / 1e6)
