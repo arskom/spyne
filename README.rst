@@ -25,9 +25,9 @@ The following are the primary sources of information about spyne:
 * Spyne's home page is: http://spyne.io/
 * The latest documentation for all releases of Spyne can be found at: http://spyne.io/docs
 * The official source code repository is at: https://github.com/arskom/spyne
-* The official spyne discussion forum is at: people@spyne.io. Subscribe either
-  via http://lists.spyne.io/listinfo/people or by sending an empty message to:
-  people-subscribe at spyne dot io.
+* The official spyne discussion forum is at: people at spyne dot io. Subscribe
+  either via http://lists.spyne.io/listinfo/people or by sending an empty
+  message to: people-subscribe at spyne dot io.
 * You can download Spyne releases from
   `github <http://github.com/arskom/spyne/downloads>`_ or
   `pypi <http://pypi.python.org/pypi/spyne>`_.
