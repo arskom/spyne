@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -251,7 +252,7 @@ class TestPrimitive(unittest.TestCase):
         ProtocolBase().from_string(UnsignedInteger, "-1") # This is not supposed to fail.
 
         try:
-            UnsignedInteger.validate_native(-1) # This is supposed to fail.
+            UnsignedInteger.validate_native(-1)  # This is supposed to fail.
         except:
             pass
         else:
@@ -323,6 +324,14 @@ class TestPrimitive(unittest.TestCase):
     def test_unicode_pattern_mult_cust(self):
         assert Unicode(pattern='a').Attributes.pattern == 'a'
         assert Unicode(pattern='a')(5).Attributes.pattern == 'a'
+
+    def test_unicode_upattern(self):
+        patt = r'[\w .-]+'
+        attr = Unicode(unicode_pattern=patt).Attributes
+        assert attr.pattern == patt
+        assert attr._pattern_re.flags & re.UNICODE
+        assert attr._pattern_re.match(u"Ğ Ğ ç .-")
+        assert attr._pattern_re.match(u"\t") is None
 
     def test_unicode_nullable_mult_cust_false(self):
         assert Unicode(nullable=False).Attributes.nullable == False
