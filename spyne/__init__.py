@@ -30,6 +30,7 @@ from spyne._base import EventContext
 from spyne._base import MethodContext
 from spyne._base import MethodDescriptor
 from spyne._base import EventManager
+from spyne._base import Address
 
 from spyne.decorator import rpc
 from spyne.decorator import srpc

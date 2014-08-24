@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from time import time
 from copy import copy
-from collections import deque
+from collections import deque, namedtuple
 
 from spyne.const.xml_ns import DEFAULT_NS
 from spyne.util.oset import oset
@@ -30,6 +30,20 @@ from spyne.util.oset import oset
 class BODY_STYLE_WRAPPED: pass
 class BODY_STYLE_EMPTY: pass
 class BODY_STYLE_BARE: pass
+
+
+Address = namedtuple("Address", ["type", "host", "port"])
+
+class _add_address_types():
+    Address.TCP4 = 'TCP4'
+    Address.TCP6 = 'TCP6'
+    Address.UDP4 = 'UDP4'
+    Address.UDP6 = 'UDP6'
+    def address_str(self):
+        return ":".join((self.type, self.host, str(self.port)))
+    Address.__str__ = address_str
+
+_add_address_types()
 
 
 class AuxMethodContext(object):
@@ -59,6 +73,9 @@ class TransportContext(object):
         self.request_encoding = None
         """General purpose variable to hold the string identifier of a request
         encoding. It's nowadays usually 'utf-8', especially with http data"""
+
+        self.remote_addr = None
+        """The address of the other end of the connection."""
 
 
 class ProtocolContext(object):
