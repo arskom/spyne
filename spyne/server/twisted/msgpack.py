@@ -29,7 +29,7 @@ from twisted.internet.protocol import Protocol, Factory, connectionDone
 from twisted.python.failure import Failure
 from twisted.python import log
 
-from spyne import EventManager
+from spyne import EventManager, Address
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
 from spyne.server.msgpack import MessagePackServerBase
@@ -82,7 +82,10 @@ class TwistedMessagePackProtocol(Protocol):
 
     def process_incoming_message(self, msg):
         p_ctx, others = self._transport.produce_contexts(msg)
+        p_ctx.transport.remote_addr = Address.from_twisted_address(
+                                                       self.transport.getPeer())
         p_ctx.transport.protocol = self
+
         self.process_contexts(p_ctx, others)
 
     def handle_error(self, p_ctx, others, exc):
