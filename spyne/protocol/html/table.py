@@ -121,13 +121,8 @@ class HtmlColumnTable(HtmlTableBase):
     def __init__(self, *args, **kwargs):
         super(HtmlColumnTable, self).__init__(*args, **kwargs)
 
-        self.serialization_handlers = cdict({
+        self.serialization_handlers.update({
             ModelBase: self.model_base_to_parent,
-            AnyUri: self.anyuri_to_parent,
-            AnyHtml: self.anyhtml_to_parent,
-            ImageUri: self.imageuri_to_parent,
-            ByteArray: self.not_supported,
-            Attachment: self.not_supported,
             ComplexModelBase: self.complex_model_to_parent,
             Array: self.array_to_parent,
         })
