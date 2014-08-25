@@ -226,7 +226,7 @@ class HtmlColumnTable(HtmlTableBase):
                     header_name = self.trc(cls, ctx.locale, name)
                     parent.write(E.th(header_name, **th_attrs))
 
-                self.extend_header_row(ctx, cls, name, parent)
+                self.extend_header_row(ctx, cls, parent, name)
 
     @coroutine
     def _gen_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
