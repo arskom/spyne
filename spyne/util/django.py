@@ -61,6 +61,11 @@ class BaseDjangoFieldMapper(object):
         """Return True if django field is nullable."""
         return field.null
 
+    @staticmethod
+    def is_field_blank(field, **kwargs):
+        """Return True if django field is blank."""
+        return field.blank
+
     def map(self, field, **kwargs):
         """Map field to spyne model.
 
@@ -75,7 +80,8 @@ class BaseDjangoFieldMapper(object):
             params['max_len'] = field.max_length
 
         nullable = self.is_field_nullable(field, **kwargs)
-        required = not (field.has_default() or nullable or field.primary_key)
+        blank = self.is_field_blank(field, **kwargs)
+        required = not (field.has_default() or blank or field.primary_key)
 
         if field.has_default():
             params['default'] = field.get_default()
@@ -131,7 +137,7 @@ class RelationMapper(BaseDjangoFieldMapper):
         self.django_model_mapper = django_model_mapper
 
     @staticmethod
-    def is_field_nullable(field, **kwargs):
+    def is_field_blank(field, **kwargs):
         """Return True if `optional_relations` is set.
 
         Otherwise use basic behaviour.
@@ -139,7 +145,7 @@ class RelationMapper(BaseDjangoFieldMapper):
         """
         optional_relations = kwargs.get('optional_relations', False)
         return (optional_relations or
-                BaseDjangoFieldMapper.is_field_nullable(field, **kwargs))
+                BaseDjangoFieldMapper.is_field_blank(field, **kwargs))
 
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model configured by related field."""

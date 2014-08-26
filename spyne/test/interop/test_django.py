@@ -103,12 +103,29 @@ class ModelTestCase(TestCase):
         self.assertIn('id', type_info)
         self.assertNotIn('excluded_field', type_info)
 
+    def test_pk_mapping(self):
+        """Test if primary key is mapped as optional but not nillable."""
+        type_info = Container.get_flat_type_info(Container)
+        pk_field = type_info['id']
+        self.assertEqual(pk_field.Attributes.min_occurs, 0)
+        self.assertFalse(pk_field.Attributes.nullable)
+
     def test_regex_pattern_mappiing(self):
         """Test if regex pattern is mapped from django model."""
         type_info = Container.get_flat_type_info(Container)
-        field_mapper = default_model_mapper.get_field_mapper('EmailField')
-        self.assertEqual(type_info['email_field'].__name__, 'Unicode')
-        self.assertIsNotNone(type_info['email_field'].Attributes.pattern)
+        email_field = type_info['email_field']
+        self.assertEqual(email_field.__name__, 'Unicode')
+        self.assertIsNotNone(email_field.Attributes.pattern)
+        self.assertEqual(email_field.Attributes.min_occurs, 1)
+        self.assertFalse(email_field.Attributes.nullable)
+
+    def test_blank_field(self):
+        """Test if blank fields are optional but not null."""
+        type_info = Container.get_flat_type_info(Container)
+        blank_field = type_info['blank_field']
+        self.assertEqual(blank_field.__name__, 'NormalizedString')
+        self.assertEqual(blank_field.Attributes.min_occurs, 0)
+        self.assertFalse(blank_field.Attributes.nullable)
 
     def test_get_container(self):
         """Test mapping from Django model to spyne model."""
@@ -172,7 +189,8 @@ class ModelTestCase(TestCase):
                 django_model = DjUserProfile
                 django_optional_relations = True
 
-        self.assertTrue(UserProfile._type_info['user_id'].Attributes.nullable)
+        self.assertEqual(
+            UserProfile._type_info['user_id'].Attributes.min_occurs, 0)
 
     def test_abstract_custom_djangomodel(self):
         """Test if can create custom DjangoComplexModel."""
