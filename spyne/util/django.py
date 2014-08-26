@@ -438,8 +438,9 @@ class ObjectNotFoundError(ResourceNotFoundError):
         message = str(does_not_exist_exc)
         object_name = message.split()[0]
         # we do not want to reuse initialization of ResourceNotFoundError
-        super(Fault, self).__init__(
-            'Client.{0}NotFound'.format(object_name), message)
+        Fault.__init__(
+            self, faultcode='Client.{0}NotFound'.format(object_name),
+            faultstring=message)
 
 
 class ValidationError(BaseValidationError):
@@ -450,8 +451,9 @@ class ValidationError(BaseValidationError):
         """Construct fault with code Client.<validation_error_type_name>."""
         message = str(validation_error_exc)
         # we do not want to reuse initialization of BaseValidationError
-        super(Fault, self).__init__(
-            'Client.{0}'.format(type(validation_error_exc).__name__), message)
+        Fault.__init__(
+            self, faultcode='Client.{0}'.format(
+                type(validation_error_exc).__name__), faultstring=message)
 
 
 class DjangoServiceBase(ServiceBase):
