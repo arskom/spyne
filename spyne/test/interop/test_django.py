@@ -127,6 +127,12 @@ class ModelTestCase(TestCase):
         self.assertEqual(blank_field.Attributes.min_occurs, 0)
         self.assertFalse(blank_field.Attributes.nullable)
 
+    def test_blank_as_dict(self):
+        """Test if blank field is omitted in as_dict representation."""
+        container = Container()
+        container_dict = container.as_dict()
+        self.assertNotIn('blank_field', container_dict)
+
     def test_get_container(self):
         """Test mapping from Django model to spyne model."""
         get_container = lambda: self.client.service.get_container(2)
