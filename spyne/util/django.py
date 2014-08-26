@@ -34,12 +34,14 @@ logger = logging.getLogger(__name__)
 import re
 from django.core.exceptions import (ImproperlyConfigured, ObjectDoesNotExist,
                                     ValidationError as DjValidationError)
-from django.core.validators import slug_re, comma_separated_int_list_re
+from django.core.validators import (slug_re, comma_separated_int_list_re,
+                                    MinLengthValidator, MaxLengthValidator)
 from spyne.error import (ResourceNotFoundError, ValidationError as
                          BaseValidationError, Fault)
 from spyne.model import primitive
 from spyne.model.complex import ComplexModelMeta, ComplexModelBase
 from spyne.service import ServiceBase
+from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
@@ -52,9 +54,26 @@ email_re = re.compile(
     r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*", re.IGNORECASE)
 
 
+def _handle_minlength(validator, params):
+    new_min = validator.limit_value
+    old_min = params.setdefault('min_len', new_min)
+    params['min_len'] = max(old_min, new_min)
+
+
+def _handle_maxlength(validator, params):
+    new_max = validator.limit_value
+    old_max = params.setdefault('max_len', new_max)
+    params['max_len'] = min(old_max, new_max)
+
+
 class BaseDjangoFieldMapper(object):
 
     """Abstrace base class for field mappers."""
+
+    _VALIDATOR_HANDLERS = cdict({
+        MinLengthValidator: _handle_minlength,
+        MaxLengthValidator: _handle_maxlength,
+    })
 
     @staticmethod
     def is_field_nullable(field, **kwargs):
@@ -79,6 +98,8 @@ class BaseDjangoFieldMapper(object):
         if field.max_length:
             params['max_len'] = field.max_length
 
+        self._process_validators(field.validators, params)
+
         nullable = self.is_field_nullable(field, **kwargs)
         blank = self.is_field_blank(field, **kwargs)
         required = not (field.has_default() or blank or field.primary_key)
@@ -95,6 +116,12 @@ class BaseDjangoFieldMapper(object):
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model for given Django field."""
         raise NotImplementedError
+
+    def _process_validators(self, validators, params):
+        for v in validators:
+            handler = self._VALIDATOR_HANDLERS.get(type(v))
+            if handler:
+                handler(v, params)
 
 
 class DjangoFieldMapper(BaseDjangoFieldMapper):

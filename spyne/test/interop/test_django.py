@@ -133,6 +133,16 @@ class ModelTestCase(TestCase):
         container_dict = container.as_dict()
         self.assertNotIn('blank_field', container_dict)
 
+    def test_length_validators_field(self):
+        """Test if length validators are correctly mapped."""
+        type_info = Container.get_flat_type_info(Container)
+        length_validators_field = type_info['length_validators_field']
+        self.assertEqual(length_validators_field.__name__, 'NormalizedString')
+        self.assertEqual(length_validators_field.Attributes.min_occurs, 1)
+        self.assertTrue(length_validators_field.Attributes.nullable)
+        self.assertEqual(length_validators_field.Attributes.min_len, 3)
+        self.assertEqual(length_validators_field.Attributes.max_len, 10)
+
     def test_get_container(self):
         """Test mapping from Django model to spyne model."""
         get_container = lambda: self.client.service.get_container(2)

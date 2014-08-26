@@ -2,6 +2,7 @@
 
 """Rpc test models."""
 
+from django.core.validators import MinLengthValidator, MaxLengthValidator
 from django.db import models
 
 
@@ -38,6 +39,9 @@ class FieldContainer(models.Model):
     file_field = models.FileField(upload_to='test_file', null=True)
     excluded_field = models.CharField(max_length=32, default='excluded')
     blank_field = models.CharField(max_length=32, blank=True)
+    length_validators_field = models.CharField(
+        max_length=32, null=True, validators=[MinLengthValidator(3),
+                                              MaxLengthValidator(10)])
 
 
 class RelatedFieldContainer(models.Model):
