@@ -95,9 +95,6 @@ class BaseDjangoFieldMapper(object):
         """
         params = kwargs.copy()
 
-        if field.max_length:
-            params['max_len'] = field.max_length
-
         self._process_validators(field.validators, params)
 
         nullable = self.is_field_nullable(field, **kwargs)
