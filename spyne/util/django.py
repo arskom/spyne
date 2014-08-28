@@ -34,12 +34,14 @@ logger = logging.getLogger(__name__)
 import re
 from django.core.exceptions import (ImproperlyConfigured, ObjectDoesNotExist,
                                     ValidationError as DjValidationError)
-from django.core.validators import slug_re, comma_separated_int_list_re
+from django.core.validators import (slug_re, comma_separated_int_list_re,
+                                    MinLengthValidator, MaxLengthValidator)
 from spyne.error import (ResourceNotFoundError, ValidationError as
                          BaseValidationError, Fault)
 from spyne.model import primitive
 from spyne.model.complex import ComplexModelMeta, ComplexModelBase
 from spyne.service import ServiceBase
+from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
@@ -52,14 +54,36 @@ email_re = re.compile(
     r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*", re.IGNORECASE)
 
 
+def _handle_minlength(validator, params):
+    new_min = validator.limit_value
+    old_min = params.setdefault('min_len', new_min)
+    params['min_len'] = max(old_min, new_min)
+
+
+def _handle_maxlength(validator, params):
+    new_max = validator.limit_value
+    old_max = params.setdefault('max_len', new_max)
+    params['max_len'] = min(old_max, new_max)
+
+
 class BaseDjangoFieldMapper(object):
 
     """Abstrace base class for field mappers."""
+
+    _VALIDATOR_HANDLERS = cdict({
+        MinLengthValidator: _handle_minlength,
+        MaxLengthValidator: _handle_maxlength,
+    })
 
     @staticmethod
     def is_field_nullable(field, **kwargs):
         """Return True if django field is nullable."""
         return field.null
+
+    @staticmethod
+    def is_field_blank(field, **kwargs):
+        """Return True if django field is blank."""
+        return field.blank
 
     def map(self, field, **kwargs):
         """Map field to spyne model.
@@ -71,11 +95,11 @@ class BaseDjangoFieldMapper(object):
         """
         params = kwargs.copy()
 
-        if field.max_length:
-            params['max_len'] = field.max_length
+        self._process_validators(field.validators, params)
 
         nullable = self.is_field_nullable(field, **kwargs)
-        required = not (field.has_default() or nullable or field.primary_key)
+        blank = self.is_field_blank(field, **kwargs)
+        required = not (field.has_default() or blank or field.primary_key)
 
         if field.has_default():
             params['default'] = field.get_default()
@@ -89,6 +113,12 @@ class BaseDjangoFieldMapper(object):
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model for given Django field."""
         raise NotImplementedError
+
+    def _process_validators(self, validators, params):
+        for v in validators:
+            handler = self._VALIDATOR_HANDLERS.get(type(v))
+            if handler:
+                handler(v, params)
 
 
 class DjangoFieldMapper(BaseDjangoFieldMapper):
@@ -131,7 +161,7 @@ class RelationMapper(BaseDjangoFieldMapper):
         self.django_model_mapper = django_model_mapper
 
     @staticmethod
-    def is_field_nullable(field, **kwargs):
+    def is_field_blank(field, **kwargs):
         """Return True if `optional_relations` is set.
 
         Otherwise use basic behaviour.
@@ -139,7 +169,7 @@ class RelationMapper(BaseDjangoFieldMapper):
         """
         optional_relations = kwargs.get('optional_relations', False)
         return (optional_relations or
-                BaseDjangoFieldMapper.is_field_nullable(field, **kwargs))
+                BaseDjangoFieldMapper.is_field_blank(field, **kwargs))
 
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model configured by related field."""
@@ -438,8 +468,9 @@ class ObjectNotFoundError(ResourceNotFoundError):
         message = str(does_not_exist_exc)
         object_name = message.split()[0]
         # we do not want to reuse initialization of ResourceNotFoundError
-        super(Fault, self).__init__(
-            'Client.{0}NotFound'.format(object_name), message)
+        Fault.__init__(
+            self, faultcode='Client.{0}NotFound'.format(object_name),
+            faultstring=message)
 
 
 class ValidationError(BaseValidationError):
@@ -450,8 +481,9 @@ class ValidationError(BaseValidationError):
         """Construct fault with code Client.<validation_error_type_name>."""
         message = str(validation_error_exc)
         # we do not want to reuse initialization of BaseValidationError
-        super(Fault, self).__init__(
-            'Client.{0}'.format(type(validation_error_exc).__name__), message)
+        Fault.__init__(
+            self, faultcode='Client.{0}'.format(
+                type(validation_error_exc).__name__), faultstring=message)
 
 
 class DjangoServiceBase(ServiceBase):
