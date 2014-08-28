@@ -103,12 +103,45 @@ class ModelTestCase(TestCase):
         self.assertIn('id', type_info)
         self.assertNotIn('excluded_field', type_info)
 
+    def test_pk_mapping(self):
+        """Test if primary key is mapped as optional but not nillable."""
+        type_info = Container.get_flat_type_info(Container)
+        pk_field = type_info['id']
+        self.assertEqual(pk_field.Attributes.min_occurs, 0)
+        self.assertFalse(pk_field.Attributes.nullable)
+
     def test_regex_pattern_mappiing(self):
         """Test if regex pattern is mapped from django model."""
         type_info = Container.get_flat_type_info(Container)
-        field_mapper = default_model_mapper.get_field_mapper('EmailField')
-        self.assertEqual(type_info['email_field'].__name__, 'Unicode')
-        self.assertIsNotNone(type_info['email_field'].Attributes.pattern)
+        email_field = type_info['email_field']
+        self.assertEqual(email_field.__name__, 'Unicode')
+        self.assertIsNotNone(email_field.Attributes.pattern)
+        self.assertEqual(email_field.Attributes.min_occurs, 1)
+        self.assertFalse(email_field.Attributes.nullable)
+
+    def test_blank_field(self):
+        """Test if blank fields are optional but not null."""
+        type_info = Container.get_flat_type_info(Container)
+        blank_field = type_info['blank_field']
+        self.assertEqual(blank_field.__name__, 'NormalizedString')
+        self.assertEqual(blank_field.Attributes.min_occurs, 0)
+        self.assertFalse(blank_field.Attributes.nullable)
+
+    def test_blank_as_dict(self):
+        """Test if blank field is omitted in as_dict representation."""
+        container = Container()
+        container_dict = container.as_dict()
+        self.assertNotIn('blank_field', container_dict)
+
+    def test_length_validators_field(self):
+        """Test if length validators are correctly mapped."""
+        type_info = Container.get_flat_type_info(Container)
+        length_validators_field = type_info['length_validators_field']
+        self.assertEqual(length_validators_field.__name__, 'NormalizedString')
+        self.assertEqual(length_validators_field.Attributes.min_occurs, 1)
+        self.assertTrue(length_validators_field.Attributes.nullable)
+        self.assertEqual(length_validators_field.Attributes.min_len, 3)
+        self.assertEqual(length_validators_field.Attributes.max_len, 10)
 
     def test_get_container(self):
         """Test mapping from Django model to spyne model."""
@@ -172,7 +205,8 @@ class ModelTestCase(TestCase):
                 django_model = DjUserProfile
                 django_optional_relations = True
 
-        self.assertTrue(UserProfile._type_info['user_id'].Attributes.nullable)
+        self.assertEqual(
+            UserProfile._type_info['user_id'].Attributes.min_occurs, 0)
 
     def test_abstract_custom_djangomodel(self):
         """Test if can create custom DjangoComplexModel."""
@@ -232,4 +266,13 @@ class DjangoServiceTestCase(TestCase):
     """Tests for Django specific service."""
 
     def test_handle_does_not_exist(self):
-        """Test if service handles DoesNotExistExceptions."""
+        """Test if Django service handles `ObjectDoesNotExist` exceptions."""
+        client = DjangoTestClient('/api/', app)
+        with self.assertRaisesRegexp(Fault, 'Client.FieldContainerNotFound'):
+            client.service.raise_does_not_exist()
+
+    def test_handle_validation_error(self):
+        """Test if Django service handles `ValidationError` exceptions."""
+        client = DjangoTestClient('/api/', app)
+        with self.assertRaisesRegexp(Fault, 'Client.ValidationError'):
+            client.service.raise_validation_error()
