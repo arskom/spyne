@@ -96,3 +96,5 @@ Test*.html
 
 # nuitka cruft
 *.build
+
+.virtualenv
