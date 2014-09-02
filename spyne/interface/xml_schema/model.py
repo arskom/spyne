@@ -354,6 +354,8 @@ def unicode_get_restriction_tag(document, cls):
     return restriction
 
 
+prot = XmlDocument()
+
 @memoize
 def Tget_range_restriction_tag(T):
     """The get_range_restriction template function. Takes a primitive, returns
@@ -390,7 +392,6 @@ def Tget_range_restriction_tag(T):
             pass
 
     def _get_range_restriction_tag(document, cls):
-        prot = document.interface.app.in_protocol
         restriction = simple_get_restriction_tag(document, cls)
         if restriction is None:
             return
