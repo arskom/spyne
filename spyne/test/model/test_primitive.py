@@ -428,7 +428,6 @@ class TestPrimitive(unittest.TestCase):
     def test_anyxml(self):
         parent = etree.Element('parent')
         XmlDocument().to_parent(None, AnyXml, None,  parent, ns_test, "anyxml")
-        print "children %s" % parent
         self.assertEquals(parent.tag, 'parent')
         self.assertEquals(parent[0].tag, '{%s}anyxml' % ns_test)
 

@@ -232,8 +232,6 @@ class TestComplexModel(unittest.TestCase):
         self.assertEquals(100, len(l.level3))
 
 
-
-
 class X(ComplexModel):
     __namespace__ = 'tns'
     x = Integer(nillable=True, max_occurs='unbounded')
