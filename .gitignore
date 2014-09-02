@@ -1,5 +1,6 @@
 # All files to globally ignore
 .data
+.virtualenv
 
 # test cruft
 jython-installer-*
@@ -96,5 +97,3 @@ Test*.html
 
 # nuitka cruft
 *.build
-
-.virtualenv

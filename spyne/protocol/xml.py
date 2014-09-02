@@ -88,7 +88,6 @@ def _append(parent, child_elt):
     else:
         parent.write(child_elt)
 
-
 def _gen_tagname(ns, name):
     if ns is not None:
         name = "{%s}%s" % (ns, name)
@@ -406,6 +405,7 @@ class XmlDocument(SubXmlBase):
                                                                 *args, **kwargs)
 
         handler = self.serialization_handlers[cls]
+
         if inst is None:
             inst = cls.Attributes.default
 

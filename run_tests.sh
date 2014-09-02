@@ -37,8 +37,6 @@
 #
 
 
-
-
 # Sanitization
 [ -z "$PYFLAV" ] && PYFLAV=cpy-2.7;
 [ -z "$MONOVER" ] && MONOVER=2.11.4;

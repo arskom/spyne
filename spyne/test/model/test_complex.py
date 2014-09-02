@@ -232,9 +232,7 @@ class TestComplexModel(unittest.TestCase):
         self.assertEquals(100, len(l.level3))
 
 
-    def test_complex_unwrapped_value(self):
-        print "run!"
-        assert 0
+
 
 class X(ComplexModel):
     __namespace__ = 'tns'
