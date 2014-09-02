@@ -43,6 +43,7 @@ from spyne.model.primitive import UnsignedInteger
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import String
 from spyne.model.primitive import Decimal
+from spyne.model.primitive import AnyXml
 
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import XmlDocument
@@ -423,6 +424,12 @@ class TestPrimitive(unittest.TestCase):
 
         b = XmlDocument().from_element(None, Boolean, b)
         self.assertEquals(b, None)
+
+    def test_anyxml(self):
+        parent = etree.Element('parent')
+        XmlDocument().to_parent(None, AnyXml, None,  parent, ns_test, "anyxml")
+        self.assertEquals(parent.tag, 'parent')
+        self.assertEquals(parent[0].tag, '{%s}anyxml' % ns_test)
 
     def test_new_type(self):
         """Customized primitives go into namespace based on module name."""

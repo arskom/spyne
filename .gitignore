@@ -1,5 +1,6 @@
 # All files to globally ignore
 .data
+.virtualenv
 
 # test cruft
 jython-installer-*
