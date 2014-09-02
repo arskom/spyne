@@ -30,6 +30,7 @@ REGEX_WSDL = re.compile('[.?]wsdl$')
 import spyne.const.xml_ns
 
 from lxml import etree
+from lxml.builder import E
 
 from spyne.interface.xml_schema import XmlSchema
 
@@ -42,6 +43,13 @@ _pref_wsa = spyne.const.xml_ns.const_prefmap[_ns_wsa]
 
 _in_header_msg_suffix = 'InHeaderMsg'
 _out_header_msg_suffix = 'OutHeaderMsg'
+
+
+PLINK = lambda s: "{%s}%s" % (_ns_plink, s)
+WSDL = lambda s: "{%s}%s" % (_ns_wsdl, s)
+SOAP = lambda s: "{%s}%s" % (_ns_soap, s)
+XSD = lambda s: '{%s}%s' % (_ns_xsd, s)
+
 
 def check_method_port(service, method):
     if len(service.__port_types__) != 0 and method.port_type is None:
@@ -68,6 +76,7 @@ def check_method_port(service, method):
             the ports defined by the service class
             """)
 
+
 # FIXME: I don't think this is working.
 def _add_callbacks(service, root, types, service_name, url):
     ns_tns = service.get_tns()
@@ -79,49 +88,50 @@ def _add_callbacks(service, root, types, service_name, url):
     # WS-Addressing -> RelatesTo ReplyTo MessageID
     # callback porttype
     if service._has_callbacks():
-        wsa_schema = etree.SubElement(types, "{%s}schema" % _ns_xsd)
+        wsa_schema = etree.SubElement(types, XSD("schema"))
         wsa_schema.set("targetNamespace", '%sCallback'  % ns_tns)
         wsa_schema.set("elementFormDefault", "qualified")
 
-        import_ = etree.SubElement(wsa_schema, "{%s}import" % _ns_xsd)
+        import_ = etree.SubElement(wsa_schema, XSD("import"))
         import_.set("namespace", _ns_wsa)
         import_.set("schemaLocation", _ns_wsa)
 
-        relt_message = etree.SubElement(root, '{%s}message' % _ns_wsdl)
+        relt_message = etree.SubElement(root, WSDL("message"))
         relt_message.set('name', 'RelatesToHeader')
-        relt_part = etree.SubElement(relt_message, '{%s}part' % _ns_wsdl)
+        relt_part = etree.SubElement(relt_message, WSDL("part"))
         relt_part.set('name', 'RelatesTo')
         relt_part.set('element', '%s:RelatesTo' % _pref_wsa)
 
-        reply_message = etree.SubElement(root, '{%s}message' % _ns_wsdl)
+        reply_message = etree.SubElement(root, WSDL("message"))
         reply_message.set('name', 'ReplyToHeader')
-        reply_part = etree.SubElement(reply_message, '{%s}part' % _ns_wsdl)
+        reply_part = etree.SubElement(reply_message, WSDL("part"))
         reply_part.set('name', 'ReplyTo')
         reply_part.set('element', '%s:ReplyTo' % _pref_wsa)
 
-        id_header = etree.SubElement(root, '{%s}message' % _ns_wsdl)
+        id_header = etree.SubElement(root, WSDL("message"))
         id_header.set('name', 'MessageIDHeader')
-        id_part = etree.SubElement(id_header, '{%s}part' % _ns_wsdl)
+        id_part = etree.SubElement(id_header, WSDL("part"))
         id_part.set('name', 'MessageID')
         id_part.set('element', '%s:MessageID' % _pref_wsa)
 
         # make portTypes
-        cb_port_type = etree.SubElement(root, '{%s}portType' % _ns_wsdl)
+        cb_port_type = etree.SubElement(root, WSDL("portType"))
         cb_port_type.set('name', '%sCallback' % service_name)
 
         cb_service_name = '%sCallback' % service_name
 
-        cb_service = etree.SubElement(root, '{%s}service' % _ns_wsdl)
+        cb_service = etree.SubElement(root, WSDL("service"))
         cb_service.set('name', cb_service_name)
 
-        cb_wsdl_port = etree.SubElement(cb_service, '{%s}port' % _ns_wsdl)
+        cb_wsdl_port = etree.SubElement(cb_service, WSDL("port"))
         cb_wsdl_port.set('name', cb_service_name)
         cb_wsdl_port.set('binding', '%s:%s' % (pref_tns, cb_service_name))
 
-        cb_address = etree.SubElement(cb_wsdl_port, '{%s}address' % _ns_soap)
+        cb_address = etree.SubElement(cb_wsdl_port, SOAP("address"))
         cb_address.set('location', url)
 
     return cb_port_type
+
 
 class Wsdl11(XmlSchema):
     """The implementation of the Wsdl 1.1 interface definition document
@@ -168,7 +178,7 @@ class Wsdl11(XmlSchema):
         pt = None
 
         if not pt_name in self.port_type_dict:
-            pt = etree.SubElement(self.root_elt, '{%s}portType' % _ns_wsdl)
+            pt = etree.SubElement(self.root_elt, WSDL("portType"))
             pt.set('name', pt_name)
             self.port_type_dict[pt_name] = pt
 
@@ -182,7 +192,7 @@ class Wsdl11(XmlSchema):
 
         ser = None
         if not service_name in self.service_elt_dict:
-            ser = etree.SubElement(self.root_elt, '{%s}service' % _ns_wsdl)
+            ser = etree.SubElement(self.root_elt, WSDL("service"))
             ser.set('name', service_name)
             self.service_elt_dict[service_name] = ser
 
@@ -204,14 +214,14 @@ class Wsdl11(XmlSchema):
         service_name = self.interface.get_name()
 
         # create wsdl root node
-        self.root_elt = root = etree.Element("{%s}definitions" % _ns_wsdl,
+        self.root_elt = root = etree.Element(WSDL("definitions"),
                                                      nsmap=self.interface.nsmap)
 
         root.set('targetNamespace', self.interface.tns)
         root.set('name', service_name)
 
         # create types node
-        types = etree.SubElement(root, "{%s}types" % _ns_wsdl)
+        types = etree.SubElement(root, WSDL("types"))
         for s in self.schema_dict.values():
             types.append(s)
 
@@ -220,7 +230,7 @@ class Wsdl11(XmlSchema):
             self.add_messages_for_methods(s, root, messages)
 
         if self._with_plink:
-            plink = etree.SubElement(root, '{%s}partnerLinkType' % _ns_plink)
+            plink = etree.SubElement(root, PLINK("partnerLinkType"))
             plink.set('name', service_name)
             self.__add_partner_link(service_name, plink)
 
@@ -257,17 +267,17 @@ class Wsdl11(XmlSchema):
         ns_tns = self.interface.tns
         pref_tns = self.interface.get_namespace_prefix(ns_tns)
 
-        role = etree.SubElement(plink, '{%s}role' % _ns_plink)
+        role = etree.SubElement(plink, PLINK("role"))
         role.set('name', service_name)
 
-        plink_port_type = etree.SubElement(role, '{%s}portType' % _ns_plink)
+        plink_port_type = etree.SubElement(role, PLINK("portType"))
         plink_port_type.set('name', '%s:%s' % (pref_tns, service_name))
 
         if self._has_callbacks():
-            role = etree.SubElement(plink, '{%s}role' % _ns_plink)
+            role = etree.SubElement(plink, PLINK("role"))
             role.set('name', '%sCallback' % service_name)
 
-            plink_port_type = etree.SubElement(role, '{%s}portType' % _ns_plink)
+            plink_port_type = etree.SubElement(role, PLINK("portType"))
             plink_port_type.set('name', '%s:%sCallback' %
                                                        (pref_tns, service_name))
 
@@ -276,11 +286,11 @@ class Wsdl11(XmlSchema):
 
         pref_tns = self.interface.get_namespace_prefix(self.interface.tns)
 
-        wsdl_port = etree.SubElement(service, '{%s}port' % _ns_wsdl)
+        wsdl_port = etree.SubElement(service, WSDL("port"))
         wsdl_port.set('name', port_name)
         wsdl_port.set('binding', '%s:%s' % (pref_tns, binding_name))
 
-        addr = etree.SubElement(wsdl_port, '{%s}address' % _ns_soap)
+        addr = etree.SubElement(wsdl_port, SOAP("address"))
         addr.set('location', self.url)
 
     def _has_callbacks(self):
@@ -329,35 +339,31 @@ class Wsdl11(XmlSchema):
             check_method_port(service, method)
 
             if method.is_callback:
-                operation = etree.SubElement(cb_port_type, '{%s}operation'
-                                                                    % _ns_wsdl)
+                operation = etree.SubElement(cb_port_type, WSDL("operation"))
             else:
-                operation = etree.SubElement(port_type, '{%s}operation'
-                                                                    % _ns_wsdl)
+                operation = etree.SubElement(port_type, WSDL("operation"))
 
             operation.set('name', method.operation_name)
 
             if method.doc is not None:
-                documentation = etree.SubElement(operation, '{%s}documentation'
-                                                                    % _ns_wsdl)
-                documentation.text = method.doc
+                operation.add(E(WSDL("documentation"), method.doc))
 
             operation.set('parameterOrder', method.in_message.get_element_name())
 
-            op_input = etree.SubElement(operation, '{%s}input' % _ns_wsdl)
+            op_input = etree.SubElement(operation, WSDL("input"))
             op_input.set('name', method.in_message.get_element_name())
-            op_input.set('message', method.in_message.get_element_name_ns(self.interface))
+            op_input.set('message',
+                          method.in_message.get_element_name_ns(self.interface))
 
             if (not method.is_callback) and (not method.is_async):
-                op_output = etree.SubElement(operation, '{%s}output' % _ns_wsdl)
+                op_output = etree.SubElement(operation, WSDL("output"))
                 op_output.set('name', method.out_message.get_element_name())
                 op_output.set('message', method.out_message.get_element_name_ns(
                                                                 self.interface))
 
                 if not (method.faults is None):
                     for f in method.faults:
-                        fault = etree.SubElement(operation, '{%s}fault' %
-                                                                       _ns_wsdl)
+                        fault = etree.SubElement(operation, WSDL("fault"))
                         fault.set('name', f.get_type_name())
                         fault.set('message', '%s:%s' % (
                                         f.get_namespace_prefix(self.interface),
@@ -371,7 +377,7 @@ class Wsdl11(XmlSchema):
         if obj is not None and not (message_name in messages):
             messages.add(message_name)
 
-            message = etree.SubElement(root, '{%s}message' % _ns_wsdl)
+            message = etree.SubElement(root, WSDL("message"))
             message.set('name', message_name)
 
             if isinstance(obj, (list, tuple)):
@@ -380,7 +386,7 @@ class Wsdl11(XmlSchema):
                 objs = (obj,)
 
             for obj in objs:
-                part = etree.SubElement(message, '{%s}part' % _ns_wsdl)
+                part = etree.SubElement(message, WSDL("part"))
                 part.set('name', obj.get_element_name())
                 part.set('element', obj.get_element_name_ns(self.interface))
 
@@ -419,19 +425,18 @@ class Wsdl11(XmlSchema):
         pref_tns = self.interface.get_namespace_prefix(service.get_tns())
 
         def inner(method, binding):
-            operation = etree.Element('{%s}operation' % _ns_wsdl)
+            operation = etree.Element(WSDL("operation"))
             operation.set('name', method.operation_name)
 
-            soap_operation = etree.SubElement(operation, '{%s}operation'
-                                                                    % _ns_soap)
+            soap_operation = etree.SubElement(operation, SOAP("operation"))
             soap_operation.set('soapAction', method.operation_name)
             soap_operation.set('style', 'document')
 
             # get input
-            input = etree.SubElement(operation, '{%s}input' % _ns_wsdl)
+            input = etree.SubElement(operation, WSDL("input"))
             input.set('name', method.in_message.get_element_name())
 
-            soap_body = etree.SubElement(input, '{%s}body' % _ns_soap)
+            soap_body = etree.SubElement(input, SOAP("body"))
             soap_body.set('use', 'literal')
 
             # get input soap header
@@ -452,7 +457,7 @@ class Wsdl11(XmlSchema):
                     in_header_message_name = in_headers[0].get_type_name()
 
                 for header in in_headers:
-                    soap_header = etree.SubElement(input, '{%s}header' % _ns_soap)
+                    soap_header = etree.SubElement(input, SOAP(header))
                     soap_header.set('use', 'literal')
                     soap_header.set('message', '%s:%s' % (
                                 header.get_namespace_prefix(self.interface),
@@ -460,10 +465,10 @@ class Wsdl11(XmlSchema):
                     soap_header.set('part', header.get_type_name())
 
             if not (method.is_async or method.is_callback):
-                output = etree.SubElement(operation, '{%s}output' % _ns_wsdl)
+                output = etree.SubElement(operation, WSDL("output"))
                 output.set('name', method.out_message.get_element_name())
 
-                soap_body = etree.SubElement(output, '{%s}body' % _ns_soap)
+                soap_body = etree.SubElement(output, SOAP("body"))
                 soap_body.set('use', 'literal')
 
                 # get output soap header
@@ -484,8 +489,7 @@ class Wsdl11(XmlSchema):
                         out_header_message_name = out_headers[0].get_type_name()
 
                     for header in out_headers:
-                        soap_header = etree.SubElement(output, '{%s}header'
-                                                                    % _ns_soap)
+                        soap_header = etree.SubElement(output, SOAP("header"))
                         soap_header.set('use', 'literal')
                         soap_header.set('message', '%s:%s' % (
                                 header.get_namespace_prefix(self.interface),
@@ -494,17 +498,15 @@ class Wsdl11(XmlSchema):
 
                 if not (method.faults is None):
                     for f in method.faults:
-                        wsdl_fault = etree.SubElement(operation, '{%s}fault' %
-                                                                    _ns_wsdl)
+                        wsdl_fault = etree.SubElement(operation, WSDL("fault"))
                         wsdl_fault.set('name', f.get_type_name())
 
-                        soap_fault = etree.SubElement(wsdl_fault, '{%s}fault' %
-                                                                    _ns_soap)
+                        soap_fault = etree.SubElement(wsdl_fault, SOAP("fault"))
                         soap_fault.set('name', f.get_type_name())
                         soap_fault.set('use', 'literal')
 
             if method.is_callback:
-                relates_to = etree.SubElement(input, '{%s}header' % _ns_soap)
+                relates_to = etree.SubElement(input, SOAP("header"))
 
                 relates_to.set('message', '%s:RelatesToHeader' % pref_tns)
                 relates_to.set('part', 'RelatesTo')
@@ -514,12 +516,12 @@ class Wsdl11(XmlSchema):
 
             else:
                 if method.is_async:
-                    rt_header = etree.SubElement(input, '{%s}header' % _ns_soap)
+                    rt_header = etree.SubElement(input, SOAP("header"))
                     rt_header.set('message', '%s:ReplyToHeader' % pref_tns)
                     rt_header.set('part', 'ReplyTo')
                     rt_header.set('use', 'literal')
 
-                    mid_header = etree.SubElement(input, '{%s}header'% _ns_soap)
+                    mid_header = etree.SubElement(input, SOAP("header"))
                     mid_header.set('message', '%s:MessageIDHeader' % pref_tns)
                     mid_header.set('part', 'MessageID')
                     mid_header.set('use', 'literal')
@@ -531,11 +533,11 @@ class Wsdl11(XmlSchema):
             for port_type_name in port_type_list:
 
                 # create binding nodes
-                binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
+                binding = etree.SubElement(root, WSDL("binding"))
                 binding.set('name', port_type_name)
                 binding.set('type', '%s:%s'% (pref_tns, port_type_name))
 
-                transport = etree.SubElement(binding, '{%s}binding' % _ns_soap)
+                transport = etree.SubElement(binding, SOAP("binding"))
                 transport.set('style', 'document')
 
                 for m in service.public_methods.values():
@@ -545,11 +547,11 @@ class Wsdl11(XmlSchema):
         else:
             # here is the default port.
             if cb_binding is None:
-                cb_binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
+                cb_binding = etree.SubElement(root, WSDL("binding"))
                 cb_binding.set('name', service_name)
                 cb_binding.set('type', '%s:%s'% (pref_tns, service_name))
 
-                transport = etree.SubElement(cb_binding, '{%s}binding' % _ns_soap)
+                transport = etree.SubElement(cb_binding, SOAP("binding"))
                 transport.set('style', 'document')
                 transport.set('transport', self.interface.app.transport)
 

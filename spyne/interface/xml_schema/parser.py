@@ -179,11 +179,9 @@ class XmlSchemaParser(object):
     def debug2(self, s, *args, **kwargs):
         logger.debug("%s%s" % ("  " * (self.indent + 2), s), *args, **kwargs)
 
-
     def parse_schema_file(self, file_name):
         elt = etree.fromstring(open(file_name).read(), parser=PARSER)
         return self.parse_schema(elt)
-
 
     def process_includes(self, include):
         file_name = include.schema_location
@@ -267,7 +265,6 @@ class XmlSchemaParser(object):
         assert not retval.get_type_name() is retval.Empty
         return retval
 
-
     def process_schema_element(self, e):
         if e.name is None:
             return
@@ -284,7 +281,6 @@ class XmlSchemaParser(object):
 
         else:
             self.pending_elements[key] = e
-
 
     def process_attribute(self, a):
         if a.ref is not None:
@@ -311,7 +307,6 @@ class XmlSchemaParser(object):
             t = t.customize(**kwargs)
             self.debug2("t = t.customize(**%r)" % kwargs)
         return (a.name, XmlAttribute(t))
-
 
     def process_complex_type(self, c):
         def process_type(tn, name, wrapper=lambda x: x, element=None, attribute=None):
@@ -506,7 +501,6 @@ class XmlSchemaParser(object):
             self.debug0("%" * 50)
             if fail:
                 raise Exception("there are still unresolved elements")
-
 
     def parse_schema(self, elt):
         self.nsmap = nsmap = elt.nsmap
