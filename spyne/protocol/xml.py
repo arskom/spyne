@@ -224,6 +224,7 @@ class XmlDocument(SubXmlBase):
                 binary_encoding=None,
                 parse_xsi_type=True,
             ):
+
         super(XmlDocument, self).__init__(app, validator,
                                                 binary_encoding=binary_encoding)
         self.xml_declaration = xml_declaration
@@ -328,7 +329,7 @@ class XmlDocument(SubXmlBase):
 
         self.validation_schema = None
 
-        if value:
+        if self.validator is self.SCHEMA_VALIDATION and value is not None:
             from spyne.interface.xml_schema import XmlSchema
 
             xml_schema = XmlSchema(value.interface)

@@ -139,11 +139,11 @@ class ProtocolBase(object):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                ignore_uncap=False, ignore_wrappers=False, binary_encoding=None):
-        self.__app = None
-        self.set_app(app)
-
         self.validator = None
         self.set_validator(validator)
+
+        self.__app = None
+        self.set_app(app)
 
         self.event_manager = EventManager(self)
         self.ignore_uncap = ignore_uncap
