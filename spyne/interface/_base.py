@@ -263,6 +263,12 @@ class Interface(object):
                                     % (method.name, s.__module__,  s.__name__,
                                                    os.__module__, os.__name__))
 
+    def check_method(self, method):
+        """Override this if you need to cherry-pick methods added to the interface
+        document."""
+
+        return True
+
     def populate_interface(self, types=None):
         """Harvests the information stored in individual classes' _type_info
         dictionaries. It starts from function definitions and includes only
@@ -283,6 +289,8 @@ class Interface(object):
                     method.aux = s.__aux__
                 if method.aux is not None:
                     method.aux.methods.append(_generate_method_id(s, method))
+                if not self.check_method(method):
+                    continue
 
                 for cls in self.add_method(method):
                     self.add_class(cls)
