@@ -17,3 +17,4 @@ pyramid
 tox
 pyparsing>=2.0.2
 suds-jurko
+pytest-xdist==1.10
