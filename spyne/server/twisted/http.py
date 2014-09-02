@@ -293,6 +293,7 @@ class TwistedWebResource(Resource):
     def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
                                            block_length=8 * 1024, prepath=None):
         Resource.__init__(self)
+        self.app = app
 
         self.http_transport = TwistedHttpTransport(app, chunked,
                                             max_content_length, block_length)
