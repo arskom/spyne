@@ -457,7 +457,7 @@ class Wsdl11(XmlSchema):
                     in_header_message_name = in_headers[0].get_type_name()
 
                 for header in in_headers:
-                    soap_header = etree.SubElement(input, SOAP(header))
+                    soap_header = etree.SubElement(input, SOAP('header'))
                     soap_header.set('use', 'literal')
                     soap_header.set('message', '%s:%s' % (
                                 header.get_namespace_prefix(self.interface),
