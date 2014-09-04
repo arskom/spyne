@@ -133,6 +133,9 @@ def Thier_repr(with_ns=False):
 
 SchemaBase.__repr__ = Thier_repr()
 
+hier_repr = Thier_repr()
+hier_repr_ns = Thier_repr(with_ns=True)
+
 
 class XmlSchemaParser(object):
     def __init__(self, files, base_dir=None, repr_=Thier_repr(with_ns=False)):
