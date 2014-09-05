@@ -39,6 +39,7 @@ import spyne
 
 from spyne.const import xml_ns
 from spyne.model import SimpleModel
+from spyne.util import six
 from spyne.util import memoize
 from spyne.model._base import apply_pssm, msgpack, xml, json
 
@@ -148,6 +149,7 @@ class AnyDict(SimpleModel):
     """
 
     __type_name__ = 'anyType'
+    Value = dict
 
     class Attributes(SimpleModel.Attributes):
         store_as = None
@@ -174,6 +176,7 @@ class Unicode(SimpleModel):
     """
 
     __type_name__ = 'string'
+    Value = six.text_type
 
     class Attributes(SimpleModel.Attributes):
         """Customizable attributes of the :class:`spyne.model.primitive.Unicode`
@@ -298,6 +301,9 @@ class Decimal(SimpleModel):
 
     __type_name__ = 'decimal'
 
+    Value = decimal.Decimal
+    # contrary to popular belief, Decimal hates float.
+
     class Attributes(SimpleModel.Attributes):
         """Customizable attributes of the :class:`spyne.model.primitive.Decimal`
         type."""
@@ -407,6 +413,7 @@ class Double(Decimal):
      """
 
     __type_name__ = 'double'
+    Value = float
 
     if platform.python_version_tuple()[:2] == ('2','6'):
         class Attributes(Decimal.Attributes):
@@ -448,6 +455,7 @@ class Integer(Decimal):
     """The arbitrary-size signed integer."""
 
     __type_name__ = 'integer'
+    Value = int
 
     @staticmethod
     def validate_native(cls, value):
@@ -591,6 +599,7 @@ class Time(SimpleModel):
     """
 
     __type_name__ = 'time'
+    Value = datetime.time
 
     class Attributes(SimpleModel.Attributes):
         """Customizable attributes of the :class:`spyne.model.primitive.Time`
@@ -644,6 +653,7 @@ class DateTime(SimpleModel):
     """
 
     __type_name__ = 'dateTime'
+    Value = datetime.datetime
 
     _local_re = re.compile(DATETIME_PATTERN)
     _utc_re = re.compile(DATETIME_PATTERN + 'Z')
@@ -746,6 +756,7 @@ class Date(DateTime):
     __type_name__ = 'date'
 
     _offset_re = re.compile(DATE_PATTERN + '(' + OFFSET_PATTERN + '|Z)')
+    Value = datetime.date
 
     class Attributes(DateTime.Attributes):
         """Customizable attributes of the :class:`spyne.model.primitive.Date`
@@ -790,6 +801,7 @@ class Duration(SimpleModel):
     """Native type is :class:`datetime.timedelta`."""
 
     __type_name__ = 'duration'
+    Value = datetime.timedelta
 
 
 class Boolean(SimpleModel):
@@ -834,6 +846,7 @@ class Uuid(Unicode(pattern=UUID_PATTERN)):
 
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'uuid'
+    Value = uuid.UUID
 
     class Attributes(Unicode(pattern=UUID_PATTERN).Attributes):
         serialize_as = None
@@ -1136,8 +1149,6 @@ NATIVE_MAP = {
     decimal.Decimal: Decimal,
     uuid.UUID: Uuid,
 }
-
-from spyne.util import six
 
 if six.PY3:
     NATIVE_MAP.update({

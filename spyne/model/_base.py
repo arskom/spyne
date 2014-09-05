@@ -127,6 +127,9 @@ class ModelBase(object):
     """The public type name of the class. Use ``get_type_name()`` instead of
     accessing it directly."""
 
+    Value = type(None)
+    """The value of this type is an instance of this class"""
+
     # These are not the xml schema defaults. The xml schema defaults are
     # considered in XmlSchema's add() method. the defaults here are to reflect
     # what people seem to want most.
