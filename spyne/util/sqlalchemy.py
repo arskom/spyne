@@ -124,8 +124,6 @@ from spyne.model import File
 from spyne.util import sanitize_args
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
-from spyne.util.dictdoc import get_dict_as_object, JsonDocument
-from spyne.util.dictdoc import get_object_as_json
 
 
 # Inheritance type constants.
@@ -356,28 +354,35 @@ class PGObjectJson(UserDefinedType):
         self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as
 
+        from spyne.util.dictdoc import get_dict_as_object
+        from spyne.util.dictdoc import get_object_as_json
+        self.get_object_as_json = staticmethod(get_object_as_json)
+        self.get_dict_as_object = staticmethod(get_dict_as_object)
+
     def get_col_spec(self):
         return "json"
 
     def bind_processor(self, dialect):
         def process(value):
             if value is not None:
-                return get_object_as_json(value, self.cls,
+                return self.get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
                     )
         return process
 
     def result_processor(self, dialect, col_type):
+        from spyne.util.dictdoc import JsonDocument
+
         def process(value):
             if isinstance(value, six.string_types):
-                return get_dict_as_object(json.loads(value), self.cls,
+                return self.get_dict_as_object(json.loads(value), self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
                         protocol=JsonDocument,
                     )
             if value is not None:
-                return get_dict_as_object(value, self.cls,
+                return self.get_dict_as_object(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
                         protocol=JsonDocument,
@@ -452,7 +457,7 @@ class PGFileJson(PGObjectJson):
                 value.store = self.store
                 value.abspath = join(self.store, value.path)
 
-                retval = get_object_as_json(value, self.cls,
+                retval = self.get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
                     )
@@ -468,7 +473,7 @@ class PGFileJson(PGObjectJson):
                 value = json.loads(value)
 
             if value is not None:
-                retval = get_dict_as_object(value, self.cls,
+                retval = self.get_dict_as_object(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as)
                 retval.store = self.store
