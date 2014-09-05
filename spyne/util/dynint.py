@@ -1,6 +1,5 @@
 
 from spyne import Integer, ModelBase
-from spyne.util import six
 from spyne.util.cdict import cdict
 
 
@@ -21,7 +20,6 @@ def dynamic_init(cls, **kwargs):
         if k in kwargs:
             subval = kwargs[k]
             t = MAP[v]
-            print t
             setattr(retval, k, t[type(subval)](subval))
 
     return retval
