@@ -356,8 +356,8 @@ class PGObjectJson(UserDefinedType):
 
         from spyne.util.dictdoc import get_dict_as_object
         from spyne.util.dictdoc import get_object_as_json
-        self.get_object_as_json = staticmethod(get_object_as_json)
-        self.get_dict_as_object = staticmethod(get_dict_as_object)
+        self.get_object_as_json = get_object_as_json
+        self.get_dict_as_object = get_dict_as_object
 
     def get_col_spec(self):
         return "json"
