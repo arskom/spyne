@@ -30,7 +30,7 @@ from spyne import ModelBase, AnyHtml, ByteArray, ComplexModelBase, Array, \
     AnyUri, ImageUri
 from spyne.model.binary import Attachment
 from spyne.protocol import get_cls_attrs
-from spyne.protocol.html import HtmlBase, NSMAP
+from spyne.protocol.html import HtmlBase
 
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
@@ -231,7 +231,7 @@ class HtmlColumnTable(HtmlTableBase):
         if self.table_name_attr is not None:
             attrib[self.table_name_attr] = cls.get_type_name()
 
-        with parent.element('table', attrib, nsmap=NSMAP):
+        with parent.element('table', attrib):
             if self.produce_header:
                 self._gen_header(ctx, cls, name, parent)
 
@@ -315,7 +315,7 @@ class HtmlRowTable(HtmlTableBase):
         if self.table_name_attr is not None:
             attrib[self.table_name_attr] = cls.get_type_name()
 
-        with parent.element('table', attrib, nsmap=NSMAP):
+        with parent.element('table', attrib):
             with parent.element('tbody'):
                 for k, v in cls.get_flat_type_info(cls).items():
                     try:
@@ -369,7 +369,7 @@ class HtmlRowTable(HtmlTableBase):
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        with parent.element('div', nsmap=NSMAP):
+        with parent.element('div'):
             if issubclass(cls, ComplexModelBase):
                 ret = super(HtmlRowTable, self).array_to_parent(
                                          ctx, cls, inst, parent, name, **kwargs)
@@ -388,7 +388,7 @@ class HtmlRowTable(HtmlTableBase):
                 if self.table_name_attr:
                     table_attrib = {self.table_name_attr: name}
 
-                with parent.element('table', table_attrib, nsmap=NSMAP):
+                with parent.element('table', table_attrib):
                     tr_attrib = {}
                     if self.row_class is not None:
                         tr_attrib['class'] = self.row_class

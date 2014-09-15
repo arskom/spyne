@@ -60,6 +60,13 @@ class ToClothMixin(ProtocolBase):
             ComplexModelBase: self.complex_to_cloth,
         })
 
+    def _parse_file(self, file_name, cloth_parser):
+        if cloth_parser is None:
+            cloth_parser = etree.XMLParser(remove_comments=True)
+
+        self._cloth = etree.parse(cloth, parser=cloth_parser)
+        self._cloth = self._cloth.getroot()
+
     def _init_cloth(self, cloth, attr_name, root_attr_name, cloth_parser):
         """Called from XmlCloth.__init__ in order to not break the dunder init
         signature consistency"""
@@ -70,11 +77,7 @@ class ToClothMixin(ProtocolBase):
         self._mrpc_cloth = self._root_cloth = None
         self._cloth = cloth
         if isinstance(self._cloth, string_types):
-            if cloth_parser is None:
-                cloth_parser = etree.XMLParser(remove_comments=True)
-
-            self._cloth = html.parse(cloth, parser=cloth_parser)
-            self._cloth = self._cloth.getroot()
+            self._parse_file(self._cloth, cloth_parser)
 
         if self._cloth is not None:
             logger.debug("Using cloth as root.")
@@ -307,7 +310,6 @@ class ToClothMixin(ProtocolBase):
 
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
-
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
