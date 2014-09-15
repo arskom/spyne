@@ -236,7 +236,7 @@ class DictDocument(ProtocolBase):
         self.complex_as = complex_as
         self.ordered = ordered
         if ordered:
-            raise NotImplementedError('ordered == False')
+            raise NotImplementedError('ordered=True')
 
         self.stringified_types = (DateTime, Date, Time, Uuid, Duration,
                                                                 AnyXml, AnyHtml)
