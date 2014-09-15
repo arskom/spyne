@@ -228,10 +228,11 @@ class DictDocument(ProtocolBase):
 
     def __init__(self, app=None, validator=None, mime_type=None,
             ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
-                                                                 ordered=False):
+                                              ordered=False, polymorphic=False):
         super(DictDocument, self).__init__(app, validator, mime_type,
                                                   ignore_uncap, ignore_wrappers)
 
+        self.polymorphic = polymorphic
         self.complex_as = complex_as
         self.ordered = ordered
         if ordered:
@@ -709,6 +710,9 @@ class HierDictDocument(DictDocument):
         return inst
 
     def _object_to_doc(self, cls, inst):
+        if self.polymorphic and issubclass(inst.__class__, cls):
+            cls = inst.__class__
+
         retval = None
 
         if self.ignore_wrappers:
