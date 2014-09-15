@@ -792,7 +792,8 @@ class HierDictDocument(DictDocument):
         return self.to_string(cls, inst)
 
     def _complex_to_doc(self, cls, inst):
-        if self.complex_as is list:
+        if self.complex_as is list or \
+                        getattr(cls.Attributes, 'serialize_as', False) is list:
             return list(self._complex_to_list(cls, inst))
         else:
             return self._complex_to_dict(cls, inst)
