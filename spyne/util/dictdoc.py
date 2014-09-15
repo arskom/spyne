@@ -80,8 +80,8 @@ def get_object_as_simple_dict(o, cls, hier_delim='_'):
                                                   .object_to_simple_dict(cls, o)
 
 
-def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list, encoding='utf8'):
-    prot = JsonDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as)
+def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list, encoding='utf8', polymorphic=False):
+    prot = JsonDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as, polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
     prot.create_out_string(ctx, encoding)
     return ''.join(ctx.out_string)
