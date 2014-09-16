@@ -198,6 +198,8 @@ class ToClothMixin(ProtocolBase):
             if elt_ctx is not None:
                 elt_ctx.__exit__(None, None, None)
                 print("\texit norm", elt.tag, elt.attrib)
+                if elt.tail is not None:
+                    parent.write(elt.tail)
 
             # unless we're at the same level as the relevant ancestor of the
             # target node
