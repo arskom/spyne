@@ -258,6 +258,8 @@ class ToClothMixin(ProtocolBase):
             else:
                 curtag = parent.element(cloth.tag, attrib)
             curtag.__enter__()
+            if cloth.text is not None:
+                parent.write(cloth.text)
 
         eltstack.append(cloth)
         ctxstack.append(curtag)

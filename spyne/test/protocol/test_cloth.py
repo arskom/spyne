@@ -201,6 +201,27 @@ class TestXmlCloth(unittest.TestCase):
         assert elt[1][3].tag == 'c3'
         assert elt[1][4].tag == 'c4'
 
+    def test_parent_text(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = SomeObject(s='s')
+
+        cloth = E.a(
+            "text 0",
+            E.b1(spyne_id="s"),
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt.tag == 'a'
+        assert elt.text == 'text 0'
+
+        assert elt[0].tag  == 'b1'
+        assert elt[0].text == 's'
+
 
 if __name__ == '__main__':
     unittest.main()
