@@ -244,6 +244,29 @@ class TestXmlCloth(unittest.TestCase):
         assert elt[0][0].tag == 'c1'
         assert elt[0][0].text == 's'
 
+    def test_prevsibl_tail(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = SomeObject(s='s')
+
+        cloth = E.a(
+            E.b1(
+                E.c1(),
+                "text 2",
+                E.c2(spyne_id="s"),
+            )
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt[0].tag  == 'b1'
+        assert elt[0][0].tag == 'c1'
+        assert elt[0][0].tail == 'text 2'
+        assert elt[0][1].text == 's'
+
     def test_sibling_tail_close(self):
         class SomeObject(ComplexModel):
             s = Unicode
