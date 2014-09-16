@@ -262,6 +262,35 @@ class TestXmlCloth(unittest.TestCase):
         assert elt[0].text == 's'
         assert elt[0].tail == 'text 3'
 
+    def test_sibling_tail_close_anc(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = SomeObject(s='s', i=5)
+
+        cloth = E.a(
+            E.b0(),
+            "text 0",
+            E.b1(
+                E.c0(spyne_id="s"),
+                "text 1",
+                E.c1(),
+                "text 2",
+            ),
+            "text 3",
+            E.b2(
+                E.c1(spyne_id="i"),
+                "text 4",
+            )
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt.xpath('/a/b1/c1')[0].tail == 'text 2'
+
 
 if __name__ == '__main__':
     unittest.main()
