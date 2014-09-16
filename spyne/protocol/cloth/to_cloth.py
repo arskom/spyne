@@ -272,10 +272,14 @@ class ToClothMixin(ProtocolBase):
             if elt_ctx is not None:
                 elt_ctx.__exit__(None, None, None)
                 print("exit ", elt.tag, "close")
+                if elt.tail is not None:
+                    parent.write(elt.tail)
 
             for sibl in elt.itersiblings(preceding=False):
                 print("write", sibl.tag, "close sibl")
                 parent.write(sibl)
+                if sibl.tail is not None:
+                    parent.write(sibl.tail)
 
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
                         from_arr=False, **kwargs):
