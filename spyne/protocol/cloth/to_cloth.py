@@ -211,7 +211,7 @@ class ToClothMixin(ProtocolBase):
         for anc in ancestors[len(eltstack):]:
             # write previous siblins of ancestors (if any)
             prevsibls = _prevsibls(anc)
-            for elt in reversed(prevsibls):
+            for elt in prevsibls:
                 if elt is last_elt:
                     break
                 if id(elt) in tags:
