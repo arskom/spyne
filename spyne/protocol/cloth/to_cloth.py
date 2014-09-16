@@ -229,6 +229,8 @@ class ToClothMixin(ProtocolBase):
                 anc_ctx = parent.element(anc.tag, anc.attrib)
             anc_ctx.__enter__()
             print("\tenter norm", anc.tag, anc.attrib)
+            if anc.text is not None:
+                parent.write(anc.text)
             eltstack.append(anc)
             ctxstack.append(anc_ctx)
 

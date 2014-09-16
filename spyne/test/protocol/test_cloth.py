@@ -222,6 +222,28 @@ class TestXmlCloth(unittest.TestCase):
         assert elt[0].tag  == 'b1'
         assert elt[0].text == 's'
 
+    def test_anc_text(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = SomeObject(s='s')
+
+        cloth = E.a(
+            E.b1(
+                "text 1",
+                E.c1(spyne_id="s"),
+            )
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt[0].tag  == 'b1'
+        assert elt[0].text == 'text 1'
+        assert elt[0][0].tag == 'c1'
+        assert elt[0][0].text == 's'
+
     def test_sibling_tail_close(self):
         class SomeObject(ComplexModel):
             s = Unicode
