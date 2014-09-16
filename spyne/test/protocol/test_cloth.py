@@ -173,6 +173,34 @@ class TestXmlCloth(unittest.TestCase):
         assert elt[2][1].text == '5'
         assert elt[2][2].tag == 'g3'
 
+    def test_sibling_order(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = SomeObject(s='s')
+
+        cloth = E.a(
+            E.b1(),
+            E.b2(
+                E.c0(),
+                E.c1(),
+                E.c2(spyne_id="s"),
+                E.c3(),
+                E.c4(),
+            ),
+        )
+
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+        assert elt[0].tag == 'b1'
+        assert elt[1].tag == 'b2'
+        assert elt[1][0].tag == 'c0'
+        assert elt[1][1].tag == 'c1'
+        assert elt[1][2].tag == 'c2'
+        assert elt[1][2].text == 's'
+        assert elt[1][3].tag == 'c3'
+        assert elt[1][4].tag == 'c4'
+
 
 if __name__ == '__main__':
     unittest.main()
