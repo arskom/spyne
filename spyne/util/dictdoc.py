@@ -96,3 +96,17 @@ def get_object_as_yaml(o, cls, ignore_wrappers=False, complex_as=dict,
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
     prot.create_out_string(ctx, encoding)
     return ''.join(ctx.out_string)
+
+
+def json_loads(s, cls, protocol=JsonDocument, encoding=None, **kwargs):
+    prot = protocol(**kwargs)
+    ctx = FakeContext(in_string=[s])
+    prot.create_in_document(ctx)
+    return prot._doc_to_object(cls, ctx.in_document)
+
+
+def yaml_loads(s, cls, protocol=YamlDocument, **kwargs):
+    prot = protocol(**kwargs)
+    ctx = FakeContext(in_string=[s])
+    prot.create_in_document(ctx)
+    return prot._doc_to_object(cls, ctx.in_document)
