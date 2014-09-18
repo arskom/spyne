@@ -86,11 +86,12 @@ class YamlDocument(HierDictDocument):
                                         ignore_wrappers=True,
                                         complex_as=dict,
                                         ordered=False,
+                                        polymorphic=False,
                                         # YamlDocument specific
                                         safe=True, **kwargs):
 
         super(YamlDocument, self).__init__(app, validator, mime_type,
-                            ignore_uncap, ignore_wrappers, complex_as, ordered)
+                ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
 
         self._from_string_handlers[Double] = lambda cls, val: val
         self._from_string_handlers[Boolean] = lambda cls, val: val

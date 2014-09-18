@@ -87,8 +87,10 @@ def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list, encoding='
     return ''.join(ctx.out_string)
 
 
-def get_object_as_yaml(o, cls, ignore_wrappers=False, complex_as=dict, encoding='utf8'):
-    prot = YamlDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as)
+def get_object_as_yaml(o, cls, ignore_wrappers=False, complex_as=dict,
+                                            encoding='utf8', polymorphic=False):
+    prot = YamlDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                                                        polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
     prot.create_out_string(ctx, encoding)
     return ''.join(ctx.out_string)
