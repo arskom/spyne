@@ -124,7 +124,7 @@ class Interface(object):
 
     def get_class(self, key):
         """Returns the class definition that corresponds to the given key.
-        Keys are in '{namespace}class_name' form, a.k.a. XML QName format.
+        Keys are in '{namespace}class_name' form.
 
         Not meant to be overridden.
         """
