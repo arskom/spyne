@@ -571,8 +571,10 @@ class HierDictDocument(DictDocument):
 
         if body_class:
             # assign raw result to its wrapper, result_message
-            inst = ctx.in_body_doc.get(body_class.get_type_name(), None)
-            result_message = self._doc_to_object(body_class, inst,
+            doc = ctx.in_body_doc
+            if self.ignore_wrappers:
+                doc = doc.get(body_class.get_type_name(), None)
+            result_message = self._doc_to_object(body_class, doc,
                                                                  self.validator)
             ctx.in_object = result_message
 
@@ -666,6 +668,29 @@ class HierDictDocument(DictDocument):
                                                                     validator))
 
             return retval
+
+        if not self.ignore_wrappers:
+            if not isinstance(doc, dict):
+                raise ValidationError("Wrapper documents must be dicts")
+            if len(doc) == 0:
+                return None
+            if len(doc) > 1:
+                raise ValidationError("There can be only one entry in a "
+                                                                "wrapper dict.")
+            subclasses = cls.Attributes._subclasses
+            (class_name, doc), = doc.items()
+            if subclasses is not None:
+                for subcls in subclasses:
+                    if subcls.get_type_name() == class_name:
+                        break
+
+                if issubclass(subcls, cls):
+                    print(cls, "=>", subcls)
+                    cls = subcls
+                else:
+                    raise ValidationError(class_name,
+                             "Class name %%r is not a subclass of %r" %
+                                                            cls.get_type_name())
 
         inst = cls.get_deserialization_instance()
 
