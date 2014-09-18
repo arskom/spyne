@@ -689,8 +689,12 @@ class ComplexModelBase(ModelBase):
                 def_fac = attr.default_factory
 
                 if def_fac is not None:
+                    if six.PY2:  # unbound-method error workaround. huh.
+                        def_fac = def_fac.im_func
+                    dval = def_fac()
+
                     # should not check for read-only for default values
-                    setattr(self, k, def_fac())
+                    setattr(self, k, dval)
 
                 elif def_val is not None:
                     # should not check for read-only for default values
