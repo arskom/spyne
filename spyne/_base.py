@@ -570,10 +570,15 @@ class EventManager(object):
 
 
 class FakeContext(object):
-    def __init__(self, app=None, descriptor=None, out_object=None,
-                            out_error=None, out_document=None, out_string=None):
+    def __init__(self, app=None, descriptor=None,
+           in_object=None, in_error=None, in_document=None, in_string=None,
+           out_object=None, out_error=None, out_document=None, out_string=None):
         self.app = app
         self.descriptor = descriptor
+        self.in_object = in_object
+        self.in_error = in_error
+        self.in_document = in_document
+        self.in_string = in_string
         self.out_error = out_error
         self.out_object = out_object
         self.out_document = out_document
