@@ -684,7 +684,7 @@ class HierDictDocument(DictDocument):
                     if subcls.get_type_name() == class_name:
                         break
 
-                if issubclass(subcls, cls):
+                if self.issubclass(subcls, cls):
                     print(cls, "=>", subcls)
                     cls = subcls
                 else:
@@ -735,9 +735,6 @@ class HierDictDocument(DictDocument):
         return inst
 
     def _object_to_doc(self, cls, inst):
-        if self.polymorphic and issubclass(inst.__class__, cls):
-            cls = inst.__class__
-
         retval = None
 
         if self.ignore_wrappers:
@@ -794,6 +791,9 @@ class HierDictDocument(DictDocument):
                 yield (sub_name, val)
 
     def _to_dict_value(self, cls, inst):
+        if self.polymorphic and self.issubclass(inst.__class__, cls):
+            cls = inst.__class__
+
         if issubclass(cls, AnyDict):
             return inst
 
