@@ -679,7 +679,7 @@ class HierDictDocument(DictDocument):
                                                                 "wrapper dict.")
             subclasses = cls.Attributes._subclasses
             (class_name, doc), = doc.items()
-            if subclasses is not None:
+            if cls.get_type_name() != class_name and subclasses is not None:
                 for subcls in subclasses:
                     if subcls.get_type_name() == class_name:
                         break
