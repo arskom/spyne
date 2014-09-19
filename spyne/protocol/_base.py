@@ -275,6 +275,13 @@ class ProtocolBase(object):
                                    "to: %r" % self.__app
         self.__app = value
 
+    @staticmethod
+    def issubclass(sub, cls):
+        suborig = getattr(sub, '__orig__', None)
+        clsorig = getattr(cls, '__orig__', None)
+        return issubclass(sub if suborig is None else suborig,
+                          cls if clsorig is None else clsorig)
+
     def create_in_document(self, ctx, in_string_encoding=None):
         """Uses ``ctx.in_string`` to set ``ctx.in_document``."""
 

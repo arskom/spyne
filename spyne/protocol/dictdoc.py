@@ -677,6 +677,7 @@ class HierDictDocument(DictDocument):
             if len(doc) > 1:
                 raise ValidationError("There can be only one entry in a "
                                                                 "wrapper dict.")
+
             subclasses = cls.Attributes._subclasses
             (class_name, doc), = doc.items()
             if cls.get_type_name() != class_name and subclasses is not None:
@@ -684,13 +685,11 @@ class HierDictDocument(DictDocument):
                     if subcls.get_type_name() == class_name:
                         break
 
-                if self.issubclass(subcls, cls):
-                    print(cls, "=>", subcls)
-                    cls = subcls
-                else:
+                if not self.issubclass(subcls, cls):
                     raise ValidationError(class_name,
                              "Class name %%r is not a subclass of %r" %
                                                             cls.get_type_name())
+                cls = subcls
 
         inst = cls.get_deserialization_instance()
 
