@@ -56,10 +56,12 @@ from spyne.util.six import add_metaclass, with_metaclass, string_types
 PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
 
 def _get_flat_type_info(cls, retval):
+    assert isinstance(retval, TypeInfo)
     parent = getattr(cls, '__extends__', None)
     if parent != None:
         _get_flat_type_info(parent, retval)
     retval.update(cls._type_info)
+    retval.alt.update(cls._type_info_alt) # FIXME: move to cls._type_info.alt
     return retval
 
 
@@ -67,6 +69,7 @@ class TypeInfo(odict):
     def __init__(self, *args, **kwargs):
         super(TypeInfo, self).__init__(*args, **kwargs)
         self.attributes = {}
+        self.alt = {}
 
     def __setitem__(self, key, val):
         assert isinstance(key, string_types)

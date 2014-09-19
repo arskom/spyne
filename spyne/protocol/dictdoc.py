@@ -710,7 +710,9 @@ class HierDictDocument(DictDocument):
         for k, v in items:
             member = flat_type_info.get(k, None)
             if member is None:
-                continue
+                member, k = flat_type_info.alt.get(k, (None, k))
+                if member is None:
+                    continue
 
             mo = member.Attributes.max_occurs
             if mo > 1:
