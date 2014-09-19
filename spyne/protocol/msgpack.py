@@ -64,10 +64,11 @@ class MessagePackDocument(HierDictDocument):
                                         # DictDocument specific
                                         ignore_wrappers=True,
                                         complex_as=dict,
-                                        ordered=False):
+                                        ordered=False,
+                                        polymorphic=False):
 
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
-                            ignore_uncap, ignore_wrappers, complex_as, ordered)
+                ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
 
         self._from_string_handlers[Double] = self._ret
         self._from_string_handlers[Boolean] = self._ret
