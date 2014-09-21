@@ -34,7 +34,7 @@ from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
 
-_prevsibls = lambda elt: list(elt.itersiblings(preceding=True))
+_prevsibls = lambda elt: reversed(list(elt.itersiblings(preceding=True)))
 _revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
 
 
@@ -215,7 +215,7 @@ class ToClothMixin(ProtocolBase):
             prevsibls = _prevsibls(anc)
             for elt in prevsibls:
                 if elt is last_elt:
-                    break
+                    continue
                 if id(elt) in tags:
                     print("\skip  anc prevsibl", elt.tag, elt.attrib)
                     continue
@@ -238,9 +238,9 @@ class ToClothMixin(ProtocolBase):
         # write its previous siblings
         if not last_elt is cloth:
             prevsibls = _prevsibls(cloth)
-            for elt in reversed(prevsibls):
+            for elt in prevsibls:
                 if elt is last_elt:
-                    break
+                    continue
                 if id(elt) in tags:
                     print("\tskip  cloth prevsibl", elt.tag, elt.attrib)
                     continue
