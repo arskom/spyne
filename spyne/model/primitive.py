@@ -246,7 +246,6 @@ def _re_match_with_span(attr, value):
     if attr.pattern is None:
         return True
 
-    print(value)
     m = attr._pattern_re.match(value)
     return (m is not None) and (m.span() == (0, len(value)))
 
