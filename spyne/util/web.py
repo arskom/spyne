@@ -59,9 +59,6 @@ EXCEPTION_ADDRESS = None
 
 
 try:
-    import colorama
-    colorama.init()
-
     from colorama.ansi import Fore
     from colorama.ansi import Style
     RED = Fore.RED + Style.BRIGHT
