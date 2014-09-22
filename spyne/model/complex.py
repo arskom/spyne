@@ -804,6 +804,17 @@ class ComplexModelBase(ModelBase):
         else:
             return cls.__orig__()
 
+    @classmethod
+    @memoize_id
+    def get_subclasses(cls):
+        retval = []
+        subca = cls.Attributes._subclasses
+        if subca is not None:
+            retval.extend(subca)
+            for subc in subca:
+                retval.extend(subc.get_subclasses())
+        return retval
+
     @staticmethod
     @memoize
     def get_flat_type_info(cls):

@@ -678,7 +678,7 @@ class HierDictDocument(DictDocument):
                 raise ValidationError("There can be only one entry in a "
                                                                 "wrapper dict.")
 
-            subclasses = cls.Attributes._subclasses
+            subclasses = cls.get_subclasses()
             (class_name, doc), = doc.items()
             if cls.get_type_name() != class_name and subclasses is not None:
                 for subcls in subclasses:
