@@ -11,6 +11,7 @@ spyne-2.12.0
 * Add initial support for parsing xsi:type. It's an experimental feature.
 * Add stub implementation for SOAP 1.2
 * Add initial implementation for SOAP 1.2 Faults.
+* Remove the deprecated ``interface`` argument to ``Application``\.
 
 spyne-2.11.0
 ------------
