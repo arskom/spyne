@@ -172,6 +172,10 @@ class MethodContext(object):
         """This is used to decide which native method to call. It is set by
         the protocol classes."""
 
+        self.files = []
+        """List of stuff to be closed when closing this context. Anything that
+        has a close() callable can go in."""
+
         self.__descriptor = None
 
         #
@@ -334,6 +338,8 @@ class MethodContext(object):
     def close(self):
         self.call_end = time()
         self.app.event_manager.fire_event("method_context_closed", self)
+        for f in self.files:
+            f.close()
 
         # break cycles
         del self.udc
