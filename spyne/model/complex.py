@@ -966,6 +966,12 @@ class ComplexModelBase(ModelBase):
         if not cls is ComplexModel:
             cls._process_variants(retval)
 
+        # we could be smarter, but customize is supposed to be called only while
+        # daemon initialization, so it's not really necessary.
+        ComplexModelBase.get_subclasses.memo.clear()
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
+
         return retval
 
     @classmethod
