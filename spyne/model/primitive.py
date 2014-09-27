@@ -833,9 +833,11 @@ _uuid_validate = {
     None: _uuid_validate_string,
     'hex': _Tuuid_validate('hex'),
     'urn': _Tuuid_validate('urn'),
+    six.binary_type: _Tuuid_validate('bytes'),
     'bytes': _Tuuid_validate('bytes'),
     'bytes_le': _Tuuid_validate('bytes_le'),
     'fields': _Tuuid_validate('fields'),
+    int: _Tuuid_validate('int'),
     'int': _Tuuid_validate('int'),
 }
 
