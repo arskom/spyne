@@ -838,8 +838,14 @@ def _gen_array_m2m(cls, props, k, child, p):
     else:
         rel_table_name = p.multi
 
-    # FIXME: Handle the case where the table already exists.
-    rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
+    if rel_table_name in metadata.tables:
+        rel_t = metadata.tables[rel_table_name]
+
+        assert col_own.type.__class__ == rel_t.c[col_own.key].type.__class__
+        assert col_child.type.__class__ == rel_t.c[col_child.key].type.__class__
+
+    else:
+        rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
     props[k] = relationship(child, secondary=rel_t, backref=p.backref,
                 back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
