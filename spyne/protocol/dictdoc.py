@@ -635,7 +635,7 @@ class HierDictDocument(DictDocument):
             retval = self._doc_to_object(cls, inst, validator)
 
         else:
-            if inst == '' and cls.Attributes.empty_is_none:
+            if cls.Attributes.empty_is_none and inst in (u'', b''):
                 inst = None
 
             if (validator is self.SOFT_VALIDATION
