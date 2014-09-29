@@ -296,7 +296,6 @@ class DjangoView(object):
             name=get('name'),
             in_protocol=get('in_protocol'),
             out_protocol=get('out_protocol'),
-            interface=get('interface')
         )
         server = get('server') or DjangoServer(application,
                                                chunked=get('chunked'),
