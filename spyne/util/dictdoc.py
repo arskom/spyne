@@ -71,8 +71,11 @@ def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list,
 
 def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict,
                                                         protocol=_UtilProtocol):
-    return protocol(ignore_wrappers=ignore_wrappers,
+    retval = protocol(ignore_wrappers=ignore_wrappers,
                                    complex_as=complex_as)._object_to_doc(cls, o)
+    if not ignore_wrappers:
+        return {cls.get_type_name(): retval}
+    return retval
 
 
 def get_object_as_simple_dict(o, cls, hier_delim='_'):
