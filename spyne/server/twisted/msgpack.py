@@ -25,7 +25,8 @@ logger = logging.getLogger(__name__)
 import msgpack
 
 from twisted.internet.defer import Deferred
-from twisted.internet.protocol import Protocol, Factory, connectionDone
+from twisted.internet.protocol import Protocol, Factory, connectionDone, \
+    ClientFactory
 from twisted.python.failure import Failure
 from twisted.python import log
 
@@ -38,6 +39,16 @@ from spyne.server.msgpack import OUT_RESPONSE_SERVER_ERROR, \
 
 
 class TwistedMessagePackProtocolFactory(Factory):
+    def __init__(self, app, base=MessagePackServerBase):
+        self.app = app
+        self.base = base
+        self.event_manager = EventManager(self)
+
+    def buildProtocol(self, address):
+        return TwistedMessagePackProtocol(self.app, self.base, factory=self)
+
+
+class TwistedMessagePackProtocolClientFactory(ClientFactory):
     def __init__(self, app, base=MessagePackServerBase):
         self.app = app
         self.base = base
