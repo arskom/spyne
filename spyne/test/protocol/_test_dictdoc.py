@@ -149,7 +149,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                     return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
 
             ctx = _dry_me([SomeService], {"some_call":
-                    {"ccm": {"c":{"i":3, "s": "3x"}, "i":4, "s": "4x"}}
+                    {"ccm": {"CCM":{"c":{"CM":{"i":3, "s": "3x"}}, "i":4, "s": "4x"}}}
                 })
 
             ret = serializer.loads(''.join(ctx.out_string))
@@ -218,12 +218,12 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                     return ecm
 
             ctx = _dry_me([SomeService], {
-                "some_call": {"ecm": [{
-                        "c": {"i":3, "s": "3x"},
+                "some_call": {"ecm": [{"ECM": {
+                        "c": {"CM":{"i":3, "s": "3x"}},
                         "i":4,
                         "s": "4x",
                         "d": "2011-12-13T14:15:16Z"
-                    }]
+                    }}]
                 }})
 
             print(ctx.in_object)
@@ -1053,10 +1053,10 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                     assert p.name == v.name
                     return p
 
-            d = get_object_as_dict(v, File)
-            assert d['name'] == v.name
-            assert d['type'] == v.type
-            assert d['data'] == v.data
+            d = get_object_as_dict(v, File, ignore_wrappers=False)
+            assert d[File.get_type_name()]['name'] == v.name
+            assert d[File.get_type_name()]['type'] == v.type
+            assert d[File.get_type_name()]['data'] == v.data
 
             ctx = _dry_me([SomeService], {"some_call": {'p': d}})
             s = ''.join(ctx.out_string)
