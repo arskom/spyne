@@ -32,12 +32,6 @@ from spyne.server import ServerBase
 from spyne.util.six import string_types
 
 
-OUT_RESPONSE_NO_ERROR = 0
-OUT_RESPONSE_CLIENT_ERROR = 1
-OUT_RESPONSE_SERVER_ERROR = 2
-
-IN_REQUEST = 1
-
 def _process_v1_msg(prot, msg):
     header = None
     body = msg[1]
@@ -79,11 +73,17 @@ class MessagePackServerBase(ServerBase):
     Subclasses should implement logic to move bitstreams in and out of this
     class."""
 
+    OUT_RESPONSE_NO_ERROR = 0
+    OUT_RESPONSE_CLIENT_ERROR = 1
+    OUT_RESPONSE_SERVER_ERROR = 2
+
+    IN_REQUEST = 1
+
     def __init__(self, app):
         super(MessagePackServerBase, self).__init__(app)
 
         self._version_map = {
-            IN_REQUEST: _process_v1_msg
+            self.IN_REQUEST: _process_v1_msg
         }
 
     def produce_contexts(self, msg):
@@ -143,4 +143,4 @@ class MessagePackServerBase(ServerBase):
         return msgpack.dumps(str(error))
 
     def pack(self, ctx):
-        ctx.out_string = msgpack.packb({OUT_RESPONSE_NO_ERROR: ''.join(ctx.out_string)}),
+        ctx.out_string = msgpack.packb([self.OUT_RESPONSE_NO_ERROR, ''.join(ctx.out_string)]),
