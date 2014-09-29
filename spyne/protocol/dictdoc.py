@@ -680,7 +680,8 @@ class HierDictDocument(DictDocument):
 
             subclasses = cls.get_subclasses()
             (class_name, doc), = doc.items()
-            if cls.get_type_name() != class_name and subclasses is not None:
+            if cls.get_type_name() != class_name and subclasses is not None \
+                                                        and len(subclasses) > 0:
                 for subcls in subclasses:
                     if subcls.get_type_name() == class_name:
                         break
