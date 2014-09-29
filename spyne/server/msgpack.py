@@ -140,7 +140,7 @@ class MessagePackServerBase(ServerBase):
             logger.exception(e)
 
     def handle_transport_error(self, error):
-        return msgpack.pack(str(error))
+        return msgpack.dumps(str(error))
 
     def pack(self, ctx):
         ctx.out_string = msgpack.packb({OUT_RESPONSE_NO_ERROR: ''.join(ctx.out_string)}),

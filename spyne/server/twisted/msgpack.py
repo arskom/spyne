@@ -34,8 +34,6 @@ from spyne import EventManager, Address
 from spyne.auxproc import process_contexts
 from spyne.error import InternalError
 from spyne.server.msgpack import MessagePackServerBase
-from spyne.server.msgpack import OUT_RESPONSE_SERVER_ERROR, \
-    OUT_RESPONSE_CLIENT_ERROR
 
 
 class TwistedMessagePackProtocolFactory(Factory):
@@ -91,9 +89,9 @@ class TwistedMessagePackProtocol(Protocol):
         self._transport.get_out_string(p_ctx)
 
         if isinstance(exc, InternalError):
-            error = OUT_RESPONSE_SERVER_ERROR
+            error = self._transport.OUT_RESPONSE_SERVER_ERROR
         else:
-            error = OUT_RESPONSE_CLIENT_ERROR
+            error = self._transport.OUT_RESPONSE_CLIENT_ERROR
 
         out_string = msgpack.packb([
             error, msgpack.packb(p_ctx.out_document[0].values()),
