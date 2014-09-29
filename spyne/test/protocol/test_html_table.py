@@ -112,7 +112,7 @@ class TestHtmlColumnTable(unittest.TestCase):
         elt = etree.fromstring(out_string)
         show(elt, "TestHtmlColumnTable.test_string_array")
         assert out_string == \
-            '<table xmlns="http://www.w3.org/1999/xhtml" class="string">' \
+            '<table class="string">' \
                 '<thead><tr><th class="some_callResponse">some_callResponse</th></tr></thead>' \
                 '<tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody>' \
             '</table>'
@@ -290,8 +290,8 @@ class TestHtmlRowTable(unittest.TestCase):
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
         show(html.fromstring(out_string), 'TestHtmlRowTable.test_string_array')
         assert out_string == \
-            '<div xmlns="http://www.w3.org/1999/xhtml">' \
-              '<table xmlns="http://www.w3.org/1999/xhtml" class="some_callResponse">' \
+            '<div>' \
+              '<table class="some_callResponse">' \
                 '<tr>' \
                   '<th>string</th>' \
                   '<td>' \
@@ -322,8 +322,8 @@ class TestHtmlRowTable(unittest.TestCase):
         #FIXME: Needs a proper test with xpaths and all.
         show(html.fromstring(out_string), 'TestHtmlRowTable.test_string_array_no_header')
         assert out_string == \
-            '<div xmlns="http://www.w3.org/1999/xhtml">' \
-              '<table xmlns="http://www.w3.org/1999/xhtml" class="some_callResponse">' \
+            '<div>' \
+              '<table class="some_callResponse">' \
                 '<tr>' \
                   '<td>' \
                     '<table>' \
@@ -360,8 +360,8 @@ class TestHtmlRowTable(unittest.TestCase):
         show(html.fromstring(out_string), 'TestHtmlRowTable.test_complex_array')
         #FIXME: Needs a proper test with xpaths and all.
         assert out_string == \
-            '<div xmlns="http://www.w3.org/1999/xhtml">' \
-              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+            '<div>' \
+              '<table class="CM">' \
                 '<tbody>' \
                   '<tr>' \
                     '<th class="i">i</th>' \
@@ -373,7 +373,7 @@ class TestHtmlRowTable(unittest.TestCase):
                   '</tr>' \
                 '</tbody>' \
               '</table>' \
-              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+              '<table class="CM">' \
                 '<tbody>' \
                   '<tr>' \
                     '<th class="i">i</th>' \
@@ -385,7 +385,7 @@ class TestHtmlRowTable(unittest.TestCase):
                   '</tr>' \
                 '</tbody>' \
               '</table>' \
-              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+              '<table class="CM">' \
                 '<tbody>' \
                   '<tr>' \
                     '<th class="i">i</th>' \
@@ -397,7 +397,7 @@ class TestHtmlRowTable(unittest.TestCase):
                   '</tr>' \
                 '</tbody>' \
               '</table>' \
-              '<table xmlns="http://www.w3.org/1999/xhtml" class="CM">' \
+              '<table class="CM">' \
                 '<tbody>' \
                   '<tr>' \
                     '<th class="i">i</th>' \
