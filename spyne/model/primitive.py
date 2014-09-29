@@ -640,6 +640,8 @@ class Time(SimpleModel):
                 and value <= cls.Attributes.le
             ))
 
+_min_dt = datetime.datetime.min.replace(tzinfo=spyne.LOCAL_TZ)
+_max_dt = datetime.datetime.max.replace(tzinfo=spyne.LOCAL_TZ)
 
 class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
@@ -662,19 +664,19 @@ class DateTime(SimpleModel):
         """Customizable attributes of the :class:`spyne.model.primitive.DateTime`
         type."""
 
-        gt = datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0, 0, spyne.LOCAL_TZ) # minExclusive
+        gt = _min_dt # minExclusive
         """The datetime should be greater than this datetime. It must always
         have a timezone."""
 
-        ge = datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0, 0, spyne.LOCAL_TZ) # minInclusive
+        ge = _min_dt # minInclusive
         """The datetime should be greater than or equal to this datetime. It
         must always have a timezone."""
 
-        lt = datetime.datetime(datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, spyne.LOCAL_TZ) # maxExclusive
+        lt = _max_dt # maxExclusive
         """The datetime should be lower than this datetime. It must always have
         a timezone."""
 
-        le = datetime.datetime(datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, spyne.LOCAL_TZ) # maxInclusive
+        le = _max_dt # maxInclusive
         """The datetime should be lower than or equal to this datetime. It must
         always have a timezone."""
 
@@ -739,9 +741,11 @@ class DateTime(SimpleModel):
             value = value.replace(tzinfo=spyne.LOCAL_TZ)
         return SimpleModel.validate_native(cls, value) and (
             value is None or (
-                    value >  cls.Attributes.gt
+                # min_dt is also a valid value if gt is intact.
+                    (cls.Attributes.gt is _min_dt or value > cls.Attributes.gt)
                 and value >= cls.Attributes.ge
-                and value <  cls.Attributes.lt
+                # max_dt is also a valid value if lt is intact.
+                and (cls.Attributes.lt is _max_dt or value < cls.Attributes.lt)
                 and value <= cls.Attributes.le
             ))
 
