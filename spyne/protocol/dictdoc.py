@@ -675,8 +675,8 @@ class HierDictDocument(DictDocument):
             if len(doc) == 0:
                 return None
             if len(doc) > 1:
-                raise ValidationError("There can be only one entry in a "
-                                                                "wrapper dict.")
+                raise ValidationError(doc, "There can be only one entry in a "
+                                                                 "wrapper dict")
 
             subclasses = cls.get_subclasses()
             (class_name, doc), = doc.items()
