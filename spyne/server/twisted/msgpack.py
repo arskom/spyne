@@ -32,7 +32,7 @@ from twisted.python import log
 
 from spyne import EventManager, Address
 from spyne.auxproc import process_contexts
-from spyne.error import ValidationError, InternalError
+from spyne.error import InternalError
 from spyne.server.msgpack import MessagePackServerBase
 from spyne.server.msgpack import OUT_RESPONSE_SERVER_ERROR, \
     OUT_RESPONSE_CLIENT_ERROR
