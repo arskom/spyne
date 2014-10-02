@@ -39,7 +39,7 @@ except ImportError as e:
     def StreamingHttpResponse(*args, **kwargs):
         raise e
 
-from spyne.application import get_fault_string_from_exception, Application
+from spyne.application import Application
 from spyne.auxproc import process_contexts
 from spyne.interface import AllYourInterfaceDocuments
 from spyne.model.fault import Fault
@@ -140,7 +140,7 @@ class DjangoServer(HttpBase):
         except Exception as e:
             logger.exception(e)
             p_ctx.out_error = Fault('Server',
-                                    get_fault_string_from_exception(e))
+                                    self.app.get_fault_string_from_exception(e))
             return self.handle_error(p_ctx, others, p_ctx.out_error)
 
         have_protocol_headers = (isinstance(p_ctx.out_protocol, HttpRpc) and

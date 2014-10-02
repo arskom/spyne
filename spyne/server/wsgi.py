@@ -45,7 +45,6 @@ else:
     from Cookie import SimpleCookie
 
 
-from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
 from spyne.model.binary import File
@@ -357,7 +356,8 @@ class WsgiApplication(HttpBase):
 
         except Exception as e:
             logger.exception(e)
-            p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
+            p_ctx.out_error = Fault('Server',
+                                    self.app.get_fault_string_from_exception(e))
             return self.handle_error(p_ctx, others, p_ctx.out_error,
                                                                  start_response)
 
