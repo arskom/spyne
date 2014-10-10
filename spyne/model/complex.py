@@ -56,10 +56,12 @@ from spyne.util.six import add_metaclass, with_metaclass, string_types
 PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
 
 def _get_flat_type_info(cls, retval):
+    assert isinstance(retval, TypeInfo)
     parent = getattr(cls, '__extends__', None)
     if parent != None:
         _get_flat_type_info(parent, retval)
     retval.update(cls._type_info)
+    retval.alt.update(cls._type_info_alt) # FIXME: move to cls._type_info.alt
     return retval
 
 
@@ -67,6 +69,7 @@ class TypeInfo(odict):
     def __init__(self, *args, **kwargs):
         super(TypeInfo, self).__init__(*args, **kwargs)
         self.attributes = {}
+        self.alt = {}
 
     def __setitem__(self, key, val):
         assert isinstance(key, string_types)
@@ -689,8 +692,12 @@ class ComplexModelBase(ModelBase):
                 def_fac = attr.default_factory
 
                 if def_fac is not None:
+                    if six.PY2:  # unbound-method error workaround. huh.
+                        def_fac = def_fac.im_func
+                    dval = def_fac()
+
                     # should not check for read-only for default values
-                    setattr(self, k, def_fac())
+                    setattr(self, k, dval)
 
                 elif def_val is not None:
                     # should not check for read-only for default values
@@ -796,6 +803,17 @@ class ComplexModelBase(ModelBase):
             return cls()
         else:
             return cls.__orig__()
+
+    @classmethod
+    @memoize_id
+    def get_subclasses(cls):
+        retval = []
+        subca = cls.Attributes._subclasses
+        if subca is not None:
+            retval.extend(subca)
+            for subc in subca:
+                retval.extend(subc.get_subclasses())
+        return retval
 
     @staticmethod
     @memoize
@@ -947,6 +965,12 @@ class ComplexModelBase(ModelBase):
 
         if not cls is ComplexModel:
             cls._process_variants(retval)
+
+        # we could be smarter, but customize is supposed to be called only while
+        # daemon initialization, so it's not really necessary.
+        ComplexModelBase.get_subclasses.memo.clear()
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
 
         return retval
 

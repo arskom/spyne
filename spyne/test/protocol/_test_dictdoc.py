@@ -81,12 +81,17 @@ def TDry(serializer, _DictDocumentChild, dumps_kwargs=None):
         dumps_kwargs = {}
 
     def _dry_me(services, d, ignore_wrappers=False, complex_as=dict,
-                         just_ctx=False, just_in_object=False, validator=None):
+                         just_ctx=False, just_in_object=False, validator=None,
+                         polymorphic=False):
 
         app = Application(services, 'tns',
-                in_protocol=_DictDocumentChild(validator=validator),
+                in_protocol=_DictDocumentChild(
+                    ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                    polymorphic=polymorphic, validator=validator,
+                ),
                 out_protocol=_DictDocumentChild(
-                        ignore_wrappers=ignore_wrappers, complex_as=complex_as),
+                     ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                                                       polymorphic=polymorphic),
             )
 
         server = ServerBase(app)
@@ -144,7 +149,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                     return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
 
             ctx = _dry_me([SomeService], {"some_call":
-                    {"ccm": {"c":{"i":3, "s": "3x"}, "i":4, "s": "4x"}}
+                    {"ccm": {"CCM":{"c":{"CM":{"i":3, "s": "3x"}}, "i":4, "s": "4x"}}}
                 })
 
             ret = serializer.loads(''.join(ctx.out_string))
@@ -213,12 +218,12 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                     return ecm
 
             ctx = _dry_me([SomeService], {
-                "some_call": {"ecm": [{
-                        "c": {"i":3, "s": "3x"},
+                "some_call": {"ecm": [{"ECM": {
+                        "c": {"CM":{"i":3, "s": "3x"}},
                         "i":4,
                         "s": "4x",
                         "d": "2011-12-13T14:15:16Z"
-                    }]
+                    }}]
                 }})
 
             print(ctx.in_object)
@@ -1048,10 +1053,10 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                     assert p.name == v.name
                     return p
 
-            d = get_object_as_dict(v, File)
-            assert d['name'] == v.name
-            assert d['type'] == v.type
-            assert d['data'] == v.data
+            d = get_object_as_dict(v, File, ignore_wrappers=False)
+            assert d[File.get_type_name()]['name'] == v.name
+            assert d[File.get_type_name()]['type'] == v.type
+            assert d[File.get_type_name()]['data'] == v.data
 
             ctx = _dry_me([SomeService], {"some_call": {'p': d}})
             s = ''.join(ctx.out_string)
@@ -1204,6 +1209,47 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                     'foo': 'zzzzzz',
                     'signature': 'yyyyyyyyyyy'
                 }}}}, **dumps_kwargs)
+
+            print(serializer.loads(s))
+            print(serializer.loads(d))
+            assert s == d
+
+        def test_polymorphic_deserialization(self):
+            class P(ComplexModel):
+                sig = Unicode
+
+            class C(P):
+                foo = Unicode
+
+            class D(P):
+                bar = Integer
+
+            class SomeService(ServiceBase):
+                @rpc(P, _returns=Unicode)
+                def typeof(ctx, p):
+                    return type(p).__name__
+
+            ctx = _dry_me([SomeService],
+                            {"typeof": [{'C':{'sig':'a', 'foo': 'f'}}]},
+                                                               polymorphic=True)
+
+            s = ''.join(ctx.out_string)
+            d = serializer.dumps({"typeofResponse": {"typeofResult":
+                'C'
+            }}, **dumps_kwargs)
+
+            print(serializer.loads(s))
+            print(serializer.loads(d))
+            assert s == d
+
+            ctx = _dry_me([SomeService],
+                                  {"typeof": [{'D':{'sig':'b', 'bar': 5}}]},
+                                                               polymorphic=True)
+
+            s = ''.join(ctx.out_string)
+            d = serializer.dumps({"typeofResponse": {"typeofResult":
+                'D'
+            }}, **dumps_kwargs)
 
             print(serializer.loads(s))
             print(serializer.loads(d))

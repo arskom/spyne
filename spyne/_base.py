@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from time import time
 from copy import copy
-from collections import deque
+from collections import deque, namedtuple
 
 from spyne.const.xml_ns import DEFAULT_NS
 from spyne.util.oset import oset
@@ -30,6 +30,20 @@ from spyne.util.oset import oset
 class BODY_STYLE_WRAPPED: pass
 class BODY_STYLE_EMPTY: pass
 class BODY_STYLE_BARE: pass
+
+
+Address = namedtuple("Address", ["type", "host", "port"])
+
+class _add_address_types():
+    Address.TCP4 = 'TCP4'
+    Address.TCP6 = 'TCP6'
+    Address.UDP4 = 'UDP4'
+    Address.UDP6 = 'UDP6'
+    def address_str(self):
+        return ":".join((self.type, self.host, str(self.port)))
+    Address.__str__ = address_str
+
+_add_address_types()
 
 
 class AuxMethodContext(object):
@@ -59,6 +73,9 @@ class TransportContext(object):
         self.request_encoding = None
         """General purpose variable to hold the string identifier of a request
         encoding. It's nowadays usually 'utf-8', especially with http data"""
+
+        self.remote_addr = None
+        """The address of the other end of the connection."""
 
 
 class ProtocolContext(object):
@@ -154,6 +171,10 @@ class MethodContext(object):
         self.method_request_string = None
         """This is used to decide which native method to call. It is set by
         the protocol classes."""
+
+        self.files = []
+        """List of stuff to be closed when closing this context. Anything that
+        has a close() callable can go in."""
 
         self.__descriptor = None
 
@@ -317,6 +338,8 @@ class MethodContext(object):
     def close(self):
         self.call_end = time()
         self.app.event_manager.fire_event("method_context_closed", self)
+        for f in self.files:
+            f.close()
 
         # break cycles
         del self.udc
@@ -553,10 +576,15 @@ class EventManager(object):
 
 
 class FakeContext(object):
-    def __init__(self, app=None, descriptor=None, out_object=None,
-                            out_error=None, out_document=None, out_string=None):
+    def __init__(self, app=None, descriptor=None,
+           in_object=None, in_error=None, in_document=None, in_string=None,
+           out_object=None, out_error=None, out_document=None, out_string=None):
         self.app = app
         self.descriptor = descriptor
+        self.in_object = in_object
+        self.in_error = in_error
+        self.in_document = in_document
+        self.in_string = in_string
         self.out_error = out_error
         self.out_object = out_object
         self.out_document = out_document

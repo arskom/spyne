@@ -79,5 +79,5 @@ def register_application(app):
     logger.debug("Registering %r as %r" % (app, key))
 
 
-def get_application(tns, name):
+def get_application(tns, name='Application'):
     return _applications.get((tns, name), None)

@@ -25,19 +25,28 @@ logger = logging.getLogger(__name__)
 import msgpack
 
 from twisted.internet.defer import Deferred
-from twisted.internet.protocol import Protocol, Factory, connectionDone
+from twisted.internet.protocol import Protocol, Factory, connectionDone, \
+    ClientFactory
 from twisted.python.failure import Failure
 from twisted.python import log
 
-from spyne import EventManager
+from spyne import EventManager, Address
 from spyne.auxproc import process_contexts
-from spyne.error import ValidationError, InternalError
+from spyne.error import InternalError
 from spyne.server.msgpack import MessagePackServerBase
-from spyne.server.msgpack import OUT_RESPONSE_SERVER_ERROR, \
-    OUT_RESPONSE_CLIENT_ERROR
 
 
 class TwistedMessagePackProtocolFactory(Factory):
+    def __init__(self, app, base=MessagePackServerBase):
+        self.app = app
+        self.base = base
+        self.event_manager = EventManager(self)
+
+    def buildProtocol(self, address):
+        return TwistedMessagePackProtocol(self.app, self.base, factory=self)
+
+
+class TwistedMessagePackProtocolClientFactory(ClientFactory):
     def __init__(self, app, base=MessagePackServerBase):
         self.app = app
         self.base = base
@@ -55,12 +64,10 @@ class TwistedMessagePackProtocol(Protocol):
         self._transport = base(app)
 
     def connectionMade(self):
-        logger.info("%r connection made.", self)
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_made", self)
 
     def connectionLost(self, reason=connectionDone):
-        logger.info("%r connection lost yo.", self)
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_lost", self)
 
@@ -68,30 +75,23 @@ class TwistedMessagePackProtocol(Protocol):
         self._buffer.feed(data)
 
         for msg in self._buffer:
-            try:
-                self.process_incoming_message(msg)
-
-            except ValidationError as e:
-                import traceback
-                traceback.print_exc()
-                logger.exception(e)
-
-                p_ctx = MessagePackMethodContext(prot)
-                p_ctx.in_string = [body]
-                self.handle_error(p_ctx, others, e)
+            self.process_incoming_message(msg)
 
     def process_incoming_message(self, msg):
         p_ctx, others = self._transport.produce_contexts(msg)
+        p_ctx.transport.remote_addr = Address.from_twisted_address(
+                                                       self.transport.getPeer())
         p_ctx.transport.protocol = self
+
         self.process_contexts(p_ctx, others)
 
     def handle_error(self, p_ctx, others, exc):
         self._transport.get_out_string(p_ctx)
 
         if isinstance(exc, InternalError):
-            error = OUT_RESPONSE_SERVER_ERROR
+            error = self._transport.OUT_RESPONSE_SERVER_ERROR
         else:
-            error = OUT_RESPONSE_CLIENT_ERROR
+            error = self._transport.OUT_RESPONSE_CLIENT_ERROR
 
         out_string = msgpack.packb([
             error, msgpack.packb(p_ctx.out_document[0].values()),

@@ -228,14 +228,15 @@ class DictDocument(ProtocolBase):
 
     def __init__(self, app=None, validator=None, mime_type=None,
             ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
-                                                                 ordered=False):
+                                              ordered=False, polymorphic=False):
         super(DictDocument, self).__init__(app, validator, mime_type,
                                                   ignore_uncap, ignore_wrappers)
 
+        self.polymorphic = polymorphic
         self.complex_as = complex_as
         self.ordered = ordered
         if ordered:
-            raise NotImplementedError('ordered == False')
+            raise NotImplementedError('ordered=True')
 
         self.stringified_types = (DateTime, Date, Time, Uuid, Duration,
                                                                 AnyXml, AnyHtml)
@@ -268,18 +269,18 @@ class DictDocument(ProtocolBase):
         ctx.in_header_doc = None
         ctx.in_body_doc = doc
 
-        if len(doc) == 0:
-            raise Fault("Client", "Empty request")
+        if message is ProtocolBase.REQUEST:
+            if len(doc) == 0:
+                raise Fault("Client", "Empty request")
 
-        logger.debug('\theader : %r' % (ctx.in_header_doc))
-        logger.debug('\tbody   : %r' % (ctx.in_body_doc))
+            logger.debug('\theader : %r' % (ctx.in_header_doc))
+            logger.debug('\tbody   : %r' % (ctx.in_body_doc))
+            if not isinstance(doc, dict) or len(doc) != 1:
+                raise ValidationError("Need a dictionary with exactly one key "
+                                      "as method name.")
 
-        if not isinstance(doc, dict) or len(doc) != 1:
-            raise ValidationError("Need a dictionary with exactly one key "
-                                  "as method name.")
-
-        mrs, = doc.keys()
-        ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
+            mrs, = doc.keys()
+            ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                                                                             mrs)
 
     def deserialize(self, ctx, message):
@@ -570,8 +571,10 @@ class HierDictDocument(DictDocument):
 
         if body_class:
             # assign raw result to its wrapper, result_message
-            inst = ctx.in_body_doc.get(body_class.get_type_name(), None)
-            result_message = self._doc_to_object(body_class, inst,
+            doc = ctx.in_body_doc
+            if self.ignore_wrappers:
+                doc = doc.get(body_class.get_type_name(), None)
+            result_message = self._doc_to_object(body_class, doc,
                                                                  self.validator)
             ctx.in_object = result_message
 
@@ -632,7 +635,7 @@ class HierDictDocument(DictDocument):
             retval = self._doc_to_object(cls, inst, validator)
 
         else:
-            if inst == '' and cls.Attributes.empty_is_none:
+            if cls.Attributes.empty_is_none and inst in (u'', b''):
                 inst = None
 
             if (validator is self.SOFT_VALIDATION
@@ -666,6 +669,29 @@ class HierDictDocument(DictDocument):
 
             return retval
 
+        if not self.ignore_wrappers:
+            if not isinstance(doc, dict):
+                raise ValidationError("Wrapper documents must be dicts")
+            if len(doc) == 0:
+                return None
+            if len(doc) > 1:
+                raise ValidationError(doc, "There can be only one entry in a "
+                                                                 "wrapper dict")
+
+            subclasses = cls.get_subclasses()
+            (class_name, doc), = doc.items()
+            if cls.get_type_name() != class_name and subclasses is not None \
+                                                        and len(subclasses) > 0:
+                for subcls in subclasses:
+                    if subcls.get_type_name() == class_name:
+                        break
+
+                if not self.issubclass(subcls, cls):
+                    raise ValidationError(class_name,
+                             "Class name %%r is not a subclass of %r" %
+                                                            cls.get_type_name())
+                cls = subcls
+
         inst = cls.get_deserialization_instance()
 
         # get all class attributes, including the ones coming from parent classes.
@@ -685,7 +711,9 @@ class HierDictDocument(DictDocument):
         for k, v in items:
             member = flat_type_info.get(k, None)
             if member is None:
-                continue
+                member, k = flat_type_info.alt.get(k, (None, k))
+                if member is None:
+                    continue
 
             mo = member.Attributes.max_occurs
             if mo > 1:
@@ -765,6 +793,9 @@ class HierDictDocument(DictDocument):
                 yield (sub_name, val)
 
     def _to_dict_value(self, cls, inst):
+        if self.polymorphic and self.issubclass(inst.__class__, cls):
+            cls = inst.__class__
+
         if issubclass(cls, AnyDict):
             return inst
 
@@ -788,7 +819,8 @@ class HierDictDocument(DictDocument):
         return self.to_string(cls, inst)
 
     def _complex_to_doc(self, cls, inst):
-        if self.complex_as is list:
+        if self.complex_as is list or \
+                        getattr(cls.Attributes, 'serialize_as', False) is list:
             return list(self._complex_to_list(cls, inst))
         else:
             return self._complex_to_dict(cls, inst)

@@ -71,8 +71,11 @@ def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list,
 
 def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict,
                                                         protocol=_UtilProtocol):
-    return protocol(ignore_wrappers=ignore_wrappers,
+    retval = protocol(ignore_wrappers=ignore_wrappers,
                                    complex_as=complex_as)._object_to_doc(cls, o)
+    if not ignore_wrappers:
+        return {cls.get_type_name(): retval}
+    return retval
 
 
 def get_object_as_simple_dict(o, cls, hier_delim='_'):
@@ -80,15 +83,33 @@ def get_object_as_simple_dict(o, cls, hier_delim='_'):
                                                   .object_to_simple_dict(cls, o)
 
 
-def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list, encoding='utf8'):
-    prot = JsonDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as)
+def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list,
+                                            encoding='utf8', polymorphic=False):
+    prot = JsonDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                                                        polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
     prot.create_out_string(ctx, encoding)
     return ''.join(ctx.out_string)
 
 
-def get_object_as_yaml(o, cls, ignore_wrappers=False, complex_as=dict, encoding='utf8'):
-    prot = YamlDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as)
+def get_object_as_yaml(o, cls, ignore_wrappers=False, complex_as=dict,
+                                            encoding='utf8', polymorphic=False):
+    prot = YamlDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                                                        polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
     prot.create_out_string(ctx, encoding)
     return ''.join(ctx.out_string)
+
+
+def json_loads(s, cls, protocol=JsonDocument, encoding=None, **kwargs):
+    prot = protocol(**kwargs)
+    ctx = FakeContext(in_string=[s])
+    prot.create_in_document(ctx)
+    return prot._doc_to_object(cls, ctx.in_document)
+
+
+def yaml_loads(s, cls, protocol=YamlDocument, ignore_wrappers=False, **kwargs):
+    prot = protocol(ignore_wrappers=ignore_wrappers, **kwargs)
+    ctx = FakeContext(in_string=[s])
+    prot.create_in_document(ctx)
+    return prot._doc_to_object(cls, ctx.in_document)

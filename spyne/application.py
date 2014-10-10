@@ -64,7 +64,7 @@ class Application(object):
                          protocol. It's only optional for NullServer transport.
     :param out_protocol: A ProtocolBase instance that denotes the output
                          protocol. It's only optional for NullServer transport.
-    :param interface:    Ignored. Kept for backwards-compatibility purposes.
+    :param config:       An arbitrary python object to store random global data.
 
     Supported events:
         * ``method_call``:
@@ -90,10 +90,11 @@ class Application(object):
     transport = None
 
     def __init__(self, services, tns, name=None,
-                          in_protocol=None, out_protocol=None, interface=None):
+                          in_protocol=None, out_protocol=None, config=None):
         self.services = tuple(services)
         self.tns = tns
         self.name = name
+        self.config = config
 
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]

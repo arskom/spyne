@@ -173,6 +173,169 @@ class TestXmlCloth(unittest.TestCase):
         assert elt[2][1].text == '5'
         assert elt[2][2].tag == 'g3'
 
+    def test_sibling_order(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = SomeObject(s='s')
+
+        cloth = E.a(
+            E.b1(),
+            E.b2(
+                E.c0(),
+                E.c1(),
+                E.c2(spyne_id="s"),
+                E.c3(),
+                E.c4(),
+            ),
+        )
+
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+        assert elt[0].tag == 'b1'
+        assert elt[1].tag == 'b2'
+        assert elt[1][0].tag == 'c0'
+        assert elt[1][1].tag == 'c1'
+        assert elt[1][2].tag == 'c2'
+        assert elt[1][2].text == 's'
+        assert elt[1][3].tag == 'c3'
+        assert elt[1][4].tag == 'c4'
+
+    def test_parent_text(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = SomeObject(s='s')
+
+        cloth = E.a(
+            "text 0",
+            E.b1(spyne_id="s"),
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt.tag == 'a'
+        assert elt.text == 'text 0'
+
+        assert elt[0].tag  == 'b1'
+        assert elt[0].text == 's'
+
+    def test_anc_text(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = SomeObject(s='s')
+
+        cloth = E.a(
+            E.b1(
+                "text 1",
+                E.c1(spyne_id="s"),
+            )
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt[0].tag  == 'b1'
+        assert elt[0].text == 'text 1'
+        assert elt[0][0].tag == 'c1'
+        assert elt[0][0].text == 's'
+
+    def test_prevsibl_tail(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = SomeObject(s='s')
+
+        cloth = E.a(
+            E.b1(
+                E.c1(),
+                "text 2",
+                E.c2(spyne_id="s"),
+            )
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt[0].tag  == 'b1'
+        assert elt[0][0].tag == 'c1'
+        assert elt[0][0].tail == 'text 2'
+        assert elt[0][1].text == 's'
+
+    def test_sibling_tail_close(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = SomeObject(s='s')
+
+        cloth = E.a(
+            E.b0(spyne_id="s"),
+            "text 3",
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt[0].tag == 'b0'
+        assert elt[0].text == 's'
+        assert elt[0].tail == 'text 3'
+
+    def test_sibling_tail_close_sibling(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = SomeObject(s='s', i=5)
+
+        cloth = E.a(
+            E.b0(spyne_id="s"),
+            "text 3",
+            E.b1(spyne_id="i"),
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt[0].tag == 'b0'
+        assert elt[0].text == 's'
+        assert elt[0].tail == 'text 3'
+
+    def test_sibling_tail_close_anc(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = SomeObject(s='s', i=5)
+
+        cloth = E.a(
+            E.b0(),
+            "text 0",
+            E.b1(
+                E.c0(spyne_id="s"),
+                "text 1",
+                E.c1(),
+                "text 2",
+            ),
+            "text 3",
+            E.b2(
+                E.c1(spyne_id="i"),
+                "text 4",
+            )
+        )
+
+        print etree.tostring(cloth, pretty_print=True)
+        elt = self._run(v, cloth=cloth)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt.xpath('/a/b1/c1')[0].tail == 'text 2'
+
 
 if __name__ == '__main__':
     unittest.main()

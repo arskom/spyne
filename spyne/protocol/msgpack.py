@@ -64,10 +64,11 @@ class MessagePackDocument(HierDictDocument):
                                         # DictDocument specific
                                         ignore_wrappers=True,
                                         complex_as=dict,
-                                        ordered=False):
+                                        ordered=False,
+                                        polymorphic=False):
 
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
-                            ignore_uncap, ignore_wrappers, complex_as, ordered)
+                ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
 
         self._from_string_handlers[Double] = self._ret
         self._from_string_handlers[Boolean] = self._ret
@@ -92,10 +93,6 @@ class MessagePackDocument(HierDictDocument):
             ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string))
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
-
-        if not isinstance(ctx.in_document, dict):
-            logger.debug("reqobj: %r", ctx.in_document)
-            raise MessagePackDecodeError("Request object must be a dictionary")
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)

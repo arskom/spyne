@@ -111,11 +111,11 @@ class JsonDocument(HierDictDocument):
                         ignore_uncap=False,
                         # DictDocument specific
                         ignore_wrappers=True, complex_as=dict, ordered=False,
-                        default_string_encoding=None,
+                        default_string_encoding=None, polymorphic=False,
                         **kwargs):
 
         super(JsonDocument, self).__init__(app, validator, mime_type, ignore_uncap,
-                                           ignore_wrappers, complex_as, ordered)
+                               ignore_wrappers, complex_as, ordered, polymorphic)
 
         # this is needed when we're overriding a regular instance attribute
         # with a property.

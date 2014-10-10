@@ -34,7 +34,7 @@ from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
 
-_prevsibls = lambda elt: list(elt.itersiblings(preceding=True))
+_prevsibls = lambda elt: reversed(list(elt.itersiblings(preceding=True)))
 _revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
 
 
@@ -60,6 +60,13 @@ class ToClothMixin(ProtocolBase):
             ComplexModelBase: self.complex_to_cloth,
         })
 
+    def _parse_file(self, file_name, cloth_parser):
+        if cloth_parser is None:
+            cloth_parser = etree.XMLParser(remove_comments=True)
+
+        self._cloth = etree.parse(cloth, parser=cloth_parser)
+        self._cloth = self._cloth.getroot()
+
     def _init_cloth(self, cloth, attr_name, root_attr_name, cloth_parser):
         """Called from XmlCloth.__init__ in order to not break the dunder init
         signature consistency"""
@@ -70,11 +77,7 @@ class ToClothMixin(ProtocolBase):
         self._mrpc_cloth = self._root_cloth = None
         self._cloth = cloth
         if isinstance(self._cloth, string_types):
-            if cloth_parser is None:
-                cloth_parser = etree.XMLParser(remove_comments=True)
-
-            self._cloth = html.parse(cloth, parser=cloth_parser)
-            self._cloth = self._cloth.getroot()
+            self._parse_file(self._cloth, cloth_parser)
 
         if self._cloth is not None:
             logger.debug("Using cloth as root.")
@@ -195,6 +198,8 @@ class ToClothMixin(ProtocolBase):
             if elt_ctx is not None:
                 elt_ctx.__exit__(None, None, None)
                 print("\texit norm", elt.tag, elt.attrib)
+                if elt.tail is not None:
+                    parent.write(elt.tail)
 
             # unless we're at the same level as the relevant ancestor of the
             # target node
@@ -210,7 +215,7 @@ class ToClothMixin(ProtocolBase):
             prevsibls = _prevsibls(anc)
             for elt in prevsibls:
                 if elt is last_elt:
-                    break
+                    continue
                 if id(elt) in tags:
                     print("\skip  anc prevsibl", elt.tag, elt.attrib)
                     continue
@@ -224,6 +229,8 @@ class ToClothMixin(ProtocolBase):
                 anc_ctx = parent.element(anc.tag, anc.attrib)
             anc_ctx.__enter__()
             print("\tenter norm", anc.tag, anc.attrib)
+            if anc.text is not None:
+                parent.write(anc.text)
             eltstack.append(anc)
             ctxstack.append(anc_ctx)
 
@@ -233,7 +240,7 @@ class ToClothMixin(ProtocolBase):
             prevsibls = _prevsibls(cloth)
             for elt in prevsibls:
                 if elt is last_elt:
-                    break
+                    continue
                 if id(elt) in tags:
                     print("\tskip  cloth prevsibl", elt.tag, elt.attrib)
                     continue
@@ -255,6 +262,8 @@ class ToClothMixin(ProtocolBase):
             else:
                 curtag = parent.element(cloth.tag, attrib)
             curtag.__enter__()
+            if cloth.text is not None:
+                parent.write(cloth.text)
 
         eltstack.append(cloth)
         ctxstack.append(curtag)
@@ -267,10 +276,14 @@ class ToClothMixin(ProtocolBase):
             if elt_ctx is not None:
                 elt_ctx.__exit__(None, None, None)
                 print("exit ", elt.tag, "close")
+                if elt.tail is not None:
+                    parent.write(elt.tail)
 
             for sibl in elt.itersiblings(preceding=False):
                 print("write", sibl.tag, "close sibl")
                 parent.write(sibl)
+                if sibl.tail is not None:
+                    parent.write(sibl.tail)
 
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
                         from_arr=False, **kwargs):
@@ -307,7 +320,6 @@ class ToClothMixin(ProtocolBase):
 
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
-
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 

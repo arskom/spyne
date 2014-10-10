@@ -17,25 +17,19 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from lxml.builder import ElementMaker
+from lxml import etree, html
+
 from spyne.protocol.cloth import XmlCloth
 
-NS_HTML = "http://www.w3.org/1999/xhtml"
-NSMAP = {None: NS_HTML}
-
-E = ElementMaker(namespace=NS_HTML)
-
-
 class HtmlBase(XmlCloth):
-    mime_type = 'application/xhtml+xml'
+    mime_type = 'text/html'
 
-    def __init__(self, *args, **kwargs):
-        super(HtmlBase, self).__init__(*args, **kwargs)
+    def _parse_file(self, file_name, cloth_parser):
+        if cloth_parser is None:
+            cloth_parser = html.HtmlParser(remove_comments=True)
 
-        if self._cloth is not None:
-            if not self._cloth.tag.endswith('html'):
-                self._cloth = E.html(self._cloth)
+        self._cloth = html.parse(self._cloth, parser=cloth_parser)
+        self._cloth = self._cloth.getroot()
 
-            if self._cloth.tag != '{%s}html' % NS_HTML:
-                for elt in self._cloth.xpath("//*"):
-                    elt.tag = "{%s}%s" % (NS_HTML, elt.tag)
+    def docfile(self, *args, **kwargs):
+        return etree.htmlfile(*args, **kwargs)

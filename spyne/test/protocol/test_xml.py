@@ -106,6 +106,7 @@ class TestXml(unittest.TestCase):
 
     def test_attribute_of(self):
         class C(ComplexModel):
+            __namespace__ = 'tns'
             a = Unicode
             b = XmlAttribute(Unicode, attribute_of="a")
 
@@ -137,7 +138,7 @@ class TestXml(unittest.TestCase):
         ret = ''.join(ctx.out_string)
         print(ret)
         ret = etree.fromstring(ret)
-        ret = ret.xpath('//s0:a', namespaces=app.interface.nsmap)[0]
+        ret = ret.xpath('//tns:a', namespaces=app.interface.nsmap)[0]
 
         print(etree.tostring(ret, pretty_print=True))
 
@@ -153,8 +154,8 @@ class TestXml(unittest.TestCase):
         3. Another class/rpc with same element/attribute name works correctly.
         """
 
-
         class CMA(ComplexModel):
+            __namespace__ = 'tns'
             a = Unicode
             ab = XmlAttribute(Unicode, attribute_of="a")
             ac = XmlAttribute(Unicode, attribute_of="a")
@@ -164,10 +165,9 @@ class TestXml(unittest.TestCase):
             bb = XmlAttribute(Unicode, attribute_of="b")
 
         class CMB(ComplexModel):
+            __namespace__ = 'tns'
             b = Integer
             bb = XmlAttribute(Unicode, attribute_of="b")
-
-
 
         class SomeService(ServiceBase):
             @srpc(CMA, _returns=CMA)
@@ -210,7 +210,8 @@ class TestXml(unittest.TestCase):
         ret = ''.join(ctx.out_string)
         print(ret)
         ret = etree.fromstring(ret)
-        ret = ret.xpath('//s0:a', namespaces=app.interface.nsmap)[0]
+        pprint(app.interface.nsmap)
+        ret = ret.xpath('//tns:a', namespaces=app.interface.nsmap)[0]
 
         print(etree.tostring(ret, pretty_print=True))
 
@@ -219,7 +220,7 @@ class TestXml(unittest.TestCase):
         assert ret.attrib['ac'] == "c"
         assert int(ret.attrib['ad']) == 5
 
-        ret = ret.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
+        ret = ret.xpath('//tns:b', namespaces=app.interface.nsmap)[0]
         print(etree.tostring(ret, pretty_print=True))
 
         assert ret.text == "9"
@@ -244,7 +245,7 @@ class TestXml(unittest.TestCase):
         ret = ''.join(ctx.out_string)
         print(ret)
         ret = etree.fromstring(ret)
-        ret = ret.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
+        ret = ret.xpath('//tns:b', namespaces=app.interface.nsmap)[0]
 
         print(etree.tostring(ret, pretty_print=True))
 
@@ -254,6 +255,7 @@ class TestXml(unittest.TestCase):
 
     def test_attribute_of_multi(self):
         class C(ComplexModel):
+            __namespace__ = 'tns'
             e = Unicode(max_occurs='unbounded')
             a = XmlAttribute(Unicode, attribute_of="e")
 
@@ -284,7 +286,7 @@ class TestXml(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        ret = etree.fromstring(''.join(ctx.out_string)).xpath('//s0:e',
+        ret = etree.fromstring(''.join(ctx.out_string)).xpath('//tns:e',
                                                  namespaces=app.interface.nsmap)
 
         print(etree.tostring(ret[0], pretty_print=True))
@@ -297,6 +299,7 @@ class TestXml(unittest.TestCase):
 
     def test_attribute_ns(self):
         class a(ComplexModel):
+            __namespace__ = 'tns'
             b = Unicode
             c = XmlAttribute(Unicode, ns="spam", attribute_of="b")
 
@@ -317,10 +320,10 @@ class TestXml(unittest.TestCase):
         server.get_out_string(ctx)
 
         elt = etree.fromstring(''.join(ctx.out_string))
-        target = elt.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
+        target = elt.xpath('//tns:b', namespaces=app.interface.nsmap)[0]
 
         print(etree.tostring(elt, pretty_print=True))
-        assert target.attrib['{%s}c' % app.interface.nsmap["s1"]] == "bar"
+        assert target.attrib['{spam}c'] == "bar"
 
     def test_wrapped_array(self):
         parent = etree.Element('parent')

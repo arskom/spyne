@@ -29,7 +29,7 @@ from lxml.builder import E
 
 from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
-    AnyHtml, ModelBase, ByteArray, XmlData, Array
+    AnyHtml, ModelBase, ByteArray, XmlData, Array, AnyUri, ImageUri
 from spyne.model.enum import EnumBase
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import SchemaValidationError
@@ -53,12 +53,17 @@ class ToParentMixin(ProtocolBase):
         self.use_global_null_handler = True
 
         self.serialization_handlers = cdict({
+            ModelBase: self.base_to_parent,
+
             AnyXml: self.xml_to_parent,
-            Fault: self.fault_to_parent,
+            AnyUri: self.anyuri_to_parent,
+            AnyHtml: self.anyhtml_to_parent,
+            ImageUri: self.imageuri_to_parent,
             AnyDict: self.dict_to_parent,
             AnyHtml: self.html_to_parent,
+
+            Fault: self.fault_to_parent,
             EnumBase: self.enum_to_parent,
-            ModelBase: self.base_to_parent,
             ByteArray: self.byte_array_to_parent,
             ComplexModelBase: self.complex_to_parent,
             SchemaValidationError: self.schema_validation_error_to_parent,

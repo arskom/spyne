@@ -139,11 +139,11 @@ class ProtocolBase(object):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                ignore_uncap=False, ignore_wrappers=False, binary_encoding=None):
-        self.__app = None
-        self.set_app(app)
-
         self.validator = None
         self.set_validator(validator)
+
+        self.__app = None
+        self.set_app(app)
 
         self.event_manager = EventManager(self)
         self.ignore_uncap = ignore_uncap
@@ -274,6 +274,13 @@ class ProtocolBase(object):
                                    "application instance. It currently belongs " \
                                    "to: %r" % self.__app
         self.__app = value
+
+    @staticmethod
+    def issubclass(sub, cls):
+        suborig = getattr(sub, '__orig__', None)
+        clsorig = getattr(cls, '__orig__', None)
+        return issubclass(sub if suborig is None else suborig,
+                          cls if clsorig is None else clsorig)
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Uses ``ctx.in_string`` to set ``ctx.in_document``."""

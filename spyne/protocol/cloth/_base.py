@@ -107,7 +107,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             name = cls.get_type_name()
 
             ctx.out_document = E.div()
-            with etree.xmlfile(ctx.out_stream) as xf:
+            with self.docfile(ctx.out_stream) as xf:
                 # as XmlDocument is not push-ready yet, this is what we do.
                 # this is an ugly hack, bear with me.
                 retval = XmlCloth.HtmlMicroFormat() \
@@ -154,7 +154,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             name = cls.get_type_name()
 
         try:
-            with etree.xmlfile(ctx.out_stream) as xf:
+            with self.docfile(ctx.out_stream) as xf:
                 ret = self.subserialize(ctx, cls, inst, xf, name)
                 if isgenerator(ret):  # Poor man's yield from
                     try:
@@ -173,6 +173,9 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                 pass
             else:
                 raise
+
+    def docfile(self, *args, **kwargs):
+        return etree.xmlfile(*args, **kwargs)
 
     def subserialize(self, ctx, cls, inst, parent, name=None, **kwargs):
         if name is None:

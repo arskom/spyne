@@ -68,6 +68,8 @@ def xml_attribute_add(cls, name, element, document):
 
 
 def _check_extension_attrs(cls):
+    """Make sure only customizations that need a restriction tag generate one"""
+
     extends = cls.__extends__
 
     eattrs = extends.Attributes
@@ -76,11 +78,13 @@ def _check_extension_attrs(cls):
     ckeys = set([k for k in vars(cls.Attributes) if not k.startswith('_')])
     ekeys = set([k for k in vars(extends.Attributes) if not k.startswith('_')])
 
+    # get the attributes different from the parent class
     diff = set()
     for k in (ckeys | ekeys):
         if getattr(eattrs, k, None) != getattr(cattrs, k, None):
             diff.add(k)
 
+    # compare them with what comes from ATTR_NAMES
     attr_names = ATTR_NAMES[cls]
     retval = None
     while extends is not None:
@@ -88,6 +92,7 @@ def _check_extension_attrs(cls):
         if len(diff & attr_names) > 0:
             return extends
         extends = extends.__extends__
+
     return retval
 
 # noinspection PyDefaultArgument
@@ -133,7 +138,7 @@ def complex_add(document, cls, tags):
             else:
                 doc.text = cls.Annotations.doc
 
-        _ai = cls.Annotations.appinfo;
+        _ai = cls.Annotations.appinfo
         if _ai != None:
             appinfo = etree.SubElement(annotation, XSD('appinfo'))
             if isinstance(_ai, dict):
@@ -354,6 +359,8 @@ def unicode_get_restriction_tag(document, cls):
     return restriction
 
 
+prot = XmlDocument()
+
 @memoize
 def Tget_range_restriction_tag(T):
     """The get_range_restriction template function. Takes a primitive, returns
@@ -390,7 +397,6 @@ def Tget_range_restriction_tag(T):
             pass
 
     def _get_range_restriction_tag(document, cls):
-        prot = document.interface.app.in_protocol
         restriction = simple_get_restriction_tag(document, cls)
         if restriction is None:
             return

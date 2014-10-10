@@ -18,7 +18,7 @@
 #
 
 """
-An opinionated web framework built on top of Spyne, SQLAlchemy and Twisted.
+Some code dump from some time ago.
 
 If you're using this for anything serious, you're insane.
 """
@@ -59,9 +59,6 @@ EXCEPTION_ADDRESS = None
 
 
 try:
-    import colorama
-    colorama.init()
-
     from colorama.ansi import Fore
     from colorama.ansi import Style
     RED = Fore.RED + Style.BRIGHT
@@ -302,7 +299,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
             for i, o in enumerate(obj):
                 retval.append(log_repr(o, cls, from_array=True, tags=tags))
 
-                if i > MAX_ARRAY_ELEMENT_NUM:
+                if (len(obj) - 1) > i > MAX_ARRAY_ELEMENT_NUM:
                     retval.append("(...)")
                     break
 

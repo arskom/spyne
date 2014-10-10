@@ -127,8 +127,9 @@ class XmlSchema(InterfaceDocumentBase):
     def build_schema_nodes(self, with_schema_location=False):
         self.schema_dict = {}
 
+        tags = set()
         for cls in chain.from_iterable(toposort2(self.interface.deps)):
-            self.add(cls, set())
+            self.add(cls, tags)
 
         for pref in self.namespaces:
             schema = self.get_schema_node(pref)
