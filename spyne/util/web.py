@@ -18,7 +18,7 @@
 #
 
 """
-An opinionated web framework built on top of Spyne, SQLAlchemy and Twisted.
+Some code dump from some time ago.
 
 If you're using this for anything serious, you're insane.
 """

@@ -94,10 +94,6 @@ class MessagePackDocument(HierDictDocument):
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
-        if not isinstance(ctx.in_document, dict):
-            logger.debug("reqobj: %r", ctx.in_document)
-            raise MessagePackDecodeError("Request object must be a dictionary")
-
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
