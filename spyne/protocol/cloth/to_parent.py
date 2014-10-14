@@ -33,7 +33,7 @@ from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
 from spyne.model.enum import EnumBase
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import SchemaValidationError
-from spyne.util import coroutine, Break
+from spyne.util import coroutine, Break, six
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
 
@@ -386,7 +386,7 @@ class ToParentMixin(ProtocolBase):
         parent.write(inst)
 
     def html_to_parent(self, ctx, cls, inst, parent, ns, name):
-        if isinstance(inst, str) or isinstance(inst, unicode):
+        if isinstance(inst, str) or isinstance(inst, six.text_type):
             inst = html.fromstring(inst)
 
         parent.write(inst)
