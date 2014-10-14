@@ -14,7 +14,7 @@ install:
 script:
   # Python 2 section
   - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then tox -e py26,py26-dj1.4.x,py26-dj1.5.x,py26-dj1.6.x; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then tox -e py27,py27-dj1.4.x,py27-dj1.5.x,py27-dj1.6.x; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then tox -e py27,py27-dj1.4.x,py27-dj1.5.x,py27-dj1.6.x,py27-dj1.7.x; fi
   - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then tox -e pypy; fi
 
   # Python 3 section
