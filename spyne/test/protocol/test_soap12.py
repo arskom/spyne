@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from lxml import etree
 import unittest
 import pytest
@@ -56,3 +58,5 @@ class TestSoap12(unittest.TestCase):
         assert ret.faultcode == "env:Sender.st:SomeDomainProblem"
 
 
+if __name__ == '__main__':
+    unittest.main()
