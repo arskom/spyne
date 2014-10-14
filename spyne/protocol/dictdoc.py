@@ -142,7 +142,7 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
-from collections import deque
+from collections import deque, Sized
 from collections import defaultdict
 
 from spyne.util import six
@@ -270,6 +270,9 @@ class DictDocument(ProtocolBase):
         ctx.in_body_doc = doc
 
         if message is ProtocolBase.REQUEST:
+            if isinstance(doc, Sized):
+                raise ValidationError(doc)
+
             if len(doc) == 0:
                 raise Fault("Client", "Empty request")
 
