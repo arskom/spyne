@@ -59,7 +59,7 @@ class TestMessagePackRpc(unittest.TestCase):
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
-        initial_ctx.in_string = ['{']
+        initial_ctx.in_string = ['\xdf'] # Invalid input
         ctx, = server.generate_contexts(initial_ctx)
         assert ctx.in_error.faultcode == 'Client.MessagePackDecodeError'
 
