@@ -18,5 +18,5 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then tox -e pypy; fi
 
   # Python 3 section
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.3' ]]; then tox -e py33-travis,py33-dj1.6.x; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then tox -e py34-travis,py34-dj1.6.x; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.3' ]]; then tox -e py33-travis,py33-dj1.7.x; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then tox -e py34-travis,py34-dj1.7.x; fi
