@@ -270,17 +270,13 @@ class DictDocument(ProtocolBase):
         ctx.in_body_doc = doc
 
         if message is ProtocolBase.REQUEST:
-            if isinstance(doc, Sized):
-                raise ValidationError(doc)
-
-            if len(doc) == 0:
-                raise Fault("Client", "Empty request")
-
             logger.debug('\theader : %r' % (ctx.in_header_doc))
             logger.debug('\tbody   : %r' % (ctx.in_body_doc))
             if not isinstance(doc, dict) or len(doc) != 1:
                 raise ValidationError("Need a dictionary with exactly one key "
                                       "as method name.")
+            if len(doc) == 0:
+                raise Fault("Client", "Empty request")
 
             mrs, = doc.keys()
             ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
