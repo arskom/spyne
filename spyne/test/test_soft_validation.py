@@ -57,7 +57,7 @@ class TestValidationString(unittest.TestCase):
         self.assertEquals(StrictType.validate_string(StrictType, 'aaaa'), False)
 
     def test_pattern(self):
-        # Patterns match needs to be checked after the string is decoded, that's
+        # Pattern match needs to be checked after the string is decoded, that's
         # why we need to use validate_native here.
         StrictType = String(pattern='[a-z]')
 
