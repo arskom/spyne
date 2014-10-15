@@ -61,7 +61,6 @@ class TestValidationString(unittest.TestCase):
         # why we need to use validate_native here.
         StrictType = String(pattern='[a-z]')
 
-        import ipdb; ipdb.set_trace()
         self.assertEquals(StrictType.validate_native(StrictType, 'a'), True)
         self.assertEquals(StrictType.validate_native(StrictType, 'a1'), False)
         self.assertEquals(StrictType.validate_native(StrictType, '1'), False)
