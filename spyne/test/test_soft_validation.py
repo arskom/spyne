@@ -57,11 +57,14 @@ class TestValidationString(unittest.TestCase):
         self.assertEquals(StrictType.validate_string(StrictType, 'aaaa'), False)
 
     def test_pattern(self):
+        # Patterns need to be matched after the string is decoded, that's why
+        # we need to use validate_native here.
         StrictType = String(pattern='[a-z]')
 
-        self.assertEquals(StrictType.validate_string(StrictType, 'a'), True)
-        self.assertEquals(StrictType.validate_string(StrictType, 'a1'), False)
-        self.assertEquals(StrictType.validate_string(StrictType, '1'), False)
+        import ipdb; ipdb.set_trace()
+        self.assertEquals(StrictType.validate_native(StrictType, 'a'), True)
+        self.assertEquals(StrictType.validate_native(StrictType, 'a1'), False)
+        self.assertEquals(StrictType.validate_native(StrictType, '1'), False)
 
 
 class TestValidationInteger(unittest.TestCase):
