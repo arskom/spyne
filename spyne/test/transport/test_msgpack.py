@@ -56,7 +56,7 @@ class TestMessagePackServer(unittest.TestCase):
         val = msgpack.unpackb(val)
         print repr(val)
 
-        self.assertEquals(val, {0: msgpack.packb(v)})
+        self.assertEquals(val, [0, msgpack.packb(v)])
 
      def test_roundtrip_deferred(self):
         from twisted.internet import reactor
@@ -84,7 +84,7 @@ class TestMessagePackServer(unittest.TestCase):
             val = msgpack.unpackb(val)
             print repr(val)
 
-            self.assertEquals(val, {0: msgpack.packb(v)})
+            self.assertEquals(val, [0, msgpack.packb(v)])
 
         prot.dataReceived(msgpack.packb([1, request]))
 
