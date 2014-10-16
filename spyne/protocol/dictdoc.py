@@ -619,9 +619,9 @@ class HierDictDocument(DictDocument):
 
     def _from_dict_value(self, key, cls, inst, validator):
         
-        if value is None and hasattr(class_.Attributes, 'default'):
-            value = class_.Attributes.default
-            return value
+        if inst is None and hasattr(cls.Attributes, 'default'):
+            inst = cls.Attributes.default
+            return inst
         
         if validator is self.SOFT_VALIDATION:
             self.validate(key, cls, inst)
