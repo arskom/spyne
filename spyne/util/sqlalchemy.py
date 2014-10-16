@@ -790,6 +790,7 @@ def _check_inheritance(cls, cls_bases):
 
     return inheritance, base_class, base_mapper, inc
 
+
 def _check_table(cls):
     table_name = cls.Attributes.table_name
     metadata = cls.Attributes.sqla_metadata
@@ -827,6 +828,7 @@ def _add_simple_type(cls, props, table, k, v, sqla_type):
     elif mp is not None:
         props[k] = mp
 
+
 def _gen_array_m2m(cls, props, k, child, p):
     metadata = cls.Attributes.sqla_metadata
 
@@ -851,6 +853,7 @@ def _gen_array_m2m(cls, props, k, child, p):
 
     props[k] = relationship(child, secondary=rel_t, backref=p.backref,
                 back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
+
 
 def _gen_array_simple(cls, props, k, child_cust, p):
     table_name = cls.Attributes.table_name
@@ -962,8 +965,10 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
     props[k] = relationship(child, foreign_keys=[col], backref=p.backref,
                 back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
 
+
 def _is_array(v):
     return (v.Attributes.max_occurs > 1 or issubclass(v, Array))
+
 
 def _add_complex_type(cls, props, table, k, v):
     if issubclass(v, File):
