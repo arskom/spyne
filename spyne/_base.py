@@ -144,6 +144,8 @@ class MethodContext(object):
 
         Useful for benchmarking purposes."""
 
+        self.is_closed = False
+
         self.app = transport.app
         """The parent application."""
 
@@ -348,6 +350,7 @@ class MethodContext(object):
         del self.protocol
         del self.out_object
 
+        self.is_closed = True
     def set_out_protocol(self, what):
         self._out_protocol = what
 
