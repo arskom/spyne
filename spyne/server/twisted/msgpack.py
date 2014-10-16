@@ -130,9 +130,9 @@ class TwistedMessagePackProtocol(Protocol):
             ret.addCallback(_cb_deferred, self, p_ctx, others)
             ret.addErrback(_eb_deferred, self, p_ctx, others)
             ret.addErrback(log.err)
-            return
 
-        _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
+        else:
+            _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
 
 
 def _eb_deferred(retval, prot, p_ctx, others):
@@ -151,11 +151,11 @@ def _eb_deferred(retval, prot, p_ctx, others):
     return Failure(p_ctx.out_error, p_ctx.out_error.__class__, tb)
 
 
-def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
+def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
     if len(p_ctx.descriptor.out_message._type_info) > 1 or nowrap:
-        p_ctx.out_object = retval
+        p_ctx.out_object = ret
     else:
-        p_ctx.out_object = [retval]
+        p_ctx.out_object = [ret]
 
     try:
         prot._transport.get_out_string(p_ctx)

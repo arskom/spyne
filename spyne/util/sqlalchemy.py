@@ -86,40 +86,12 @@ from spyne.model.complex import msgpack as c_msgpack
 from spyne.model.binary import HybridFileStore
 
 # public types
-from spyne.model import SimpleModel, AnyDict
-from spyne.model import Enum
-from spyne.model import ByteArray
-from spyne.model import Array
-from spyne.model import ComplexModelBase
-from spyne.model import AnyXml
-from spyne.model import AnyHtml
-from spyne.model import Uuid
-from spyne.model import Date
-from spyne.model import Time
-from spyne.model import DateTime
-from spyne.model import Float
-from spyne.model import Double
-from spyne.model import Decimal
-from spyne.model import String
-from spyne.model import Unicode
-from spyne.model import Boolean
-from spyne.model import Integer
-from spyne.model import Integer8
-from spyne.model import Integer16
-from spyne.model import Integer32
-from spyne.model import Integer64
-from spyne.model import Point
-from spyne.model import Line
-from spyne.model import Polygon
-from spyne.model import MultiPoint
-from spyne.model import MultiLine
-from spyne.model import MultiPolygon
-from spyne.model import UnsignedInteger
-from spyne.model import UnsignedInteger8
-from spyne.model import UnsignedInteger16
-from spyne.model import UnsignedInteger32
-from spyne.model import UnsignedInteger64
-from spyne.model import File
+from spyne.model import SimpleModel, AnyDict, Enum, ByteArray, Array, \
+    ComplexModelBase, AnyXml, AnyHtml, Uuid, Date, Time, DateTime, Float, \
+    Double, Decimal, String, Unicode, Boolean, Integer, Integer8, Integer16, \
+    Integer32, Integer64, Point, Line, Polygon, MultiPoint, MultiLine, \
+    MultiPolygon, UnsignedInteger, UnsignedInteger8, UnsignedInteger16, \
+    UnsignedInteger32, UnsignedInteger64, File
 
 from spyne.util import sanitize_args
 from spyne.util.xml import get_object_as_xml
@@ -453,7 +425,7 @@ class PGFileJson(PGObjectJson):
 
                 else:
                     raise ValueError("Invalid file object passed in. All of "
-                                            ".data .handle and .path are None.")
+                                           ".data, .handle and .path are None.")
 
                 value.store = self.store
                 value.abspath = join(self.store, value.path)
@@ -862,7 +834,8 @@ def _gen_array_simple(cls, props, k, child_cust, p):
     # get left (fk) column info
     _gen_col = _get_col_o2m(cls, p.left)
     col_info = next(_gen_col) # gets the column name
-    p.left, child_left_col_type = col_info[0]  # FIXME: Add support for multi-column primary keys.
+    # FIXME: Add support for multi-column primary keys.
+    p.left, child_left_col_type = col_info[0]
     child_left_col_name = p.left
 
     # get right(data) column info
