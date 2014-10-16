@@ -431,6 +431,7 @@ class PGFileJson(PGObjectJson):
                     data = mmap(value.handle.fileno(), 0) # 0 = whole file
                     with open(fp, 'wb') as out_file:
                         out_file.write(data)
+                        data.close()
 
                 elif value.path is not None:
                     in_file_path = value.path
@@ -488,6 +489,7 @@ class PGFileJson(PGObjectJson):
                     if fstat(retval.handle.fileno()).st_size > 0:
                         h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
                         retval.data = [h.mmap]
+                        # FIXME: Where do we close this mmap?
                     else:
                         retval.data = ['']
                 else:
