@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import logging
+import gc, logging
 logger = logging.getLogger(__name__)
 
 from time import time
@@ -351,6 +351,8 @@ class MethodContext(object):
         del self.out_object
 
         self.is_closed = True
+        gc.collect()
+
     def set_out_protocol(self, what):
         self._out_protocol = what
 
