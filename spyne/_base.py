@@ -343,14 +343,9 @@ class MethodContext(object):
         for f in self.files:
             f.close()
 
-        # break cycles
-        del self.udc
-        del self.event
-        del self.transport
-        del self.protocol
-        del self.out_object
-
         self.is_closed = True
+
+        # this is important to have file descriptors returned in a timely manner
         gc.collect()
 
     def set_out_protocol(self, what):
