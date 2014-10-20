@@ -26,7 +26,7 @@ class HtmlBase(XmlCloth):
 
     def _parse_file(self, file_name, cloth_parser):
         if cloth_parser is None:
-            cloth_parser = html.HtmlParser(remove_comments=True)
+            cloth_parser = html.HTMLParser(remove_comments=True)
 
         self._cloth = html.parse(self._cloth, parser=cloth_parser)
         self._cloth = self._cloth.getroot()
