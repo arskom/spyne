@@ -705,7 +705,9 @@ class HierDictDocument(DictDocument):
         except AttributeError:
             # Input is not a dict, so we assume it's a sequence that we can pair
             # with the incoming sequence with field names.
-            items = zip(flat_type_info.keys(), doc)
+            # TODO: cache this
+            items = zip([k for k,v in flat_type_info.items()
+                         if not get_cls_attrs(self, v).exc], doc)
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
@@ -715,7 +717,9 @@ class HierDictDocument(DictDocument):
                 if member is None:
                     continue
 
-            mo = member.Attributes.max_occurs
+            attr = get_cls_attrs(self, member)
+
+            mo = attr.max_occurs
             if mo > 1:
                 subinst = getattr(inst, k, None)
                 if subinst is None:
