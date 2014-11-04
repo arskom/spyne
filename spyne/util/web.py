@@ -297,11 +297,11 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
         else:
             for i, o in enumerate(obj):
-                retval.append(log_repr(o, cls, from_array=True, tags=tags))
-
-                if (len(obj) - 1) > i > MAX_ARRAY_ELEMENT_NUM:
+                if i > MAX_ARRAY_ELEMENT_NUM:
                     retval.append("(...)")
                     break
+
+                retval.append(log_repr(o, cls, from_array=True, tags=tags))
 
         retval = "[%s]" % (', '.join(retval))
 
