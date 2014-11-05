@@ -348,7 +348,7 @@ class ToParentMixin(ProtocolBase):
                         pass
 
     @coroutine
-    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
+    def schema_validation_error_to_parent(self, ctx, cls, inst, parent):
         PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP_ENV]
         tag_name = "{%s}Fault" % NS_SOAP_ENV
 
@@ -376,22 +376,22 @@ class ToParentMixin(ProtocolBase):
                     except StopIteration:
                         pass
 
-    def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        self.base_to_parent(ctx, cls, str(inst), parent, ns, name)
+    def enum_to_parent(self, ctx, cls, inst, parent, name='retval'):
+        self.base_to_parent(ctx, cls, str(inst), parent, name)
 
-    def xml_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def xml_to_parent(self, ctx, cls, inst, parent, name):
         if isinstance(inst, string_types):
             inst = etree.fromstring(inst)
 
         parent.write(inst)
 
-    def html_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def html_to_parent(self, ctx, cls, inst, parent, name):
         if isinstance(inst, str) or isinstance(inst, six.text_type):
             inst = html.fromstring(inst)
 
         parent.write(inst)
 
-    def dict_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def dict_to_parent(self, ctx, cls, inst, parent, name):
         elt = E(name)
         dict_to_etree(inst, elt)
         parent.write(elt)
