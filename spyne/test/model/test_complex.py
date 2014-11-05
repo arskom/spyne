@@ -752,5 +752,39 @@ class TestMemberRpc(unittest.TestCase):
 
         assert CM._type_info.keys() == ['c', 'a']
 
+
+class TestDoc(unittest.TestCase):
+    def test_parent_doc(self):
+        class SomeComplexModel(ComplexModel):
+            """Some docstring"""
+            some_field = Unicode
+        assert "Some docstring" == SomeComplexModel.get_documentation()
+
+    def test_annotation(self):
+        class SomeComplexModel(ComplexModel):
+            """Some docstring"""
+            class Annotations(ComplexModel.Annotations):
+                doc = "Some annotations"
+
+            some_field = Unicode
+        assert "Some annotations" == SomeComplexModel.get_documentation()
+
+    def test_no_parent_doc(self):
+        class SomeComplexModel(ComplexModel):
+            """Some docstring"""
+            class Annotations(ComplexModel.Annotations):
+                __use_parent_doc__ = False
+
+            some_field = Unicode
+        assert "" == SomeComplexModel.get_documentation()
+
+    def test_parent_doc_customize(self):
+        """Check that we keep the documentation when we use customize"""
+        class SomeComplexModel(ComplexModel):
+            """Some docstring"""
+            some_field = Unicode
+        assert "Some docstring" == SomeComplexModel.customize().get_documentation()
+
+
 if __name__ == '__main__':
     unittest.main()
