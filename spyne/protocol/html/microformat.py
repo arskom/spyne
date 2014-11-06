@@ -78,7 +78,7 @@ class HtmlMicroFormat(HtmlBase):
         self.serialization_handlers = cdict({
             ModelBase: self.model_base_to_parent,
             AnyUri: self.anyuri_to_parent,
-            AnyHtml: self.anyhtml_to_parent,
+            AnyHtml: self.html_to_parent,
             ImageUri: self.imageuri_to_parent,
             ByteArray: self.not_supported,
             Attachment: self.not_supported,

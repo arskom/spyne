@@ -296,11 +296,14 @@ class ToClothMixin(ProtocolBase):
 
     @coroutine
     def to_root_cloth(self, ctx, cls, inst, cloth, parent, name=None):
-        ctx.protocol.eltstack = []
-        ctx.protocol.ctxstack = []
-        ctx.protocol.tags = set()
-
-        self._enter_cloth(ctx, cloth, parent)
+        to_be_closed = False
+        if not getattr(ctx.protocol, 'in_root_cloth', False):
+            to_be_closed = True
+            ctx.protocol.tags = set()
+            ctx.protocol.eltstack = []
+            ctx.protocol.ctxstack = []
+            ctx.protocol.in_root_cloth = True
+            self._enter_cloth(ctx, cloth, parent)
 
         ret = self.to_parent(ctx, cls, inst, parent, name)
         if isgenerator(ret):
@@ -314,9 +317,11 @@ class ToClothMixin(ProtocolBase):
                 except (Break, StopIteration, GeneratorExit):
                     pass
                 finally:
-                    self._close_cloth(ctx, parent)
+                    if to_be_closed:
+                        self._close_cloth(ctx, parent)
         else:
-            self._close_cloth(ctx, parent)
+            if to_be_closed:
+                self._close_cloth(ctx, parent)
 
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
