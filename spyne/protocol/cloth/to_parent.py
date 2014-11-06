@@ -57,7 +57,6 @@ class ToParentMixin(ProtocolBase):
 
             AnyXml: self.xml_to_parent,
             AnyUri: self.anyuri_to_parent,
-            AnyHtml: self.anyhtml_to_parent,
             ImageUri: self.imageuri_to_parent,
             AnyDict: self.dict_to_parent,
             AnyHtml: self.html_to_parent,
@@ -189,9 +188,6 @@ class ToParentMixin(ProtocolBase):
     def not_supported(self, cls, *args, **kwargs):
         if not self.ignore_uncap:
             raise NotImplementedError("Serializing %r not supported!" % cls)
-
-    def anyhtml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(inst)
 
     def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         assert name is not None
