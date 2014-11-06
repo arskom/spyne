@@ -164,7 +164,7 @@ class ToParentMixin(ProtocolBase):
         for k, v in cls.get_flat_type_info(cls).items():
             try:
                 subvalue = getattr(inst, k, None)
-            except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
+            except:  # e.g. SqlAlchemy could throw NoSuchColumnError
                 subvalue = None
 
             sub_name = v.Attributes.sub_name
@@ -173,7 +173,8 @@ class ToParentMixin(ProtocolBase):
 
             # Don't include empty values for non-nillable optional attributes.
             if subvalue is not None or v.Attributes.min_occurs > 0:
-                ret = self.to_parent(ctx, v, subvalue, parent, sub_name, **kwargs)
+                ret = self.to_parent(ctx, v, subvalue, parent, sub_name,
+                                                                       **kwargs)
                 if ret is not None:
                     try:
                         while True:

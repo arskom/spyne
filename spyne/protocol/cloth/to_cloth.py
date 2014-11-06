@@ -286,7 +286,7 @@ class ToClothMixin(ProtocolBase):
                     parent.write(sibl.tail)
 
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
-                        from_arr=False, **kwargs):
+                                                      from_arr=False, **kwargs):
         ctx.protocol.eltstack = []
         ctx.protocol.ctxstack = []
         ctx.protocol.tags = set()

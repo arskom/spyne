@@ -159,7 +159,7 @@ class HtmlColumnTable(HtmlTableBase):
 
                 try:
                     sub_value = getattr(inst, k, None)
-                except: # to guard against e.g. SQLAlchemy throwing NoSuchColumnError
+                except:  # e.g. SQLAlchemy could throw NoSuchColumnError
                     sub_value = None
 
                 sub_name = attr.sub_name
@@ -320,7 +320,7 @@ class HtmlRowTable(HtmlTableBase):
                 for k, v in cls.get_flat_type_info(cls).items():
                     try:
                         sub_value = getattr(inst, k, None)
-                    except: # to guard against e.g. SQLAlchemy throwing NoSuchColumnError
+                    except:  # e.g. SQLAlchemy could throw NoSuchColumnError
                         sub_value = None
 
                     sub_name = v.Attributes.sub_name
