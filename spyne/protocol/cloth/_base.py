@@ -187,13 +187,13 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         if self._root_cloth is not None:
             print("to root cloth")
-            return self.to_root_cloth(ctx, cls, inst, self._root_cloth,
-                                                         parent, name, **kwargs)
+            return self.to_root_cloth(ctx, cls, inst, self._root_cloth, parent,
+                                                                           name)
 
         if self._cloth is not None:
             print("to parent cloth")
             return self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
-                                                                 name, **kwargs)
+                                                                           name)
 
         print("to parent")
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)

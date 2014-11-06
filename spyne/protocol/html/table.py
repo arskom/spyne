@@ -87,7 +87,7 @@ class HtmlTableBase(HtmlBase):
                              produce_header=True, table_name_attr='class',
                             field_name_attr='class', border=0, row_class=None,
                                 cell_class=None, header_cell_class=None,
-                                polymorphic=True):
+                                polymorphic=True, link_gen=None):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
@@ -101,6 +101,7 @@ class HtmlTableBase(HtmlBase):
         self.row_class = row_class
         self.cell_class = cell_class
         self.header_cell_class = header_cell_class
+        self.link_gen = link_gen
 
         if self.cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'cell_class' should be None or "
@@ -171,8 +172,18 @@ class HtmlColumnTable(HtmlTableBase):
                     td_attrs[self.field_name_attr] = sub_name
 
                 with parent.element('td', td_attrs):
-                    ret = self.to_parent(ctx, v, sub_value, parent, sub_name,
-                                                                       **kwargs)
+                    if attr.href is not None:
+                        try:
+                            attrib = {'href': attr.href % sub_value}
+                        except:
+                            attrib = {'href': attr.href}
+
+                        with parent.element('a', attrib=attrib):
+                            ret = self.to_parent(ctx, v, sub_value, parent,
+                                                             sub_name, **kwargs)
+                    else:
+                        ret = self.to_parent(ctx, v, sub_value, parent,
+                                                             sub_name, **kwargs)
 
                     if isgenerator(ret):
                         try:
@@ -248,17 +259,7 @@ class HtmlColumnTable(HtmlTableBase):
                         except StopIteration:
                             pass
 
-                ret = self.extend_table(ctx, cls, parent, name, **kwargs)
-                if isgenerator(ret):
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as b:
-                        try:
-                            ret.throw(b)
-                        except StopIteration:
-                            pass
+            self.extend_table(ctx, cls, parent, name, **kwargs)
 
     def complex_model_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):

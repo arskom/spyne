@@ -31,7 +31,7 @@ from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
     AnyHtml, ModelBase, ByteArray, XmlData, Array, AnyUri, ImageUri
 from spyne.model.enum import EnumBase
-from spyne.protocol import ProtocolBase
+from spyne.protocol import ProtocolBase, get_cls_attrs
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
 from spyne.util.cdict import cdict
@@ -144,9 +144,10 @@ class ToParentMixin(ProtocolBase):
                             pass
 
         else:
-            for sv in inst:
-                ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True,
-                                                                       **kwargs)
+            for i, sv in enumerate(inst):
+                kwargs['from_arr'] = True
+                kwargs['array_index'] = i
+                ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -261,7 +262,11 @@ class ToParentMixin(ProtocolBase):
                         pass
 
         for k, v in cls._type_info.items():
-            try: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
+            attr = get_cls_attrs(self, v)
+            if attr.exc:
+                continue
+
+            try:  # e.g. SqlAlchemy could throw NoSuchColumnError
                 subvalue = getattr(inst, k, None)
             except:
                 subvalue = None
