@@ -64,7 +64,7 @@ class ToClothMixin(ProtocolBase):
         if cloth_parser is None:
             cloth_parser = etree.XMLParser(remove_comments=True)
 
-        self._cloth = etree.parse(cloth, parser=cloth_parser)
+        self._cloth = etree.parse(file_name, parser=cloth_parser)
         self._cloth = self._cloth.getroot()
 
     def _init_cloth(self, cloth, attr_name, root_attr_name, cloth_parser):
