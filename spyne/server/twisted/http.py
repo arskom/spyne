@@ -312,8 +312,6 @@ class TwistedWebResource(Resource):
             else:
                 request.realprepath = self.prepath
 
-        request.realpostpath = request.path[len(request.realprepath):]
-
         if path in self.children:
             retval = self.children[path]
         else:
@@ -321,6 +319,8 @@ class TwistedWebResource(Resource):
 
         if isinstance(retval, NoResource):
             retval = self
+        else:
+            request.realpostpath = request.path[len(request.realprepath):]
 
         return retval
 

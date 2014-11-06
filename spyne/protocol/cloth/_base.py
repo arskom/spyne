@@ -143,7 +143,11 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         return retval
 
     def create_out_string(self, ctx, charset=None):
-        """Sets an iterable of string fragments to ctx.out_string"""
+        """Sets an iterable of string fragments to ctx.out_string if the output
+        is a StringIO object, which means we're run by a sync framework. Async
+        frameworks have the out_stream write directly to the output stream so
+        out_string should not be used.
+        """
 
         if isinstance(ctx.out_stream, StringIO):
             ctx.out_string = [ctx.out_stream.getvalue()]
