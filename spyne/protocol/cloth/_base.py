@@ -43,9 +43,9 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                        ignore_uncap=False, ignore_wrappers=False,
                        cloth=None, attr_name='spyne_id', root_attr_name='spyne',
                                             cloth_parser=None, polymorphic=True):
-        super(XmlCloth, self).__init__(app=app,
-                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
-                       ignore_wrappers=ignore_wrappers, polymorphic=polymorphic)
+        super(XmlCloth, self).__init__(app=app, mime_type=mime_type,
+                   ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
+                   polymorphic=polymorphic)
 
         self._init_cloth(cloth, attr_name, root_attr_name, cloth_parser)
 
@@ -185,10 +185,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     def write_doctype(self, xf):
         pass  # FIXME: write it
 
-    def subserialize(self, ctx, cls, inst, parent, name=None, **kwargs):
-        if name is None:
-            name = cls.get_type_name()
-
+    def subserialize(self, ctx, cls, inst, parent, name, **kwargs):
         if self._root_cloth is not None:
             print("to root cloth")
             return self.to_root_cloth(ctx, cls, inst, self._root_cloth, parent,

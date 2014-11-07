@@ -318,11 +318,11 @@ class ToClothMixin(ProtocolBase, EventMixin):
         ctx.protocol.ctxstack = []
         ctx.protocol.tags = set()
 
-        self.to_cloth(ctx, cls, inst, cloth, parent)
+        self.to_cloth(ctx, cls, inst, cloth, parent, '')
         self._close_cloth(ctx, parent)
 
     @coroutine
-    def to_root_cloth(self, ctx, cls, inst, cloth, parent, name=None):
+    def to_root_cloth(self, ctx, cls, inst, cloth, parent, name):
         to_be_closed = False
         if not getattr(ctx.protocol, 'in_root_cloth', False):
             to_be_closed = True

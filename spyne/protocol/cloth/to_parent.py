@@ -126,7 +126,6 @@ class ToParentMixin(ProtocolBase):
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        name = cls.get_type_name()
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)

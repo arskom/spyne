@@ -41,32 +41,6 @@ def HtmlTable(app=None, ignore_uncap=False, ignore_wrappers=True,
                      field_name_attr='class', border=0, fields_as='columns',
                      row_class=None, cell_class=None, header_cell_class=None,
                      polymorphic=True):
-    """Protocol that returns the response object as a html table.
-
-    The simple flavour is like the HtmlMicroFormatprotocol, but returns data
-    as a html table using the <table> tag.
-
-    :param app: A spyne.application.Application instance.
-    :param produce_header: Boolean value to determine whether to show field
-        names in the beginning of the table or not. Defaults to True. Set to
-        False to skip headers.
-    :param table_name_attr: The name of the attribute that will contain the
-        response name of the complex object in the table tag. Set to None to
-        disable.
-    :param field_name_attr: The name of the attribute that will contain the
-        field names of the complex object children for every table cell. Set
-        to None to disable.
-    :param fields_as: One of 'columns', 'rows'.
-    :param row_class: value that goes inside the <tr class="">
-    :param cell_class: value that goes inside the <td class="">
-    :param header_cell_class: value that goes inside the <th class="">
-
-    "Fields as rows" returns one record per table in a table with two
-    columns.
-
-    "Fields as columns" returns one record per table row in a table that
-    has as many columns as field names, just like a regular spreadsheet.
-    """
 
     if fields_as == 'columns':
         return HtmlColumnTable(app, ignore_uncap, ignore_wrappers,
@@ -80,6 +54,7 @@ def HtmlTable(app=None, ignore_uncap=False, ignore_wrappers=True,
     else:
         raise ValueError(fields_as)
 
+
 class HtmlTableBase(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
                        cloth=None, attr_name='spyne_id', root_attr_name='spyne',
@@ -87,12 +62,13 @@ class HtmlTableBase(HtmlBase):
                              produce_header=True, table_name_attr='class',
                             field_name_attr='class', border=0, row_class=None,
                                 cell_class=None, header_cell_class=None,
-                                polymorphic=True, link_gen=None):
+                               polymorphic=True, hier_delim='.', link_gen=None):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
                 cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
-                             cloth_parser=cloth_parser, polymorphic=polymorphic)
+                             cloth_parser=cloth_parser, polymorphic=polymorphic,
+                                                          hier_delim=hier_delim)
 
         self.produce_header = produce_header
         self.table_name_attr = table_name_attr
@@ -119,6 +95,29 @@ class HtmlTableBase(HtmlBase):
 
 
 class HtmlColumnTable(HtmlTableBase):
+    """Protocol that returns the response object as a html table.
+
+    Returns one record per table row in a table that has as many columns as
+    field names, just like a regular spreadsheet.
+
+    The simple flavour is like the HtmlMicroFormatprotocol, but returns data
+    as a html table using the <table> tag.
+
+    :param app: A spyne.application.Application instance.
+    :param produce_header: Boolean value to determine whether to show field
+        names in the beginning of the table or not. Defaults to True. Set to
+        False to skip headers.
+    :param table_name_attr: The name of the attribute that will contain the
+        response name of the complex object in the table tag. Set to None to
+        disable.
+    :param field_name_attr: The name of the attribute that will contain the
+        field names of the complex object children for every table cell. Set
+        to None to disable.
+    :param row_class: value that goes inside the <tr class="">
+    :param cell_class: value that goes inside the <td class="">
+    :param header_cell_class: value that goes inside the <th class="">
+    """
+
     def __init__(self, *args, **kwargs):
         super(HtmlColumnTable, self).__init__(*args, **kwargs)
 
@@ -145,7 +144,8 @@ class HtmlColumnTable(HtmlTableBase):
             parent.write(self.to_unicode(cls, inst))
 
     @coroutine
-    def _gen_row(self, ctx, cls, inst, parent, name, **kwargs):
+    def _gen_row(self, ctx, cls, inst, parent, name, from_arr=False,
+                                                    array_index=None, **kwargs):
         print("Generate row for", cls)
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
@@ -166,6 +166,12 @@ class HtmlColumnTable(HtmlTableBase):
                 sub_name = attr.sub_name
                 if sub_name is None:
                     sub_name = k
+                if self.hier_delim is not None:
+                    if array_index is None:
+                        sub_name = "%s%s%s" % (name, self.hier_delim, sub_name)
+                    else:
+                        sub_name = "%s[%d]%s%s" % (name, array_index,
+                                                     self.hier_delim, sub_name)
 
                 td_attrs = {}
                 if self.field_name_attr is not None:
@@ -180,10 +186,12 @@ class HtmlColumnTable(HtmlTableBase):
 
                         with parent.element('a', attrib=attrib):
                             ret = self.to_parent(ctx, v, sub_value, parent,
-                                                             sub_name, **kwargs)
+                                              sub_name, from_arr=from_arr,
+                                              array_index=array_index, **kwargs)
                     else:
                         ret = self.to_parent(ctx, v, sub_value, parent,
-                                                             sub_name, **kwargs)
+                                              sub_name, from_arr=from_arr,
+                                              array_index=array_index, **kwargs)
 
                     if isgenerator(ret):
                         try:
@@ -286,6 +294,28 @@ class HtmlColumnTable(HtmlTableBase):
 
 
 class HtmlRowTable(HtmlTableBase):
+    """Protocol that returns the response object as a html table.
+
+    The simple flavour is like the HtmlMicroFormatprotocol, but returns data
+    as a html table using the <table> tag.
+
+    Returns one record per table in a table with two columns.
+
+    :param app: A spyne.application.Application instance.
+    :param produce_header: Boolean value to determine whether to show field
+        names in the beginning of the table or not. Defaults to True. Set to
+        False to skip headers.
+    :param table_name_attr: The name of the attribute that will contain the
+        response name of the complex object in the table tag. Set to None to
+        disable.
+    :param field_name_attr: The name of the attribute that will contain the
+        field names of the complex object children for every table cell. Set
+        to None to disable.
+    :param row_class: value that goes inside the <tr class="">
+    :param cell_class: value that goes inside the <td class="">
+    :param header_cell_class: value that goes inside the <th class="">
+    """
+
     def __init__(self, *args, **kwargs):
         super(HtmlRowTable, self).__init__(*args, **kwargs)
 

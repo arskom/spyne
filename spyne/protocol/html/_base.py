@@ -25,6 +25,17 @@ from spyne.protocol.cloth import XmlCloth
 class HtmlBase(XmlCloth):
     mime_type = 'text/html'
 
+    def __init__(self, app=None, mime_type=None, ignore_uncap=False,
+                 ignore_wrappers=False, cloth=None, attr_name='spyne_id',
+                 root_attr_name='spyne', cloth_parser=None, polymorphic=True,
+                                                                hier_delim='.'):
+        super(HtmlBase, self).__init__(app=app, mime_type=mime_type,
+            ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
+            cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
+            cloth_parser=cloth_parser, polymorphic=polymorphic)
+
+        self.hier_delim = hier_delim
+
     def _parse_file(self, file_name, cloth_parser):
         if cloth_parser is None:
             cloth_parser = html.HTMLParser(remove_comments=True)
