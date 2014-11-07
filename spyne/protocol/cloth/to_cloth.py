@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 from lxml import html, etree
 from copy import deepcopy
 from inspect import isgenerator
+from collections import defaultdict
 
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
@@ -44,7 +45,31 @@ def _gen_tagname(ns, name):
     return name
 
 
-class ToClothMixin(ProtocolBase):
+class EventMixin(object):
+    def __setup(self):
+        if not hasattr(self, '_cb'):
+            self._cb = defaultdict(list)
+
+    def on_before_exit(self, elt, cb):
+        self.__setup()
+
+        self._cb[('before_exit', id(elt))].append(cb)
+
+    def off_before_exit(self, elt):
+        self.__setup()
+
+        key = ('before_exit', id(elt))
+        if key in self._cb:
+            del self._cb[key]
+
+    def fire_before_exit(self, elt, ctx, parent):
+        self.__setup()
+
+        for cb in self._cb[('before_exit', id(elt))]:
+            cb(ctx, parent)
+
+
+class ToClothMixin(ProtocolBase, EventMixin):
     def __init__(self, app=None, validator=None, mime_type=None,
                  ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
         super(ToClothMixin, self).__init__(app=app, validator=validator,
@@ -80,7 +105,7 @@ class ToClothMixin(ProtocolBase):
             self._parse_file(self._cloth, cloth_parser)
 
         if self._cloth is not None:
-            logger.debug("Using cloth as root.")
+            print("Using cloth as root.")
             q = "//*[@%s]" % self.root_attr_name
             elts = self._cloth.xpath(q)
             if len(elts) > 0:
@@ -196,6 +221,7 @@ class ToClothMixin(ProtocolBase):
 
             last_elt = elt
             if elt_ctx is not None:
+                self.fire_before_exit(elt, ctx, parent)
                 elt_ctx.__exit__(None, None, None)
                 print("\texit norm", elt.tag, elt.attrib)
                 if elt.tail is not None:
@@ -274,13 +300,14 @@ class ToClothMixin(ProtocolBase):
         for elt, elt_ctx in reversed(zip(ctx.protocol.eltstack,
                                                         ctx.protocol.ctxstack)):
             if elt_ctx is not None:
+                self.fire_before_exit(elt, ctx, parent)
                 elt_ctx.__exit__(None, None, None)
                 print("exit ", elt.tag, "close")
                 if elt.tail is not None:
                     parent.write(elt.tail)
 
             for sibl in elt.itersiblings(preceding=False):
-                print("write", sibl.tag, "close sibl")
+                print("write", sibl.tag, "nextsibl")
                 parent.write(sibl)
                 if sibl.tail is not None:
                     parent.write(sibl.tail)
@@ -347,7 +374,8 @@ class ToClothMixin(ProtocolBase):
 
         else:
             if not from_arr and cls.Attributes.max_occurs > 1:
-                return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+                return self.array_to_cloth(ctx, cls, inst, cloth, parent,
+                                                                      name=name)
 
             handler = self.rendering_handlers[cls]
             retval = handler(ctx, cls, inst, cloth, parent, name=name)

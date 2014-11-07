@@ -159,6 +159,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         try:
             with self.docfile(ctx.out_stream) as xf:
+                self.write_doctype(xf)
                 ret = self.subserialize(ctx, cls, inst, xf, name)
                 if isgenerator(ret):  # Poor man's yield from
                     try:
@@ -180,6 +181,9 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
     def docfile(self, *args, **kwargs):
         return etree.xmlfile(*args, **kwargs)
+
+    def write_doctype(self, xf):
+        pass  # FIXME: write it
 
     def subserialize(self, ctx, cls, inst, parent, name=None, **kwargs):
         if name is None:

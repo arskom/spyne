@@ -21,6 +21,7 @@ from lxml import etree, html
 
 from spyne.protocol.cloth import XmlCloth
 
+
 class HtmlBase(XmlCloth):
     mime_type = 'text/html'
 
@@ -33,3 +34,7 @@ class HtmlBase(XmlCloth):
 
     def docfile(self, *args, **kwargs):
         return etree.htmlfile(*args, **kwargs)
+
+    def write_doctype(self, xf):
+        # FIXME: write the doctype of the cloth
+        xf.write_doctype("<!DOCTYPE html>")
