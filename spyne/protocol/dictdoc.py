@@ -168,6 +168,7 @@ from spyne.model import Unicode
 
 from spyne.protocol import ProtocolBase, get_cls_attrs
 
+from spyne.interface.xml_schema.parser import hier_repr
 
 def _check_freq_dict(cls, d, fti=None):
     if fti is None:
@@ -469,6 +470,8 @@ class SimpleDictDocument(DictDocument):
                 cinst._safe_set(member.path[-1], value[0], member.type)
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
+
+        logger.debug("Deserialized simpledict: %s", hier_repr(retval))
 
         if validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():

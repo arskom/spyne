@@ -144,7 +144,8 @@ class HtmlColumnTable(HtmlTableBase):
             parent.write(self.to_unicode(cls, inst))
 
     @coroutine
-    def _gen_row(self, ctx, cls, inst, parent, name, **kwargs):
+    def _gen_row(self, ctx, cls, inst, parent, name, from_arr=False,
+                                                    array_index=None, **kwargs):
         print("Generate row for", cls)
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
@@ -165,6 +166,12 @@ class HtmlColumnTable(HtmlTableBase):
                 sub_name = attr.sub_name
                 if sub_name is None:
                     sub_name = k
+                if self.hier_delim is not None:
+                    if array_index is None:
+                        sub_name = "%s%s%s" % (name, self.hier_delim, sub_name)
+                    else:
+                        sub_name = "%s[%d]%s%s" % (name, array_index,
+                                                     self.hier_delim, sub_name)
 
                 td_attrs = {}
                 if self.field_name_attr is not None:
@@ -179,10 +186,12 @@ class HtmlColumnTable(HtmlTableBase):
 
                         with parent.element('a', attrib=attrib):
                             ret = self.to_parent(ctx, v, sub_value, parent,
-                                                             sub_name, **kwargs)
+                                              sub_name, from_arr=from_arr,
+                                              array_index=array_index, **kwargs)
                     else:
                         ret = self.to_parent(ctx, v, sub_value, parent,
-                                                             sub_name, **kwargs)
+                                              sub_name, from_arr=from_arr,
+                                              array_index=array_index, **kwargs)
 
                     if isgenerator(ret):
                         try:
