@@ -43,13 +43,14 @@ class HtmlTableBase(HtmlBase):
                              produce_header=True, table_name_attr='class',
                             field_name_attr='class', border=0, row_class=None,
                                 cell_class=None, header_cell_class=None,
-                               polymorphic=True, hier_delim='.', link_gen=None):
+                               polymorphic=True, hier_delim='.', doctype=None,
+                               link_gen=None):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
                 cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
                              cloth_parser=cloth_parser, polymorphic=polymorphic,
-                                                          hier_delim=hier_delim)
+                                         hier_delim=hier_delim, doctype=doctype)
 
         self.produce_header = produce_header
         self.table_name_attr = table_name_attr
