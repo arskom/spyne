@@ -36,25 +36,6 @@ from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 
-def HtmlTable(app=None, ignore_uncap=False, ignore_wrappers=True,
-                     produce_header=True, table_name_attr='class',
-                     field_name_attr='class', border=0, fields_as='columns',
-                     row_class=None, cell_class=None, header_cell_class=None,
-                     polymorphic=True):
-
-    if fields_as == 'columns':
-        return HtmlColumnTable(app, ignore_uncap, ignore_wrappers,
-                    produce_header, table_name_attr, field_name_attr, border,
-                                    row_class, cell_class, header_cell_class)
-    elif fields_as == 'rows':
-        return HtmlRowTable(app, ignore_uncap, ignore_wrappers,
-                    produce_header, table_name_attr, field_name_attr, border,
-                                    row_class, cell_class, header_cell_class)
-
-    else:
-        raise ValueError(fields_as)
-
-
 class HtmlTableBase(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
                        cloth=None, attr_name='spyne_id', root_attr_name='spyne',
