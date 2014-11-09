@@ -231,6 +231,9 @@ class HtmlColumnTable(HtmlTableBase):
         if self.table_name_attr is not None:
             attrib[self.table_name_attr] = cls.get_type_name()
 
+        self.event_manager.fire_event('before_table', ctx, cls, inst, parent,
+                                                                 name, **kwargs)
+
         with parent.element('table', attrib):
             if self.produce_header:
                 self._gen_header(ctx, cls, name, parent)
@@ -264,6 +267,7 @@ class HtmlColumnTable(HtmlTableBase):
         return self._gen_table(ctx, cls, inst, parent, name,
                          super(HtmlColumnTable, self).array_to_parent, **kwargs)
 
+    # FIXME: These three should be events as well.
     def extend_table(self, ctx, cls, parent, name, **kwargs):
         pass
 
@@ -310,7 +314,8 @@ class HtmlRowTable(HtmlTableBase):
             Array: self.array_to_parent,
         })
 
-    def model_base_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
+    def model_base_to_parent(self, ctx, cls, inst, parent, name, from_arr=False,
+                                                                      **kwargs):
         if from_arr:
             td_attrib = {}
             if False and self.field_name_attr:
