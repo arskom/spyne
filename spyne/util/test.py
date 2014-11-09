@@ -78,4 +78,5 @@ def show(elt, tn=None, stdout=True):
     except OSError:
         pass
 
-    open(join("html", '%s.html' % tn), 'w').write(html.tostring(elt, pretty_print=True))
+    open(join("html", '%s.html' % tn), 'w').write(html.tostring(elt,
+                                  pretty_print=True, doctype="<!DOCTYPE html>"))
