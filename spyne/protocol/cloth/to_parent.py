@@ -86,7 +86,7 @@ class ToParentMixin(ProtocolBase):
             cls, inst = self.strip_wrappers(cls, inst)
 
         from_arr = kwargs.get('from_arr', False)
-        if not from_arr and cls.Attributes.max_occurs > 1:
+        if inst is not None and not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         try:
