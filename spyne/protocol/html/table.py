@@ -157,7 +157,7 @@ class HtmlColumnTable(HtmlTableBase):
 
                 td_attrs = {}
                 if self.field_name_attr is not None:
-                    td_attrs[self.field_name_attr] = sub_name
+                    td_attrs[self.field_name_attr] = attr.sub_name or k
 
                 with parent.element('td', td_attrs):
                     if attr.href is not None:
