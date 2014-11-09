@@ -561,7 +561,7 @@ class EventManager(object):
         handlers.add(handler)
         self.handlers[event_name] = handlers
 
-    def fire_event(self, event_name, ctx):
+    def fire_event(self, event_name, ctx, *args, **kwargs):
         """Run all the handlers for a given event name.
 
         :param event_name: The event identifier, indicated by the documentation.
@@ -572,7 +572,7 @@ class EventManager(object):
 
         handlers = self.handlers.get(event_name, oset())
         for handler in handlers:
-            handler(ctx)
+            handler(ctx, *args, **kwargs)
 
 
 class FakeContext(object):
