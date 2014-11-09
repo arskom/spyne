@@ -338,7 +338,7 @@ class SimpleDictDocument(DictDocument):
                                                      hier_delim=self.hier_delim)
 
         idxmap = defaultdict(dict)
-        for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
+        for orig_k, v in sorted(doc.items(), key=lambda _k: _k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
             member = simple_type_info.get(k, None)
@@ -470,8 +470,6 @@ class SimpleDictDocument(DictDocument):
                 cinst._safe_set(member.path[-1], value[0], member.type)
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
-
-        logger.debug("Deserialized simpledict: %s", hier_repr(retval))
 
         if validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
