@@ -249,7 +249,7 @@ class HtmlColumnTable(HtmlTableBase):
                         except StopIteration:
                             pass
 
-            self.extend_table(ctx, cls, parent, name, **kwargs)
+                self.extend_table(ctx, cls, parent, name, **kwargs)
 
     def complex_model_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
