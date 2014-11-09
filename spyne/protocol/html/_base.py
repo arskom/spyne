@@ -48,5 +48,6 @@ class HtmlBase(XmlCloth):
         return etree.htmlfile(*args, **kwargs)
 
     def write_doctype(self, xf):
-        # FIXME: write the doctype of the cloth
-        xf.write_doctype("<!DOCTYPE html>")
+        if self._root_cloth is not None:
+            # FIXME: write the doctype of the cloth
+            xf.write_doctype("<!DOCTYPE html>")
