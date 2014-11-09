@@ -203,9 +203,9 @@ class HtmlColumnTable(HtmlTableBase):
                                 ret.throw(b)
                             except StopIteration:
                                 pass
-
             print("Generate row for %r done." % cls)
-            self.extend_data_row(ctx, cls, inst, parent, name, **kwargs)
+            self.extend_data_row(ctx, cls, inst, parent, name,
+                                              array_index=array_index, **kwargs)
 
     def _gen_header(self, ctx, cls, name, parent):
         logger.debug("Generate header for %r", cls)
