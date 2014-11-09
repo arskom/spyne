@@ -38,13 +38,12 @@ from spyne.util.cdict import cdict
 
 class HtmlTableBase(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
-                       cloth=None, attr_name='spyne_id', root_attr_name='spyne',
+            cloth=None, attr_name='spyne_id', root_attr_name='spyne',
                                                               cloth_parser=None,
-                             produce_header=True, table_name_attr='class',
-                            field_name_attr='class', border=0, row_class=None,
-                                cell_class=None, header_cell_class=None,
-                               polymorphic=True, hier_delim='.', doctype=None,
-                               link_gen=None):
+                produce_header=True, table_name_attr='class',
+                field_name_attr='class', border=0, row_class=None,
+                cell_class=None, header_cell_class=None,
+                polymorphic=True, hier_delim='.', doctype=None, link_gen=None):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
