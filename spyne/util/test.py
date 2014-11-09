@@ -62,7 +62,8 @@ def show(elt, tn=None, stdout=True):
 
         for frame in inspect.stack():
             if frame[3].startswith("test_"):
-                tn = frame[3]
+                cn = frame[0].f_locals['self'].__class__.__name__
+                tn = "%s.%s" % (cn, frame[3])
                 break
 
         else:
