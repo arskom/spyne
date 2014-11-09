@@ -185,7 +185,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     def write_doctype(self, xf):
         pass  # FIXME: write it
 
-    def subserialize(self, ctx, cls, inst, parent, name, **kwargs):
+    def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
         if self._root_cloth is not None:
             print("to root cloth")
             return self.to_root_cloth(ctx, cls, inst, self._root_cloth, parent,
