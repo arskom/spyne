@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 from lxml import html, etree
 from copy import deepcopy
 from inspect import isgenerator
-from collections import defaultdict
 
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
@@ -45,31 +44,7 @@ def _gen_tagname(ns, name):
     return name
 
 
-class EventMixin(object):
-    def __setup(self):
-        if not hasattr(self, '_cb'):
-            self._cb = defaultdict(list)
-
-    def on_before_exit(self, elt, cb):
-        self.__setup()
-
-        self._cb[('before_exit', id(elt))].append(cb)
-
-    def off_before_exit(self, elt):
-        self.__setup()
-
-        key = ('before_exit', id(elt))
-        if key in self._cb:
-            del self._cb[key]
-
-    def fire_before_exit(self, elt, ctx, parent):
-        self.__setup()
-
-        for cb in self._cb[('before_exit', id(elt))]:
-            cb(ctx, parent)
-
-
-class ToClothMixin(ProtocolBase, EventMixin):
+class ToClothMixin(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
                  ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
         super(ToClothMixin, self).__init__(app=app, validator=validator,
@@ -221,7 +196,7 @@ class ToClothMixin(ProtocolBase, EventMixin):
 
             last_elt = elt
             if elt_ctx is not None:
-                self.fire_before_exit(elt, ctx, parent)
+                self.event_manager.fire(('before_exit', elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)
                 print("\texit norm", elt.tag, elt.attrib)
                 if elt.tail is not None:
@@ -300,7 +275,7 @@ class ToClothMixin(ProtocolBase, EventMixin):
         for elt, elt_ctx in reversed(zip(ctx.protocol.eltstack,
                                                         ctx.protocol.ctxstack)):
             if elt_ctx is not None:
-                self.fire_before_exit(elt, ctx, parent)
+                self.event_manager.fire_event(("before_exit", elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)
                 print("exit ", elt.tag, "close")
                 if elt.tail is not None:
