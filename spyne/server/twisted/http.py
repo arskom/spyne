@@ -201,7 +201,7 @@ class TwistedHttpTransport(HttpBase):
 
         if ctx.method_request_string is None: # no pattern match
             ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                    request.path.split('/')[-1])
+                                                request.path.rsplit('/', 1)[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))

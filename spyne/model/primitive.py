@@ -462,6 +462,7 @@ class Integer(Decimal):
                 and (value is None or int(value) == value)
             )
 
+
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer, also known as nonNegativeInteger."""
 
@@ -472,6 +473,7 @@ class UnsignedInteger(Integer):
         return (    Integer.validate_native(cls, value)
                 and (value is None or value >= 0)
             )
+
 
 NonNegativeInteger = UnsignedInteger
 """The arbitrary-size unsigned integer, alias for UnsignedInteger."""
@@ -925,7 +927,7 @@ class Point(Unicode):
         return ('POINT(%%3.%(prec)sf %%3.%(prec)sf)' % {'prec': prec}) % (x,y)
 
     def __new__(cls, dim=None, **kwargs):
-        assert dim in (None,2,3)
+        assert dim in (None, 2, 3)
         if dim is not None:
             kwargs['dim'] = dim
             kwargs['pattern'] = _get_point_pattern(dim)

@@ -289,6 +289,7 @@ class Interface(object):
                     method.aux = s.__aux__
                 if method.aux is not None:
                     method.aux.methods.append(_generate_method_id(s, method))
+
                 if not self.check_method(method):
                     continue
 
@@ -309,8 +310,7 @@ class Interface(object):
 
         logger.debug("From this point on, you're not supposed to make any "
                      "changes to the class and method structure of the exposed "
-                     "services."
-                 )
+                     "services.")
 
     tns = property(get_tns)
 

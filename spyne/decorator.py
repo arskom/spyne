@@ -266,15 +266,14 @@ def rpc(*params, **kparams):
             if _no_self:
                 from spyne.model import SelfReference
 
-                if SelfReference in params:
-                    raise ValueError("SelfReference can't be used in @rpc")
-                if SelfReference in kparams.values():
+                if SelfReference in params or SelfReference in kparams.values():
                     raise ValueError("SelfReference can't be used in @rpc")
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
                 raise ValueError("only one of '_throws ' or '_faults' arguments"
                                  "should be given, as they're synonyms.")
+
             elif '_faults' in kparams:
                 _faults = kparams.get('_faults', None)
 

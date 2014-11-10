@@ -20,19 +20,11 @@
 
 import unittest
 
-from spyne.application import Application
-from spyne.decorator import rpc
-from spyne.model import Array
-from spyne.model import ComplexModel
-from spyne.model import AnyXml
-from spyne.model import UnsignedLong
-from spyne.model import UnsignedInteger16
-from spyne.model import Integer
-from spyne.model import DateTime
-from spyne.model import Unicode
+from spyne import Application, ServiceBase, rpc
+from spyne.model import Array, ComplexModel, AnyXml, UnsignedLong, \
+    UnsignedInteger16, Integer, DateTime, Unicode
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
-from spyne.service import ServiceBase
 
 
 class TestInterface(unittest.TestCase):
@@ -81,7 +73,7 @@ class TestInterface(unittest.TestCase):
         smm = application.interface.service_method_map
         print(imports)
 
-        assert imports[tns] == set(['1','3','4'])
+        assert imports[tns] == set(['1', '3', '4'])
         assert imports['3'] == set(['2'])
         assert imports['4'] == set(['2'])
 
