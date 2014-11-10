@@ -89,13 +89,19 @@ class ToParentMixin(ProtocolBase):
         if inst is not None and not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+        ctx.protocol.inst_stack.append(inst)
         try:
             handler = self.serialization_handlers[cls]
         except KeyError:
             logger.error("%r is missing handler for %r", self, cls)
             raise
 
-        return handler(ctx, cls, inst, parent, name, **kwargs)
+        retval = handler(ctx, cls, inst, parent, name, **kwargs)
+
+        ctx.protocol.inst_stack.pop()
+
+        return retval
+
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_string(cls, inst)))

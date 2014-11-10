@@ -196,7 +196,7 @@ class ToClothMixin(ProtocolBase):
 
             last_elt = elt
             if elt_ctx is not None:
-                self.event_manager.fire(('before_exit', elt), ctx, parent)
+                self.event_manager.fire_event(("before_exit", elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)
                 print("\texit norm", elt.tag, elt.attrib)
                 if elt.tail is not None:

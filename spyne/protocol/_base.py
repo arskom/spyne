@@ -43,6 +43,7 @@ except ImportError:
     html = None
 
 from spyne import EventManager
+from spyne import ProtocolContext
 
 from spyne.const.http import HTTP_400
 from spyne.const.http import HTTP_401
@@ -281,6 +282,9 @@ class ProtocolBase(object):
         clsorig = getattr(cls, '__orig__', None)
         return issubclass(sub if suborig is None else suborig,
                           cls if clsorig is None else clsorig)
+
+    def get_context(self, parent, transport):
+        return ProtocolContext(parent, transport)
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Uses ``ctx.in_string`` to set ``ctx.in_document``."""

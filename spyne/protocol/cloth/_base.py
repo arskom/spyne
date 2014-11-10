@@ -23,16 +23,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
+
 from lxml import etree
 from lxml.etree import LxmlSyntaxError
 from lxml.builder import E
 
-from spyne import BODY_STYLE_WRAPPED
+from spyne import ProtocolContext, BODY_STYLE_WRAPPED
 from spyne.util import Break, coroutine
 
 from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
 from spyne.util.six import StringIO, string_types
+
+
+class XmlClothProtocolContext(ProtocolContext):
+    def __init__(self, parent, transport):
+        super(XmlClothProtocolContext, self).__init__(parent, transport)
+
+        self.inst_stack = []
 
 
 class XmlCloth(ToParentMixin, ToClothMixin):
@@ -83,6 +91,9 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             return trdict
 
         return trdict.get(locale, default)
+
+    def get_context(self, parent, transport):
+        return XmlClothProtocolContext(parent, transport)
 
     def serialize(self, ctx, message):
         """Uses ``ctx.out_object``, ``ctx.out_header`` or ``ctx.out_error`` to
