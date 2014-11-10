@@ -331,6 +331,8 @@ class TwistedWebResource(Resource):
         return self.handle_rpc(request)
 
     def handle_rpc_error(self, p_ctx, others, error, request):
+        logger.error(error)
+
         resp_code = p_ctx.transport.resp_code
         # If user code set its own response code, don't touch it.
         if resp_code is None:
