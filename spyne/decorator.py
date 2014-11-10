@@ -37,7 +37,7 @@ from spyne._base import BODY_STYLE_EMPTY
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE
 
-from spyne.model.complex import ComplexModel
+from spyne.model import ModelBase, ComplexModel
 from spyne.model.complex import TypeInfo
 
 from spyne.const import add_request_suffix
@@ -167,6 +167,9 @@ def _produce_output_message(func_name, kparams):
 
     if _body_style == 'bare' and _returns is not None:
         message = _returns.customize(sub_name=_out_message_name, sub_ns=ns)
+        if message.__type_name__ is ModelBase.Empty:
+            message.__type_name__ = _out_message_name
+
 
     else:
         message = ComplexModel.produce(type_name=_out_message_name,
