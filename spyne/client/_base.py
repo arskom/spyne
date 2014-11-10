@@ -63,11 +63,12 @@ class RemoteProcedureBase(object):
         self.url = url
         self.app = app
 
-        initial_ctx = MethodContext(self)
+        initial_ctx = MethodContext(self, MethodContext.CLIENT)
         initial_ctx.method_request_string = name
         initial_ctx.out_header = out_header
 
-        self.contexts = initial_ctx.out_protocol.generate_method_contexts(initial_ctx)
+        self.contexts = initial_ctx.out_protocol.generate_method_contexts(
+                                                                    initial_ctx)
 
     def __call__(self, *args, **kwargs):
         """Serializes its arguments, sends them, receives and deserializes the

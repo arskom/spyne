@@ -92,10 +92,10 @@ class HttpMethodContext(MethodContext):
     default_transport_context = HttpTransportContext
 
     def __init__(self, transport, req_env, content_type):
-        super(HttpMethodContext, self).__init__(transport)
+        super(HttpMethodContext, self).__init__(transport, MethodContext.SERVER)
 
-        self.transport = self.default_transport_context(self, transport, req_env,
-                                                                   content_type)
+        self.transport = self.default_transport_context(self, transport,
+                                                          req_env, content_type)
         """Holds the WSGI-specific information"""
 
     def set_out_protocol(self, what):

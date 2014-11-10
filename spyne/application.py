@@ -149,6 +149,10 @@ class Application(object):
                 # the return value should already be wrapped by a sequence.
                 ctx.out_object = [ctx.out_object]
 
+            # Now that the processing is switched to the outgoing message, point
+            # ctx.protocol to ctx.out_protocol
+            ctx.protocol = ctx.outprot_ctx
+
             # fire events
             self.event_manager.fire_event('method_return_object', ctx)
             if ctx.service_class is not None:

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from time import time
 from copy import copy
-from collections import deque, namedtuple
+from collections import deque, namedtuple, defaultdict
 
 from spyne.const.xml_ns import DEFAULT_NS
 from spyne.util.oset import oset
@@ -79,9 +79,9 @@ class TransportContext(object):
 
 
 class ProtocolContext(object):
-    """Generic object that holds transport-specific context information"""
+    """Generic object that holds protocol-specific context information"""
     def __init__(self, parent, transport, type=None):
-        self.parent = parent;
+        self.parent = parent
         """The MethodContext this object belongs to"""
 
         self.itself = transport
@@ -89,6 +89,12 @@ class ProtocolContext(object):
 
         self.type = type
         """The protocol the transport uses."""
+
+        self._subctx = defaultdict(
+                               lambda: self.__class__(parent, transport, type))
+
+    def __getitem__(self, item):
+        return self._subctx[item]
 
 
 class EventContext(object):
@@ -102,6 +108,9 @@ class MethodContext(object):
     """The base class for all RPC Contexts. Holds all information about the
     current state of execution of a remote procedure call.
     """
+
+    SERVER = type("SERVER", (object,), {})
+    CLIENT = type("CLIENT", (object,), {})
 
     frozen = False
 
@@ -130,7 +139,7 @@ class MethodContext(object):
         else:
             return self.descriptor.name
 
-    def __init__(self, transport):
+    def __init__(self, transport, way):
         # metadata
         self.call_start = time()
         """The time the rpc operation was initiated in seconds-since-epoch
@@ -156,9 +165,31 @@ class MethodContext(object):
         """The transport-specific context. Transport implementors can use this
         to their liking."""
 
-        self.protocol = ProtocolContext(self, transport)
-        """The protocol-specific context. Protocol implementors can use this
-        to their liking."""
+        self.outprot_ctx = None
+        """The output-protocol-specific context. Protocol implementors can use
+        this to their liking."""
+
+        if self.app.out_protocol is not None:
+            self.outprot_ctx = self.app.out_protocol.get_context(self, transport)
+
+        self.inprot_ctx = None
+        """The input-protocol-specific context. Protocol implementors can use
+        this to their liking."""
+
+        if self.app.in_protocol is not None:
+            self.inprot_ctx = self.app.in_protocol.get_context(self, transport)
+
+        self.protocol = None
+        """The protocol-specific context. This points to the in_protocol when an
+        incoming message is being processed and out_protocol when an outgoing
+        message is being processed."""
+
+        if way is MethodContext.SERVER:
+            self.protocol = self.inprot_ctx
+        elif way is MethodContext.CLIENT:
+            self.protocol = self.outprot_ctx
+        else:
+            raise ValueError(way)
 
         self.event = EventContext(self)
         """Event-specific context. Use this as you want, preferably only in

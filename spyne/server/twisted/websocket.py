@@ -83,7 +83,7 @@ class WebSocketTransportContext(TransportContext):
 
 class WebSocketMethodContext(MethodContext):
     def __init__(self, transport, client_handle):
-        MethodContext.__init__(self, transport)
+        MethodContext.__init__(self, transport, MethodContext.SERVER)
 
         self.transport = WebSocketTransportContext(self, transport, 'ws',
                                                                   client_handle)

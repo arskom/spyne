@@ -95,7 +95,7 @@ def TDry(serializer, _DictDocumentChild, dumps_kwargs=None):
             )
 
         server = ServerBase(app)
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [serializer.dumps(d, **dumps_kwargs)]
 
         ctx, = server.generate_contexts(initial_ctx)

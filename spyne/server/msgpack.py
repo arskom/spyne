@@ -62,7 +62,8 @@ class MessagePackTransportContext(TransportContext):
 
 class MessagePackMethodContext(MethodContext):
     def __init__(self, transport):
-        super(MessagePackMethodContext, self).__init__(transport)
+        super(MessagePackMethodContext, self).__init__(transport,
+                                                           MethodContext.SERVER)
 
         self.transport = MessagePackTransportContext(self, transport)
 

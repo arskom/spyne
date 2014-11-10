@@ -81,7 +81,7 @@ class TestXml(unittest.TestCase):
         app = Application([SomeService], "tns", name="test_attribute_of",
                         in_protocol=XmlDocument(), out_protocol=XmlDocument())
         server = ServerBase(app)
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
             '<some_call xmlns="tns">'
                 '<c b="b">a</c>'
@@ -121,7 +121,7 @@ class TestXml(unittest.TestCase):
                         in_protocol=XmlDocument(), out_protocol=XmlDocument())
         server = ServerBase(app)
 
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
             '<some_call xmlns="tns">'
                 '<c>'
@@ -192,7 +192,7 @@ class TestXml(unittest.TestCase):
 
         # test some_call(CMA)
 
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
             '<some_call xmlns="tns">'
                 '<cma>'
@@ -228,7 +228,7 @@ class TestXml(unittest.TestCase):
 
         # test another_call(CMB)
 
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
             '<another_call xmlns="tns">'
                 '<cmb>'
@@ -270,7 +270,7 @@ class TestXml(unittest.TestCase):
                           in_protocol=XmlDocument(), out_protocol=XmlDocument())
         server = ServerBase(app)
 
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.method_request_string = '{test_attribute_of}some_call'
         initial_ctx.in_string = [
             '<some_call xmlns="tns">'
@@ -311,7 +311,7 @@ class TestXml(unittest.TestCase):
         app = Application([SomeService], "tns", in_protocol=XmlDocument(),
                                                 out_protocol=XmlDocument())
         server = ServerBase(app)
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = ['<some_call xmlns="tns"/>']
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -362,7 +362,7 @@ class TestXml(unittest.TestCase):
         app = Application([SomeService], "tns", in_protocol=XmlDocument(),
                                                 out_protocol=XmlDocument())
         server = ServerBase(app)
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = ['<some_call xmlns="tns"><p>%s</p></some_call>'
                                                                             % d]
 
@@ -476,7 +476,7 @@ class TestXml(unittest.TestCase):
         assert d.microsecond == 123457
 
     def _get_ctx(self, server, in_string):
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = in_string
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
