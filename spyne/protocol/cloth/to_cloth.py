@@ -258,6 +258,9 @@ class ToClothMixin(ProtocolBase):
                            if not (k in (self.attr_name, self.root_attr_name))])
 
             attrib.update(attrs)
+
+            self.event_manager.fire_event(("before_entry", cloth), ctx, parent, attrib)
+
             if len(eltstack) == 0:
                 curtag = parent.element(cloth.tag, attrib, nsmap=cloth.nsmap)
             else:
