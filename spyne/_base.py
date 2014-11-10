@@ -119,8 +119,10 @@ class MethodContext(object):
 
         if retval.transport is not None:
             retval.transport.parent = retval
-        if retval.protocol is not None:
-            retval.protocol.parent = retval
+        if retval.inprot_ctx is not None:
+            retval.inprot_ctx.parent = retval
+        if retval.outprot_ctx is not None:
+            retval.outprot_ctx.parent = retval
         if retval.event is not None:
             retval.event.parent = retval
         if retval.aux is not None:
