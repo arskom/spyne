@@ -59,7 +59,6 @@ def _decode_pa_dict(d):
     return retval
 
 
-# All this code to get rid of a one letter quirk: nillable vs nullable.
 class AttributesMeta(type(object)):
     NULLABLE_DEFAULT = True
 
@@ -81,8 +80,11 @@ class AttributesMeta(type(object)):
             assert nullable is None or nullable == nillable
             self._nullable = nillable
 
-        if getattr(self, '_nullable', None) is None:
+        if not hasattr(self, '_nullable'):
             self._nullable = None
+
+        if not hasattr(self, '_default_factory'):
+            self._default_factory = None
 
         super(AttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
@@ -102,6 +104,14 @@ class AttributesMeta(type(object)):
         self.nullable = what
 
     nillable = property(get_nillable, set_nillable)
+
+    def get_default_factory(self):
+        return self._default_factory
+
+    def set_default_factory(self, what):
+        self._default_factory = staticmethod(what)
+
+    default_factory = property(get_default_factory, set_default_factory)
 
 
 class ModelBase(object):
@@ -145,10 +155,10 @@ class ModelBase(object):
         # are skipped. just for internal use.
 
         default = None
-        """The default value if the input is None"""
+        """The default value if the input is None."""
 
         default_factory = None
-        """The default value if the input is None"""
+        """The callable that produces a default value if the input is None."""
 
         nillable = None
         """Set this to false to reject null values. Synonyms with

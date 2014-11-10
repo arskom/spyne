@@ -79,6 +79,10 @@ class ToParentMixin(ProtocolBase):
         if inst is None:
             inst = cls.Attributes.default
 
+        _df = cls.Attributes.default_factory
+        if inst is None and callable(_df):
+            inst = _df()
+
         if inst is None and self.use_global_null_handler:
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
