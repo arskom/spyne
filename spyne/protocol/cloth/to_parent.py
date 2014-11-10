@@ -387,22 +387,22 @@ class ToParentMixin(ProtocolBase):
                     except StopIteration:
                         pass
 
-    def enum_to_parent(self, ctx, cls, inst, parent, name='retval'):
+    def enum_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         self.base_to_parent(ctx, cls, str(inst), parent, name)
 
-    def xml_to_parent(self, ctx, cls, inst, parent, name):
+    def xml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         if isinstance(inst, string_types):
             inst = etree.fromstring(inst)
 
         parent.write(inst)
 
-    def html_to_parent(self, ctx, cls, inst, parent, name):
+    def html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         if isinstance(inst, str) or isinstance(inst, six.text_type):
             inst = html.fromstring(inst)
 
         parent.write(inst)
 
-    def dict_to_parent(self, ctx, cls, inst, parent, name):
+    def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         elt = E(name)
         dict_to_etree(inst, elt)
         parent.write(elt)
