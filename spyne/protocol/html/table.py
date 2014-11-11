@@ -24,13 +24,15 @@ logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
+from lxml import html
 from lxml.html.builder import E
 
-from spyne import ModelBase, AnyHtml, ByteArray, ComplexModelBase, Array, \
-    AnyUri, ImageUri
+from spyne import ModelBase, ByteArray, ComplexModelBase, Array, AnyUri, \
+    ImageUri
 from spyne.model.binary import Attachment
 from spyne.protocol import get_cls_attrs
 from spyne.protocol.html import HtmlBase
+from spyne.util.six.moves.urllib.parse import urlencode, quote
 
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
@@ -184,6 +186,38 @@ class HtmlColumnTable(HtmlTableBase):
                                 ret.throw(b)
                             except StopIteration:
                                 pass
+
+            m = cls.Attributes.methods
+            if m is not None and len(m) > 0:
+                with parent.element('td'):
+                    first = True
+                    mrpc_delim = html.fromstring("&nbsp;|&nbsp;").text
+
+                    for mn, md in self._methods(cls, inst):
+                        if first:
+                            first = False
+                        else:
+                            parent.write(mrpc_delim)
+
+                        pd = { }
+                        for k, v in cls.get_flat_type_info(cls).items():
+                            if getattr(v.Attributes, 'primary_key', None):
+                                r = self.to_unicode(v, getattr(inst, k, None))
+                                if r is not None:
+                                    pd[k] = r
+
+                        params = urlencode(pd)
+
+                        # FIXME: omg!..
+                        href = {id(v[0]): k
+                                for k,v in
+                                    ctx.app.interface.service_method_map.items()
+                            }[id(md)].rsplit("}",1)[-1]
+
+                        text = md.translate(ctx.locale,
+                                                  md.in_message.get_type_name())
+                        parent.write(E.a(text, href="%s?%s" % (href, params)))
+
             print("Generate row for %r done." % cls)
             self.extend_data_row(ctx, cls, inst, parent, name,
                                               array_index=array_index, **kwargs)
@@ -214,6 +248,10 @@ class HtmlColumnTable(HtmlTableBase):
                             th_attrs[self.field_name_attr] = k
                             header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
+
+                    m = cls.Attributes.methods
+                    if m is not None and len(m) > 0:
+                        parent.write(E.th())
 
                 else:
                     if self.field_name_attr is not None:
