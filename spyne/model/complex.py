@@ -315,18 +315,20 @@ class _MethodsDict(dict):
                 d.in_message.insert_field(0, 'self', cls.novalidate_freq())
                 d.body_style = BODY_STYLE_WRAPPED
 
-                for k, v in d.in_message._type_info.items():
-                    # SelfReference is replaced by descriptor.in_message itself.
-                    # However, in the context of mrpc, SelfReference means
-                    # parent class. here, we do that substitution. It's a safe
-                    # hack but a hack nevertheless.
-                    if v is d.in_message:
-                        d.in_message._type_info[k] = cls
+                if issubclass(d.in_message, ComplexModelBase):
+                    for k, v in d.in_message._type_info.items():
+                        # SelfReference is replaced by descriptor.in_message
+                        # itself. However, in the context of mrpc, SelfReference
+                        # means parent class. here, we do that substitution.
+                        # It's a safe hack but a hack nevertheless.
+                        if v is d.in_message:
+                            d.in_message._type_info[k] = cls
 
             # Same as above, for the output type.
-            for k, v in d.out_message._type_info.items():
-                if v is d.out_message:
-                    d.out_message._type_info[k] = cls
+            if issubclass(d.out_message, ComplexModelBase):
+                for k, v in d.out_message._type_info.items():
+                    if v is d.out_message:
+                        d.out_message._type_info[k] = cls
 
 
 def _gen_methods(cls_dict):
