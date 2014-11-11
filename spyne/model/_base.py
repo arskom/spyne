@@ -451,6 +451,7 @@ class ModelBase(object):
                 setattr(Annotations, k, v)
 
             elif k in ('primary_key', 'pk'):
+                setattr(Attributes, 'primary_key', v)
                 Attributes.sqla_column_args[-1]['primary_key'] = v
 
             elif k in ('prot_attrs', 'pa'):
