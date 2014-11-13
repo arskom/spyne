@@ -93,10 +93,14 @@ class TwistedMessagePackProtocol(Protocol):
         else:
             error = self._transport.OUT_RESPONSE_CLIENT_ERROR
 
+        data = p_ctx.out_document[0]
+        if isinstance(data, dict):
+            data = data.values()
         out_string = msgpack.packb([
-            error, msgpack.packb(p_ctx.out_document[0].values()),
+            error, msgpack.packb(data),
         ])
         self.transport.write(out_string)
+        p_ctx.transport.resp_length = len(out_string)
         p_ctx.close()
 
         try:
@@ -146,6 +150,7 @@ def _eb_deferred(retval, prot, p_ctx, others):
 
     prot.handle_error(p_ctx, others, p_ctx.out_error)
     prot.transport.write(''.join(p_ctx.out_string))
+    p_ctx.transport.resp_length = len(p_ctx.out_string)
     prot.transport.loseConnection()
 
     return Failure(p_ctx.out_error, p_ctx.out_error.__class__, tb)
@@ -163,6 +168,7 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
 
         out_string = ''.join(p_ctx.out_string)
         prot.transport.write(out_string)
+        p_ctx.transport.resp_length = len(out_string)
 
     except Exception as e:
         logger.exception(e)
