@@ -274,6 +274,17 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
     if issubclass(cls, File) and isinstance(obj, File.Value):
         cls = obj.__class__
 
+    if cls.Attributes.logged == 'len':
+        l = '?'
+
+        try:
+            l = str(len(obj))
+        except TypeError:
+            if given_len is not None:
+                l = str(given_len)
+
+        return "<len=%s>" % l
+
     if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
                                                                      from_array:
         if id(obj) in tags:
@@ -288,19 +299,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
         if isinstance(obj, PushBase):
             retval = '[<PushData>]'
 
-        elif cls.Attributes.logged == 'len':
-            l = '?'
-
-            try:
-                l = str(len(obj))
-            except TypeError:
-                if given_len is not None:
-                    l = str(given_len)
-
-            retval = "<len=%s>" % l
-
         else:
-            import ipdb; ipdb.set_trace()
             for i, o in enumerate(obj):
                 if i > MAX_ARRAY_ELEMENT_NUM:
                     retval.append("(...)")
