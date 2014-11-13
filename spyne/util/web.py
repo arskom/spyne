@@ -271,6 +271,9 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
     if hasattr(cls, 'Attributes') and not cls.Attributes.logged:
         return "%s(...)" % cls.get_type_name()
 
+    if issubclass(cls, File) and isinstance(obj, File.Value):
+        cls = obj.__class__
+
     if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
                                                                      from_array:
         if id(obj) in tags:
@@ -278,32 +281,34 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
         tags.add(id(obj))
 
         retval = []
+        subcls = cls
         if issubclass(cls, Array):
-            cls, = cls._type_info.values()
+            subcls, = cls._type_info.values()
 
         if isinstance(obj, PushBase):
-            retval.append('<PushData>')
+            retval = '[<PushData>]'
 
         elif cls.Attributes.logged == 'len':
             l = '?'
 
             try:
                 l = str(len(obj))
-            except TypeError as e:
+            except TypeError:
                 if given_len is not None:
                     l = str(given_len)
 
-            retval.append("%s[len=%s] (...)" % (cls.get_type_name(), l))
+            retval = "<len=%s>" % l
 
         else:
+            import ipdb; ipdb.set_trace()
             for i, o in enumerate(obj):
                 if i > MAX_ARRAY_ELEMENT_NUM:
                     retval.append("(...)")
                     break
 
-                retval.append(log_repr(o, cls, from_array=True, tags=tags))
+                retval.append(log_repr(o, subcls, from_array=True, tags=tags))
 
-        retval = "[%s]" % (', '.join(retval))
+            retval = "[%s]" % (', '.join(retval))
 
     elif issubclass(cls, ComplexModelBase):
         if id(obj) in tags:
