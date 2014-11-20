@@ -221,13 +221,12 @@ class Interface(object):
         if issubclass(s, ComplexModelBase) and method.in_message_name_override:
             method_key = '{%s}%s.%s' % (self.app.tns,
                                                  s.get_type_name(), method.name)
-
-        logger.debug('\tadding method %r to match %r tag.' %
-                                                      (method.name, method_key))
         key = _generate_method_id(s, method)
         if key in self.method_id_map:
             c = self.method_id_map[key].parent_class
-            if c.__orig__ is None:
+            if c is s:
+                pass
+            elif c.__orig__ is None:
                 assert c is s.__orig__, "%r.%s conflicts with %r.%s" % \
                                         (c, key, s.__orig__, key)
             elif s.__orig__ is None:
@@ -237,6 +236,9 @@ class Interface(object):
                 assert c.__orig__ is s.__orig__, "%r.%s conflicts with %r.%s" % \
                                         (c.__orig__, key, s.__orig__, key)
             return
+
+        logger.debug('\tadding method %r to match %r tag.' %
+                                                      (method.name, method_key))
 
         self.method_id_map[key] = method
 
@@ -306,7 +308,7 @@ class Interface(object):
 
         # populate call routes for member methods
         for cls, descriptor in self.member_methods:
-            self.process_method(cls, descriptor)
+            self.process_method(cls.__orig__ or cls, descriptor)
 
         logger.debug("From this point on, you're not supposed to make any "
                      "changes to the class and method structure of the exposed "
