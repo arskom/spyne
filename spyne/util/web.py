@@ -29,7 +29,7 @@ from inspect import isclass
 
 from spyne.util import six
 
-from spyne import BODY_STYLE_WRAPPED, rpc
+from spyne import BODY_STYLE_WRAPPED, rpc, ByteArray
 from spyne.application import Application as AppBase
 from spyne.const import MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
@@ -276,9 +276,11 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
     if cls.Attributes.logged == 'len':
         l = '?'
-
         try:
-            l = str(len(obj))
+            if isinstance(obj, (list, tuple)):
+                l = str(sum([len(o) for o in obj]))
+            else:
+                l = str(len(obj))
         except TypeError:
             if given_len is not None:
                 l = str(given_len)
