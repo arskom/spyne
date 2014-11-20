@@ -351,7 +351,7 @@ def rpc(*params, **kparams):
                 service_class=_service_class, href=_href,
             )
 
-            if _patterns is not None:
+            if _patterns is not None and _no_self:
                 for p in _patterns:
                     p.hello(retval)
 

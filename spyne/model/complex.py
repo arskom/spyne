@@ -341,12 +341,19 @@ class _MethodsDict(dict):
                     if v is d.out_message:
                         d.out_message._type_info[k] = cls
 
+            if d.patterns is not None and not d.no_self:
+                d.name = '.'.join((cls.get_type_name(), d.name))
+                for p in d.patterns:
+                    if p.address is None:
+                        p.address = d.name
+                        print p.address
 
-def _gen_methods(cls_dict):
+
+def _gen_methods(cls, cls_dict):
     methods = _MethodsDict()
     for k, v in cls_dict.items():
         if not k.startswith('_') and hasattr(v, '_is_rpc'):
-            descriptor = v(_default_function_name=k)
+            descriptor = v(_default_function_name=k, _self_ref_replacement=cls)
             cls_dict[k] = descriptor.function
             methods[k] = descriptor
 
@@ -460,10 +467,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
         _type_info = _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs)
 
-        methods = _gen_methods(cls_dict)
-        if len(methods) > 0:
-            attrs.methods = methods
-
         # used for sub_name and sub_ns
         _type_info_alt = cls_dict['_type_info_alt'] = TypeInfo()
         for b in cls_bases:
@@ -526,6 +529,10 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         tn = self.Attributes.table_name
         meta = self.Attributes.sqla_metadata
         t = self.Attributes.sqla_table
+
+        methods = _gen_methods(self, cls_dict)
+        if len(methods) > 0:
+            self.Attributes.methods = methods
 
         methods = self.Attributes.methods
         if methods is not None:
