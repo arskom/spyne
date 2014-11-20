@@ -22,6 +22,7 @@
 subclasses. These are mainly container classes for other simple or
 complex objects -- they don't carry any data by themselves.
 """
+from itertools import chain
 
 import logging
 logger = logging.getLogger(__name__)
@@ -177,10 +178,20 @@ class SelfReference(object):
     """Use this as a placeholder type in classes that contain themselves. See
     :func:`spyne.test.model.test_complex.TestComplexModel.test_self_reference`.
     """
+    customize_args = []
+    customize_kwargs = {}
 
     def __init__(self):
         raise NotImplementedError()
 
+    @classmethod
+    def customize(cls, *args, **kwargs):
+        args = chain(args, cls.customize_args)
+        kwargs = dict(chain(kwargs.items(), cls.customize_kwargs.items()))
+        return type("SelfReference", (cls,), {
+            'customize_args': args,
+            'customize_kwargs': kwargs,
+        })
 
 def _get_spyne_type(cls_name, k, v):
     try:
@@ -479,7 +490,8 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
         for k,v in type_info.items():
             if issubclass(v, SelfReference):
-                type_info[k] = self
+                type_info[k] = self.customize(*v.customize_args,
+                                                           **v.customize_kwargs)
 
             elif issubclass(v, XmlData):
                 self.Attributes._xml_tag_body_as = k, v

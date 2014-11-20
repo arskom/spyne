@@ -24,6 +24,7 @@ It's possible to create custom decorators that wrap the @srpc decorator in order
 to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
+from inspect import isclass
 
 import spyne.const.xml_ns
 
@@ -97,7 +98,6 @@ def _produce_input_message(f, params, kparams, in_message_name,
         else:
             message, = in_params.values()
             message = message.customize(sub_name=in_message_name, sub_ns=ns)
-            assert message.Attributes.sub_name is not None
 
     else:
         message = ComplexModel.produce(type_name=in_message_name,
@@ -181,6 +181,28 @@ def _produce_output_message(func_name, kparams):
     return message
 
 
+def _substitute_self_reference(params, kparams, kwargs, _no_self):
+    from spyne.model import SelfReference
+
+    for i, v in enumerate(params):
+        if isclass(v) and issubclass(v, SelfReference):
+            if _no_self:
+                raise ValueError("SelfReference can't be used in @rpc")
+            else:
+                params[i] = kwargs['_self_ref_replacement']
+        else:
+            params[i] = v
+
+    for k, v in kparams.items():
+        if isclass(v) and issubclass(v, SelfReference):
+            if _no_self:
+                raise ValueError("SelfReference can't be used in @rpc")
+            else:
+                kparams[k] = kwargs['_self_ref_replacement']
+        else:
+            kparams[k] = v
+
+
 def rpc(*params, **kparams):
     """Method decorator to tag a method as a remote procedure call in a
     :class:`spyne.service.ServiceBase` subclass.
@@ -241,8 +263,10 @@ def rpc(*params, **kparams):
         overriding it.
     """
 
+    params = list(params)
+
     def explain(f):
-        def explain_method(*args, **kwargs):
+        def explain_method(**kwargs):
             function_name = kwargs['_default_function_name']
 
             _is_callback = kparams.get('_is_callback', False)
@@ -263,11 +287,7 @@ def rpc(*params, **kparams):
             _service_class = kparams.get("_service_class", None)
             _href = kparams.get("_href", None)
 
-            if _no_self:
-                from spyne.model import SelfReference
-
-                if SelfReference in params or SelfReference in kparams.values():
-                    raise ValueError("SelfReference can't be used in @rpc")
+            _substitute_self_reference(params, kparams, kwargs, _no_self)
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
