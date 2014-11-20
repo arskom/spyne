@@ -93,7 +93,7 @@ class ToParentMixin(ProtocolBase):
         if inst is not None and not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        ctx.protocol.inst_stack.append(inst)
+        ctx.outprot_ctx.inst_stack.append(inst)
         try:
             handler = self.serialization_handlers[cls]
         except KeyError:
@@ -102,7 +102,7 @@ class ToParentMixin(ProtocolBase):
 
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 
-        ctx.protocol.inst_stack.pop()
+        ctx.outprot_ctx.inst_stack.pop()
 
         return retval
 
