@@ -876,6 +876,7 @@ class XmlDocument(SubXmlBase):
                                                          member.attribute_of == key:
                     continue
 
+                mo = member.Attributes.max_occurs
                 if mo > 1:
                     value = getattr(inst, key, None)
                     if value is None:
