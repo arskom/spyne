@@ -199,7 +199,7 @@ class XmlSchemaParser(object):
         self.nsmap.update(elt.nsmap)
         self.prefmap = dict([(v,k) for k,v in self.nsmap.items()])
 
-        sub_schema = _prot.from_element(XmlSchema10, elt)
+        sub_schema = _prot.from_element(None, XmlSchema10, elt)
         if sub_schema.includes:
             for inc in sub_schema.includes:
                 base_dir = dirname(file_name)
