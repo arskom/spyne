@@ -592,12 +592,10 @@ class XmlDocument(SubXmlBase):
 
     @coroutine
     def gen_members_parent(self, ctx, cls, inst, parent, tag_name, subelts):
-        delay = set()
-
         if isinstance(parent, etree._Element):
             elt = etree.SubElement(parent, tag_name)
             elt.extend(subelts)
-            ret = self._get_members_etree(ctx, cls, inst, elt, delay)
+            ret = self._get_members_etree(ctx, cls, inst, elt)
 
             if isgenerator(ret):
                 try:
@@ -615,7 +613,7 @@ class XmlDocument(SubXmlBase):
             with parent.element(tag_name):
                 for e in subelts:
                     parent.write(e)
-                ret = self._get_members_etree(ctx, cls, inst, parent, delay)
+                ret = self._get_members_etree(ctx, cls, inst, parent)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -629,12 +627,12 @@ class XmlDocument(SubXmlBase):
                             pass
 
     @coroutine
-    def _get_members_etree(self, ctx, cls, inst, parent, delay):
+    def _get_members_etree(self, ctx, cls, inst, parent):
         try:
             parent_cls = getattr(cls, '__extends__', None)
 
             if not (parent_cls is None):
-                ret = self._get_members_etree(ctx, parent_cls, inst, parent, delay)
+                ret = self._get_members_etree(ctx, parent_cls, inst, parent)
                 if ret is not None:
                     try:
                         while True:
@@ -663,11 +661,6 @@ class XmlDocument(SubXmlBase):
                 sub_name = v.Attributes.sub_name
                 if sub_name is None:
                     sub_name = k
-
-                if issubclass(v, XmlAttribute) and \
-                                        v.attribute_of in cls._type_info.keys():
-                    delay.add(k)
-                    continue
 
                 mo = v.Attributes.max_occurs
                 if subvalue is not None and mo > 1:
@@ -722,30 +715,6 @@ class XmlDocument(SubXmlBase):
 
         except Break:
             pass
-
-        if isinstance(parent, etree._Element):
-            # attribute_of won't work with async.
-            for k in delay:
-                v = cls._type_info[k]
-
-                subvalue = getattr(inst, k, None)
-                sub_name = v.Attributes.sub_name
-                if sub_name is None:
-                    sub_name = k
-
-                a_of = v.attribute_of
-                ns = cls.__namespace__
-                attr_parents = parent.findall("{%s}%s" % (ns, a_of))
-
-                if cls._type_info[a_of].Attributes.max_occurs > 1:
-                    for subsubvalue, attr_parent in zip(subvalue, attr_parents):
-                        self.to_parent(ctx, v, subsubvalue, attr_parent,
-                                                           v.get_namespace(), k)
-
-                else:
-                    for attr_parent in attr_parents:
-                        self.to_parent(ctx, v, subvalue, attr_parent,
-                                                           v.get_namespace(), k)
 
     def complex_to_parent(self, ctx, cls, inst, parent, ns, name=None):
         sub_name = cls.Attributes.sub_name
@@ -872,10 +841,6 @@ class XmlDocument(SubXmlBase):
                     if member is None:
                         continue
 
-                if (not issubclass(member, XmlAttribute)) or \
-                                                         member.attribute_of == key:
-                    continue
-
                 mo = member.Attributes.max_occurs
                 if mo > 1:
                     value = getattr(inst, key, None)
@@ -895,9 +860,6 @@ class XmlDocument(SubXmlBase):
                 member, key = cls._type_info_alt.get(key, (None, key))
                 if member is None:
                     continue
-
-            if (not issubclass(member, XmlAttribute)) or member.attribute_of == key:
-                continue
 
             if issubclass(member.type, (ByteArray, File)):
                 value = self.from_string(member.type, value_str,
