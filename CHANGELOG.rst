@@ -5,6 +5,7 @@ Changelog
 
 spyne-2.12.0
 ------------
+* XmlObject: Support for "attribute_of" is removed.
 * NullServer now supports async.
 * XmlCloth was rewritten while less sleep-deprived.
 * ProtocolBase now also implements serializing primitives to unicode.

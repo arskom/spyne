@@ -103,8 +103,7 @@ class ByteArray(SimpleModel):
 
     @classmethod
     def to_base64(cls, value):
-        joiner = type(value)()
-        return b64encode(joiner.join(value))
+        return b64encode(b''.join(value))
 
     @classmethod
     def from_base64(cls, value):
