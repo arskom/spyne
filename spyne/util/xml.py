@@ -149,6 +149,6 @@ def parse_schema_element(elt, files={}, repr_=Thier_repr(with_ns=False)):
 
 
 def parse_schema_file(file_name, files={}, repr_=Thier_repr(with_ns=False)):
-    elt = etree.fromstring(open(file_name).read(), parser=PARSER)
+    elt = etree.fromstring(open(file_name, 'rb').read(), parser=PARSER)
     return XmlSchemaParser(files, abspath(dirname(file_name)), repr_=repr_) \
                                                              .parse_schema(elt)

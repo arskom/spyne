@@ -103,13 +103,15 @@ class ByteArray(SimpleModel):
 
     @classmethod
     def to_base64(cls, value):
-        return b64encode(_bytes_join(value))
+        joiner = type(value)()
+        return b64encode(joiner.join(value))
 
     @classmethod
     def from_base64(cls, value):
+        joiner = type(value)()
         try:
-            return [b64decode(_bytes_join(value))]
-        except TypeError as e:
+            return [b64decode(joiner.join(value))]
+        except TypeError:
             raise ValidationError(value)
 
     @classmethod

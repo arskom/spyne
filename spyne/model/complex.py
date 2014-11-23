@@ -22,7 +22,8 @@
 subclasses. These are mainly container classes for other simple or
 complex objects -- they don't carry any data by themselves.
 """
-from itertools import chain
+
+from __future__ import print_function
 
 import logging
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ import decimal
 from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
+from itertools import chain
 
 from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY
 from spyne import const
@@ -346,7 +348,6 @@ class _MethodsDict(dict):
                 for p in d.patterns:
                     if p.address is None:
                         p.address = d.name
-                        print p.address
 
 
 def _gen_methods(cls, cls_dict):

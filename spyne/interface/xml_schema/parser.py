@@ -183,7 +183,7 @@ class XmlSchemaParser(object):
         logger.debug("%s%s" % ("  " * (self.indent + 2), s), *args, **kwargs)
 
     def parse_schema_file(self, file_name):
-        elt = etree.fromstring(open(file_name).read(), parser=PARSER)
+        elt = etree.fromstring(open(file_name, 'rb').read(), parser=PARSER)
         return self.parse_schema(elt)
 
     def process_includes(self, include):
@@ -194,7 +194,7 @@ class XmlSchemaParser(object):
         self.debug1("including %s %s", self.base_dir, file_name)
 
         file_name = abspath(join(self.base_dir, file_name))
-        data = open(file_name).read()
+        data = open(file_name, 'rb').read()
         elt = etree.fromstring(data, parser=PARSER)
         self.nsmap.update(elt.nsmap)
         self.prefmap = dict([(v,k) for k,v in self.nsmap.items()])
@@ -480,7 +480,7 @@ class XmlSchemaParser(object):
     def process_pending(self):
         # process pending
         self.debug0("6 %s processing pending complex_types", B(self.tns))
-        for (c_name, e_name), _v in self.pending_types.items():
+        for (c_name, e_name), _v in list(self.pending_types.items()):
             self.process_complex_type(_v)
 
         self.debug0("7 %s processing pending elements", Y(self.tns))
