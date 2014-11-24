@@ -359,7 +359,7 @@ def _gen_methods(cls, cls_dict):
     for k, v in cls_dict.items():
         if not k.startswith('_') and hasattr(v, '_is_rpc'):
             descriptor = v(_default_function_name=k, _self_ref_replacement=cls)
-            cls_dict[k] = descriptor.function
+            setattr(cls, k, descriptor.function)
             methods[k] = descriptor
 
     return methods
