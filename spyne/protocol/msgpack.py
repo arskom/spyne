@@ -89,8 +89,15 @@ class MessagePackDocument(HierDictDocument):
             argument is ignored.
         """
 
+        # TODO: Use feed api as msgpack's implementation reads everything in one
+        # go anyway.
+
+        # handle mmap objects from in ctx.in_string as returned by
+        # TwistedWebResource.handle_rpc.
+        in_string = ((s.read(s.size()) if hasattr(s, 'read') else s)
+                                                         for s in ctx.in_string)
         try:
-            ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string))
+            ctx.in_document = msgpack.unpackb(b''.join(in_string))
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
@@ -104,7 +111,8 @@ class MessagePackDocument(HierDictDocument):
             return value
 
     def integer_to_string(self, cls, value):
-        if -1<<63 <= value < 1<<64: # if it's inside the range msgpack can deal with
+        # if it's inside the range msgpack can deal with
+        if -1<<63 <= value < 1<<64:
             return value
         else:
             return super(MessagePackDocument, self).integer_to_string(cls, value)
