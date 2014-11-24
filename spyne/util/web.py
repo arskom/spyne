@@ -303,7 +303,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
         else:
             for i, o in enumerate(obj):
-                if i > MAX_ARRAY_ELEMENT_NUM:
+                if i >= MAX_ARRAY_ELEMENT_NUM:
                     retval.append("(...)")
                     break
 
@@ -320,7 +320,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
         i = 0
 
         for k, t in cls.get_flat_type_info(cls).items():
-            if i > MAX_FIELD_NUM:
+            if i >= MAX_FIELD_NUM:
                 retval.append("(...)")
                 break
 
