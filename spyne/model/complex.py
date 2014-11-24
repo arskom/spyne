@@ -182,6 +182,7 @@ class SelfReference(object):
     """
     customize_args = []
     customize_kwargs = {}
+    __orig__ = None
 
     def __init__(self):
         raise NotImplementedError()
@@ -190,6 +191,9 @@ class SelfReference(object):
     def customize(cls, *args, **kwargs):
         args = chain(args, cls.customize_args)
         kwargs = dict(chain(kwargs.items(), cls.customize_kwargs.items()))
+        if cls.__orig__ is None:
+            cls.__orig__ = cls
+
         return type("SelfReference", (cls,), {
             'customize_args': args,
             'customize_kwargs': kwargs,
@@ -492,10 +496,10 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
             if self.Attributes._subclasses is eattr._subclasses:
                 self.Attributes._subclasses = None
 
-        for k,v in type_info.items():
+        for k, v in type_info.items():
             if issubclass(v, SelfReference):
-                type_info[k] = self.customize(*v.customize_args,
-                                                           **v.customize_kwargs)
+                self.replace_field(k, self.customize(*v.customize_args,
+                                                          **v.customize_kwargs))
 
             elif issubclass(v, XmlData):
                 self.Attributes._xml_tag_body_as = k, v
@@ -1021,6 +1025,17 @@ class ComplexModelBase(ModelBase):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
                 c.append_field(field_name, field_type)
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
+
+    @classmethod
+    def replace_field(cls, field_name, field_type):
+        assert isinstance(field_name, string_types)
+
+        cls._type_info[field_name] = field_type
+        if cls.Attributes._variants is not None:
+            for c in cls.Attributes._variants:
+                c.replace_field(field_name, field_type)
         ComplexModelBase.get_flat_type_info.memo.clear()
         ComplexModelBase.get_simple_type_info.memo.clear()
 

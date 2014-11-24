@@ -483,8 +483,8 @@ class TestFlatDict(unittest.TestCase):
         d = SimpleDictDocument().object_to_simple_dict(CCM, val)
         pprint(d)
 
-        assert d['c[0].i'] == [0,1]
-        assert d['c[1].i'] == [0,1,2]
+        assert d['c[0].i'] == [0, 1]
+        assert d['c[1].i'] == [0, 1, 2]
 
         assert len(d) == 2
 
@@ -494,16 +494,17 @@ class TestSelfRefence(unittest.TestCase):
         class TestSelfReference(ComplexModel):
             self_reference = SelfReference
 
-        assert (TestSelfReference._type_info['self_reference'] is TestSelfReference)
+        c = TestSelfReference._type_info['self_reference']
+        c = c.__orig__ or c
+
+        assert c is TestSelfReference
 
         class SoapService(ServiceBase):
             @rpc(_returns=TestSelfReference)
             def view_categories(ctx):
                 pass
 
-        Application([SoapService], 'service.soap',
-                            in_protocol=ProtocolBase(),
-                            out_protocol=ProtocolBase())
+        Application([SoapService], 'service.soap')
 
     def test_self_referential_array_workaround(self):
         from spyne.util.dictdoc import get_object_as_dict
