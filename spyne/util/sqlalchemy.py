@@ -568,7 +568,7 @@ def get_sqlalchemy_type(cls):
 
     elif issubclass(cls, DateTime):
         if cls.Attributes.timezone is None:
-            if cls.Attributes.as_time_zone is None:
+            if cls.Attributes.as_timezone is None:
                 return sqlalchemy.DateTime(timezone=True)
             else:
                 return sqlalchemy.DateTime(timezone=False)

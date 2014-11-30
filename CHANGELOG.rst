@@ -179,7 +179,7 @@ spyne-2.10.0
   You can set ``ctx.out_document`` to have the return value from user funtion
   ignored. You can also set ``ctx.out_string`` to have the ``ctx.out_document``
   ignored as well.
-* Added as_time_zone support to DateTime. It calls
+* Added as_timezone support to DateTime. It calls
   ``.astimezone(as_time_zone).replace(tzinfo=None)`` on native values.
 * Added YAML support via PyYaml.
 * Split dict logic in DictDocument as ``HierDictDocument`` and
