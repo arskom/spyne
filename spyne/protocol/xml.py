@@ -860,6 +860,8 @@ class XmlDocument(SubXmlBase):
                 member, key = cls._type_info_alt.get(key, (None, key))
                 if member is None:
                     continue
+            if not issubclass(member, XmlAttribute):
+                continue
 
             if issubclass(member.type, (ByteArray, File)):
                 value = self.from_string(member.type, value_str,
