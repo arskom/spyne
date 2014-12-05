@@ -416,6 +416,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
+        pprint(objects)
         pprint(objects[tns].types)
 
         NewGuy = objects['some_ns'].types["SomeGuy"]

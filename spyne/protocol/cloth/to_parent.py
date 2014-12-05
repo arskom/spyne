@@ -102,6 +102,8 @@ class ToParentMixin(ProtocolBase):
 
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 
+        # FIXME: to_parent must be made to a coroutine for the below to remain
+        #        consistent
         ctx.outprot_ctx.inst_stack.pop()
 
         return retval

@@ -129,20 +129,24 @@ class HtmlColumnTable(HtmlTableBase):
     @coroutine
     def _gen_row(self, ctx, cls, inst, parent, name, from_arr=False,
                                                     array_index=None, **kwargs):
+
+        # because HtmlForm* protocols don't use the global null handler, it's
+        # possible for null values to reach here.
         if inst is None:
             return
 
         print("Generate row for", cls)
+
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
                 attr = get_cls_attrs(self, v)
                 if attr.exc:
-                    print("\tExclude field %r type %r" % (k, v), "for", cls)
+                    print("\tExclude table cell %r type %r" % (k, v), "for", cls)
                     continue
                 if not attr.get('read', True):
                     continue
 
-                print("\tGenerate field %r type %r" % (k, v), "for", cls)
+                print("\tGenerate table cell %r type %r" % (k, v), "for", cls)
 
                 try:
                     sub_value = getattr(inst, k, None)
@@ -225,7 +229,7 @@ class HtmlColumnTable(HtmlTableBase):
             self.extend_data_row(ctx, cls, inst, parent, name,
                                               array_index=array_index, **kwargs)
 
-    def _gen_header(self, ctx, cls, name, parent):
+    def _gen_thead(self, ctx, cls, name, parent):
         logger.debug("Generate header for %r", cls)
 
         with parent.element('thead'):
@@ -277,7 +281,7 @@ class HtmlColumnTable(HtmlTableBase):
 
         with parent.element('table', attrib):
             if self.produce_header:
-                self._gen_header(ctx, cls, name, parent)
+                self._gen_thead(ctx, cls, name, parent)
 
             with parent.element('tbody'):
                 ret = gen_rows(ctx, cls, inst, parent, name, **kwargs)
