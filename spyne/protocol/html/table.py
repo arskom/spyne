@@ -129,6 +129,9 @@ class HtmlColumnTable(HtmlTableBase):
     @coroutine
     def _gen_row(self, ctx, cls, inst, parent, name, from_arr=False,
                                                     array_index=None, **kwargs):
+        if inst is None:
+            return
+
         print("Generate row for", cls)
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
