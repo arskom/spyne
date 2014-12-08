@@ -1043,10 +1043,13 @@ def _file_to_iter(f):
         f.close()
 
 
+META_ATTR = ['nullable', 'default_factory']
+
+
 @memoize_id
 def get_cls_attrs(prot, cls):
     attr = DefaultAttrDict([(k, getattr(cls.Attributes, k))
-                        for k in dir(cls.Attributes) if not k.startswith('__')])
+            for k in dir(cls.Attributes) + META_ATTR if not k.startswith('__')])
     if cls.Attributes.prot_attrs:
         attr.update(cls.Attributes.prot_attrs.get(prot.__class__, {}))
         attr.update(cls.Attributes.prot_attrs.get(prot, {}))
