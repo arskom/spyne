@@ -371,6 +371,10 @@ class Interface(object):
 
         # add parent class
         extends = getattr(cls, '__extends__', None)
+        while extends is not None and \
+                                   (extends.get_type_name() is ModelBase.Empty):
+            extends = getattr(extends, '__extends__', None)
+
         if add_parent and extends is not None:
             assert issubclass(extends, ModelBase)
             self.deps[cls].add(extends)

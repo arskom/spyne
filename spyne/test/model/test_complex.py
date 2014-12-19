@@ -753,5 +753,6 @@ class TestMemberRpc(unittest.TestCase):
 
         assert CM._type_info.keys() == ['c', 'a']
 
+
 if __name__ == '__main__':
     unittest.main()
