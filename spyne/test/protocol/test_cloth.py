@@ -22,13 +22,47 @@ logger = logging.getLogger(__name__)
 
 import unittest
 
-from lxml import etree
+from lxml import etree, html
 from lxml.builder import E
 
 from spyne import ComplexModel, XmlAttribute, Unicode, Array, Integer
 from spyne.protocol.cloth import XmlCloth
 from spyne.test import FakeContext
 from spyne.util.six import BytesIO
+
+
+class TestModelCloth(unittest.TestCase):
+    def test_root_html(self):
+        class SomeObject(ComplexModel):
+            class Attributes(ComplexModel.Attributes):
+                html_cloth = html.fromstring("<html><body spyne></body></html>")
+
+        assert SomeObject.Attributes._html_cloth is not None
+        assert SomeObject.Attributes._html_root_cloth is not None
+
+    def test_html(self):
+        class SomeObject(ComplexModel):
+            class Attributes(ComplexModel.Attributes):
+                html_cloth = html.fromstring('<html><body spyne_id="za"></body></html>')
+
+        assert SomeObject.Attributes._html_cloth is not None
+        assert SomeObject.Attributes._html_root_cloth is None
+
+    def test_root_xml(self):
+        class SomeObject(ComplexModel):
+            class Attributes(ComplexModel.Attributes):
+                xml_cloth = etree.fromstring('<html><body spyne=""></body></html>')
+
+        assert SomeObject.Attributes._xml_cloth is not None
+        assert SomeObject.Attributes._xml_root_cloth is not None
+
+    def test_xml(self):
+        class SomeObject(ComplexModel):
+            class Attributes(ComplexModel.Attributes):
+                html_cloth = html.fromstring('<html><body spyne_id="za"></body></html>')
+
+        assert SomeObject.Attributes._xml_cloth is not None
+        assert SomeObject.Attributes._xml_root_cloth is None
 
 
 class TestXmlCloth(unittest.TestCase):

@@ -43,22 +43,20 @@ def _gen_tagname(ns, name):
         name = "{%s}%s" % (ns, name)
     return name
 
+class ClothParserMixin(object):
+    @classmethod
+    def from_xml_cloth(cls, cloth):
+        retval = cls()
+        retval._init_cloth(cloth, attr_name='spyne', root_attr_name='spyne',
+                           cloth_parser=etree.XMLParser())
+        return retval
 
-class ToClothMixin(ProtocolBase):
-    def __init__(self, app=None, validator=None, mime_type=None,
-                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
-        super(ToClothMixin, self).__init__(app=app, validator=validator,
-                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
-                                                ignore_wrappers=ignore_wrappers)
-
-        self.polymorphic = polymorphic
-
-        self.rendering_handlers = cdict({
-            ModelBase: self.model_base_to_cloth,
-            AnyXml: self.xml_to_cloth,
-            AnyHtml: self.html_to_cloth,
-            ComplexModelBase: self.complex_to_cloth,
-        })
+    @classmethod
+    def from_html_cloth(cls, cloth):
+        retval = cls()
+        retval._init_cloth(cloth, attr_name='spyne', root_attr_name='spyne',
+                           cloth_parser=html.HTMLParser())
+        return retval
 
     def _parse_file(self, file_name, cloth_parser):
         if cloth_parser is None:
@@ -89,6 +87,34 @@ class ToClothMixin(ProtocolBase):
         if self._cloth is not None:
             self._mrpc_cloth = self._pop_elt(self._cloth, 'mrpc_entry')
 
+    def _pop_elt(self, elt, what):
+        query = '//*[@%s="%s"]' % (self.attr_name, what)
+        retval = elt.xpath(query)
+        if len(retval) > 1:
+            raise ValueError("more than one element found for query %r" % query)
+
+        elif len(retval) == 1:
+            retval = retval[0]
+            retval.iterancestors().next().remove(retval)
+            return retval
+
+
+class ToClothMixin(ProtocolBase, ClothParserMixin):
+    def __init__(self, app=None, validator=None, mime_type=None,
+                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
+        super(ToClothMixin, self).__init__(app=app, validator=validator,
+                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
+                                                ignore_wrappers=ignore_wrappers)
+
+        self.polymorphic = polymorphic
+
+        self.rendering_handlers = cdict({
+            ModelBase: self.model_base_to_cloth,
+            AnyXml: self.xml_to_cloth,
+            AnyHtml: self.html_to_cloth,
+            ComplexModelBase: self.complex_to_cloth,
+        })
+
     def _get_elts(self, elt, tag_id=None):
         if tag_id is None:
             return elt.xpath('.//*[@%s]' % self.attr_name)
@@ -107,17 +133,6 @@ class ToClothMixin(ProtocolBase):
             if not id(elt) in ids:
                 ids.add(id(elt))
                 yield elt
-
-    def _pop_elt(self, elt, what):
-        query = '//*[@%s="%s"]' % (self.attr_name, what)
-        retval = elt.xpath(query)
-        if len(retval) > 1:
-            raise ValueError("more than one element found for query %r" % query)
-
-        elif len(retval) == 1:
-            retval = retval[0]
-            retval.iterancestors().next().remove(retval)
-            return retval
 
     def _get_clean_elt(self, elt, what):
         query = '//*[@%s="%s"]' % (self.attr_name, what)

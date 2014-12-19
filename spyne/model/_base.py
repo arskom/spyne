@@ -86,6 +86,18 @@ class AttributesMeta(type(object)):
         if not hasattr(self, '_default_factory'):
             self._default_factory = None
 
+        self._html_cloth = None
+        self._html_root_cloth = None
+
+        if 'html_cloth' in cls_dict:
+            self.set_html_cloth(cls_dict.pop('html_cloth'))
+
+        self._xml_cloth = None
+        self._xml_root_cloth = None
+
+        if 'xml_cloth' in cls_dict:
+            self.set_html_cloth(cls_dict.pop('xml_cloth'))
+
         super(AttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
     def get_nullable(self):
@@ -112,6 +124,44 @@ class AttributesMeta(type(object)):
         self._default_factory = staticmethod(what)
 
     default_factory = property(get_default_factory, set_default_factory)
+
+    def get_html_cloth(self):
+        return self._html_cloth
+    def set_html_cloth(self, what):
+        from spyne.protocol.cloth.to_cloth import ClothParserMixin
+        cm = ClothParserMixin.from_html_cloth(what)
+        if cm._root_cloth is not None:
+            self._html_root_cloth = cm._root_cloth
+            self._html_cloth = cm._cloth
+        elif cm._cloth is not None:
+            self._html_root_cloth = None
+            self._html_cloth = cm._cloth
+        else:
+            raise Exception("%r is not a suitable cloth", what)
+    html_cloth = property(get_html_cloth, set_html_cloth)
+
+    def get_html_root_cloth(self):
+        return self._html_cloth
+    html_root_cloth = property(get_html_root_cloth)
+
+    def get_xml_cloth(self):
+        return self._xml_cloth
+    def set_xml_cloth(self, what):
+        from spyne.protocol.cloth.to_cloth import ClothParserMixin
+        cm = ClothParserMixin.from_html_cloth(what)
+        if cm._xml_root_cloth is not None:
+            self._xml_root_cloth = cm._root_cloth
+            self._xml_cloth = cm._cloth
+        elif cm._cloth is not None:
+            self._xml_root_cloth = None
+            self._xml_cloth = cm._cloth
+        else:
+            raise Exception("%r is not a suitable cloth", what)
+    xml_cloth = property(get_xml_cloth, set_xml_cloth)
+
+    def get_xml_root_cloth(self):
+        return self._root_cloth
+    xml_root_cloth = property(get_xml_root_cloth)
 
 
 class ModelBase(object):

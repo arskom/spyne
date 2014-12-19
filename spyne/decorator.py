@@ -137,6 +137,7 @@ def _produce_output_message(func_name, kparams):
 
     _returns = kparams.get('_returns')
     _body_style = _validate_body_style(kparams)
+    _out_body_bare = kparams.get("_out_body_bare", False)
     _out_message_name = kparams.get('_out_message_name', '%s%s' %
                                        (func_name, spyne.const.RESPONSE_SUFFIX))
 
@@ -165,11 +166,10 @@ def _produce_output_message(func_name, kparams):
     if _out_message_name.startswith("{"):
         ns = _out_message_name[1:].partition("}")[0]
 
-    if _body_style == 'bare' and _returns is not None:
+    if (_body_style == 'bare' or _out_body_bare) and _returns is not None:
         message = _returns.customize(sub_name=_out_message_name, sub_ns=ns)
         if message.__type_name__ is ModelBase.Empty:
             message.__type_name__ = _out_message_name
-
 
     else:
         message = ComplexModel.produce(type_name=_out_message_name,
