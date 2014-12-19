@@ -264,9 +264,10 @@ class ModelBase(object):
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
-        __use_parent_doc__ = False
-        """If set to True Annotations will use __doc__ from parent,
-        This is a convenience option"""
+        __use_parent_doc__ = True
+        """If equal to True and doc is empty, Annotations will use __doc__
+        from parent. Set it to False to avoid this mechanism. This is a
+        convenience option"""
 
         doc = ""
         """The public documentation for the given type."""
@@ -394,6 +395,15 @@ class ModelBase(object):
         return unicode(value)
 
     @classmethod
+    def get_documentation(cls):
+        if cls.Annotations.doc:
+            return cls.Annotations.doc
+        elif cls.Annotations.__use_parent_doc__:
+            return cls.__doc__
+        else:
+            return ''
+
+    @classmethod
     def customize(cls, **kwargs):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
@@ -410,7 +420,7 @@ class ModelBase(object):
         Not meant to be overridden.
         """
 
-        cls_dict = odict({'__module__': cls.__module__})
+        cls_dict = odict({'__module__': cls.__module__, '__doc__': cls.__doc__})
 
         if getattr(cls, '__orig__', None) is None:
             cls_dict['__orig__'] = cls
