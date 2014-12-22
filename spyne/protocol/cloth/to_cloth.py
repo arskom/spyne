@@ -43,6 +43,7 @@ def _gen_tagname(ns, name):
         name = "{%s}%s" % (ns, name)
     return name
 
+
 class ClothParserMixin(object):
     @classmethod
     def from_xml_cloth(cls, cloth):
