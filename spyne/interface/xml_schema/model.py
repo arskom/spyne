@@ -111,7 +111,7 @@ def simple_get_restriction_tag(document, cls):
 
     for v in cls.Attributes.values:
         enumeration = etree.SubElement(restriction, XSD('enumeration'))
-        enumeration.set('value', str(v))
+        enumeration.set('value', XmlDocument().to_unicode(cls, v))
 
     return restriction
 
