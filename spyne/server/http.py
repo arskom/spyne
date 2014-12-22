@@ -69,6 +69,9 @@ class HttpTransportContext(TransportContext):
             # So that deserialization is skipped.
             self.parent.out_string = []
 
+    def get_path(self):
+        raise NotImplementedError()
+
     def get_cookie(self, key):
         raise NotImplementedError()
 

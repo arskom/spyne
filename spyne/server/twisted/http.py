@@ -157,6 +157,9 @@ class TwistedHttpTransportContext(HttpTransportContext):
     def get_cookie(self, key):
         return self.req.getCookie(key)
 
+    def get_path(self):
+        return self.req.URLPath().path
+
 
 class TwistedHttpMethodContext(HttpMethodContext):
     default_transport_context = TwistedHttpTransportContext

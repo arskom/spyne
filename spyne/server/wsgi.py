@@ -133,6 +133,9 @@ class WsgiTransportContext(HttpTransportContext):
         self.req_method = req_env.get('REQUEST_METHOD', None)
         """HTTP Request verb, as a convenience to users."""
 
+    def get_path(self):
+        return self.req_env['PATH_INFO']
+
     def get_cookie(self, key):
         cookie_string = self.req_env.get('HTTP_COOKIE', None)
         if cookie_string is None:
