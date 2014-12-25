@@ -623,4 +623,6 @@ class FakeContext(object):
         self.out_document = out_document
         self.out_string = out_string
         self.protocol = type("ProtocolContext", (object,), {})()
+        self.inprot_ctx = type("ProtocolContext", (object,), {})()
+        self.outprot_ctx = type("ProtocolContext", (object,), {})()
         self.transport = type("ProtocolContext", (object,), {})()
