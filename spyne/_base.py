@@ -610,8 +610,9 @@ class EventManager(object):
 
 class FakeContext(object):
     def __init__(self, app=None, descriptor=None,
-           in_object=None, in_error=None, in_document=None, in_string=None,
-           out_object=None, out_error=None, out_document=None, out_string=None):
+            in_object=None, in_error=None, in_document=None, in_string=None,
+            out_object=None, out_error=None, out_document=None, out_string=None,
+            in_protocol=None, out_protocol=None):
         self.app = app
         self.descriptor = descriptor
         self.in_object = in_object
@@ -622,7 +623,18 @@ class FakeContext(object):
         self.out_object = out_object
         self.out_document = out_document
         self.out_string = out_string
-        self.protocol = type("ProtocolContext", (object,), {})()
-        self.inprot_ctx = type("ProtocolContext", (object,), {})()
-        self.outprot_ctx = type("ProtocolContext", (object,), {})()
+        self.in_protocol = in_protocol
+        self.out_protocol = out_protocol
+
+        if self.in_protocol is not None:
+            self.inprot_ctx = self.in_protocol.get_context(self, None)
+        else:
+            self.inprot_ctx = type("ProtocolContext", (object,), {})()
+
+        if self.out_protocol is not None:
+            self.outprot_ctx = self.out_protocol.get_context(self, None)
+        else:
+            self.outprot_ctx = type("ProtocolContext", (object,), {})()
+
+        self.protocol = self.outprot_ctx
         self.transport = type("ProtocolContext", (object,), {})()
