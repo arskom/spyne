@@ -928,6 +928,8 @@ class XmlDocument(SubXmlBase):
 
         if len(children) == 1:
             retval = children[0]
+        # this is actually a workaround to a case that should never exist --
+        # anyXml types should only have one child tag.
         elif len(children) > 1:
             retval = E.html(*children)
 
