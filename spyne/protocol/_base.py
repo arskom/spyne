@@ -510,7 +510,7 @@ class ProtocolBase(object):
         return retval
 
     def decimal_to_string(self, cls, value):
-        D(value)
+        D(value)  # sanity check
         if cls.Attributes.str_format is not None:
             return cls.Attributes.str_format.format(value)
         elif cls.Attributes.format is not None:
@@ -544,7 +544,7 @@ class ProtocolBase(object):
             raise ValidationError(string, "%%r: %r" % e)
 
     def integer_to_string(self, cls, value):
-        int(value) # sanity check
+        int(value)  # sanity check
 
         if cls.Attributes.format is None:
             return str(value)
