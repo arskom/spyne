@@ -929,7 +929,7 @@ class XmlDocument(SubXmlBase):
         if len(children) == 1:
             retval = children[0]
         elif len(children) > 1:
-            retval = E.p(*children)
+            retval = E.html(*children)
 
         return retval
 
