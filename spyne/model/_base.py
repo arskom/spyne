@@ -96,7 +96,7 @@ class AttributesMeta(type(object)):
         self._xml_root_cloth = None
 
         if 'xml_cloth' in cls_dict:
-            self.set_html_cloth(cls_dict.pop('xml_cloth'))
+            self.set_xml_cloth(cls_dict.pop('xml_cloth'))
 
         super(AttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
@@ -148,8 +148,8 @@ class AttributesMeta(type(object)):
         return self._xml_cloth
     def set_xml_cloth(self, what):
         from spyne.protocol.cloth.to_cloth import ClothParserMixin
-        cm = ClothParserMixin.from_html_cloth(what)
-        if cm._xml_root_cloth is not None:
+        cm = ClothParserMixin.from_xml_cloth(what)
+        if cm._root_cloth is not None:
             self._xml_root_cloth = cm._root_cloth
             self._xml_cloth = cm._cloth
         elif cm._cloth is not None:
