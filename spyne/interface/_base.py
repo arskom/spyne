@@ -59,6 +59,7 @@ class Interface(object):
         self.nsmap = {}
         self.prefmap = {}
         self.member_methods = deque()
+        self.method_descriptor_id_to_key = {}
 
         self.import_base_namespaces = import_base_namespaces
         self.app = app
@@ -309,6 +310,10 @@ class Interface(object):
         # populate call routes for member methods
         for cls, descriptor in self.member_methods:
             self.process_method(cls.__orig__ or cls, descriptor)
+
+        # populate method descriptor id to method key map
+        self.method_descriptor_id_to_key = dict(((id(v[0]), k)
+                                    for k,v in self.service_method_map.items()))
 
         logger.debug("From this point on, you're not supposed to make any "
                      "changes to the class and method structure of the exposed "

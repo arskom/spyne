@@ -215,12 +215,8 @@ class HtmlColumnTable(HtmlTableBase):
 
                         params = urlencode(pd)
 
-                        # FIXME: omg!..
-                        href = {id(v[0]): k
-                                for k,v in
-                                    ctx.app.interface.service_method_map.items()
-                            }[id(md)].rsplit("}",1)[-1]
-
+                        mdid2key = ctx.app.interface.method_descriptor_id_to_key
+                        href = mdid2key[id(md)].rsplit("}",1)[-1]
                         text = md.translate(ctx.locale,
                                                   md.in_message.get_type_name())
                         parent.write(E.a(text, href="%s?%s" % (href, params)))
