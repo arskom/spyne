@@ -223,7 +223,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             if ancestors[:len(eltstack)] != eltstack:
                 # write following siblings before closing parent node
                 for sibl in elt.itersiblings(preceding=False):
-                    print("\twrite exit sibl", sibl.tag, sibl.attrib)
+                    print("\twrite exit sibl", sibl.tag, sibl.attrib, id(sibl))
                     parent.write(sibl)
 
         # write remaining ancestors of the target node.
@@ -236,7 +236,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                 if id(elt) in tags:
                     print("\skip  anc prevsibl", elt.tag, elt.attrib)
                     continue
-                print("\twrite anc prevsibl", elt.tag, elt.attrib)
+                print("\twrite anc prevsibl", elt.tag, elt.attrib, id(elt))
                 parent.write(elt)
 
             # enter the ancestor node
@@ -245,7 +245,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             else:
                 anc_ctx = parent.element(anc.tag, anc.attrib)
             anc_ctx.__enter__()
-            print("\tenter norm", anc.tag, anc.attrib)
+            print("\tenter norm", anc.tag, anc.attrib, id(anc))
             if anc.text is not None:
                 parent.write(anc.text)
             eltstack.append(anc)
