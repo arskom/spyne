@@ -21,12 +21,13 @@
 """The ``spyne.protocol.xml`` module contains an xml-based protocol that
 serializes python objects to xml using Xml Schema conventions.
 
-Logs valid documents to ``'%r'`` and invalid documents to ``'%r'``. Use the
-usual ``logging.getLogger()`` and friends to configure how these get logged.
+Logs valid documents to ``'spyne.protocol.xml'`` and invalid documents to
+``spyne.protocol.xml.invalid``. Use the usual ``logging.getLogger()`` and
+friends to configure how these get logged.
 
 Warning! You can get a lot of crap in the 'invalid' logger. You're not advised
 to turn it on for a production system.
-""" % ('spyne.protocol.xml', 'spyne.protocol.xml.invalid')
+"""
 
 
 import logging
@@ -58,7 +59,6 @@ from spyne.const.ansi_color import END_COLOR
 from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap11_env
 from spyne.const.xml_ns import const_prefmap, DEFAULT_NS
-
 
 from spyne.model import ModelBase
 from spyne.model import Array
