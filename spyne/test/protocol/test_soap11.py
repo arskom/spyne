@@ -408,8 +408,8 @@ class TestSoapHeader(unittest.TestCase):
         server = ServerBase(self.app)
         initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<senv:Envelope xmlns:tns="tns"'
-                'xmlns:wsa="http://www.w3.org/2005/08/addressing"'
+            '<senv:Envelope xmlns:tns="tns" '
+                'xmlns:wsa="http://www.w3.org/2005/08/addressing" '
                 'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
                 '<senv:Header>'
                     '<wsa:Action>/SomeAction</wsa:Action>'
@@ -439,8 +439,8 @@ class TestSoapHeader(unittest.TestCase):
         server = ServerBase(self.app)
         initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<senv:Envelope xmlns:tns="tns"'
-                'xmlns:wsa="http://www.w3.org/2005/08/addressing"'
+            '<senv:Envelope xmlns:tns="tns" '
+                'xmlns:wsa="http://www.w3.org/2005/08/addressing" '
                 'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
                 '<senv:Header>'
                     '<wsa:MessageID>SomeMessageID</wsa:MessageID>'
@@ -472,8 +472,8 @@ class TestSoapHeader(unittest.TestCase):
         server = ServerBase(self.app)
         initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<senv:Envelope xmlns:tns="tns"'
-                'xmlns:wsa="http://www.w3.org/2005/08/addressing"'
+            '<senv:Envelope xmlns:tns="tns" '
+                'xmlns:wsa="http://www.w3.org/2005/08/addressing" '
                 'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
                 '<senv:Header>'
                     '<wsa:MessageID>SomeMessageID</wsa:MessageID>'
