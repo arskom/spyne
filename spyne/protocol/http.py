@@ -97,7 +97,8 @@ class HttpRpc(SimpleDictDocument):
 
     :param app: An :class:'spyne.application.Application` instance.
     :param validator: Validation method to use. One of (None, 'soft')
-    :param mime_type: Default mime type to set. Default is 'application/octet-stream'
+    :param mime_type: Default mime type to set. Default is
+        'application/octet-stream'
     :param tmp_dir: Temporary directory to store partial file uploads. Default
         is to use the OS default.
     :param tmp_delete_on_close: The ``delete`` argument to the
