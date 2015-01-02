@@ -137,6 +137,7 @@ class ProtocolBase(object):
     """Set that contains keywords about a protocol."""
 
     default_binary_encoding = None
+    """Default encoding for binary data. It could be e.g. base64."""
 
     default_string_encoding = None
     """Default encoding for text content. It could be e.g. UTF-8."""
