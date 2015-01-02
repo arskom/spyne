@@ -391,7 +391,11 @@ class XmlDocument(SubXmlBase):
                 else:
                     prefix, objtype = None, xsi_type
 
-                classkey = "{%s}%s" % (element.nsmap[prefix], objtype)
+                ns = element.nsmap.get(prefix)
+                if ns is not None:
+                    classkey = "{%s}%s" % (ns, objtype)
+                else:
+                    raise ValidationError(xsi_type)
 
                 newclass = ctx.app.interface.classes.get(classkey, None)
                 if newclass is None:
