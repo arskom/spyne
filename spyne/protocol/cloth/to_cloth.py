@@ -33,9 +33,21 @@ from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
+_revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
 
-_prevsibls = lambda elt: reversed(list(elt.itersiblings(preceding=True)))
-_revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
+
+def _prevsibls(elt, since=None):
+    return reversed(list(_prevsibls_since(elt, since)))
+
+
+def _prevsibls_since(elt, since):
+    if since is elt:
+        return
+
+    for prevsibl in elt.itersiblings(preceding=True):
+        if prevsibl is since:
+            break
+        yield prevsibl
 
 
 def _gen_tagname(ns, name):
@@ -229,10 +241,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         # write remaining ancestors of the target node.
         for anc in ancestors[len(eltstack):]:
             # write previous siblins of ancestors (if any)
-            prevsibls = _prevsibls(anc)
+            prevsibls = _prevsibls(anc, since=last_elt)
             for elt in prevsibls:
-                if elt is last_elt:
-                    continue
                 if id(elt) in tags:
                     print("\skip  anc prevsibl", elt.tag, elt.attrib)
                     continue
@@ -253,16 +263,15 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
         # now that at the same level as the target node,
         # write its previous siblings
-        if not last_elt is cloth:
-            prevsibls = _prevsibls(cloth)
-            for elt in prevsibls:
-                if elt is last_elt:
-                    continue
-                if id(elt) in tags:
-                    print("\tskip  cloth prevsibl", elt.tag, elt.attrib)
-                    continue
-                print("\twrite cloth prevsibl", elt.tag, elt.attrib)
-                parent.write(elt)
+        prevsibls = _prevsibls(cloth, since=last_elt)
+        for elt in prevsibls:
+            if elt is last_elt:
+                continue
+            if id(elt) in tags:
+                print("\tskip  cloth prevsibl", elt.tag, elt.attrib)
+                continue
+            print("\twrite cloth prevsibl", elt.tag, elt.attrib)
+            parent.write(elt)
 
         if skip:
             tags.add(id(cloth))
