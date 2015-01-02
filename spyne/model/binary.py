@@ -188,7 +188,7 @@ class _Value(ComplexModel):
     _type_info = [
         ('name', Unicode(encoding='utf8')),
         ('type', Unicode),
-        ('data', ByteArray(logged=False)),
+        ('data', ByteArray(logged='len')),
     ]
 
     def __init__(self, name=None, path=None, type='application/octet-stream',

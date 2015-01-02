@@ -176,7 +176,7 @@ class TestLogRepr(unittest.TestCase):
 
         assert log_repr(Z(z="a" * l)) == "Z(z='%s'(...))" % \
                                                 ('a' * MAX_STRING_FIELD_LENGTH)
-        assert log_repr(['a','b','c'], Array(String)) ==  "['a', 'b', 'c']"
+        assert log_repr(['a','b','c'], Array(String)) ==  "['a', 'b', (...)]"
 
     def test_log_repr_complex(self):
         from spyne.model import ByteArray
@@ -195,8 +195,8 @@ class TestLogRepr(unittest.TestCase):
         l = MAX_STRING_FIELD_LENGTH + 100
         val = Z(z=["abc"] * l, t=['t'], f=File.Value(name='aaa', data=['t']))
         print(repr(val))
-        print
-        assert log_repr(val) == "Z(z=['abc', 'abc', 'abc', 'abc', (...)])"
+
+        assert log_repr(val) == "Z(z=['abc', 'abc', (...)])"
 
 
 class TestDeserialize(unittest.TestCase):

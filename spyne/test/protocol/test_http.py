@@ -285,8 +285,8 @@ class TestValidation(unittest.TestCase):
             d = DateTime
 
         class C(ComplexModel):
-            i=Integer(min_occurs=1)
-            cc=Array(CC)
+            i = Integer(min_occurs=1)
+            cc = Array(CC)
 
         class SomeService(ServiceBase):
             @srpc(Array(C))

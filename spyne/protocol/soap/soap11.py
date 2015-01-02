@@ -106,7 +106,7 @@ def _parse_xml_string(xml_string, parser, charset=None):
             root, xmlids = etree.XMLID(string.encode(charset), parser)
 
     except XMLSyntaxError as e:
-        logger_invalid.error(string)
+        logger_invalid.error("%r in string %r", e, string)
         raise Fault('Client.XMLSyntaxError', str(e))
 
     return root, xmlids

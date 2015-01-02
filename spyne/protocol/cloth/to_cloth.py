@@ -33,9 +33,21 @@ from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
+_revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
 
-_prevsibls = lambda elt: reversed(list(elt.itersiblings(preceding=True)))
-_revancestors = lambda elt: list(reversed(list(elt.iterancestors())))
+
+def _prevsibls(elt, since=None):
+    return reversed(list(_prevsibls_since(elt, since)))
+
+
+def _prevsibls_since(elt, since):
+    if since is elt:
+        return
+
+    for prevsibl in elt.itersiblings(preceding=True):
+        if prevsibl is since:
+            break
+        yield prevsibl
 
 
 def _gen_tagname(ns, name):
@@ -44,27 +56,26 @@ def _gen_tagname(ns, name):
     return name
 
 
-class ToClothMixin(ProtocolBase):
-    def __init__(self, app=None, validator=None, mime_type=None,
-                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
-        super(ToClothMixin, self).__init__(app=app, validator=validator,
-                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
-                                                ignore_wrappers=ignore_wrappers)
+class ClothParserMixin(object):
+    @classmethod
+    def from_xml_cloth(cls, cloth):
+        retval = cls()
+        retval._init_cloth(cloth, attr_name='spyne', root_attr_name='spyne',
+                           cloth_parser=etree.XMLParser())
+        return retval
 
-        self.polymorphic = polymorphic
-
-        self.rendering_handlers = cdict({
-            ModelBase: self.model_base_to_cloth,
-            AnyXml: self.xml_to_cloth,
-            AnyHtml: self.html_to_cloth,
-            ComplexModelBase: self.complex_to_cloth,
-        })
+    @classmethod
+    def from_html_cloth(cls, cloth):
+        retval = cls()
+        retval._init_cloth(cloth, attr_name='spyne', root_attr_name='spyne',
+                           cloth_parser=html.HTMLParser())
+        return retval
 
     def _parse_file(self, file_name, cloth_parser):
         if cloth_parser is None:
             cloth_parser = etree.XMLParser(remove_comments=True)
 
-        self._cloth = etree.parse(cloth, parser=cloth_parser)
+        self._cloth = etree.parse(file_name, parser=cloth_parser)
         self._cloth = self._cloth.getroot()
 
     def _init_cloth(self, cloth, attr_name, root_attr_name, cloth_parser):
@@ -80,7 +91,7 @@ class ToClothMixin(ProtocolBase):
             self._parse_file(self._cloth, cloth_parser)
 
         if self._cloth is not None:
-            logger.debug("Using cloth as root.")
+            print("Using cloth as root.")
             q = "//*[@%s]" % self.root_attr_name
             elts = self._cloth.xpath(q)
             if len(elts) > 0:
@@ -88,6 +99,34 @@ class ToClothMixin(ProtocolBase):
 
         if self._cloth is not None:
             self._mrpc_cloth = self._pop_elt(self._cloth, 'mrpc_entry')
+
+    def _pop_elt(self, elt, what):
+        query = '//*[@%s="%s"]' % (self.attr_name, what)
+        retval = elt.xpath(query)
+        if len(retval) > 1:
+            raise ValueError("more than one element found for query %r" % query)
+
+        elif len(retval) == 1:
+            retval = retval[0]
+            retval.iterancestors().next().remove(retval)
+            return retval
+
+
+class ToClothMixin(ProtocolBase, ClothParserMixin):
+    def __init__(self, app=None, validator=None, mime_type=None,
+                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
+        super(ToClothMixin, self).__init__(app=app, validator=validator,
+                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
+                                                ignore_wrappers=ignore_wrappers)
+
+        self.polymorphic = polymorphic
+
+        self.rendering_handlers = cdict({
+            ModelBase: self.model_base_to_cloth,
+            AnyXml: self.xml_to_cloth,
+            AnyHtml: self.html_to_cloth,
+            ComplexModelBase: self.complex_to_cloth,
+        })
 
     def _get_elts(self, elt, tag_id=None):
         if tag_id is None:
@@ -107,17 +146,6 @@ class ToClothMixin(ProtocolBase):
             if not id(elt) in ids:
                 ids.add(id(elt))
                 yield elt
-
-    def _pop_elt(self, elt, what):
-        query = '//*[@%s="%s"]' % (self.attr_name, what)
-        retval = elt.xpath(query)
-        if len(retval) > 1:
-            raise ValueError("more than one element found for query %r" % query)
-
-        elif len(retval) == 1:
-            retval = retval[0]
-            retval.iterancestors().next().remove(retval)
-            return retval
 
     def _get_clean_elt(self, elt, what):
         query = '//*[@%s="%s"]' % (self.attr_name, what)
@@ -196,6 +224,7 @@ class ToClothMixin(ProtocolBase):
 
             last_elt = elt
             if elt_ctx is not None:
+                self.event_manager.fire_event(("before_exit", elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)
                 print("\texit norm", elt.tag, elt.attrib)
                 if elt.tail is not None:
@@ -206,20 +235,18 @@ class ToClothMixin(ProtocolBase):
             if ancestors[:len(eltstack)] != eltstack:
                 # write following siblings before closing parent node
                 for sibl in elt.itersiblings(preceding=False):
-                    print("\twrite exit sibl", sibl.tag, sibl.attrib)
+                    print("\twrite exit sibl", sibl.tag, sibl.attrib, id(sibl))
                     parent.write(sibl)
 
         # write remaining ancestors of the target node.
         for anc in ancestors[len(eltstack):]:
             # write previous siblins of ancestors (if any)
-            prevsibls = _prevsibls(anc)
+            prevsibls = _prevsibls(anc, since=last_elt)
             for elt in prevsibls:
-                if elt is last_elt:
-                    continue
                 if id(elt) in tags:
                     print("\skip  anc prevsibl", elt.tag, elt.attrib)
                     continue
-                print("\twrite anc prevsibl", elt.tag, elt.attrib)
+                print("\twrite anc prevsibl", elt.tag, elt.attrib, id(elt))
                 parent.write(elt)
 
             # enter the ancestor node
@@ -228,7 +255,7 @@ class ToClothMixin(ProtocolBase):
             else:
                 anc_ctx = parent.element(anc.tag, anc.attrib)
             anc_ctx.__enter__()
-            print("\tenter norm", anc.tag, anc.attrib)
+            print("\tenter norm", anc.tag, anc.attrib, id(anc))
             if anc.text is not None:
                 parent.write(anc.text)
             eltstack.append(anc)
@@ -236,16 +263,15 @@ class ToClothMixin(ProtocolBase):
 
         # now that at the same level as the target node,
         # write its previous siblings
-        if not last_elt is cloth:
-            prevsibls = _prevsibls(cloth)
-            for elt in prevsibls:
-                if elt is last_elt:
-                    continue
-                if id(elt) in tags:
-                    print("\tskip  cloth prevsibl", elt.tag, elt.attrib)
-                    continue
-                print("\twrite cloth prevsibl", elt.tag, elt.attrib)
-                parent.write(elt)
+        prevsibls = _prevsibls(cloth, since=last_elt)
+        for elt in prevsibls:
+            if elt is last_elt:
+                continue
+            if id(elt) in tags:
+                print("\tskip  cloth prevsibl", elt.tag, elt.attrib)
+                continue
+            print("\twrite cloth prevsibl", elt.tag, elt.attrib)
+            parent.write(elt)
 
         if skip:
             tags.add(id(cloth))
@@ -257,6 +283,9 @@ class ToClothMixin(ProtocolBase):
                            if not (k in (self.attr_name, self.root_attr_name))])
 
             attrib.update(attrs)
+
+            self.event_manager.fire_event(("before_entry", cloth), ctx, parent, attrib)
+
             if len(eltstack) == 0:
                 curtag = parent.element(cloth.tag, attrib, nsmap=cloth.nsmap)
             else:
@@ -274,33 +303,37 @@ class ToClothMixin(ProtocolBase):
         for elt, elt_ctx in reversed(zip(ctx.protocol.eltstack,
                                                         ctx.protocol.ctxstack)):
             if elt_ctx is not None:
+                self.event_manager.fire_event(("before_exit", elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)
                 print("exit ", elt.tag, "close")
                 if elt.tail is not None:
                     parent.write(elt.tail)
 
             for sibl in elt.itersiblings(preceding=False):
-                print("write", sibl.tag, "close sibl")
+                print("write", sibl.tag, "nextsibl")
                 parent.write(sibl)
                 if sibl.tail is not None:
                     parent.write(sibl.tail)
 
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
-                        from_arr=False, **kwargs):
+                                                      from_arr=False, **kwargs):
         ctx.protocol.eltstack = []
         ctx.protocol.ctxstack = []
         ctx.protocol.tags = set()
 
-        self.to_cloth(ctx, cls, inst, cloth, parent)
+        self.to_cloth(ctx, cls, inst, cloth, parent, '')
         self._close_cloth(ctx, parent)
 
     @coroutine
-    def to_root_cloth(self, ctx, cls, inst, cloth, parent, name=None):
-        ctx.protocol.eltstack = []
-        ctx.protocol.ctxstack = []
-        ctx.protocol.tags = set()
-
-        self._enter_cloth(ctx, cloth, parent)
+    def to_root_cloth(self, ctx, cls, inst, cloth, parent, name):
+        to_be_closed = False
+        if not getattr(ctx.protocol, 'in_root_cloth', False):
+            to_be_closed = True
+            ctx.protocol.tags = set()
+            ctx.protocol.eltstack = []
+            ctx.protocol.ctxstack = []
+            ctx.protocol.in_root_cloth = True
+            self._enter_cloth(ctx, cloth, parent)
 
         ret = self.to_parent(ctx, cls, inst, parent, name)
         if isgenerator(ret):
@@ -314,9 +347,11 @@ class ToClothMixin(ProtocolBase):
                 except (Break, StopIteration, GeneratorExit):
                     pass
                 finally:
-                    self._close_cloth(ctx, parent)
+                    if to_be_closed:
+                        self._close_cloth(ctx, parent)
         else:
-            self._close_cloth(ctx, parent)
+            if to_be_closed:
+                self._close_cloth(ctx, parent)
 
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
@@ -342,7 +377,8 @@ class ToClothMixin(ProtocolBase):
 
         else:
             if not from_arr and cls.Attributes.max_occurs > 1:
-                return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+                return self.array_to_cloth(ctx, cls, inst, cloth, parent,
+                                                                      name=name)
 
             handler = self.rendering_handlers[cls]
             retval = handler(ctx, cls, inst, cloth, parent, name=name)

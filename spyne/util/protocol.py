@@ -29,7 +29,7 @@ def deserialize_request_string(string, app):
     """
 
     server = ServerBase(app)
-    initial_ctx = MethodContext(server)
+    initial_ctx = MethodContext(server, MethodContext.SERVER)
     initial_ctx.in_string = [string]
 
     ctx = server.generate_contexts(initial_ctx)[0]

@@ -23,6 +23,8 @@ subclasses. These are mainly container classes for other simple or
 complex objects -- they don't carry any data by themselves.
 """
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,7 @@ import decimal
 from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
+from itertools import chain
 
 from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY
 from spyne import const
@@ -177,10 +180,24 @@ class SelfReference(object):
     """Use this as a placeholder type in classes that contain themselves. See
     :func:`spyne.test.model.test_complex.TestComplexModel.test_self_reference`.
     """
+    customize_args = []
+    customize_kwargs = {}
+    __orig__ = None
 
     def __init__(self):
         raise NotImplementedError()
 
+    @classmethod
+    def customize(cls, *args, **kwargs):
+        args = chain(args, cls.customize_args)
+        kwargs = dict(chain(kwargs.items(), cls.customize_kwargs.items()))
+        if cls.__orig__ is None:
+            cls.__orig__ = cls
+
+        return type("SelfReference", (cls,), {
+            'customize_args': args,
+            'customize_kwargs': kwargs,
+        })
 
 def _get_spyne_type(cls_name, k, v):
     try:
@@ -315,26 +332,34 @@ class _MethodsDict(dict):
                 d.in_message.insert_field(0, 'self', cls.novalidate_freq())
                 d.body_style = BODY_STYLE_WRAPPED
 
-                for k, v in d.in_message._type_info.items():
-                    # SelfReference is replaced by descriptor.in_message itself.
-                    # However, in the context of mrpc, SelfReference means
-                    # parent class. here, we do that substitution. It's a safe
-                    # hack but a hack nevertheless.
-                    if v is d.in_message:
-                        d.in_message._type_info[k] = cls
+                if issubclass(d.in_message, ComplexModelBase):
+                    for k, v in d.in_message._type_info.items():
+                        # SelfReference is replaced by descriptor.in_message
+                        # itself. However, in the context of mrpc, SelfReference
+                        # means parent class. here, we do that substitution.
+                        # It's a safe hack but a hack nevertheless.
+                        if v is d.in_message:
+                            d.in_message._type_info[k] = cls
 
             # Same as above, for the output type.
-            for k, v in d.out_message._type_info.items():
-                if v is d.out_message:
-                    d.out_message._type_info[k] = cls
+            if issubclass(d.out_message, ComplexModelBase):
+                for k, v in d.out_message._type_info.items():
+                    if v is d.out_message:
+                        d.out_message._type_info[k] = cls
+
+            if d.patterns is not None and not d.no_self:
+                d.name = '.'.join((cls.get_type_name(), d.name))
+                for p in d.patterns:
+                    if p.address is None:
+                        p.address = d.name
 
 
-def _gen_methods(cls_dict):
+def _gen_methods(cls, cls_dict):
     methods = _MethodsDict()
     for k, v in cls_dict.items():
         if not k.startswith('_') and hasattr(v, '_is_rpc'):
-            descriptor = v(_default_function_name=k)
-            cls_dict[k] = descriptor.function
+            descriptor = v(_default_function_name=k, _self_ref_replacement=cls)
+            setattr(cls, k, descriptor.function)
             methods[k] = descriptor
 
     return methods
@@ -447,10 +472,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
         _type_info = _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs)
 
-        methods = _gen_methods(cls_dict)
-        if len(methods) > 0:
-            attrs.methods = methods
-
         # used for sub_name and sub_ns
         _type_info_alt = cls_dict['_type_info_alt'] = TypeInfo()
         for b in cls_bases:
@@ -475,9 +496,10 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
             if self.Attributes._subclasses is eattr._subclasses:
                 self.Attributes._subclasses = None
 
-        for k,v in type_info.items():
+        for k, v in type_info.items():
             if issubclass(v, SelfReference):
-                type_info[k] = self
+                self.replace_field(k, self.customize(*v.customize_args,
+                                                          **v.customize_kwargs))
 
             elif issubclass(v, XmlData):
                 self.Attributes._xml_tag_body_as = k, v
@@ -512,6 +534,10 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         tn = self.Attributes.table_name
         meta = self.Attributes.sqla_metadata
         t = self.Attributes.sqla_table
+
+        methods = _gen_methods(self, cls_dict)
+        if len(methods) > 0:
+            self.Attributes.methods = methods
 
         methods = self.Attributes.methods
         if methods is not None:
@@ -999,6 +1025,17 @@ class ComplexModelBase(ModelBase):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
                 c.append_field(field_name, field_type)
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
+
+    @classmethod
+    def replace_field(cls, field_name, field_type):
+        assert isinstance(field_name, string_types)
+
+        cls._type_info[field_name] = field_type
+        if cls.Attributes._variants is not None:
+            for c in cls.Attributes._variants:
+                c.replace_field(field_name, field_type)
         ComplexModelBase.get_flat_type_info.memo.clear()
         ComplexModelBase.get_simple_type_info.memo.clear()
 

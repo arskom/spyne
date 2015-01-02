@@ -24,75 +24,34 @@ logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
+from lxml import html
 from lxml.html.builder import E
 
-from spyne import ModelBase, AnyHtml, ByteArray, ComplexModelBase, Array, \
-    AnyUri, ImageUri
+from spyne import ModelBase, ByteArray, ComplexModelBase, Array, AnyUri, \
+    ImageUri
 from spyne.model.binary import Attachment
 from spyne.protocol import get_cls_attrs
 from spyne.protocol.html import HtmlBase
+from spyne.util.six.moves.urllib.parse import urlencode, quote
 
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 
-def HtmlTable(app=None, ignore_uncap=False, ignore_wrappers=True,
-                     produce_header=True, table_name_attr='class',
-                     field_name_attr='class', border=0, fields_as='columns',
-                     row_class=None, cell_class=None, header_cell_class=None,
-                     polymorphic=True):
-    """Protocol that returns the response object as a html table.
-
-    The simple flavour is like the HtmlMicroFormatprotocol, but returns data
-    as a html table using the <table> tag.
-
-    :param app: A spyne.application.Application instance.
-    :param produce_header: Boolean value to determine whether to show field
-        names in the beginning of the table or not. Defaults to True. Set to
-        False to skip headers.
-    :param table_name_attr: The name of the attribute that will contain the
-        response name of the complex object in the table tag. Set to None to
-        disable.
-    :param field_name_attr: The name of the attribute that will contain the
-        field names of the complex object children for every table cell. Set
-        to None to disable.
-    :param fields_as: One of 'columns', 'rows'.
-    :param row_class: value that goes inside the <tr class="">
-    :param cell_class: value that goes inside the <td class="">
-    :param header_cell_class: value that goes inside the <th class="">
-
-    "Fields as rows" returns one record per table in a table with two
-    columns.
-
-    "Fields as columns" returns one record per table row in a table that
-    has as many columns as field names, just like a regular spreadsheet.
-    """
-
-    if fields_as == 'columns':
-        return HtmlColumnTable(app, ignore_uncap, ignore_wrappers,
-                    produce_header, table_name_attr, field_name_attr, border,
-                                    row_class, cell_class, header_cell_class)
-    elif fields_as == 'rows':
-        return HtmlRowTable(app, ignore_uncap, ignore_wrappers,
-                    produce_header, table_name_attr, field_name_attr, border,
-                                    row_class, cell_class, header_cell_class)
-
-    else:
-        raise ValueError(fields_as)
-
 class HtmlTableBase(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
-                       cloth=None, attr_name='spyne_id', root_attr_name='spyne',
+            cloth=None, attr_name='spyne_id', root_attr_name='spyne',
                                                               cloth_parser=None,
-                             produce_header=True, table_name_attr='class',
-                            field_name_attr='class', border=0, row_class=None,
-                                cell_class=None, header_cell_class=None,
-                                polymorphic=True):
+                produce_header=True, table_name_attr='class',
+                field_name_attr='class', border=0, row_class=None,
+                cell_class=None, header_cell_class=None,
+                polymorphic=True, hier_delim='.', doctype=None, link_gen=None):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
                 cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
-                             cloth_parser=cloth_parser, polymorphic=polymorphic)
+                             cloth_parser=cloth_parser, polymorphic=polymorphic,
+                                         hier_delim=hier_delim, doctype=doctype)
 
         self.produce_header = produce_header
         self.table_name_attr = table_name_attr
@@ -101,6 +60,7 @@ class HtmlTableBase(HtmlBase):
         self.row_class = row_class
         self.cell_class = cell_class
         self.header_cell_class = header_cell_class
+        self.link_gen = link_gen
 
         if self.cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'cell_class' should be None or "
@@ -118,6 +78,29 @@ class HtmlTableBase(HtmlBase):
 
 
 class HtmlColumnTable(HtmlTableBase):
+    """Protocol that returns the response object as a html table.
+
+    Returns one record per table row in a table that has as many columns as
+    field names, just like a regular spreadsheet.
+
+    The simple flavour is like the HtmlMicroFormatprotocol, but returns data
+    as a html table using the <table> tag.
+
+    :param app: A spyne.application.Application instance.
+    :param produce_header: Boolean value to determine whether to show field
+        names in the beginning of the table or not. Defaults to True. Set to
+        False to skip headers.
+    :param table_name_attr: The name of the attribute that will contain the
+        response name of the complex object in the table tag. Set to None to
+        disable.
+    :param field_name_attr: The name of the attribute that will contain the
+        field names of the complex object children for every table cell. Set
+        to None to disable.
+    :param row_class: value that goes inside the <tr class="">
+    :param cell_class: value that goes inside the <td class="">
+    :param header_cell_class: value that goes inside the <th class="">
+    """
+
     def __init__(self, *args, **kwargs):
         super(HtmlColumnTable, self).__init__(*args, **kwargs)
 
@@ -144,35 +127,61 @@ class HtmlColumnTable(HtmlTableBase):
             parent.write(self.to_unicode(cls, inst))
 
     @coroutine
-    def _gen_row(self, ctx, cls, inst, parent, name, **kwargs):
+    def _gen_row(self, ctx, cls, inst, parent, name, from_arr=False,
+                                                    array_index=None, **kwargs):
+
+        # because HtmlForm* protocols don't use the global null handler, it's
+        # possible for null values to reach here.
+        if inst is None:
+            return
+
         print("Generate row for", cls)
+
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
                 attr = get_cls_attrs(self, v)
                 if attr.exc:
-                    print("\tExclude field %r type %r" % (k, v), "for", cls)
+                    print("\tExclude table cell %r type %r" % (k, v), "for", cls)
                     continue
                 if not attr.get('read', True):
                     continue
 
-                print("\tGenerate field %r type %r" % (k, v), "for", cls)
+                print("\tGenerate table cell %r type %r" % (k, v), "for", cls)
 
                 try:
                     sub_value = getattr(inst, k, None)
-                except: # to guard against e.g. SQLAlchemy throwing NoSuchColumnError
+                except:  # e.g. SQLAlchemy could throw NoSuchColumnError
                     sub_value = None
 
                 sub_name = attr.sub_name
                 if sub_name is None:
                     sub_name = k
+                if self.hier_delim is not None:
+                    if array_index is None:
+                        sub_name = "%s%s%s" % (name, self.hier_delim, sub_name)
+                    else:
+                        sub_name = "%s[%d]%s%s" % (name, array_index,
+                                                     self.hier_delim, sub_name)
 
                 td_attrs = {}
                 if self.field_name_attr is not None:
-                    td_attrs[self.field_name_attr] = sub_name
+                    td_attrs[self.field_name_attr] = attr.sub_name or k
 
                 with parent.element('td', td_attrs):
-                    ret = self.to_parent(ctx, v, sub_value, parent, sub_name,
-                                                                       **kwargs)
+                    if attr.href is not None:
+                        try:
+                            attrib = {'href': attr.href % sub_value}
+                        except:
+                            attrib = {'href': attr.href}
+
+                        with parent.element('a', attrib=attrib):
+                            ret = self.to_parent(ctx, v, sub_value, parent,
+                                              sub_name, from_arr=from_arr,
+                                              array_index=array_index, **kwargs)
+                    else:
+                        ret = self.to_parent(ctx, v, sub_value, parent,
+                                              sub_name, from_arr=from_arr,
+                                              array_index=array_index, **kwargs)
 
                     if isgenerator(ret):
                         try:
@@ -185,10 +194,38 @@ class HtmlColumnTable(HtmlTableBase):
                             except StopIteration:
                                 pass
 
-            print("Generate row for %r done." % cls)
-            self.extend_data_row(ctx, cls, inst, parent, name, **kwargs)
+            m = cls.Attributes.methods
+            if m is not None and len(m) > 0:
+                with parent.element('td'):
+                    first = True
+                    mrpc_delim = html.fromstring("&nbsp;|&nbsp;").text
 
-    def _gen_header(self, ctx, cls, name, parent):
+                    for mn, md in self._methods(cls, inst):
+                        if first:
+                            first = False
+                        else:
+                            parent.write(mrpc_delim)
+
+                        pd = { }
+                        for k, v in cls.get_flat_type_info(cls).items():
+                            if getattr(v.Attributes, 'primary_key', None):
+                                r = self.to_unicode(v, getattr(inst, k, None))
+                                if r is not None:
+                                    pd[k] = r
+
+                        params = urlencode(pd)
+
+                        mdid2key = ctx.app.interface.method_descriptor_id_to_key
+                        href = mdid2key[id(md)].rsplit("}",1)[-1]
+                        text = md.translate(ctx.locale,
+                                                  md.in_message.get_type_name())
+                        parent.write(E.a(text, href="%s?%s" % (href, params)))
+
+            print("Generate row for %r done." % cls)
+            self.extend_data_row(ctx, cls, inst, parent, name,
+                                              array_index=array_index, **kwargs)
+
+    def _gen_thead(self, ctx, cls, name, parent):
         logger.debug("Generate header for %r", cls)
 
         with parent.element('thead'):
@@ -215,6 +252,10 @@ class HtmlColumnTable(HtmlTableBase):
                             header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
 
+                    m = cls.Attributes.methods
+                    if m is not None and len(m) > 0:
+                        parent.write(E.th())
+
                 else:
                     if self.field_name_attr is not None:
                         th_attrs[self.field_name_attr] = name
@@ -231,9 +272,12 @@ class HtmlColumnTable(HtmlTableBase):
         if self.table_name_attr is not None:
             attrib[self.table_name_attr] = cls.get_type_name()
 
+        self.event_manager.fire_event('before_table', ctx, cls, inst, parent,
+                                                                 name, **kwargs)
+
         with parent.element('table', attrib):
             if self.produce_header:
-                self._gen_header(ctx, cls, name, parent)
+                self._gen_thead(ctx, cls, name, parent)
 
             with parent.element('tbody'):
                 ret = gen_rows(ctx, cls, inst, parent, name, **kwargs)
@@ -248,17 +292,7 @@ class HtmlColumnTable(HtmlTableBase):
                         except StopIteration:
                             pass
 
-                ret = self.extend_table(ctx, cls, parent, name, **kwargs)
-                if isgenerator(ret):
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as b:
-                        try:
-                            ret.throw(b)
-                        except StopIteration:
-                            pass
+                self.extend_table(ctx, cls, parent, name, **kwargs)
 
     def complex_model_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
@@ -274,6 +308,7 @@ class HtmlColumnTable(HtmlTableBase):
         return self._gen_table(ctx, cls, inst, parent, name,
                          super(HtmlColumnTable, self).array_to_parent, **kwargs)
 
+    # FIXME: These three should be events as well.
     def extend_table(self, ctx, cls, parent, name, **kwargs):
         pass
 
@@ -285,6 +320,28 @@ class HtmlColumnTable(HtmlTableBase):
 
 
 class HtmlRowTable(HtmlTableBase):
+    """Protocol that returns the response object as a html table.
+
+    The simple flavour is like the HtmlMicroFormatprotocol, but returns data
+    as a html table using the <table> tag.
+
+    Returns one record per table in a table with two columns.
+
+    :param app: A spyne.application.Application instance.
+    :param produce_header: Boolean value to determine whether to show field
+        names in the beginning of the table or not. Defaults to True. Set to
+        False to skip headers.
+    :param table_name_attr: The name of the attribute that will contain the
+        response name of the complex object in the table tag. Set to None to
+        disable.
+    :param field_name_attr: The name of the attribute that will contain the
+        field names of the complex object children for every table cell. Set
+        to None to disable.
+    :param row_class: value that goes inside the <tr class="">
+    :param cell_class: value that goes inside the <td class="">
+    :param header_cell_class: value that goes inside the <th class="">
+    """
+
     def __init__(self, *args, **kwargs):
         super(HtmlRowTable, self).__init__(*args, **kwargs)
 
@@ -298,7 +355,8 @@ class HtmlRowTable(HtmlTableBase):
             Array: self.array_to_parent,
         })
 
-    def model_base_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
+    def model_base_to_parent(self, ctx, cls, inst, parent, name, from_arr=False,
+                                                                      **kwargs):
         if from_arr:
             td_attrib = {}
             if False and self.field_name_attr:
@@ -320,7 +378,7 @@ class HtmlRowTable(HtmlTableBase):
                 for k, v in cls.get_flat_type_info(cls).items():
                     try:
                         sub_value = getattr(inst, k, None)
-                    except: # to guard against e.g. SQLAlchemy throwing NoSuchColumnError
+                    except:  # e.g. SQLAlchemy could throw NoSuchColumnError
                         sub_value = None
 
                     sub_name = v.Attributes.sub_name

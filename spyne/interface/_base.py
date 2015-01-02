@@ -59,6 +59,7 @@ class Interface(object):
         self.nsmap = {}
         self.prefmap = {}
         self.member_methods = deque()
+        self.method_descriptor_id_to_key = {}
 
         self.import_base_namespaces = import_base_namespaces
         self.app = app
@@ -221,13 +222,12 @@ class Interface(object):
         if issubclass(s, ComplexModelBase) and method.in_message_name_override:
             method_key = '{%s}%s.%s' % (self.app.tns,
                                                  s.get_type_name(), method.name)
-
-        logger.debug('\tadding method %r to match %r tag.' %
-                                                      (method.name, method_key))
         key = _generate_method_id(s, method)
         if key in self.method_id_map:
             c = self.method_id_map[key].parent_class
-            if c.__orig__ is None:
+            if c is s:
+                pass
+            elif c.__orig__ is None:
                 assert c is s.__orig__, "%r.%s conflicts with %r.%s" % \
                                         (c, key, s.__orig__, key)
             elif s.__orig__ is None:
@@ -237,6 +237,9 @@ class Interface(object):
                 assert c.__orig__ is s.__orig__, "%r.%s conflicts with %r.%s" % \
                                         (c.__orig__, key, s.__orig__, key)
             return
+
+        logger.debug('\tadding method %r to match %r tag.' %
+                                                      (method.name, method_key))
 
         self.method_id_map[key] = method
 
@@ -289,6 +292,7 @@ class Interface(object):
                     method.aux = s.__aux__
                 if method.aux is not None:
                     method.aux.methods.append(_generate_method_id(s, method))
+
                 if not self.check_method(method):
                     continue
 
@@ -305,12 +309,15 @@ class Interface(object):
 
         # populate call routes for member methods
         for cls, descriptor in self.member_methods:
-            self.process_method(cls, descriptor)
+            self.process_method(cls.__orig__ or cls, descriptor)
+
+        # populate method descriptor id to method key map
+        self.method_descriptor_id_to_key = dict(((id(v[0]), k)
+                                    for k,v in self.service_method_map.items()))
 
         logger.debug("From this point on, you're not supposed to make any "
                      "changes to the class and method structure of the exposed "
-                     "services."
-                 )
+                     "services.")
 
     tns = property(get_tns)
 
@@ -369,6 +376,10 @@ class Interface(object):
 
         # add parent class
         extends = getattr(cls, '__extends__', None)
+        while extends is not None and \
+                                   (extends.get_type_name() is ModelBase.Empty):
+            extends = getattr(extends, '__extends__', None)
+
         if add_parent and extends is not None:
             assert issubclass(extends, ModelBase)
             self.deps[cls].add(extends)

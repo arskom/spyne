@@ -17,12 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import logging
+import gc, logging
 logger = logging.getLogger(__name__)
 
 from time import time
 from copy import copy
-from collections import deque, namedtuple
+from collections import deque, namedtuple, defaultdict
 
 from spyne.const.xml_ns import DEFAULT_NS
 from spyne.util.oset import oset
@@ -79,9 +79,9 @@ class TransportContext(object):
 
 
 class ProtocolContext(object):
-    """Generic object that holds transport-specific context information"""
+    """Generic object that holds protocol-specific context information"""
     def __init__(self, parent, transport, type=None):
-        self.parent = parent;
+        self.parent = parent
         """The MethodContext this object belongs to"""
 
         self.itself = transport
@@ -89,6 +89,12 @@ class ProtocolContext(object):
 
         self.type = type
         """The protocol the transport uses."""
+
+        self._subctx = defaultdict(
+                               lambda: self.__class__(parent, transport, type))
+
+    def __getitem__(self, item):
+        return self._subctx[item]
 
 
 class EventContext(object):
@@ -103,6 +109,9 @@ class MethodContext(object):
     current state of execution of a remote procedure call.
     """
 
+    SERVER = type("SERVER", (object,), {})
+    CLIENT = type("CLIENT", (object,), {})
+
     frozen = False
 
     def copy(self):
@@ -110,8 +119,10 @@ class MethodContext(object):
 
         if retval.transport is not None:
             retval.transport.parent = retval
-        if retval.protocol is not None:
-            retval.protocol.parent = retval
+        if retval.inprot_ctx is not None:
+            retval.inprot_ctx.parent = retval
+        if retval.outprot_ctx is not None:
+            retval.outprot_ctx.parent = retval
         if retval.event is not None:
             retval.event.parent = retval
         if retval.aux is not None:
@@ -130,7 +141,7 @@ class MethodContext(object):
         else:
             return self.descriptor.name
 
-    def __init__(self, transport):
+    def __init__(self, transport, way):
         # metadata
         self.call_start = time()
         """The time the rpc operation was initiated in seconds-since-epoch
@@ -144,6 +155,8 @@ class MethodContext(object):
 
         Useful for benchmarking purposes."""
 
+        self.is_closed = False
+
         self.app = transport.app
         """The parent application."""
 
@@ -154,9 +167,31 @@ class MethodContext(object):
         """The transport-specific context. Transport implementors can use this
         to their liking."""
 
-        self.protocol = ProtocolContext(self, transport)
-        """The protocol-specific context. Protocol implementors can use this
-        to their liking."""
+        self.outprot_ctx = None
+        """The output-protocol-specific context. Protocol implementors can use
+        this to their liking."""
+
+        if self.app.out_protocol is not None:
+            self.outprot_ctx = self.app.out_protocol.get_context(self, transport)
+
+        self.inprot_ctx = None
+        """The input-protocol-specific context. Protocol implementors can use
+        this to their liking."""
+
+        if self.app.in_protocol is not None:
+            self.inprot_ctx = self.app.in_protocol.get_context(self, transport)
+
+        self.protocol = None
+        """The protocol-specific context. This points to the in_protocol when an
+        incoming message is being processed and out_protocol when an outgoing
+        message is being processed."""
+
+        if way is MethodContext.SERVER:
+            self.protocol = self.inprot_ctx
+        elif way is MethodContext.CLIENT:
+            self.protocol = self.outprot_ctx
+        else:
+            raise ValueError(way)
 
         self.event = EventContext(self)
         """Event-specific context. Use this as you want, preferably only in
@@ -341,12 +376,10 @@ class MethodContext(object):
         for f in self.files:
             f.close()
 
-        # break cycles
-        del self.udc
-        del self.event
-        del self.transport
-        del self.protocol
-        del self.out_object
+        self.is_closed = True
+
+        # this is important to have file descriptors returned in a timely manner
+        gc.collect()
 
     def set_out_protocol(self, what):
         self._out_protocol = what
@@ -561,7 +594,7 @@ class EventManager(object):
         handlers.add(handler)
         self.handlers[event_name] = handlers
 
-    def fire_event(self, event_name, ctx):
+    def fire_event(self, event_name, ctx, *args, **kwargs):
         """Run all the handlers for a given event name.
 
         :param event_name: The event identifier, indicated by the documentation.
@@ -572,13 +605,14 @@ class EventManager(object):
 
         handlers = self.handlers.get(event_name, oset())
         for handler in handlers:
-            handler(ctx)
+            handler(ctx, *args, **kwargs)
 
 
 class FakeContext(object):
     def __init__(self, app=None, descriptor=None,
-           in_object=None, in_error=None, in_document=None, in_string=None,
-           out_object=None, out_error=None, out_document=None, out_string=None):
+            in_object=None, in_error=None, in_document=None, in_string=None,
+            out_object=None, out_error=None, out_document=None, out_string=None,
+            in_protocol=None, out_protocol=None):
         self.app = app
         self.descriptor = descriptor
         self.in_object = in_object
@@ -589,5 +623,18 @@ class FakeContext(object):
         self.out_object = out_object
         self.out_document = out_document
         self.out_string = out_string
-        self.protocol = type("ProtocolContext", (object,), {})()
+        self.in_protocol = in_protocol
+        self.out_protocol = out_protocol
+
+        if self.in_protocol is not None:
+            self.inprot_ctx = self.in_protocol.get_context(self, None)
+        else:
+            self.inprot_ctx = type("ProtocolContext", (object,), {})()
+
+        if self.out_protocol is not None:
+            self.outprot_ctx = self.out_protocol.get_context(self, None)
+        else:
+            self.outprot_ctx = type("ProtocolContext", (object,), {})()
+
+        self.protocol = self.outprot_ctx
         self.transport = type("ProtocolContext", (object,), {})()

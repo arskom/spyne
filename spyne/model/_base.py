@@ -59,7 +59,6 @@ def _decode_pa_dict(d):
     return retval
 
 
-# All this code to get rid of a one letter quirk: nillable vs nullable.
 class AttributesMeta(type(object)):
     NULLABLE_DEFAULT = True
 
@@ -81,8 +80,23 @@ class AttributesMeta(type(object)):
             assert nullable is None or nullable == nillable
             self._nullable = nillable
 
-        if getattr(self, '_nullable', None) is None:
+        if not hasattr(self, '_nullable'):
             self._nullable = None
+
+        if not hasattr(self, '_default_factory'):
+            self._default_factory = None
+
+        self._html_cloth = None
+        self._html_root_cloth = None
+
+        if 'html_cloth' in cls_dict:
+            self.set_html_cloth(cls_dict.pop('html_cloth'))
+
+        self._xml_cloth = None
+        self._xml_root_cloth = None
+
+        if 'xml_cloth' in cls_dict:
+            self.set_xml_cloth(cls_dict.pop('xml_cloth'))
 
         super(AttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
@@ -102,6 +116,52 @@ class AttributesMeta(type(object)):
         self.nullable = what
 
     nillable = property(get_nillable, set_nillable)
+
+    def get_default_factory(self):
+        return self._default_factory
+
+    def set_default_factory(self, what):
+        self._default_factory = staticmethod(what)
+
+    default_factory = property(get_default_factory, set_default_factory)
+
+    def get_html_cloth(self):
+        return self._html_cloth
+    def set_html_cloth(self, what):
+        from spyne.protocol.cloth.to_cloth import ClothParserMixin
+        cm = ClothParserMixin.from_html_cloth(what)
+        if cm._root_cloth is not None:
+            self._html_root_cloth = cm._root_cloth
+            self._html_cloth = cm._cloth
+        elif cm._cloth is not None:
+            self._html_root_cloth = None
+            self._html_cloth = cm._cloth
+        else:
+            raise Exception("%r is not a suitable cloth", what)
+    html_cloth = property(get_html_cloth, set_html_cloth)
+
+    def get_html_root_cloth(self):
+        return self._html_cloth
+    html_root_cloth = property(get_html_root_cloth)
+
+    def get_xml_cloth(self):
+        return self._xml_cloth
+    def set_xml_cloth(self, what):
+        from spyne.protocol.cloth.to_cloth import ClothParserMixin
+        cm = ClothParserMixin.from_xml_cloth(what)
+        if cm._root_cloth is not None:
+            self._xml_root_cloth = cm._root_cloth
+            self._xml_cloth = cm._cloth
+        elif cm._cloth is not None:
+            self._xml_root_cloth = None
+            self._xml_cloth = cm._cloth
+        else:
+            raise Exception("%r is not a suitable cloth", what)
+    xml_cloth = property(get_xml_cloth, set_xml_cloth)
+
+    def get_xml_root_cloth(self):
+        return self._root_cloth
+    xml_root_cloth = property(get_xml_root_cloth)
 
 
 class ModelBase(object):
@@ -145,10 +205,10 @@ class ModelBase(object):
         # are skipped. just for internal use.
 
         default = None
-        """The default value if the input is None"""
+        """The default value if the input is None."""
 
         default_factory = None
-        """The default value if the input is None"""
+        """The callable that produces a default value if the input is None."""
 
         nillable = None
         """Set this to false to reject null values. Synonyms with
@@ -451,6 +511,7 @@ class ModelBase(object):
                 setattr(Annotations, k, v)
 
             elif k in ('primary_key', 'pk'):
+                setattr(Attributes, 'primary_key', v)
                 Attributes.sqla_column_args[-1]['primary_key'] = v
 
             elif k in ('prot_attrs', 'pa'):

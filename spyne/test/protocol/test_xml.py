@@ -81,7 +81,7 @@ class TestXml(unittest.TestCase):
         app = Application([SomeService], "tns", name="test_xml_data",
                         in_protocol=XmlDocument(), out_protocol=XmlDocument())
         server = ServerBase(app)
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
             '<some_call xmlns="tns">'
                 '<c b="b">a</c>'
@@ -141,7 +141,7 @@ class TestXml(unittest.TestCase):
         app = Application([SomeService], "tns", in_protocol=XmlDocument(),
                                                 out_protocol=XmlDocument())
         server = ServerBase(app)
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = ['<some_call xmlns="tns"><p>%s</p></some_call>'
                                                                             % d]
 
@@ -255,7 +255,7 @@ class TestXml(unittest.TestCase):
         assert d.microsecond == 123457
 
     def _get_ctx(self, server, in_string):
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = in_string
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)

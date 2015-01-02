@@ -128,10 +128,12 @@ class TestService(ServiceBase):
     def f(ctx, _from, _self, _import):
         return '1234'
 
+
 class MultipleReturnService(ServiceBase):
     @rpc(String, _returns=(String, String, String))
     def multi(ctx, s):
         return s, 'a', 'b'
+
 
 class TestSingle(unittest.TestCase):
     def setUp(self):
@@ -404,10 +406,10 @@ class TestSoapHeader(unittest.TestCase):
 
     def test_soap_input_header(self):
         server = ServerBase(self.app)
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<senv:Envelope xmlns:tns="tns"'
-                'xmlns:wsa="http://www.w3.org/2005/08/addressing"'
+            '<senv:Envelope xmlns:tns="tns" '
+                'xmlns:wsa="http://www.w3.org/2005/08/addressing" '
                 'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
                 '<senv:Header>'
                     '<wsa:Action>/SomeAction</wsa:Action>'
@@ -435,10 +437,10 @@ class TestSoapHeader(unittest.TestCase):
         different order than that defined in rpc declaration _in_header parameter.
         """
         server = ServerBase(self.app)
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<senv:Envelope xmlns:tns="tns"'
-                'xmlns:wsa="http://www.w3.org/2005/08/addressing"'
+            '<senv:Envelope xmlns:tns="tns" '
+                'xmlns:wsa="http://www.w3.org/2005/08/addressing" '
                 'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
                 '<senv:Header>'
                     '<wsa:MessageID>SomeMessageID</wsa:MessageID>'
@@ -468,10 +470,10 @@ class TestSoapHeader(unittest.TestCase):
         parameter.
         """
         server = ServerBase(self.app)
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<senv:Envelope xmlns:tns="tns"'
-                'xmlns:wsa="http://www.w3.org/2005/08/addressing"'
+            '<senv:Envelope xmlns:tns="tns" '
+                'xmlns:wsa="http://www.w3.org/2005/08/addressing" '
                 'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
                 '<senv:Header>'
                     '<wsa:MessageID>SomeMessageID</wsa:MessageID>'

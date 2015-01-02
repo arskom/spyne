@@ -320,6 +320,9 @@ class HttpPattern(object):
 
     @address.setter
     def address(self, what):
+        if what is not None and not what.startswith('/'):
+            what = '/' + what
+
         self.__address = what
         self.address_re = self._compile_url_pattern(what)
 
@@ -359,4 +362,5 @@ class HttpPattern(object):
 
     def __repr__(self):
         return "HttpPattern(address=%r, host=%r, verb=%r, endpoint=%r" % (
-                    self.address, self.host, self.verb, self.endpoint.name)
+                    self.address, self.host, self.verb,
+                    None if self.endpoint is None else self.endpoint.name)

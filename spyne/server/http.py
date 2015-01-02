@@ -19,7 +19,7 @@
 
 from collections import defaultdict
 
-from spyne import TransportContext
+from spyne import TransportContext, MethodDescriptor
 from spyne import MethodContext
 from spyne.protocol.http import HttpPattern
 from spyne.server import ServerBase
@@ -69,6 +69,9 @@ class HttpTransportContext(TransportContext):
             # So that deserialization is skipped.
             self.parent.out_string = []
 
+    def get_path(self):
+        raise NotImplementedError()
+
     def get_cookie(self, key):
         raise NotImplementedError()
 
@@ -92,10 +95,10 @@ class HttpMethodContext(MethodContext):
     default_transport_context = HttpTransportContext
 
     def __init__(self, transport, req_env, content_type):
-        super(HttpMethodContext, self).__init__(transport)
+        super(HttpMethodContext, self).__init__(transport, MethodContext.SERVER)
 
-        self.transport = self.default_transport_context(self, transport, req_env,
-                                                                   content_type)
+        self.transport = self.default_transport_context(self, transport,
+                                                          req_env, content_type)
         """Holds the WSGI-specific information"""
 
     def set_out_protocol(self, what):
@@ -172,21 +175,23 @@ class HttpBase(ServerBase):
                 for k,v in match.groupdict().items():
                     params[k].append(v)
 
-            address = patt.address
-            if address is None:
-                address = ctx.descriptor.name
+            assert patt.address is not None
 
-            if address:
-                match = patt.address_re.match(path)
-                if match is None:
-                    continue
-                if not (match.span() == (0, len(path))):
-                    continue
-                for k,v in match.groupdict().items():
-                    params[k].append(v)
+            match = patt.address_re.match(path)
+            if match is None:
+                continue
+            if not (match.span() == (0, len(path))):
+                continue
+            for k,v in match.groupdict().items():
+                params[k].append(v)
 
-            ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                    patt.endpoint.name)
+            d = patt.endpoint
+            assert isinstance(d, MethodDescriptor)
+            if d.parent_class is not None and d.in_message_name_override:
+                ctx.method_request_string = '%s.%s' % (
+                                           d.in_message.get_type_name(), d.name)
+            else:
+                ctx.method_request_string = patt.endpoint.name
             break
 
         return params

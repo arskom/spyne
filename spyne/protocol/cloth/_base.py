@@ -23,16 +23,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
+
 from lxml import etree
 from lxml.etree import LxmlSyntaxError
 from lxml.builder import E
 
-from spyne import BODY_STYLE_WRAPPED
+from spyne import ProtocolContext, BODY_STYLE_WRAPPED
 from spyne.util import Break, coroutine
 
 from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
 from spyne.util.six import StringIO, string_types
+
+
+class XmlClothProtocolContext(ProtocolContext):
+    def __init__(self, parent, transport):
+        super(XmlClothProtocolContext, self).__init__(parent, transport)
+
+        self.inst_stack = []
 
 
 class XmlCloth(ToParentMixin, ToClothMixin):
@@ -43,9 +51,9 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                        ignore_uncap=False, ignore_wrappers=False,
                        cloth=None, attr_name='spyne_id', root_attr_name='spyne',
                                             cloth_parser=None, polymorphic=True):
-        super(XmlCloth, self).__init__(app=app,
-                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
-                       ignore_wrappers=ignore_wrappers, polymorphic=polymorphic)
+        super(XmlCloth, self).__init__(app=app, mime_type=mime_type,
+                   ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
+                   polymorphic=polymorphic)
 
         self._init_cloth(cloth, attr_name, root_attr_name, cloth_parser)
 
@@ -83,6 +91,9 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             return trdict
 
         return trdict.get(locale, default)
+
+    def get_context(self, parent, transport):
+        return XmlClothProtocolContext(parent, transport)
 
     def serialize(self, ctx, message):
         """Uses ``ctx.out_object``, ``ctx.out_header`` or ``ctx.out_error`` to
@@ -143,7 +154,11 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         return retval
 
     def create_out_string(self, ctx, charset=None):
-        """Sets an iterable of string fragments to ctx.out_string"""
+        """Sets an iterable of string fragments to ctx.out_string if the output
+        is a StringIO object, which means we're run by a sync framework. Async
+        frameworks have the out_stream write directly to the output stream so
+        out_string should not be used.
+        """
 
         if isinstance(ctx.out_stream, StringIO):
             ctx.out_string = [ctx.out_stream.getvalue()]
@@ -155,6 +170,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         try:
             with self.docfile(ctx.out_stream) as xf:
+                self.write_doctype(xf)
                 ret = self.subserialize(ctx, cls, inst, xf, name)
                 if isgenerator(ret):  # Poor man's yield from
                     try:
@@ -177,19 +193,19 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     def docfile(self, *args, **kwargs):
         return etree.xmlfile(*args, **kwargs)
 
-    def subserialize(self, ctx, cls, inst, parent, name=None, **kwargs):
-        if name is None:
-            name = cls.get_type_name()
+    def write_doctype(self, xf):
+        pass  # FIXME: write it
 
+    def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
         if self._root_cloth is not None:
             print("to root cloth")
-            return self.to_root_cloth(ctx, cls, inst, self._root_cloth,
-                                                         parent, name, **kwargs)
+            return self.to_root_cloth(ctx, cls, inst, self._root_cloth, parent,
+                                                                           name)
 
         if self._cloth is not None:
             print("to parent cloth")
             return self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
-                                                                 name, **kwargs)
+                                                                           name)
 
         print("to parent")
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)

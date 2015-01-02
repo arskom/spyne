@@ -26,7 +26,7 @@ from lxml import etree, html
 
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.model.primitive import Integer
+from spyne.model.primitive import Integer, Unicode
 from spyne.model.primitive import String
 from spyne.model.primitive import AnyUri
 from spyne.model.complex import Array
@@ -163,6 +163,49 @@ class TestHtmlColumnTable(unittest.TestCase):
         assert elt.xpath('//td[@class="c"]')[0][0].text == _text
         assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
 
+    def test_column_href_string(self):
+        _link = "http://arskom.com.tr/?spyne_test"
+
+        class C(ComplexModel):
+            c = Unicode(pa={HtmlColumnTable: dict(href=_link)})
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=C)
+            def some_call():
+                return C(c="hello")
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                        out_protocol=HtmlColumnTable(field_name_attr='class'))
+        server = WsgiApplication(app)
+
+        out_string = call_wsgi_app_kwargs(server)
+
+        elt = html.fromstring(out_string)
+        print(html.tostring(elt, pretty_print=True))
+        assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
+        assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
+
+    def test_column_href_string_with_substitution(self):
+        _link = "http://arskom.com.tr/?spyne_test=%s"
+
+        class C(ComplexModel):
+            c = Unicode(pa={HtmlColumnTable: dict(href=_link)})
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=C)
+            def some_call():
+                return C(c="hello")
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                        out_protocol=HtmlColumnTable(field_name_attr='class'))
+        server = WsgiApplication(app)
+
+        out_string = call_wsgi_app_kwargs(server)
+
+        elt = html.fromstring(out_string)
+        print(html.tostring(elt, pretty_print=True))
+        assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
+        assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link % "hello"
 
 class TestHtmlRowTable(unittest.TestCase):
     def test_anyuri_string(self):

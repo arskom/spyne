@@ -43,6 +43,7 @@ except ImportError:
     html = None
 
 from spyne import EventManager
+from spyne import ProtocolContext
 
 from spyne.const.http import HTTP_400
 from spyne.const.http import HTTP_401
@@ -282,6 +283,9 @@ class ProtocolBase(object):
         return issubclass(sub if suborig is None else suborig,
                           cls if clsorig is None else clsorig)
 
+    def get_context(self, parent, transport):
+        return ProtocolContext(parent, transport)
+
     def create_in_document(self, ctx, in_string_encoding=None):
         """Uses ``ctx.in_string`` to set ``ctx.in_document``."""
 
@@ -506,7 +510,7 @@ class ProtocolBase(object):
         return retval
 
     def decimal_to_string(self, cls, value):
-        D(value)
+        D(value)  # sanity check
         if cls.Attributes.str_format is not None:
             return cls.Attributes.str_format.format(value)
         elif cls.Attributes.format is not None:
@@ -540,7 +544,7 @@ class ProtocolBase(object):
             raise ValidationError(string, "%%r: %r" % e)
 
     def integer_to_string(self, cls, value):
-        int(value) # sanity check
+        int(value)  # sanity check
 
         if cls.Attributes.format is None:
             return str(value)
@@ -1039,10 +1043,13 @@ def _file_to_iter(f):
         f.close()
 
 
+META_ATTR = ['nullable', 'default_factory']
+
+
 @memoize_id
 def get_cls_attrs(prot, cls):
     attr = DefaultAttrDict([(k, getattr(cls.Attributes, k))
-                        for k in dir(cls.Attributes) if not k.startswith('__')])
+            for k in dir(cls.Attributes) + META_ATTR if not k.startswith('__')])
     if cls.Attributes.prot_attrs:
         attr.update(cls.Attributes.prot_attrs.get(prot.__class__, {}))
         attr.update(cls.Attributes.prot_attrs.get(prot, {}))

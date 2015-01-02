@@ -21,12 +21,13 @@
 """The ``spyne.protocol.xml`` module contains an xml-based protocol that
 serializes python objects to xml using Xml Schema conventions.
 
-Logs valid documents to ``'%r'`` and invalid documents to ``'%r'``. Use the
-usual ``logging.getLogger()`` and friends to configure how these get logged.
+Logs valid documents to ``'spyne.protocol.xml'`` and invalid documents to
+``spyne.protocol.xml.invalid``. Use the usual ``logging.getLogger()`` and
+friends to configure how these get logged.
 
 Warning! You can get a lot of crap in the 'invalid' logger. You're not advised
 to turn it on for a production system.
-""" % ('spyne.protocol.xml', 'spyne.protocol.xml.invalid')
+"""
 
 
 import logging
@@ -58,7 +59,6 @@ from spyne.const.ansi_color import END_COLOR
 from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap11_env
 from spyne.const.xml_ns import const_prefmap, DEFAULT_NS
-
 
 from spyne.model import ModelBase
 from spyne.model import Array
@@ -363,7 +363,7 @@ class XmlDocument(SubXmlBase):
                 ctx.in_document = etree.fromstring(string.decode(charset),
                                                                     self.parser)
         except XMLSyntaxError as e:
-            logger_invalid.error(string)
+            logger_invalid.error("%r in string %r", e, string)
             raise Fault('Client.XMLSyntaxError', str(e))
 
     def decompose_incoming_envelope(self, ctx, message):
@@ -386,12 +386,20 @@ class XmlDocument(SubXmlBase):
         if self.parse_xsi_type:
             xsi_type = element.get('{%s}type' % _ns_xsi, None)
             if xsi_type is not None:
-                prefix, objtype = xsi_type.split(':', 1)
-                classkey = "{%s}%s" % (element.nsmap[prefix], objtype)
+                if ":" in xsi_type:
+                    prefix, objtype = xsi_type.split(':', 1)
+                else:
+                    prefix, objtype = None, xsi_type
+
+                ns = element.nsmap.get(prefix)
+                if ns is not None:
+                    classkey = "{%s}%s" % (ns, objtype)
+                else:
+                    raise ValidationError(xsi_type)
 
                 newclass = ctx.app.interface.classes.get(classkey, None)
                 if newclass is None:
-                    raise ValidationError("Unknown type %r", classkey)
+                    raise ValidationError(xsi_type)
 
                 cls = newclass
                 logger.debug("xsi:type overrides %r to %r", cls, newclass)
@@ -860,6 +868,8 @@ class XmlDocument(SubXmlBase):
                 member, key = cls._type_info_alt.get(key, (None, key))
                 if member is None:
                     continue
+            if not issubclass(member, XmlAttribute):
+                continue
 
             if issubclass(member.type, (ByteArray, File)):
                 value = self.from_string(member.type, value_str,
@@ -926,8 +936,10 @@ class XmlDocument(SubXmlBase):
 
         if len(children) == 1:
             retval = children[0]
+        # this is actually a workaround to a case that should never exist --
+        # anyXml types should only have one child tag.
         elif len(children) > 1:
-            retval = E.p(*children)
+            retval = E.html(*children)
 
         return retval
 

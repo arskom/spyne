@@ -17,8 +17,10 @@
 #
 
 """
-The ``spyne.protoco.soap.soap1_2`` module contains the implementation of a
+The ``spyne.protoco.soap.soap12`` module contains the implementation of a
 subset of the Soap 1.2 standard.
+
+This modules is EXPERIMENTAL.
 """
 
 import logging

@@ -130,7 +130,7 @@ class TestJsonDocument(unittest.TestCase):
 
         server = ServerBase(app)
 
-        initial_ctx = MethodContext(server)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = ['{']
         ctx, = server.generate_contexts(initial_ctx)
         assert ctx.in_error.faultcode == 'Client.JsonDecodeError'

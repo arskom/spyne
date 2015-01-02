@@ -20,10 +20,8 @@
 #
 # Most of the service tests are performed through the interop tests.
 #
-from spyne.server.wsgi import WsgiApplication
-import unittest
 
-from spyne.protocol.soap import Soap11
+import unittest
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -31,10 +29,10 @@ from spyne.error import ValidationError
 from spyne.service import ServiceBase
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
-from spyne.interface.wsdl import Wsdl11
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.server import ServerBase
+from spyne.server.wsgi import WsgiApplication
 
 from spyne import MethodContext
 from spyne.server.wsgi import WsgiMethodContext
@@ -160,7 +158,7 @@ class TestSoap11SoftValidation(unittest.TestCase):
         )
         server = ServerBase(application)
 
-        ctx = MethodContext(server)
+        ctx = MethodContext(server, MethodContext.SERVER)
         ctx.in_string = [u"""
             <SOAP-ENV:Envelope xmlns:ns0="tns"
                                xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">

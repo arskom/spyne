@@ -29,7 +29,7 @@ from inspect import isclass
 
 from spyne.util import six
 
-from spyne import BODY_STYLE_WRAPPED, rpc
+from spyne import BODY_STYLE_WRAPPED, rpc, ByteArray
 from spyne.application import Application as AppBase
 from spyne.const import MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
@@ -271,6 +271,22 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
     if hasattr(cls, 'Attributes') and not cls.Attributes.logged:
         return "%s(...)" % cls.get_type_name()
 
+    if issubclass(cls, File) and isinstance(obj, File.Value):
+        cls = obj.__class__
+
+    if cls.Attributes.logged == 'len':
+        l = '?'
+        try:
+            if isinstance(obj, (list, tuple)):
+                l = str(sum([len(o) for o in obj]))
+            else:
+                l = str(len(obj))
+        except TypeError:
+            if given_len is not None:
+                l = str(given_len)
+
+        return "<len=%s>" % l
+
     if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
                                                                      from_array:
         if id(obj) in tags:
@@ -278,32 +294,22 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
         tags.add(id(obj))
 
         retval = []
+        subcls = cls
         if issubclass(cls, Array):
-            cls, = cls._type_info.values()
+            subcls, = cls._type_info.values()
 
         if isinstance(obj, PushBase):
-            retval.append('<PushData>')
-
-        elif cls.Attributes.logged == 'len':
-            l = '?'
-
-            try:
-                l = str(len(obj))
-            except TypeError as e:
-                if given_len is not None:
-                    l = str(given_len)
-
-            retval.append("%s[len=%s] (...)" % (cls.get_type_name(), l))
+            retval = '[<PushData>]'
 
         else:
             for i, o in enumerate(obj):
-                retval.append(log_repr(o, cls, from_array=True, tags=tags))
-
-                if (len(obj) - 1) > i > MAX_ARRAY_ELEMENT_NUM:
+                if i >= MAX_ARRAY_ELEMENT_NUM:
                     retval.append("(...)")
                     break
 
-        retval = "[%s]" % (', '.join(retval))
+                retval.append(log_repr(o, subcls, from_array=True, tags=tags))
+
+            retval = "[%s]" % (', '.join(retval))
 
     elif issubclass(cls, ComplexModelBase):
         if id(obj) in tags:
@@ -314,7 +320,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
         i = 0
 
         for k, t in cls.get_flat_type_info(cls).items():
-            if i > MAX_FIELD_NUM:
+            if i >= MAX_FIELD_NUM:
                 retval.append("(...)")
                 break
 

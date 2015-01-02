@@ -24,6 +24,7 @@ It's possible to create custom decorators that wrap the @srpc decorator in order
 to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
+from inspect import isclass
 
 import spyne.const.xml_ns
 
@@ -37,7 +38,7 @@ from spyne._base import BODY_STYLE_EMPTY
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE
 
-from spyne.model.complex import ComplexModel
+from spyne.model import ModelBase, ComplexModel
 from spyne.model.complex import TypeInfo
 
 from spyne.const import add_request_suffix
@@ -97,7 +98,6 @@ def _produce_input_message(f, params, kparams, in_message_name,
         else:
             message, = in_params.values()
             message = message.customize(sub_name=in_message_name, sub_ns=ns)
-            assert message.Attributes.sub_name is not None
 
     else:
         message = ComplexModel.produce(type_name=in_message_name,
@@ -137,6 +137,7 @@ def _produce_output_message(func_name, kparams):
 
     _returns = kparams.get('_returns')
     _body_style = _validate_body_style(kparams)
+    _out_body_bare = kparams.get("_out_body_bare", False)
     _out_message_name = kparams.get('_out_message_name', '%s%s' %
                                        (func_name, spyne.const.RESPONSE_SUFFIX))
 
@@ -165,8 +166,10 @@ def _produce_output_message(func_name, kparams):
     if _out_message_name.startswith("{"):
         ns = _out_message_name[1:].partition("}")[0]
 
-    if _body_style == 'bare' and _returns is not None:
+    if (_body_style == 'bare' or _out_body_bare) and _returns is not None:
         message = _returns.customize(sub_name=_out_message_name, sub_ns=ns)
+        if message.__type_name__ is ModelBase.Empty:
+            message.__type_name__ = _out_message_name
 
     else:
         message = ComplexModel.produce(type_name=_out_message_name,
@@ -176,6 +179,28 @@ def _produce_output_message(func_name, kparams):
         message.__namespace__ = ns  # FIXME: is this necessary?
 
     return message
+
+
+def _substitute_self_reference(params, kparams, kwargs, _no_self):
+    from spyne.model import SelfReference
+
+    for i, v in enumerate(params):
+        if isclass(v) and issubclass(v, SelfReference):
+            if _no_self:
+                raise ValueError("SelfReference can't be used in @rpc")
+            else:
+                params[i] = kwargs['_self_ref_replacement']
+        else:
+            params[i] = v
+
+    for k, v in kparams.items():
+        if isclass(v) and issubclass(v, SelfReference):
+            if _no_self:
+                raise ValueError("SelfReference can't be used in @rpc")
+            else:
+                kparams[k] = kwargs['_self_ref_replacement']
+        else:
+            kparams[k] = v
 
 
 def rpc(*params, **kparams):
@@ -238,8 +263,10 @@ def rpc(*params, **kparams):
         overriding it.
     """
 
+    params = list(params)
+
     def explain(f):
-        def explain_method(*args, **kwargs):
+        def explain_method(**kwargs):
             function_name = kwargs['_default_function_name']
 
             _is_callback = kparams.get('_is_callback', False)
@@ -260,18 +287,13 @@ def rpc(*params, **kparams):
             _service_class = kparams.get("_service_class", None)
             _href = kparams.get("_href", None)
 
-            if _no_self:
-                from spyne.model import SelfReference
-
-                if SelfReference in params:
-                    raise ValueError("SelfReference can't be used in @rpc")
-                if SelfReference in kparams.values():
-                    raise ValueError("SelfReference can't be used in @rpc")
+            _substitute_self_reference(params, kparams, kwargs, _no_self)
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
                 raise ValueError("only one of '_throws ' or '_faults' arguments"
                                  "should be given, as they're synonyms.")
+
             elif '_faults' in kparams:
                 _faults = kparams.get('_faults', None)
 
@@ -329,7 +351,7 @@ def rpc(*params, **kparams):
                 service_class=_service_class, href=_href,
             )
 
-            if _patterns is not None:
+            if _patterns is not None and _no_self:
                 for p in _patterns:
                     p.hello(retval)
 

@@ -112,7 +112,7 @@ class _FunctionCall(object):
         self._async = async
 
     def __call__(self, *args, **kwargs):
-        initial_ctx = MethodContext(self)
+        initial_ctx = MethodContext(self, MethodContext.SERVER)
         initial_ctx.method_request_string = self._key
         initial_ctx.in_header = self._in_header
         initial_ctx.transport.type = NullServer.transport

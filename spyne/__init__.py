@@ -26,6 +26,7 @@ from spyne._base import BODY_STYLE_BARE
 from spyne._base import BODY_STYLE_EMPTY
 from spyne._base import AuxMethodContext
 from spyne._base import TransportContext
+from spyne._base import ProtocolContext
 from spyne._base import EventContext
 from spyne._base import MethodContext
 from spyne._base import MethodDescriptor

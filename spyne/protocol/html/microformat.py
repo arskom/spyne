@@ -58,9 +58,9 @@ class HtmlMicroFormat(HtmlBase):
         """
 
         super(HtmlMicroFormat, self).__init__(app=app,
-                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
-                cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
-                                                      cloth_parser=cloth_parser)
+            ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
+            cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
+            cloth_parser=cloth_parser, hier_delim=None)
 
         assert root_tag in ('div', 'span')
         assert child_tag in ('div', 'span')
@@ -78,7 +78,7 @@ class HtmlMicroFormat(HtmlBase):
         self.serialization_handlers = cdict({
             ModelBase: self.model_base_to_parent,
             AnyUri: self.anyuri_to_parent,
-            AnyHtml: self.anyhtml_to_parent,
+            AnyHtml: self.html_to_parent,
             ImageUri: self.imageuri_to_parent,
             ByteArray: self.not_supported,
             Attachment: self.not_supported,

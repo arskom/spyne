@@ -31,7 +31,6 @@ class FileProxy(collections.Iterator):
 
     :param wrapped: the file object to wrap
     :type wrapped: :class:`file`, file-like object
-
     """
 
     def __init__(self, wrapped):
@@ -63,7 +62,6 @@ class FileProxy(collections.Iterator):
         :returns: read bytes.  an empty string when EOF is encountered
                   immediately
         :rtype: :class:`str`
-
         """
         return self.wrapped.read(size)
 
@@ -97,7 +95,6 @@ class FileProxy(collections.Iterator):
         :type sizehint: :class:`numbers.Integral`
         :returns: a list containing the lines read
         :rtype: :class:`list`
-
         """
         wrapped = self.wrapped
         try:
@@ -119,7 +116,6 @@ class FileProxy(collections.Iterator):
         .. deprecated:: long time ago
 
            Use :func:`iter()` instead.
-
         """
         return iter(self)
 
@@ -130,7 +126,6 @@ class FileProxy(collections.Iterator):
 
             with FileProxy(file_) as f:
                 print f.read()
-
         """
         try:
             close = self.wrapped.close
@@ -157,7 +152,6 @@ class FileProxy(collections.Iterator):
 class SeekableFileProxy(FileProxy):
     """The almost same to :class:`FileProxy` except it has
     :meth:`seek()` and :meth:`tell()` methods in addition.
-
     """
 
     def seek(self, offset, whence=os.SEEK_SET):
@@ -167,7 +161,6 @@ class SeekableFileProxy(FileProxy):
         :type offset: :class:`numbers.Integral`
         :param whence: see the docs of :meth:`file.seek()`.
                        default is :const:`os.SEEK_SET`
-
         """
         self.wrapped.seek(offset, whence)
 
@@ -176,7 +169,6 @@ class SeekableFileProxy(FileProxy):
 
         :returns: the file's current position
         :rtype: :class:`numbers.Integral`
-
         """
         return self.wrapped.tell()
 
@@ -185,7 +177,6 @@ class ReusableFileProxy(SeekableFileProxy):
     """It memorizes the current position (:meth:`tell()`) when the context
     enters and then rewinds (:meth:`seek()`) back to the memorized
     :attr:`initial_offset` when the context exits.
-
     """
 
     def __enter__(self):

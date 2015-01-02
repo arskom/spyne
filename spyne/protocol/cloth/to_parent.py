@@ -31,7 +31,7 @@ from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
     AnyHtml, ModelBase, ByteArray, XmlData, Array, AnyUri, ImageUri
 from spyne.model.enum import EnumBase
-from spyne.protocol import ProtocolBase
+from spyne.protocol import ProtocolBase, get_cls_attrs
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
 from spyne.util.cdict import cdict
@@ -57,7 +57,6 @@ class ToParentMixin(ProtocolBase):
 
             AnyXml: self.xml_to_parent,
             AnyUri: self.anyuri_to_parent,
-            AnyHtml: self.anyhtml_to_parent,
             ImageUri: self.imageuri_to_parent,
             AnyDict: self.dict_to_parent,
             AnyHtml: self.html_to_parent,
@@ -69,16 +68,20 @@ class ToParentMixin(ProtocolBase):
             SchemaValidationError: self.schema_validation_error_to_parent,
         })
 
-    def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
             cls = inst.__class__
 
         subprot = getattr(cls.Attributes, 'prot', None)
-        if subprot is not None and not (subprot is self):
+        if subprot is not None and not (subprot is self) and not nosubprot:
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
         if inst is None:
             inst = cls.Attributes.default
+
+        _df = cls.Attributes.default_factory
+        if inst is None and callable(_df):
+            inst = _df()
 
         if inst is None and self.use_global_null_handler:
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
@@ -87,16 +90,24 @@ class ToParentMixin(ProtocolBase):
             cls, inst = self.strip_wrappers(cls, inst)
 
         from_arr = kwargs.get('from_arr', False)
-        if not from_arr and cls.Attributes.max_occurs > 1:
+        if inst is not None and not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+        ctx.outprot_ctx.inst_stack.append(inst)
         try:
             handler = self.serialization_handlers[cls]
         except KeyError:
             logger.error("%r is missing handler for %r", self, cls)
             raise
 
-        return handler(ctx, cls, inst, parent, name, **kwargs)
+        retval = handler(ctx, cls, inst, parent, name, **kwargs)
+
+        # FIXME: to_parent must be made to a coroutine for the below to remain
+        #        consistent
+        ctx.outprot_ctx.inst_stack.pop()
+
+        return retval
+
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_string(cls, inst)))
@@ -127,7 +138,6 @@ class ToParentMixin(ProtocolBase):
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        name = cls.get_type_name()
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
@@ -145,9 +155,10 @@ class ToParentMixin(ProtocolBase):
                             pass
 
         else:
-            for sv in inst:
-                ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True,
-                                                                       **kwargs)
+            for i, sv in enumerate(inst):
+                kwargs['from_arr'] = True
+                kwargs['array_index'] = i
+                ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -164,7 +175,7 @@ class ToParentMixin(ProtocolBase):
         for k, v in cls.get_flat_type_info(cls).items():
             try:
                 subvalue = getattr(inst, k, None)
-            except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
+            except:  # e.g. SqlAlchemy could throw NoSuchColumnError
                 subvalue = None
 
             sub_name = v.Attributes.sub_name
@@ -173,7 +184,8 @@ class ToParentMixin(ProtocolBase):
 
             # Don't include empty values for non-nillable optional attributes.
             if subvalue is not None or v.Attributes.min_occurs > 0:
-                ret = self.to_parent(ctx, v, subvalue, parent, sub_name, **kwargs)
+                ret = self.to_parent(ctx, v, subvalue, parent, sub_name,
+                                                                       **kwargs)
                 if ret is not None:
                     try:
                         while True:
@@ -188,9 +200,6 @@ class ToParentMixin(ProtocolBase):
     def not_supported(self, cls, *args, **kwargs):
         if not self.ignore_uncap:
             raise NotImplementedError("Serializing %r not supported!" % cls)
-
-    def anyhtml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(inst)
 
     def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         assert name is not None
@@ -264,7 +273,11 @@ class ToParentMixin(ProtocolBase):
                         pass
 
         for k, v in cls._type_info.items():
-            try: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
+            attr = get_cls_attrs(self, v)
+            if attr.exc:
+                continue
+
+            try:  # e.g. SqlAlchemy could throw NoSuchColumnError
                 subvalue = getattr(inst, k, None)
             except:
                 subvalue = None
@@ -348,7 +361,7 @@ class ToParentMixin(ProtocolBase):
                         pass
 
     @coroutine
-    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
+    def schema_validation_error_to_parent(self, ctx, cls, inst, parent):
         PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP_ENV]
         tag_name = "{%s}Fault" % NS_SOAP_ENV
 
@@ -376,22 +389,22 @@ class ToParentMixin(ProtocolBase):
                     except StopIteration:
                         pass
 
-    def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        self.base_to_parent(ctx, cls, str(inst), parent, ns, name)
+    def enum_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        self.base_to_parent(ctx, cls, str(inst), parent, name)
 
-    def xml_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def xml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         if isinstance(inst, string_types):
             inst = etree.fromstring(inst)
 
         parent.write(inst)
 
-    def html_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         if isinstance(inst, str) or isinstance(inst, six.text_type):
             inst = html.fromstring(inst)
 
         parent.write(inst)
 
-    def dict_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         elt = E(name)
         dict_to_etree(inst, elt)
         parent.write(elt)

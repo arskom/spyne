@@ -30,7 +30,7 @@ from spyne.server import ServerBase
 
 class ZmqMethodContext(MethodContext):
     def __init__(self, app):
-        super(ZmqMethodContext, self).__init__(app)
+        super(ZmqMethodContext, self).__init__(app, MethodContext.SERVER)
         self.transport.type = 'zmq'
 
 class ZeroMQServer(ServerBase):

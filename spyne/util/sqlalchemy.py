@@ -86,40 +86,12 @@ from spyne.model.complex import msgpack as c_msgpack
 from spyne.model.binary import HybridFileStore
 
 # public types
-from spyne.model import SimpleModel, AnyDict
-from spyne.model import Enum
-from spyne.model import ByteArray
-from spyne.model import Array
-from spyne.model import ComplexModelBase
-from spyne.model import AnyXml
-from spyne.model import AnyHtml
-from spyne.model import Uuid
-from spyne.model import Date
-from spyne.model import Time
-from spyne.model import DateTime
-from spyne.model import Float
-from spyne.model import Double
-from spyne.model import Decimal
-from spyne.model import String
-from spyne.model import Unicode
-from spyne.model import Boolean
-from spyne.model import Integer
-from spyne.model import Integer8
-from spyne.model import Integer16
-from spyne.model import Integer32
-from spyne.model import Integer64
-from spyne.model import Point
-from spyne.model import Line
-from spyne.model import Polygon
-from spyne.model import MultiPoint
-from spyne.model import MultiLine
-from spyne.model import MultiPolygon
-from spyne.model import UnsignedInteger
-from spyne.model import UnsignedInteger8
-from spyne.model import UnsignedInteger16
-from spyne.model import UnsignedInteger32
-from spyne.model import UnsignedInteger64
-from spyne.model import File
+from spyne.model import SimpleModel, AnyDict, Enum, ByteArray, Array, \
+    ComplexModelBase, AnyXml, AnyHtml, Uuid, Date, Time, DateTime, Float, \
+    Double, Decimal, String, Unicode, Boolean, Integer, Integer8, Integer16, \
+    Integer32, Integer64, Point, Line, Polygon, MultiPoint, MultiLine, \
+    MultiPolygon, UnsignedInteger, UnsignedInteger8, UnsignedInteger16, \
+    UnsignedInteger32, UnsignedInteger64, File
 
 from spyne.util import sanitize_args
 from spyne.util.xml import get_object_as_xml
@@ -431,6 +403,7 @@ class PGFileJson(PGObjectJson):
                     data = mmap(value.handle.fileno(), 0) # 0 = whole file
                     with open(fp, 'wb') as out_file:
                         out_file.write(data)
+                        data.close()
 
                 elif value.path is not None:
                     in_file_path = value.path
@@ -452,7 +425,7 @@ class PGFileJson(PGObjectJson):
 
                 else:
                     raise ValueError("Invalid file object passed in. All of "
-                                            ".data .handle and .path are None.")
+                                           ".data, .handle and .path are None.")
 
                 value.store = self.store
                 value.abspath = join(self.store, value.path)
@@ -488,6 +461,7 @@ class PGFileJson(PGObjectJson):
                     if fstat(retval.handle.fileno()).st_size > 0:
                         h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
                         retval.data = [h.mmap]
+                        # FIXME: Where do we close this mmap?
                     else:
                         retval.data = ['']
                 else:
@@ -594,7 +568,7 @@ def get_sqlalchemy_type(cls):
 
     elif issubclass(cls, DateTime):
         if cls.Attributes.timezone is None:
-            if cls.Attributes.as_time_zone is None:
+            if cls.Attributes.as_timezone is None:
                 return sqlalchemy.DateTime(timezone=True)
             else:
                 return sqlalchemy.DateTime(timezone=False)
@@ -788,6 +762,7 @@ def _check_inheritance(cls, cls_bases):
 
     return inheritance, base_class, base_mapper, inc
 
+
 def _check_table(cls):
     table_name = cls.Attributes.table_name
     metadata = cls.Attributes.sqla_metadata
@@ -825,6 +800,7 @@ def _add_simple_type(cls, props, table, k, v, sqla_type):
     elif mp is not None:
         props[k] = mp
 
+
 def _gen_array_m2m(cls, props, k, child, p):
     metadata = cls.Attributes.sqla_metadata
 
@@ -850,6 +826,7 @@ def _gen_array_m2m(cls, props, k, child, p):
     props[k] = relationship(child, secondary=rel_t, backref=p.backref,
                 back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
 
+
 def _gen_array_simple(cls, props, k, child_cust, p):
     table_name = cls.Attributes.table_name
     metadata = cls.Attributes.sqla_metadata
@@ -857,7 +834,8 @@ def _gen_array_simple(cls, props, k, child_cust, p):
     # get left (fk) column info
     _gen_col = _get_col_o2m(cls, p.left)
     col_info = next(_gen_col) # gets the column name
-    p.left, child_left_col_type = col_info[0]  # FIXME: Add support for multi-column primary keys.
+    # FIXME: Add support for multi-column primary keys.
+    p.left, child_left_col_type = col_info[0]
     child_left_col_name = p.left
 
     # get right(data) column info
@@ -960,8 +938,10 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
     props[k] = relationship(child, foreign_keys=[col], backref=p.backref,
                 back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
 
+
 def _is_array(v):
     return (v.Attributes.max_occurs > 1 or issubclass(v, Array))
+
 
 def _add_complex_type(cls, props, table, k, v):
     if issubclass(v, File):

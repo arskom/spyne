@@ -168,6 +168,7 @@ from spyne.model import Unicode
 
 from spyne.protocol import ProtocolBase, get_cls_attrs
 
+from spyne.interface.xml_schema.parser import hier_repr
 
 def _check_freq_dict(cls, d, fti=None):
     if fti is None:
@@ -337,7 +338,7 @@ class SimpleDictDocument(DictDocument):
                                                      hier_delim=self.hier_delim)
 
         idxmap = defaultdict(dict)
-        for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
+        for orig_k, v in sorted(doc.items(), key=lambda _k: _k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
             member = simple_type_info.get(k, None)
@@ -705,7 +706,9 @@ class HierDictDocument(DictDocument):
         except AttributeError:
             # Input is not a dict, so we assume it's a sequence that we can pair
             # with the incoming sequence with field names.
-            items = zip(flat_type_info.keys(), doc)
+            # TODO: cache this
+            items = zip([k for k,v in flat_type_info.items()
+                         if not get_cls_attrs(self, v).exc], doc)
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
@@ -715,7 +718,9 @@ class HierDictDocument(DictDocument):
                 if member is None:
                     continue
 
-            mo = member.Attributes.max_occurs
+            attr = get_cls_attrs(self, member)
+
+            mo = attr.max_occurs
             if mo > 1:
                 subinst = getattr(inst, k, None)
                 if subinst is None:

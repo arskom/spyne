@@ -157,6 +157,9 @@ class TwistedHttpTransportContext(HttpTransportContext):
     def get_cookie(self, key):
         return self.req.getCookie(key)
 
+    def get_path(self):
+        return self.req.URLPath().path
+
 
 class TwistedHttpMethodContext(HttpMethodContext):
     default_transport_context = TwistedHttpTransportContext
@@ -201,7 +204,7 @@ class TwistedHttpTransport(HttpBase):
 
         if ctx.method_request_string is None: # no pattern match
             ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                    request.path.split('/')[-1])
+                                                request.path.rsplit('/', 1)[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
@@ -312,8 +315,6 @@ class TwistedWebResource(Resource):
             else:
                 request.realprepath = self.prepath
 
-        request.realpostpath = request.path[len(request.realprepath):]
-
         if path in self.children:
             retval = self.children[path]
         else:
@@ -321,6 +322,8 @@ class TwistedWebResource(Resource):
 
         if isinstance(retval, NoResource):
             retval = self
+        else:
+            request.realpostpath = request.path[len(request.realprepath):]
 
         return retval
 
@@ -331,6 +334,8 @@ class TwistedWebResource(Resource):
         return self.handle_rpc(request)
 
     def handle_rpc_error(self, p_ctx, others, error, request):
+        logger.error(error)
+
         resp_code = p_ctx.transport.resp_code
         # If user code set its own response code, don't touch it.
         if resp_code is None:
