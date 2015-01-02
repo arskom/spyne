@@ -23,7 +23,7 @@ from spyne.protocol.cloth import XmlCloth
 
 
 class HtmlBase(XmlCloth):
-    mime_type = 'text/html'
+    mime_type = 'text/html; charset=UTF-8'
 
     def __init__(self, app=None, mime_type=None, ignore_uncap=False,
                  ignore_wrappers=False, cloth=None, attr_name='spyne_id',

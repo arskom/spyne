@@ -356,7 +356,10 @@ class SimpleDictDocument(DictDocument):
                                         and not issubclass(member.type, String) \
                                         and issubclass(member.type, Unicode) \
                                         and not isinstance(v2, unicode):
-                    v2 = v2.decode(req_enc)
+                    try:
+                        v2 = v2.decode(req_enc)
+                    except UnicodeDecodeError as e:
+                        raise ValidationError(v2, "%r while decoding %%r" % e)
 
                 try:
                     if (validator is self.SOFT_VALIDATION and not
