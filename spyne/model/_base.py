@@ -719,7 +719,9 @@ class table:
     """
 
     def __init__(self, multi=False, left=None, right=None, backref=None,
-            id_backref=None, cascade=False, lazy='select', back_populates=None):
+            id_backref=None, cascade=False, lazy='select', back_populates=None,
+                            fk_left_deferrable=None, fk_left_initially=None,
+                            fk_right_deferrable=None, fk_right_initially=None):
         self.multi = multi
         self.left = left
         self.right = right
@@ -728,6 +730,10 @@ class table:
         self.cascade = cascade
         self.lazy = lazy
         self.back_populates = back_populates
+        self.fk_left_deferrable = fk_left_deferrable
+        self.fk_left_initially = fk_left_initially
+        self.fk_right_deferrable = fk_right_deferrable
+        self.fk_right_initially = fk_right_initially
 
 
 class json:

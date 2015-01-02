@@ -595,7 +595,7 @@ def get_pk_columns(cls):
     return tuple(retval) if len(retval) > 0 else None
 
 
-def _get_col_o2o(parent, k, v, fk_col_name):
+def _get_col_o2o(parent, k, v, fk_col_name, deferrable=None, initially=None):
     """Gets key and child type and returns a column that points to the primary
     key of the child.
     """
@@ -616,12 +616,13 @@ def _get_col_o2o(parent, k, v, fk_col_name):
         fk_col_name = k + "_" + pk_key
 
     fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key), use_alter=True,
-          name='%s_%s_fkey' % (v.Attributes.table_name, fk_col_name))
+          name='%s_%s_fkey' % (v.Attributes.table_name, fk_col_name),
+          deferrable=deferrable, initially=initially)
 
     return Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
 
 
-def _get_col_o2m(cls, fk_col_name):
+def _get_col_o2m(cls, fk_col_name, deferrable=None, initially=None):
     """Gets the parent class and returns a column that points to the primary key
     of the parent.
 
@@ -646,19 +647,25 @@ def _get_col_o2m(cls, fk_col_name):
     # tinkering with functors is always fun :)
     yield [(fk_col_name, pk_sqla_type)]
 
-    col = Column(fk_col_name, pk_sqla_type,
-                ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)),
-                                                       *col_args, **col_kwargs)
+    fk = ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key),
+                                     deferrable=deferrable, initially=initially)
+    col = Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
 
     yield col
 
 
-def _get_cols_m2m(cls, k, child, left_fk_col_name, right_fk_col_name):
+def _get_cols_m2m(cls, k, child, fk_left_col_name, fk_right_col_name,
+                  fk_left_deferrable, fk_left_initially,
+                  fk_right_deferrable, fk_right_initially):
     """Gets the parent and child classes and returns foreign keys to both
     tables. These columns can be used to create a relation table."""
 
-    col_info, left_col = _get_col_o2m(cls, left_fk_col_name)
-    right_col = _get_col_o2o(cls, k, child, right_fk_col_name)
+    col_info, left_col = _get_col_o2m(cls, fk_left_col_name,
+                                                deferrable=fk_left_deferrable,
+                                                initially=fk_left_initially)
+    right_col = _get_col_o2o(cls, k, child, fk_right_col_name,
+                                               deferrable=fk_right_deferrable,
+                                               initially=fk_right_initially)
     left_col.primary_key = right_col.primary_key = True
     return left_col, right_col
 
@@ -804,7 +811,9 @@ def _add_simple_type(cls, props, table, k, v, sqla_type):
 def _gen_array_m2m(cls, props, k, child, p):
     metadata = cls.Attributes.sqla_metadata
 
-    col_own, col_child = _get_cols_m2m(cls, k, child, p.left, p.right)
+    col_own, col_child = _get_cols_m2m(cls, k, child, p.left, p.right,
+                                    p.fk_left_deferrable, p.fk_left_initially,
+                                    p.fk_right_deferrable, p.fk_right_initially)
 
     p.left = col_own.key
     p.right = col_child.key
@@ -832,7 +841,8 @@ def _gen_array_simple(cls, props, k, child_cust, p):
     metadata = cls.Attributes.sqla_metadata
 
     # get left (fk) column info
-    _gen_col = _get_col_o2m(cls, p.left)
+    _gen_col = _get_col_o2m(cls, p.left, deferrable=p.fk_left_deferrable,
+                                                  initially=p.fk_left_initially)
     col_info = next(_gen_col) # gets the column name
     # FIXME: Add support for multi-column primary keys.
     p.left, child_left_col_type = col_info[0]
@@ -901,9 +911,10 @@ def _gen_array_simple(cls, props, k, child_cust, p):
 
 
 def _gen_array_o2m(cls, props, k, child, child_cust, p):
-    _gen_col = _get_col_o2m(cls, p.right)
-    col_info = next(_gen_col) # gets the column name
-    p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+    _gen_col = _get_col_o2m(cls, p.right, deferrable=p.fk_right_deferrable,
+                                                 initially=p.fk_right_initially)
+    col_info = next(_gen_col)  # gets the column name
+    p.right, col_type = col_info[0]  # FIXME: Add support for multi-column primary keys.
 
     assert p.left is None, \
         "'left' is ignored in one-to-many relationships " \
@@ -985,7 +996,9 @@ def _add_complex_type(cls, props, table, k, v):
             assert p.right is None, "'right' is ignored in a one-to-one " \
                                     "relationship"
 
-            col = _get_col_o2o(cls, k, v, p.left)
+            col = _get_col_o2o(cls, k, v, p.left,
+                                               deferrable=p.fk_left_deferrable,
+                                               initially=p.fk_left_initially)
             p.left = col.name
 
             if col.name in table.c:
