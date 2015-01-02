@@ -363,7 +363,7 @@ class XmlDocument(SubXmlBase):
                 ctx.in_document = etree.fromstring(string.decode(charset),
                                                                     self.parser)
         except XMLSyntaxError as e:
-            logger_invalid.error(string)
+            logger_invalid.error("%r in string %r", e, string)
             raise Fault('Client.XMLSyntaxError', str(e))
 
     def decompose_incoming_envelope(self, ctx, message):
