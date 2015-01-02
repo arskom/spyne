@@ -111,6 +111,7 @@ class HttpRpc(SimpleDictDocument):
 
     mime_type = 'text/plain'
     default_binary_encoding = BINARY_ENCODING_URLSAFE_BASE64
+    default_string_encoding = 'UTF-8'
 
     type = set(SimpleDictDocument.type)
     type.add('http')
@@ -183,6 +184,9 @@ class HttpRpc(SimpleDictDocument):
             raise ResourceNotFoundError(ctx.method_request_string)
 
         req_enc = getattr(ctx.transport, 'request_encoding', None)
+        if req_enc is None:
+            req_enc = ctx.in_protocol.default_string_encoding
+
         if ctx.descriptor.in_header is not None:
             # HttpRpc supports only one header class
             in_header_class = ctx.descriptor.in_header[0]
