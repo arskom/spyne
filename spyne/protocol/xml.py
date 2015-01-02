@@ -386,7 +386,11 @@ class XmlDocument(SubXmlBase):
         if self.parse_xsi_type:
             xsi_type = element.get('{%s}type' % _ns_xsi, None)
             if xsi_type is not None:
-                prefix, objtype = xsi_type.split(':', 1)
+                if ":" in xsi_type:
+                    prefix, objtype = xsi_type.split(':', 1)
+                else:
+                    prefix, objtype = None, xsi_type
+
                 classkey = "{%s}%s" % (element.nsmap[prefix], objtype)
 
                 newclass = ctx.app.interface.classes.get(classkey, None)
