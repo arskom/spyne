@@ -399,7 +399,7 @@ class XmlDocument(SubXmlBase):
 
                 newclass = ctx.app.interface.classes.get(classkey, None)
                 if newclass is None:
-                    raise ValidationError("Unknown type %r", classkey)
+                    raise ValidationError(xsi_type)
 
                 cls = newclass
                 logger.debug("xsi:type overrides %r to %r", cls, newclass)
