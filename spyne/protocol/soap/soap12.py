@@ -107,7 +107,7 @@ class Soap12(Soap11):
             _append(subelts, E('{%s}Detail' % self.soap_env, root_dict_to_etree(inst.detail)))
 
         elif inst.detail is None:
-            raise TypeError('Fault detail Must be dict, got', type(inst.detail))
+            pass
         else:
             raise TypeError('Fault detail Must be dict, got', type(inst.detail))
 

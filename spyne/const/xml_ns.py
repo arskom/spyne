@@ -31,8 +31,8 @@ xhtml = 'http://www.w3.org/1999/xhtml'
 plink = 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/'
 soap11_enc = 'http://schemas.xmlsoap.org/soap/encoding/'
 soap11_env = 'http://schemas.xmlsoap.org/soap/envelope/'
-soap12_env = 'http://www.w3.org/2003/05/soap-envelope/'
-soap12_enc = 'http://www.w3.org/2003/05/soap-encoding/'
+soap12_env = 'http://www.w3.org/2003/05/soap-envelope'
+soap12_enc = 'http://www.w3.org/2003/05/soap-encoding'
 
 const_nsmap = {
     'xml': xml,

@@ -338,7 +338,7 @@ class Wsdl11(XmlSchema):
             operation.set('name', method.operation_name)
 
             if method.doc is not None:
-                operation.add(E(WSDL11("documentation"), method.doc))
+                operation.append(E(WSDL11("documentation"), method.doc))
 
             operation.set('parameterOrder', method.in_message.get_element_name())
 

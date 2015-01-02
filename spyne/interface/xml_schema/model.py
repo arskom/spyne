@@ -128,18 +128,15 @@ def complex_add(document, cls, tags):
     complex_type = etree.Element(XSD('complexType'))
     complex_type.set('name', cls.get_type_name())
 
-    if cls.Annotations.doc != '' or cls.Annotations.appinfo != None or \
-                                             cls.Annotations.__use_parent_doc__:
+    doc_text = cls.get_documentation()
+    if doc_text or cls.Annotations.appinfo is not None:
         annotation = etree.SubElement(complex_type, XSD('annotation'))
-        if cls.Annotations.doc != '' or cls.Annotations.__use_parent_doc__:
+        if doc_text:
             doc = etree.SubElement(annotation, XSD('documentation'))
-            if cls.Annotations.__use_parent_doc__:
-                doc.text = getattr(cls, '__doc__')
-            else:
-                doc.text = cls.Annotations.doc
+            doc.text = doc_text
 
         _ai = cls.Annotations.appinfo
-        if _ai != None:
+        if _ai is not None:
             appinfo = etree.SubElement(annotation, XSD('appinfo'))
             if isinstance(_ai, dict):
                 dict_to_etree(_ai, appinfo)
@@ -251,11 +248,12 @@ def complex_add(document, cls, tags):
         if bool(a.nillable) != False: # False is the xml schema default
             member.set('nillable', 'true')
 
-        if v.Annotations.doc != '':
+        v_doc_text = v.get_documentation()
+        if v_doc_text:
             # Doesn't support multi-language documentation
             annotation = etree.SubElement(member, XSD('annotation'))
             doc = etree.SubElement(annotation, XSD('documentation'))
-            doc.text = v.Annotations.doc
+            doc.text = doc_text
 
         if a.xml_choice_group is None:
             sequence.append(member)
