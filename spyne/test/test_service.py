@@ -311,6 +311,8 @@ class TestBodyStyle(unittest.TestCase):
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
                                                 out_protocol=Soap11(cleanup_namespaces=True))
 
+        assert SomeService.public_methods['some_call'].name == 'some_call'
+
         req = """
         <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
                         xmlns:tns="tns">
@@ -335,7 +337,7 @@ class TestBodyStyle(unittest.TestCase):
         assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
         assert resp[0][0].text == 'abc'
 
-    def test_soap_bare_empty_input_method_name(self):
+    def test_soap_bare_empty_model_input_method_name(self):
         class EmptyRequest(ComplexModel):
             pass
         class SomeService(ServiceBase):
@@ -346,6 +348,32 @@ class TestBodyStyle(unittest.TestCase):
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
                                                 out_protocol=Soap11(cleanup_namespaces=True))
         assert SomeService.public_methods['some_call'].name == 'some_call'
+
+        req = """
+        <soap11env:Envelope xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
+                        xmlns:tns="tns">
+            <soap11env:Body>
+                <tns:some_call>
+                    <tns:EmptyRequest/>
+                </tns:some_call>
+            </soap11env:Body>
+        </soap11env:Envelope>
+        """
+
+        server = WsgiApplication(app)
+        resp = etree.fromstring(''.join(server({
+            'QUERY_STRING': '',
+            'PATH_INFO': '/call',
+            'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
+            'wsgi.input': StringIO(req)
+        }, start_response, "http://null")))
+
+        print(etree.tostring(resp, pretty_print=True))
+
+        assert resp[0].tag == '{http://schemas.xmlsoap.org/soap/envelope/}Body'
+        assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
+        assert resp[0][0].text == 'abc'
 
     def test_implicit_class_conflict(self):
         class someCallResponse(ComplexModel):
