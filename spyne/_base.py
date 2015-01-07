@@ -422,7 +422,7 @@ class MethodDescriptor(object):
         """The public name of the function. Equals to the type_name of the
         in_message."""
 
-        if body_style is BODY_STYLE_BARE:
+        if body_style is BODY_STYLE_BARE or body_style is BODY_STYLE_EMPTY:
             self.name = in_message.Attributes.sub_name
 
         if self.name is None:
