@@ -1,14 +1,26 @@
 #!/usr/bin/env python
 
 from lxml import etree
+from lxml.doctestcompare import LXMLOutputChecker, PARSE_XML
+
+from spyne.util import six
+from spyne.util.six import StringIO
+
 import unittest
 import pytest
 from spyne import Fault
 from spyne.application import Application
+from spyne.decorator import srpc
 from spyne.interface import Wsdl11
+from spyne.server.wsgi import WsgiApplication
 from spyne.protocol.soap.soap12 import Soap12
+from spyne.service import ServiceBase
 from spyne.test.protocol.test_soap11 import TestService, TestSingle, \
     TestMultiple, MultipleReturnService
+
+
+def start_response(code, headers):
+    print(code, headers)
 
 
 class TestSingleSoap12(TestSingle):
@@ -56,6 +68,53 @@ class TestSoap12(unittest.TestCase):
         so = Soap12()
         ret = so.from_element(None, Fault, element[0][0])
         assert ret.faultcode == "env:Sender.st:SomeDomainProblem"
+
+    def test_fault_generation(self):
+        class SoapException(ServiceBase):
+            @srpc()
+            def soap_exception():
+                raise Fault(
+                    "Client.Plausible", "A plausible fault", 'http://faultactor.example.com')
+        app = Application([SoapException], 'tns', in_protocol=Soap12(), out_protocol=Soap12())
+
+        req = """
+        <soap12env:Envelope
+                xmlns:soap12env="http://www.w3.org/2003/05/soap-envelope"
+                xmlns:tns="tns">
+            <soap12env:Body>
+                <tns:soap_exception/>
+            </soap12env:Body>
+        </soap12env:Envelope>
+        """
+
+        server = WsgiApplication(app)
+        response = etree.fromstring(''.join(server({
+            'QUERY_STRING': '',
+            'PATH_INFO': '/call',
+            'REQUEST_METHOD': 'GET',
+            'wsgi.input': StringIO(req)
+        }, start_response, "http://null")))
+
+        response_str = etree.tostring(response, pretty_print=True)
+        print(response_str)
+
+        expected = """
+            <soap12env:Envelope xmlns:soap12env="http://www.w3.org/2003/05/soap-envelope">
+              <soap12env:Body>
+                <soap12env:Fault>
+                  <soap12env:Reason>A plausible fault</soap12env:Reason>
+                  <soap12env:Role>http://faultactor.example.com</soap12env:Role>
+                  <soap12env:Code>
+                    <soap12env:Value>soap12env:Sender</soap12env:Value>
+                    <soap12env:Subcode>
+                      <soap12env:Value>Plausible</soap12env:Value>
+                    </soap12env:Subcode>
+                  </soap12env:Code>
+                </soap12env:Fault>
+              </soap12env:Body>
+            </soap12env:Envelope>"""
+        if not LXMLOutputChecker().check_output(expected, response_str, PARSE_XML):
+            raise Exception("Got: %s but expected: %s" % (response_str, expected))
 
 
 if __name__ == '__main__':

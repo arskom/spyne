@@ -31,7 +31,7 @@ from spyne.protocol.soap.soap11 import Soap11
 from spyne.protocol.xml import _append
 from spyne.util.six import string_types
 from spyne.util.etreeconv import root_dict_to_etree
-from spyne.const.xml_ns import soap12_env, const_prefmap
+from spyne.const.xml import NS_SOAP12_ENV, PREFMAP
 
 
 logger = logging.getLogger(__name__)
@@ -45,12 +45,12 @@ class Soap12(Soap11):
     """
     mime_type = 'application/soap+xml; charset=utf-8'
 
-    soap_env = const_prefmap[soap12_env]
-    ns_soap_env = soap12_env
+    soap_env = PREFMAP[NS_SOAP12_ENV]
+    ns_soap_env = NS_SOAP12_ENV
 
     def generate_subcode(self, value, subcode=None):
-        subcode_node = E("{%s}Subcode" % self.soap_env)
-        subcode_node.append(E("{%s}Value" % self.soap_env, value))
+        subcode_node = E("{%s}Subcode" % self.ns_soap_env)
+        subcode_node.append(E("{%s}Value" % self.ns_soap_env, value))
         if subcode:
             subcode_node.append(subcode)
         return subcode_node
@@ -60,9 +60,9 @@ class Soap12(Soap11):
         value = faultstrings.pop(0)
 
         if value == 'Client':
-            value = 'Sender'
+            value = '%s:Sender' % self.soap_env
         elif value == 'Server':
-            value = 'Receiver'
+            value = '%s:Receiver' % self.soap_env
         else:
             raise TypeError('Wrong fault code, got', type(faultstring))
 
@@ -83,15 +83,15 @@ class Soap12(Soap11):
         tag_name = "{%s}Fault" % self.ns_soap_env
 
         subelts = [
-            E("{%s}Reason" % self.soap_env, inst.faultstring),
-            E("{%s}Role" % self.soap_env, inst.faultactor),
+            E("{%s}Reason" % self.ns_soap_env, inst.faultstring),
+            E("{%s}Role" % self.ns_soap_env, inst.faultactor),
         ]
 
         if isinstance(inst.faultcode, string_types):
             value, faultcodes  = self.gen_fault_codes(inst.faultcode)
 
-            code = E("{%s}Code" % self.soap_env)
-            code.append(E("{%s}Value" % self.soap_env, value))
+            code = E("{%s}Code" % self.ns_soap_env)
+            code.append(E("{%s}Value" % self.ns_soap_env, value))
 
             child_subcode = 0
             for value in faultcodes:
@@ -104,7 +104,7 @@ class Soap12(Soap11):
             _append(subelts, code)
 
         if isinstance(inst.detail, dict):
-            _append(subelts, E('{%s}Detail' % self.soap_env, root_dict_to_etree(inst.detail)))
+            _append(subelts, E('{%s}Detail' % self.ns_soap_env, root_dict_to_etree(inst.detail)))
 
         elif inst.detail is None:
             pass
