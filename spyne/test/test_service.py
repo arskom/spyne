@@ -335,6 +335,20 @@ class TestBodyStyle(unittest.TestCase):
         assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
         assert resp[0][0].text == 'abc'
 
+    def test_soap_bare_empty_model_input_method_name(self):
+        class EmptyRequest(ComplexModel):
+            pass
+        try:
+            class SomeService(ServiceBase):
+                @rpc(EmptyRequest, _body_style='bare', _returns=String)
+                def some_call(ctx, request):
+                    return 'abc'
+        except Exception:
+            pass
+        else:
+            raise Exception("Must fail with exception: body_style='bare' does "
+                            "not allow empty model as param")
+
     def test_implicit_class_conflict(self):
         class someCallResponse(ComplexModel):
             __namespace__ = 'tns'
