@@ -98,6 +98,10 @@ def _produce_input_message(f, params, kparams, in_message_name,
         else:
             message, = in_params.values()
             message = message.customize(sub_name=in_message_name, sub_ns=ns)
+            from spyne.model import ComplexModelBase
+            if issubclass(message, ComplexModelBase) and not message._type_info:
+                raise Exception("body_style='bare' does not allow empty "
+                                "model as param")
 
     else:
         message = ComplexModel.produce(type_name=in_message_name,
