@@ -21,6 +21,8 @@ __version__ = '2.12.0'
 
 from pytz import utc as LOCAL_TZ
 
+DEFAULT_LANGUAGE = 'en'
+
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE
 from spyne._base import BODY_STYLE_EMPTY

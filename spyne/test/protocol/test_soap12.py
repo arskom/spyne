@@ -102,7 +102,9 @@ class TestSoap12(unittest.TestCase):
             <soap12env:Envelope xmlns:soap12env="http://www.w3.org/2003/05/soap-envelope">
               <soap12env:Body>
                 <soap12env:Fault>
-                  <soap12env:Reason>A plausible fault</soap12env:Reason>
+                  <soap12env:Reason>
+                      <soap12env:Text xml:lang="en">A plausible fault</soap12env:Text>
+                  </soap12env:Reason>
                   <soap12env:Role>http://faultactor.example.com</soap12env:Role>
                   <soap12env:Code>
                     <soap12env:Value>soap12env:Sender</soap12env:Value>
