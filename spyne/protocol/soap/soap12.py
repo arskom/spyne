@@ -31,7 +31,7 @@ from spyne.protocol.soap.soap11 import Soap11
 from spyne.protocol.xml import _append
 from spyne.util.six import string_types
 from spyne.util.etreeconv import root_dict_to_etree
-from spyne.const.xml import NS_SOAP12_ENV, PREFMAP
+from spyne.const.xml import NS_SOAP12_ENV, NS_XML, PREFMAP
 
 
 logger = logging.getLogger(__name__)
@@ -82,8 +82,12 @@ class Soap12(Soap11):
     def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
         tag_name = "{%s}Fault" % self.ns_soap_env
 
+        reason = E("{%s}Reason" % self.ns_soap_env)
+        reason.append(E("{%s}Text" % self.ns_soap_env, inst.faultstring,
+                        **{'{%s}lang' % NS_XML: inst.lang}))
+
         subelts = [
-            E("{%s}Reason" % self.ns_soap_env, inst.faultstring),
+            reason,
             E("{%s}Role" % self.ns_soap_env, inst.faultactor),
         ]
 
