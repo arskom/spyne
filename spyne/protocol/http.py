@@ -28,11 +28,8 @@ import re
 import pytz
 import tempfile
 
-from spyne.util.six import string_types, BytesIO, PY3
-if PY3:
-    from http.cookies import SimpleCookie
-else:
-    from Cookie import SimpleCookie
+from spyne.util.six import string_types, BytesIO
+from spyne.util.six.moves.http_cookies import SimpleCookie
 
 from spyne import BODY_STYLE_WRAPPED, MethodDescriptor
 from spyne.error import ResourceNotFoundError
