@@ -38,12 +38,8 @@ except ImportError as import_error:
     def parse_form_data(*args, **kwargs):
         raise import_error
 
-from spyne.util.six import string_types, BytesIO, PY3
-if PY3:
-    from http.cookies import SimpleCookie
-else:
-    from Cookie import SimpleCookie
-
+from spyne.util.six import string_types, BytesIO
+from spyne.util.six.moves.http_cookies import SimpleCookie
 
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
