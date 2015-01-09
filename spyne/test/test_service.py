@@ -27,13 +27,9 @@ logging.basicConfig(level=logging.DEBUG)
 import unittest
 
 from spyne.util import six
+from spyne.util.six import StringIO
 
 from lxml import etree
-
-if six.PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
 
 from spyne.const import RESPONSE_SUFFIX
 from spyne.model.primitive import NATIVE_MAP

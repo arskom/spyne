@@ -20,11 +20,7 @@
 import unittest
 
 from spyne.util import six
-
-if six.PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from spyne.util.six import StringIO
 
 from spyne.protocol.soap.soap11 import Soap11
 from spyne.server.wsgi import WsgiApplication
