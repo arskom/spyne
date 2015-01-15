@@ -241,7 +241,7 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
 
             if base_types is not None:
                 if getattr(b, '__mixin__', False) == True:
-                    mixin = b.get_flat_type_info(b)
+                    mixin.update(b.get_flat_type_info(b))
                 else:
                     if not (extends in (None, b)):
                         raise Exception("Spyne objects do not support multiple "
