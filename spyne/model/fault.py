@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-
+import spyne
 import spyne.const
 
 from spyne.util.six import add_metaclass
@@ -51,16 +51,18 @@ class Fault(ComplexModelBase, Exception):
         the standard says... Yes, soap is famous for a reason :))
     :param faultstring: It's the human-readable explanation of the exception.
     :param detail: Additional information dict.
+    :param lang: Language code corresponding to the language of faultstring.
     """
 
     __type_name__ = "Fault"
 
     def __init__(self, faultcode='Server', faultstring="", faultactor="",
-                                                                   detail=None):
+                 detail=None, lang=spyne.DEFAULT_LANGUAGE):
         self.faultcode = faultcode
         self.faultstring = faultstring or self.get_type_name()
         self.faultactor = faultactor
         self.detail = detail
+        self.lang = lang
 
     def __len__(self):
         return 1
@@ -92,4 +94,3 @@ class Fault(ComplexModelBase, Exception):
     @classmethod
     def to_string_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]
-
