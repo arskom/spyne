@@ -43,6 +43,7 @@ from spyne.util.xml import parse_schema_element
 from spyne.util.xml import parse_schema_string
 
 from spyne.interface.xml_schema import XmlSchema
+from spyne.interface.xml_schema.genpy import CodeGenerator
 
 
 class TestXmlSchema(unittest.TestCase):
@@ -488,6 +489,32 @@ class TestParseForeignXmlSchema(unittest.TestCase):
 
         assert issubclass(ti['attr'], XmlAttribute)
         assert ti['attr'].type is Unicode
+
+
+class TestCodeGeneration(unittest.TestCase):
+    def _get_schema(self, *args):
+        schema_doc = get_schema_documents(args)['tns']
+        return parse_schema_element(schema_doc)
+
+    def test_simple(self):
+        ns = 'some_ns'
+
+        class SomeObject(ComplexModel):
+            __namespace__ = ns
+            _type_info = [
+                ('i', Integer),
+                ('s', Unicode),
+            ]
+
+        s = self._get_schema(SomeObject)[ns]
+        code = CodeGenerator().genpy(ns, s)
+
+        # FIXME: Properly parse it
+        assert """class SomeObject(_ComplexBase):
+    _type_info = [
+        ('i', Integer),
+        ('s', Unicode),
+    ]""" in code
 
 
 if __name__ == '__main__':
