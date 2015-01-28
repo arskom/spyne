@@ -454,6 +454,7 @@ class XmlSchemaParser(object):
     def get_type(self, tn):
         if tn is None:
             return Null
+
         if tn.startswith("{"):
             ns, qn = tn[1:].split('}',1)
         elif ":" in tn:
