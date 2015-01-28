@@ -196,8 +196,6 @@ class TestOperationRequestSuffix(unittest.TestCase):
 
 
     ### json tests ###
-
-
     def assert_json_ok(self, suffix, _operation_name = None, _in_message_name=None):
         '''helper to test json requests'''
 
