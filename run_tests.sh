@@ -75,6 +75,13 @@ if [ -z "$FN" ]; then
     fi;
 fi;
 
+# tox compat
+declare -A TOX_ENVS;
+TOX_ENVS["cpy26"]="py26";
+TOX_ENVS["cpy27"]="py27";
+TOX_ENVS["cpy33"]="py33";
+TOX_ENVS["cpy34"]="py34";
+
 # Initialization
 IRONPYTHON_URL_BASE=https://github.com/IronLanguages/main/archive;
 CPYTHON_URL_BASE=http://www.python.org/ftp/python;
@@ -166,14 +173,14 @@ elif [ $PYIMPL == 'ipy' ]; then
 fi;
 
 # Set up distribute
-if [ ! -x "$EASY" ]; then
-  (
-    mkdir -p .data; cd .data;
-    $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
-  )
-fi;
+#if [ ! -x "$EASY" ]; then
+#  (
+#    mkdir -p .data; cd .data;
+#    $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
+#  )
+#fi;
 
-while read line; do $EASY $line; done < requirements/test_requirements.txt
+#while read line; do $EASY $line; done < requirements/test_requirements.txt
 
 if [ $PYIMPL == 'cpy' ]; then
     # Set up coverage
@@ -187,7 +194,8 @@ if [ $PYIMPL == 'cpy' ]; then
     fi;
 
     # Run tests
-    bash -c "$COVERAGE run --source=spyne setup.py test; exit 0"
+    TENV=${TOX_ENVS[$PYFLAV]};
+    bash -c "BASEPYTHON=$PYTHON tox -e $TENV"
 
     # Generate coverage report
     $COVERAGE xml -i --omit=spyne/test/*;
