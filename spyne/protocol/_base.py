@@ -406,7 +406,10 @@ class ProtocolBase(object):
             return None
 
         handler = self._to_string_handlers[class_]
-        return handler(class_, value, *args, **kwargs)
+        retval = handler(class_, value, *args, **kwargs)
+        if six.PY3:
+            retval = retval.encode('ascii')
+        return retval
 
     def to_unicode(self, class_, value, *args, **kwargs):
         if value is None:
