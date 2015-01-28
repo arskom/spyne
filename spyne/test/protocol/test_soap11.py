@@ -152,7 +152,7 @@ class TestSingle(unittest.TestCase):
             len(self.srv.public_methods), len(porttype.getchildren()))
 
     def test_override_param_names(self):
-        for n in ['self', 'import', 'return', 'from']:
+        for n in [b'self', b'import', b'return', b'from']:
             assert n in self.wsdl_str, '"%s" not in self.wsdl_str'
 
 class TestMultiple(unittest.TestCase):
@@ -210,8 +210,8 @@ class TestSoap11(unittest.TestCase):
     def test_href(self):
         # the template. Start at pos 0, some servers complain if
         # xml tag is not in the first line.
-        envelope_string = '''
-<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        envelope_string = [
+b'''<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
                xmlns:tns="http://tempuri.org/"
@@ -234,7 +234,7 @@ class TestSoap11(unittest.TestCase):
       <UserName xsi:type="xsd:string">user2</UserName>
     </tns:MyData>
   </soap:Body>
-</soap:Envelope>'''
+</soap:Envelope>''']
 
         root, xmlids = _parse_xml_string(envelope_string,
                                                     etree.XMLParser(), 'utf8')
@@ -348,7 +348,7 @@ class TestSoap11(unittest.TestCase):
                                                 Address.get_namespace()).text)
 
     def test_fault_deserialization_missing_fault_actor(self):
-        element = etree.fromstring("""
+        element = etree.fromstring(b"""
         <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
           <soap:Body>
             <soap:Fault>
@@ -408,20 +408,20 @@ class TestSoapHeader(unittest.TestCase):
         server = ServerBase(self.app)
         initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<senv:Envelope xmlns:tns="tns" '
-                'xmlns:wsa="http://www.w3.org/2005/08/addressing" '
-                'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
-                '<senv:Header>'
-                    '<wsa:Action>/SomeAction</wsa:Action>'
-                    '<wsa:MessageID>SomeMessageID</wsa:MessageID>'
-                    '<wsa:RelatesTo>SomeRelatesToID</wsa:RelatesTo>'
-                '</senv:Header>'
-                '<senv:Body>'
-                    '<tns:someRequest>'
-                        '<tns:status>OK</tns:status>'
-                    '</tns:someRequest>'
-                '</senv:Body>'
-                '</senv:Envelope>'
+            b'''<senv:Envelope xmlns:tns="tns"
+                xmlns:wsa="http://www.w3.org/2005/08/addressing"
+                xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">
+                <senv:Header>
+                    <wsa:Action>/SomeAction</wsa:Action>
+                    <wsa:MessageID>SomeMessageID</wsa:MessageID>
+                    <wsa:RelatesTo>SomeRelatesToID</wsa:RelatesTo>
+                </senv:Header>
+                <senv:Body>
+                    <tns:someRequest>
+                        <tns:status>OK</tns:status>
+                    </tns:someRequest>
+                </senv:Body>
+            </senv:Envelope>'''
         ]
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -439,20 +439,20 @@ class TestSoapHeader(unittest.TestCase):
         server = ServerBase(self.app)
         initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<senv:Envelope xmlns:tns="tns" '
-                'xmlns:wsa="http://www.w3.org/2005/08/addressing" '
-                'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
-                '<senv:Header>'
-                    '<wsa:MessageID>SomeMessageID</wsa:MessageID>'
-                    '<wsa:RelatesTo>SomeRelatesToID</wsa:RelatesTo>'
-                    '<wsa:Action>/SomeAction</wsa:Action>'
-                '</senv:Header>'
-                '<senv:Body>'
-                    '<tns:someRequest>'
-                        '<tns:status>OK</tns:status>'
-                    '</tns:someRequest>'
-                '</senv:Body>'
-                '</senv:Envelope>'
+            b'''<senv:Envelope xmlns:tns="tns"
+                       xmlns:wsa="http://www.w3.org/2005/08/addressing"
+                       xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">
+                <senv:Header>
+                    <wsa:MessageID>SomeMessageID</wsa:MessageID>
+                    <wsa:RelatesTo>SomeRelatesToID</wsa:RelatesTo>
+                    <wsa:Action>/SomeAction</wsa:Action>
+                </senv:Header>
+                <senv:Body>
+                    <tns:someRequest>
+                        <tns:status>OK</tns:status>
+                    </tns:someRequest>
+                </senv:Body>
+            </senv:Envelope>'''
         ]
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -472,19 +472,19 @@ class TestSoapHeader(unittest.TestCase):
         server = ServerBase(self.app)
         initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<senv:Envelope xmlns:tns="tns" '
-                'xmlns:wsa="http://www.w3.org/2005/08/addressing" '
-                'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
-                '<senv:Header>'
-                    '<wsa:MessageID>SomeMessageID</wsa:MessageID>'
-                    '<wsa:Action>/SomeAction</wsa:Action>'
-                '</senv:Header>'
-                '<senv:Body>'
-                    '<tns:someRequest>'
-                        '<tns:status>OK</tns:status>'
-                    '</tns:someRequest>'
-                '</senv:Body>'
-                '</senv:Envelope>'
+            b'''<senv:Envelope xmlns:tns="tns"
+                        xmlns:wsa="http://www.w3.org/2005/08/addressing"
+                        xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">
+                <senv:Header>
+                    <wsa:MessageID>SomeMessageID</wsa:MessageID>
+                    <wsa:Action>/SomeAction</wsa:Action>
+                </senv:Header>
+                <senv:Body>
+                    <tns:someRequest>
+                        <tns:status>OK</tns:status>
+                    </tns:someRequest>
+                </senv:Body>
+                </senv:Envelope>'''
         ]
 
         ctx, = server.generate_contexts(initial_ctx)

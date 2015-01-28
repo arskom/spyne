@@ -49,7 +49,7 @@ class Test(unittest.TestCase):
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server, MethodContext.SERVER)
-        initial_ctx.in_string = ['{']
+        initial_ctx.in_string = [b'{']
         ctx, = server.generate_contexts(initial_ctx)
         assert ctx.in_error.faultcode == 'Client.YamlDecodeError'
 

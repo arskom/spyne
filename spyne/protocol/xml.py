@@ -350,7 +350,7 @@ class XmlDocument(SubXmlBase):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
         ``ctx.in_document``."""
 
-        string = _bytes_join(ctx.in_string)
+        string = b''.join(ctx.in_string)
         try:
             try:
                 ctx.in_document = etree.fromstring(string,

@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 
+import unittest
+
 from lxml import etree
 from lxml.doctestcompare import LXMLOutputChecker, PARSE_XML
 
-from spyne.util import six
-from spyne.util.six import StringIO
-
-import unittest
-import pytest
 from spyne import Fault
+from spyne.util.six import BytesIO
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.interface import Wsdl11
@@ -46,7 +44,7 @@ class TestMultipleSoap12(TestMultiple):
 class TestSoap12(unittest.TestCase):
 
     def test_soap12(self):
-        element = etree.fromstring("""
+        element = etree.fromstring(b"""
         <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
           <soap:Body>
             <soap:Fault>
@@ -77,7 +75,7 @@ class TestSoap12(unittest.TestCase):
                     "Client.Plausible", "A plausible fault", 'http://faultactor.example.com')
         app = Application([SoapException], 'tns', in_protocol=Soap12(), out_protocol=Soap12())
 
-        req = """
+        req = b"""
         <soap12env:Envelope
                 xmlns:soap12env="http://www.w3.org/2003/05/soap-envelope"
                 xmlns:tns="tns">
@@ -88,17 +86,17 @@ class TestSoap12(unittest.TestCase):
         """
 
         server = WsgiApplication(app)
-        response = etree.fromstring(''.join(server({
+        response = etree.fromstring(b''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
-            'wsgi.input': StringIO(req)
+            'wsgi.input': BytesIO(req)
         }, start_response, "http://null")))
 
         response_str = etree.tostring(response, pretty_print=True)
         print(response_str)
 
-        expected = """
+        expected = b"""
             <soap12env:Envelope xmlns:soap12env="http://www.w3.org/2003/05/soap-envelope">
               <soap12env:Body>
                 <soap12env:Fault>

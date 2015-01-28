@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -82,7 +84,7 @@ class TestXmlCloth(unittest.TestCase):
         with etree.xmlfile(self.stream) as parent:
             XmlCloth(cloth=cloth).subserialize(self.ctx, cls, inst, parent)
         elt = etree.fromstring(self.stream.getvalue())
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
         return elt
 
     def test_simple_value(self):
@@ -195,7 +197,7 @@ class TestXmlCloth(unittest.TestCase):
 
         elt = self._run(v, cloth=cloth)
 
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
         assert elt[0].tag == 'b1'
         assert elt[1].tag == 'b2'
         assert elt[1][0].tag == 'c1'
@@ -225,7 +227,7 @@ class TestXmlCloth(unittest.TestCase):
         )
 
         elt = self._run(v, cloth=cloth)
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
         assert elt[0].tag == 'b1'
         assert elt[1].tag == 'b2'
         assert elt[1][0].tag == 'c0'
@@ -246,9 +248,9 @@ class TestXmlCloth(unittest.TestCase):
             E.b1(spyne_id="s"),
         )
 
-        print etree.tostring(cloth, pretty_print=True)
+        print(etree.tostring(cloth, pretty_print=True))
         elt = self._run(v, cloth=cloth)
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt.tag == 'a'
         assert elt.text == 'text 0'
@@ -269,9 +271,9 @@ class TestXmlCloth(unittest.TestCase):
             )
         )
 
-        print etree.tostring(cloth, pretty_print=True)
+        print(etree.tostring(cloth, pretty_print=True))
         elt = self._run(v, cloth=cloth)
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt[0].tag  == 'b1'
         assert elt[0].text == 'text 1'
@@ -292,9 +294,9 @@ class TestXmlCloth(unittest.TestCase):
             )
         )
 
-        print etree.tostring(cloth, pretty_print=True)
+        print(etree.tostring(cloth, pretty_print=True))
         elt = self._run(v, cloth=cloth)
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt[0].tag  == 'b1'
         assert elt[0][0].tag == 'c1'
@@ -312,9 +314,9 @@ class TestXmlCloth(unittest.TestCase):
             "text 3",
         )
 
-        print etree.tostring(cloth, pretty_print=True)
+        print(etree.tostring(cloth, pretty_print=True))
         elt = self._run(v, cloth=cloth)
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt[0].tag == 'b0'
         assert elt[0].text == 's'
@@ -333,9 +335,9 @@ class TestXmlCloth(unittest.TestCase):
             E.b1(spyne_id="i"),
         )
 
-        print etree.tostring(cloth, pretty_print=True)
+        print(etree.tostring(cloth, pretty_print=True))
         elt = self._run(v, cloth=cloth)
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt[0].tag == 'b0'
         assert elt[0].text == 's'
@@ -364,9 +366,9 @@ class TestXmlCloth(unittest.TestCase):
             )
         )
 
-        print etree.tostring(cloth, pretty_print=True)
+        print(etree.tostring(cloth, pretty_print=True))
         elt = self._run(v, cloth=cloth)
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt.xpath('/a/b1/c1')[0].tail == 'text 2'
 

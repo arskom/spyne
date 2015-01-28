@@ -83,9 +83,9 @@ class TestXml(unittest.TestCase):
         server = ServerBase(app)
         initial_ctx = MethodContext(server, MethodContext.SERVER)
         initial_ctx.in_string = [
-            '<some_call xmlns="tns">'
-                '<c b="b">a</c>'
-            '</some_call>'
+            b'<some_call xmlns="tns">'
+                b'<c b="b">a</c>'
+            b'</some_call>'
         ]
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -96,7 +96,7 @@ class TestXml(unittest.TestCase):
         print(ctx.out_string)
         pprint(app.interface.nsmap)
 
-        ret = etree.fromstring(''.join(ctx.out_string)).xpath(
+        ret = etree.fromstring(b''.join(ctx.out_string)).xpath(
             '//tns:some_call' + RESULT_SUFFIX, namespaces=app.interface.nsmap)[0]
 
         print(etree.tostring(ret, pretty_print=True))
@@ -142,15 +142,18 @@ class TestXml(unittest.TestCase):
                                                 out_protocol=XmlDocument())
         server = ServerBase(app)
         initial_ctx = MethodContext(server, MethodContext.SERVER)
-        initial_ctx.in_string = ['<some_call xmlns="tns"><p>%s</p></some_call>'
-                                                                            % d]
+        initial_ctx.in_string = [
+            b'<some_call xmlns="tns"><p>',
+            str(d).encode('ascii'),
+            b'</p></some_call>'
+        ]
 
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        elt = etree.fromstring(''.join(ctx.out_string))
+        elt = etree.fromstring(b''.join(ctx.out_string))
 
         print(etree.tostring(elt, pretty_print=True))
         target = elt.xpath('//tns:some_callResult/text()',
@@ -224,10 +227,10 @@ class TestXml(unittest.TestCase):
     def test_dates(self):
         d = Date
         xml_dates = [
-            etree.fromstring('<d>2013-04-05</d>'),
-            etree.fromstring('<d>2013-04-05+02:00</d>'),
-            etree.fromstring('<d>2013-04-05-02:00</d>'),
-            etree.fromstring('<d>2013-04-05Z</d>'),
+            etree.fromstring(b'<d>2013-04-05</d>'),
+            etree.fromstring(b'<d>2013-04-05+02:00</d>'),
+            etree.fromstring(b'<d>2013-04-05-02:00</d>'),
+            etree.fromstring(b'<d>2013-04-05Z</d>'),
         ]
 
         for xml_date in xml_dates:
@@ -275,13 +278,13 @@ class TestXml(unittest.TestCase):
 
         # Valid call with all mandatory elements in
         ctx = self._get_ctx(server, [
-            '<some_call xmlns="tns">'
-                '<s>hello</s>'
-            '</some_call>'
+            b'<some_call xmlns="tns">'
+                b'<s>hello</s>'
+            b'</some_call>'
         ])
         server.get_out_object(ctx)
         server.get_out_string(ctx)
-        ret = etree.fromstring(''.join(ctx.out_string)).xpath(
+        ret = etree.fromstring(b''.join(ctx.out_string)).xpath(
             '//tns:some_call%s/text()' % RESULT_SUFFIX,
             namespaces=app.interface.nsmap)[0]
         assert ret == 'hello'
@@ -289,9 +292,9 @@ class TestXml(unittest.TestCase):
 
         # Invalid call
         ctx = self._get_ctx(server, [
-            '<some_call xmlns="tns">'
+            b'<some_call xmlns="tns">'
                 # no mandatory elements here...
-            '</some_call>'
+            b'</some_call>'
         ])
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
@@ -310,19 +313,21 @@ class TestXml(unittest.TestCase):
             '<some_call xmlns="tns">'
                 '<s>Ğ</s>'
             '</some_call>'
-        )
+        ).encode('utf8')
 
+        print("AAA")
         resp = server({
             'QUERY_STRING': '',
             'PATH_INFO': '/',
             'REQUEST_METHOD': 'POST',
             'SERVER_NAME': 'localhost',
             'SERVER_PORT': '80',
-            'wsgi.input': StringIO(req),
+            'wsgi.input': BytesIO(req),
             "wsgi.url_scheme": 'http',
-        }, lambda x,y: print(x,y))
+        }, lambda x, y: print(x,y))
+        print("AAA")
 
-        assert 'Ğ' in ''.join(resp)
+        assert 'Ğ'.encode('utf8') in b''.join(resp)
 
     def test_mandatory_subelements(self):
         class C(ComplexModel):
@@ -342,18 +347,18 @@ class TestXml(unittest.TestCase):
         server = ServerBase(app)
 
         ctx = self._get_ctx(server, [
-            '<some_call xmlns="tns">'
+            b'<some_call xmlns="tns">'
                 # no mandatory elements at all...
-            '</some_call>'
+            b'</some_call>'
         ])
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
         ctx = self._get_ctx(server, [
-            '<some_call xmlns="tns">'
-                '<c>'
+            b'<some_call xmlns="tns">'
+                b'<c>'
                     # no mandatory elements here...
-                '</c>'
-            '</some_call>'
+                b'</c>'
+            b'</some_call>'
         ])
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
@@ -376,18 +381,18 @@ class TestXml(unittest.TestCase):
         server = ServerBase(app)
 
         ctx = self._get_ctx(server, [
-            '<some_call xmlns="tns">'
+            b'<some_call xmlns="tns">'
                 # no mandatory elements at all...
-            '</some_call>'
+            b'</some_call>'
         ])
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
         ctx = self._get_ctx(server, [
-            '<some_call xmlns="tns">'
-                '<c>'
+            b'<some_call xmlns="tns">'
+                b'<c>'
                     # no mandatory elements here...
-                '</c>'
-            '</some_call>'
+                b'</c>'
+            b'</some_call>'
         ])
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
@@ -407,7 +412,7 @@ class TestIncremental(unittest.TestCase):
 
         desc = SomeService.public_methods['get']
         ctx = FakeContext(out_object=v, descriptor=desc)
-        ostr = ctx.out_stream = StringIO()
+        ostr = ctx.out_stream = BytesIO()
         XmlDocument(Application([SomeService], __name__)) \
                              .serialize(ctx, XmlDocument.RESPONSE)
 
@@ -439,7 +444,7 @@ class TestIncremental(unittest.TestCase):
 
         desc = SomeService.public_methods['get']
         ctx = FakeContext(out_object=[v], descriptor=desc)
-        ostr = ctx.out_stream = StringIO()
+        ostr = ctx.out_stream = BytesIO()
         XmlDocument(Application([SomeService], __name__)) \
                             .serialize(ctx, XmlDocument.RESPONSE)
 

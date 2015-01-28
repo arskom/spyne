@@ -157,7 +157,7 @@ class JsonDocument(HierDictDocument):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
 
         try:
-            in_string = ''.join(ctx.in_string)
+            in_string = b''.join(ctx.in_string)
             if not isinstance(in_string, six.text_type):
                 if in_string_encoding is None:
                     in_string_encoding = self.default_string_encoding
@@ -170,7 +170,7 @@ class JsonDocument(HierDictDocument):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
-        ctx.out_string = (json.dumps(o, **self.kwargs) for o in ctx.out_document)
+        ctx.out_string = (json.dumps(o, **self.kwargs).encode(out_string_encoding) for o in ctx.out_document)
 
 
 class JsonP(JsonDocument):
