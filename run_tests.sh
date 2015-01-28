@@ -106,8 +106,8 @@ fi;
 # Set common variables
 PYTHON="$WORKSPACE/$PREFIX/bin/$PYNAME";
 EASY="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
-COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
-COVERAGE2="$HOME/.local/bin/coverage-$PYVER"
+TOX="$WORKSPACE/$PREFIX/bin/tox";
+TOX2="$HOME/.local/bin/tox"
 
 
 # Set up requested python environment.
@@ -172,25 +172,29 @@ elif [ $PYIMPL == 'ipy' ]; then
 
 fi;
 
-# Set up distribute
-#if [ ! -x "$EASY" ]; then
-#  (
-#    mkdir -p .data; cd .data;
-#    $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
-#  )
-#fi;
+ Set up distribute
+if [ ! -x "$EASY" ]; then
+  (
+    mkdir -p .data; cd .data;
+    $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
+  )
+fi;
+
+# Set up tox
+if [ ! -x "$TOX" ]; then
+   $EASY tox;
+fi;
 
 #while read line; do $EASY $line; done < requirements/test_requirements.txt
-
 if [ $PYIMPL == 'cpy' ]; then
     # Sometimes, easy_install works in mysterious ways...
-    if [ ! -x "$COVERAGE" ]; then
-      COVERAGE="$COVERAGE2"
+    if [ ! -x "$TOX" ]; then
+      TOX="$TOX2"
     fi;
 
     # Run tests
     TENV=${TOX_ENVS[$PYFLAV]};
-    bash -c "BASEPYTHON=$PYTHON tox -e $TENV"
+    bash -c "BASEPYTHON=$PYTHON $TOX -e $TENV"
 
     # Generate coverage report
     $COVERAGE xml -i --omit=spyne/test/*;
