@@ -30,7 +30,7 @@ from spyne.model import ImageUri
 from spyne.model import AnyUri
 from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
-from spyne.util import coroutine, Break
+from spyne.util import coroutine, Break, six
 from spyne.util.cdict import cdict
 
 
@@ -67,6 +67,7 @@ class HtmlMicroFormat(HtmlBase):
         assert field_name_attr in ('class', 'id')
         assert field_name_tag in (None, 'span', 'div')
 
+        assert isinstance(root_tag, six.text_type)
         self.root_tag = root_tag
         self.child_tag = child_tag
         self.field_name_attr = field_name_attr

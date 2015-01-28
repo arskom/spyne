@@ -112,7 +112,7 @@ def coroutine(func):
         try:
             next(ret)
 
-        except StopIteration:
+        except StopIteration as e:
             return None
 
         except Exception as e:
