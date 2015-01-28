@@ -70,13 +70,13 @@ class MessagePackDocument(HierDictDocument):
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
                 ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
 
-        self._from_string_handlers[Double] = self._ret
-        self._from_string_handlers[Boolean] = self._ret
-        self._from_string_handlers[Integer] = self.integer_from_string
+        self._from_unicode_handlers[Double] = self._ret
+        self._from_unicode_handlers[Boolean] = self._ret
+        self._from_unicode_handlers[Integer] = self.integer_from_string
 
-        self._to_string_handlers[Double] = self._ret
-        self._to_string_handlers[Boolean] = self._ret
-        self._to_string_handlers[Integer] = self.integer_to_string
+        self._to_unicode_handlers[Double] = self._ret
+        self._to_unicode_handlers[Boolean] = self._ret
+        self._to_unicode_handlers[Integer] = self.integer_to_string
 
     def _ret(self, cls, value):
         return value

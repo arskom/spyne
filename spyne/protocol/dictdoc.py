@@ -824,7 +824,7 @@ class HierDictDocument(DictDocument):
         if issubclass(cls, (ByteArray, File)):
             return self.to_string(cls, inst, self.binary_encoding)
 
-        return self.to_string(cls, inst)
+        return self.to_unicode(cls, inst)
 
     def _complex_to_doc(self, cls, inst):
         if self.complex_as is list or \

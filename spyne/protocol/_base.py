@@ -403,7 +403,8 @@ class ProtocolBase(object):
         if string is None:
             return None
 
-        if len(string) == 0 and class_.Attributes.empty_is_none:
+        if isinstance(string, six.string_types) and \
+                           len(string) == 0 and class_.Attributes.empty_is_none:
             return None
 
         handler = self._from_string_handlers[class_]
@@ -416,7 +417,8 @@ class ProtocolBase(object):
         if string is None:
             return None
 
-        if len(string) == 0 and class_.Attributes.empty_is_none:
+        if isinstance(string, six.string_types) and len(string) == 0 and \
+                                                class_.Attributes.empty_is_none:
             return None
 
         handler = self._from_unicode_handlers[class_]
@@ -580,8 +582,9 @@ class ProtocolBase(object):
             return cls.Attributes.format % value
 
     def integer_from_string(self, cls, string):
-        if cls.Attributes.max_str_len is not None and len(string) > \
-                                                     cls.Attributes.max_str_len:
+        if isinstance(string, six.string_types) and \
+                                    cls.Attributes.max_str_len is not None and \
+                                    len(string) > cls.Attributes.max_str_len:
             raise ValidationError(string,
                                     "Integer %%r longer than %d characters"
                                                    % cls.Attributes.max_str_len)

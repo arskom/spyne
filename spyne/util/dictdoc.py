@@ -52,15 +52,15 @@ class _UtilProtocol(HierDictDocument):
         super(_UtilProtocol, self).__init__(app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
 
-        self._from_string_handlers[Double] = lambda cls, val: val
-        self._from_string_handlers[Boolean] = lambda cls, val: val
-        self._from_string_handlers[Decimal] = lambda cls, val: val
-        self._from_string_handlers[Integer] = lambda cls, val: val
+        self._from_unicode_handlers[Double] = lambda cls, val: val
+        self._from_unicode_handlers[Boolean] = lambda cls, val: val
+        self._from_unicode_handlers[Decimal] = lambda cls, val: val
+        self._from_unicode_handlers[Integer] = lambda cls, val: val
 
-        self._to_string_handlers[Double] = lambda cls, val: val
-        self._to_string_handlers[Boolean] = lambda cls, val: val
-        self._to_string_handlers[Decimal] = lambda cls, val: val
-        self._to_string_handlers[Integer] = lambda cls, val: val
+        self._to_unicode_handlers[Double] = lambda cls, val: val
+        self._to_unicode_handlers[Boolean] = lambda cls, val: val
+        self._to_unicode_handlers[Decimal] = lambda cls, val: val
+        self._to_unicode_handlers[Integer] = lambda cls, val: val
 
 
 def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list,

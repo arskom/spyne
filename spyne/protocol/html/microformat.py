@@ -67,7 +67,6 @@ class HtmlMicroFormat(HtmlBase):
         assert field_name_attr in ('class', 'id')
         assert field_name_tag in (None, 'span', 'div')
 
-        assert isinstance(root_tag, six.text_type)
         self.root_tag = root_tag
         self.child_tag = child_tag
         self.field_name_attr = field_name_attr

@@ -93,13 +93,13 @@ class YamlDocument(HierDictDocument):
         super(YamlDocument, self).__init__(app, validator, mime_type,
                 ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
 
-        self._from_string_handlers[Double] = lambda cls, val: val
-        self._from_string_handlers[Boolean] = lambda cls, val: val
-        self._from_string_handlers[Integer] = lambda cls, val: val
+        self._from_unicode_handlers[Double] = lambda cls, val: val
+        self._from_unicode_handlers[Boolean] = lambda cls, val: val
+        self._from_unicode_handlers[Integer] = lambda cls, val: val
 
-        self._to_string_handlers[Double] = lambda cls, val: val
-        self._to_string_handlers[Boolean] = lambda cls, val: val
-        self._to_string_handlers[Integer] = lambda cls, val: val
+        self._to_unicode_handlers[Double] = lambda cls, val: val
+        self._to_unicode_handlers[Boolean] = lambda cls, val: val
+        self._to_unicode_handlers[Integer] = lambda cls, val: val
 
         self.in_kwargs = dict(kwargs)
         self.out_kwargs = dict(kwargs)

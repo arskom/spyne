@@ -121,13 +121,13 @@ class JsonDocument(HierDictDocument):
         # with a property.
         self.__message = HierDictDocument.__getattribute__(self, 'message')
 
-        self._from_string_handlers[Double] = self._ret
-        self._from_string_handlers[Boolean] = self._ret
-        self._from_string_handlers[Integer] = self._ret
+        self._from_unicode_handlers[Double] = self._ret
+        self._from_unicode_handlers[Boolean] = self._ret
+        self._from_unicode_handlers[Integer] = self._ret
 
-        self._to_string_handlers[Double] = self._ret
-        self._to_string_handlers[Boolean] = self._ret
-        self._to_string_handlers[Integer] = self._ret
+        self._to_unicode_handlers[Double] = self._ret
+        self._to_unicode_handlers[Boolean] = self._ret
+        self._to_unicode_handlers[Integer] = self._ret
 
         self.default_string_encoding = default_string_encoding
         self.kwargs = kwargs

@@ -308,9 +308,9 @@ class TestXml(unittest.TestCase):
         server = WsgiApplication(app)
 
         req = (
-            '<some_call xmlns="tns">'
-                '<s>Ğ</s>'
-            '</some_call>'
+            u'<some_call xmlns="tns">'
+                u'<s>Ğ</s>'
+            u'</some_call>'
         ).encode('utf8')
 
         print("AAA")
@@ -325,7 +325,7 @@ class TestXml(unittest.TestCase):
         }, lambda x, y: print(x,y))
         print("AAA")
 
-        assert 'Ğ'.encode('utf8') in b''.join(resp)
+        assert u'Ğ'.encode('utf8') in b''.join(resp)
 
     def test_mandatory_subelements(self):
         class C(ComplexModel):
