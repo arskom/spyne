@@ -290,17 +290,23 @@ class XmlSchemaParser(object):
             t = self.get_type(a.ref)
             return t.type.get_type_name(), t
 
-        if a.type is not None:
+        if a.type is not None and a.simple_type is not None:
+            raise ValueError(a, "Both type and simple_type are defined.")
+
+        elif a.type is not None:
             t = self.get_type(a.type)
 
+            if t is None:
+                raise ValueError(a, 'type %r not found' % a.type)
+
         elif a.simple_type is not None:
-            t = self.process_simple_type(a.simple_type, a.name)
+            t = self.get_type(a.simple_type)
+
+            if t is None:
+                raise ValueError(a, 'simple type %r not found' % a.simple_type)
 
         else:
             raise Exception("dunno attr")
-
-        if t is None:
-            raise ValueError(a, 'not found')
 
         kwargs = {}
         if a.default is not None:
