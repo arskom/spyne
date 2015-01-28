@@ -300,8 +300,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         print()
 
     def _close_cloth(self, ctx, parent):
-        for elt, elt_ctx in reversed(zip(ctx.protocol.eltstack,
-                                                        ctx.protocol.ctxstack)):
+        for elt, elt_ctx in reversed(tuple(zip(ctx.protocol.eltstack,
+                                                       ctx.protocol.ctxstack))):
             if elt_ctx is not None:
                 self.event_manager.fire_event(("before_exit", elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)

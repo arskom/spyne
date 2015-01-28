@@ -221,17 +221,29 @@ class XmlSchemaParser(object):
 
             setattr(self.schema, attr, own)
 
-    def process_simple_type(self, s, name=None):
-        """Returns the simple Spyne type. Doesn't do any 'pending' processing."""
-
-        if name is None:
-            name = s.name
-
-        if s.restriction is None:
-            self.debug1("skipping simple type: %s", name)
+    def process_simple_type_list(self, s, name=None):
+        item_type = s.list.item_type
+        if item_type is None:
+            self.debug1("skipping simple type: %s because its list itemType "
+                        "could not be found", name)
             return
+
+        base = self.get_type(item_type)
+        if base is None:
+            raise ValueError(s)
+
+        self.debug1("adding   simple type: %s", name)
+        retval = Array(base, serialize_as='sd-list') # FIXME: to be implemented
+        retval.__type_name__ = name
+        retval.__namespace__ = self.tns
+
+        assert not retval.get_type_name() is retval.Empty
+        return retval
+
+    def process_simple_type_restriction(self, s, name=None):
         if s.restriction.base is None:
-            self.debug1("skipping simple type: %s", name)
+            self.debug1("skipping simple type: %s because its restriction base "
+                        "could not be found", name)
             return
 
         base = self.get_type(s.restriction.base)
@@ -267,6 +279,24 @@ class XmlSchemaParser(object):
 
         assert not retval.get_type_name() is retval.Empty
         return retval
+
+    def process_simple_type(self, s, name=None):
+        """Returns the simple Spyne type. Doesn't do any 'pending' processing."""
+
+        if name is None:
+            name = s.name
+
+        if s.list is not None:
+            return self.process_simple_type_list(s, name)
+
+        if s.union is not None:
+            return self.process_simple_type_union(s, name)
+
+        if s.restriction is not None:
+            return self.process_simple_type_restriction(s, name)
+
+        self.debug1("skipping simple type: %s", name)
+
 
     def process_schema_element(self, e):
         if e.name is None:

@@ -217,6 +217,7 @@ class ProtocolBase(object):
             Date: self.date_from_string,
             Uuid: self.uuid_from_string,
             File: self.file_from_string,
+            Array: self.array_from_string,
             Double: self.double_from_string,
             String: self.string_from_string,
             AnyXml: self.any_xml_from_string,
@@ -878,6 +879,18 @@ class ProtocolBase(object):
 
     def complex_model_base_from_string(self, cls, string):
         raise TypeError("Only primitives can be deserialized from string.")
+
+    def array_from_string(self, cls, string):
+        if cls.Attributes.serialize_as != 'sd-list':
+            raise TypeError("Only primitives can be deserialized from string.")
+
+        # sd-list being space-delimited list.
+        retval = []
+        inner_type, = cls._type_info.values()
+        for s in string.split():
+            retval.append(self.from_string(inner_type, s))
+
+        return retval
 
     def xmlattribute_to_string(self, cls, string):
         return self.to_string(cls.type, string)

@@ -57,9 +57,16 @@ class StringAttribute(SchemaBase):
     value = XmlAttribute(Unicode)
 
 
+class List(SchemaBase):
+    _type_info = [
+        ('item_type', XmlAttribute(Unicode(sub_name='itemType'))),
+    ]
+
+
 class SimpleType(SchemaBase):
     _type_info = [
         ('name', XmlAttribute(Unicode)),
+        ('list', List),
     ]
 
 
