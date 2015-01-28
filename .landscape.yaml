@@ -1,0 +1,7 @@
+ignore-paths: 
+  - bin
+  - examples
+ignore-patterns:
+  - __init__.py
+requirements:
+  - requirements/test_requirements.txt
