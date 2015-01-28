@@ -172,7 +172,7 @@ elif [ $PYIMPL == 'ipy' ]; then
 
 fi;
 
- Set up distribute
+# Set up distribute
 if [ ! -x "$EASY" ]; then
   (
     mkdir -p .data; cd .data;
