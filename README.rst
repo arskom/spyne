@@ -1,6 +1,10 @@
 .. image:: https://travis-ci.org/arskom/spyne.png?branch=master
         :target: http://travis-ci.org/arskom/spyne
 
+.. image:: https://landscape.io/github/arskom/spyne/master/landscape.svg
+   :target: https://landscape.io/github/arskom/spyne/master
+   :alt: Code Health
+
 **WARNING:** This is from spyne's development branch. This version is not
 released yet! Latest stable release can be found in the ``2_11`` branch.
 
