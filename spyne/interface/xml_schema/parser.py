@@ -290,17 +290,23 @@ class XmlSchemaParser(object):
             t = self.get_type(a.ref)
             return t.type.get_type_name(), t
 
-        if a.type is not None:
+        if a.type is not None and a.simple_type is not None:
+            raise ValueError(a, "Both type and simple_type are defined.")
+
+        elif a.type is not None:
             t = self.get_type(a.type)
 
+            if t is None:
+                raise ValueError(a, 'type %r not found' % a.type)
+
         elif a.simple_type is not None:
-            t = self.process_simple_type(a.simple_type, a.name)
+            t = self.get_type(a.simple_type)
+
+            if t is None:
+                raise ValueError(a, 'simple type %r not found' % a.simple_type)
 
         else:
             raise Exception("dunno attr")
-
-        if t is None:
-            raise ValueError(a, 'not found')
 
         kwargs = {}
         if a.default is not None:
@@ -448,6 +454,7 @@ class XmlSchemaParser(object):
     def get_type(self, tn):
         if tn is None:
             return Null
+
         if tn.startswith("{"):
             ns, qn = tn[1:].split('}',1)
         elif ":" in tn:
@@ -543,17 +550,17 @@ class XmlSchemaParser(object):
                     self.clone(2, dirname(file_name)).parse_schema_file(file_name)
                     self.retval[tns].imports.add(imp.namespace)
 
-        self.debug0("3 %s processing attributes", G(tns))
-        if schema.attributes:
-            for s in schema.attributes.values():
-                n, t = self.process_attribute(s)
-                self.retval[self.tns].types[n] = t
-
-        self.debug0("4 %s processing simple_types", G(tns))
+        self.debug0("3 %s processing simple_types", G(tns))
         if schema.simple_types:
             for s in schema.simple_types.values():
                 st = self.process_simple_type(s)
                 self.retval[self.tns].types[s.name] = st
+
+        self.debug0("4 %s processing attributes", G(tns))
+        if schema.attributes:
+            for s in schema.attributes.values():
+                n, t = self.process_attribute(s)
+                self.retval[self.tns].types[n] = t
 
         self.debug0("5 %s processing complex_types", B(tns))
         if schema.complex_types:
