@@ -192,12 +192,9 @@ if [ $PYIMPL == 'cpy' ]; then
       TOX="$TOX2"
     fi;
 
-    # Run tests
+    # Run tests. Tox runs coverage.
     TENV=${TOX_ENVS[$PYFLAV]};
     bash -c "BASEPYTHON=$PYTHON $TOX -e $TENV"
-
-    # Generate coverage report
-    $COVERAGE xml -i --omit=spyne/test/*;
 
 else
     # Run tests. No coverage in jython.
