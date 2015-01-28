@@ -543,17 +543,17 @@ class XmlSchemaParser(object):
                     self.clone(2, dirname(file_name)).parse_schema_file(file_name)
                     self.retval[tns].imports.add(imp.namespace)
 
-        self.debug0("3 %s processing attributes", G(tns))
-        if schema.attributes:
-            for s in schema.attributes.values():
-                n, t = self.process_attribute(s)
-                self.retval[self.tns].types[n] = t
-
-        self.debug0("4 %s processing simple_types", G(tns))
+        self.debug0("3 %s processing simple_types", G(tns))
         if schema.simple_types:
             for s in schema.simple_types.values():
                 st = self.process_simple_type(s)
                 self.retval[self.tns].types[s.name] = st
+
+        self.debug0("4 %s processing attributes", G(tns))
+        if schema.attributes:
+            for s in schema.attributes.values():
+                n, t = self.process_attribute(s)
+                self.retval[self.tns].types[n] = t
 
         self.debug0("5 %s processing complex_types", B(tns))
         if schema.complex_types:
