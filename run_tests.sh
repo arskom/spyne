@@ -183,11 +183,6 @@ fi;
 #while read line; do $EASY $line; done < requirements/test_requirements.txt
 
 if [ $PYIMPL == 'cpy' ]; then
-    # Set up coverage
-    if [ ! -x "$COVERAGE" ]; then
-      $EASY coverage
-    fi;
-
     # Sometimes, easy_install works in mysterious ways...
     if [ ! -x "$COVERAGE" ]; then
       COVERAGE="$COVERAGE2"
