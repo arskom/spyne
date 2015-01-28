@@ -280,6 +280,10 @@ class XmlSchemaParser(object):
         assert not retval.get_type_name() is retval.Empty
         return retval
 
+    def process_simple_type_union(self, s, name=None):
+        self.debug1("skipping simple type: %s because its union is not "
+                    "implemented", name)
+
     def process_simple_type(self, s, name=None):
         """Returns the simple Spyne type. Doesn't do any 'pending' processing."""
 

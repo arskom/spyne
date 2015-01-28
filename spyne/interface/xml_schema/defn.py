@@ -67,6 +67,7 @@ class SimpleType(SchemaBase):
     _type_info = [
         ('name', XmlAttribute(Unicode)),
         ('list', List),
+        ('union', Unicode),
     ]
 
 
