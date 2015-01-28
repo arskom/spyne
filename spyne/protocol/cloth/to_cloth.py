@@ -387,7 +387,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         self._enter_cloth(ctx, cloth, parent)
-        parent.write(self.to_string(cls, inst))
+        parent.write(self.to_unicode(cls, inst))
 
     def xml_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         self._enter_cloth(ctx, cloth, parent)
@@ -417,10 +417,10 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
                 if val is not None:
                     if issubclass(v.type, (ByteArray, File)):
-                        attrs[k] = self.to_string(v.type, val,
+                        attrs[k] = self.to_unicode(v.type, val,
                                                            self.binary_encoding)
                     else:
-                        attrs[k] = self.to_string(v.type, val)
+                        attrs[k] = self.to_unicode(v.type, val)
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
 

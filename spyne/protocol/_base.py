@@ -211,7 +211,8 @@ class ProtocolBase(object):
             ComplexModelBase: self.complex_model_to_string_iterable,
         })
 
-        self._from_string_handlers = cdict({
+
+        fsh = {
             Null: self.null_from_string,
             Time: self.time_from_string,
             Date: self.date_from_string,
@@ -234,7 +235,10 @@ class ProtocolBase(object):
             Attachment: self.attachment_from_string,
             XmlAttribute: self.xmlattribute_from_string,
             ComplexModelBase: self.complex_model_base_from_string
-        })
+        }
+
+        self._from_string_handlers = cdict(fsh)
+        self._from_unicode_handlers = cdict(fsh)
 
         self._datetime_dsmap = {
             None: self._datetime_from_string,
@@ -393,13 +397,29 @@ class ProtocolBase(object):
         self.validator = None
 
     def from_string(self, class_, string, *args, **kwargs):
+        if six.PY3:
+            assert isinstance(string, bytes)
+
         if string is None:
             return None
 
-        if string == '' and class_.Attributes.empty_is_none:
+        if len(string) == 0 and class_.Attributes.empty_is_none:
             return None
 
         handler = self._from_string_handlers[class_]
+        return handler(class_, string, *args, **kwargs)
+
+    def from_unicode(self, class_, string, *args, **kwargs):
+        if six.PY3:
+            assert isinstance(string, str)
+
+        if string is None:
+            return None
+
+        if len(string) == 0 and class_.Attributes.empty_is_none:
+            return None
+
+        handler = self._from_unicode_handlers[class_]
         return handler(class_, string, *args, **kwargs)
 
     def to_string(self, class_, value, *args, **kwargs):
@@ -408,7 +428,7 @@ class ProtocolBase(object):
 
         handler = self._to_string_handlers[class_]
         retval = handler(class_, value, *args, **kwargs)
-        if six.PY3:
+        if six.PY3 and isinstance(retval, six.text_type):
             retval = retval.encode('ascii')
         return retval
 

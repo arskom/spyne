@@ -88,7 +88,7 @@ class HtmlMicroFormat(HtmlBase):
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         retval = E(self.child_tag, **{self.field_name_attr: name})
-        data_str = self.to_string(cls, inst)
+        data_str = self.to_unicode(cls, inst)
 
         if self.field_name_tag is not None:
             field_name = cls.Attributes.translations.get( name)
@@ -105,6 +105,7 @@ class HtmlMicroFormat(HtmlBase):
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         attrs = {self.field_name_attr: name}
+
         with parent.element(self.root_tag, attrs):
             ret = self._get_members(ctx, cls, inst, parent, **kwargs)
             if isgenerator(ret):

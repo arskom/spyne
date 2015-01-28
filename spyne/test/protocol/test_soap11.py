@@ -306,7 +306,7 @@ class TestSoap11(unittest.TestCase):
 
     def test_date_with_tzoffset(self):
         for iso_d in ('2013-04-05', '2013-04-05+02:00', '2013-04-05-02:00', '2013-04-05Z'):
-            d = Soap11().from_string(Date, iso_d)
+            d = Soap11().from_unicode(Date, iso_d)
             assert isinstance(d, datetime.date) == True
             assert d.year == 2013
             assert d.month == 4

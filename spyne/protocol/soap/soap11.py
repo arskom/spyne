@@ -170,11 +170,11 @@ class Soap11(XmlDocument):
         # SOAP requires DateTime strings to be in iso format. The following
         # lines make sure custom datetime formatting via DateTime(format="...")
         # string is bypassed.
-        self._to_string_handlers[Time] = lambda cls, value: value.isoformat()
-        self._to_string_handlers[DateTime] = lambda cls, value: value.isoformat()
+        self._to_unicode_handlers[Time] = lambda cls, value: value.isoformat()
+        self._to_unicode_handlers[DateTime] = lambda cls, value: value.isoformat()
 
-        self._from_string_handlers[Date] = self.date_from_string_iso
-        self._from_string_handlers[DateTime] = self.datetime_from_string_iso
+        self._from_unicode_handlers[Date] = self.date_from_string_iso
+        self._from_unicode_handlers[DateTime] = self.datetime_from_string_iso
 
     def create_in_document(self, ctx, charset=None):
         if ctx.transport.type == 'wsgi':

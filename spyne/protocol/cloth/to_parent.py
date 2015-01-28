@@ -110,7 +110,7 @@ class ToParentMixin(ProtocolBase):
 
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(E(name, self.to_string(cls, inst)))
+        parent.write(E(name, self.to_unicode(cls, inst)))
 
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
@@ -246,10 +246,10 @@ class ToParentMixin(ProtocolBase):
         parent.write(retval)
 
     def byte_array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(E(name, self.to_string(cls, inst, self.binary_encoding)))
+        parent.write(E(name, self.to_unicode(cls, inst, self.binary_encoding)))
 
     def base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(E(name, self.to_string(cls, inst)))
+        parent.write(E(name, self.to_unicode(cls, inst)))
 
     def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, **{'{%s}nil' % NS_XSI: 'true'}))
@@ -287,7 +287,7 @@ class ToParentMixin(ProtocolBase):
 
             if issubclass(v, XmlData):
                 if subvalue is not None:
-                    parent.write(self.to_string(k.type, subvalue))
+                    parent.write(self.to_unicode(k.type, subvalue))
                 continue
 
             sub_ns = v.Attributes.sub_ns

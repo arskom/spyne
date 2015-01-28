@@ -553,10 +553,10 @@ class XmlDocument(SubXmlBase):
 
     def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         _append(parent, E(_gen_tagname(ns, name),
-                       self.to_string(cls, inst, self.binary_encoding)))
+                       self.to_unicode(cls, inst, self.binary_encoding)))
 
     def modelbase_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        _append(parent, E(_gen_tagname(ns, name), self.to_string(cls, inst)))
+        _append(parent, E(_gen_tagname(ns, name), self.to_unicode(cls, inst)))
 
     def null_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         if issubclass(cls, XmlAttribute):
@@ -589,10 +589,10 @@ class XmlDocument(SubXmlBase):
 
         if inst is not None:
             if issubclass(cls.type, (ByteArray, File)):
-                parent.set(name, self.to_string(cls.type, inst,
+                parent.set(name, self.to_unicode(cls.type, inst,
                                                  self.binary_encoding))
             else:
-                parent.set(name, self.to_string(cls.type, inst))
+                parent.set(name, self.to_unicode(cls.type, inst))
 
     def attachment_to_parent(self, cls, inst, ns, parent, name='retval'):
         _append(parent, E(_gen_tagname(ns, name),
@@ -810,10 +810,10 @@ class XmlDocument(SubXmlBase):
         xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
         if xtba_key is not None:
             if issubclass(xtba_type.type, (ByteArray, File)):
-                value = self.from_string(xtba_type.type, elt.text,
+                value = self.from_unicode(xtba_type.type, elt.text,
                                                     self.binary_encoding)
             else:
-                value = self.from_string(xtba_type.type, elt.text)
+                value = self.from_unicode(xtba_type.type, elt.text)
             setattr(inst, xtba_key, value)
 
         # parse input to set incoming data to related attributes.
@@ -855,10 +855,10 @@ class XmlDocument(SubXmlBase):
                     if value is None:
                         value = []
 
-                    value.append(self.from_string(member.type, value_str))
+                    value.append(self.from_unicode(member.type, value_str))
 
                 else:
-                    value = self.from_string(member.type, value_str)
+                    value = self.from_unicode(member.type, value_str)
 
                 setattr(inst, key, value)
 
@@ -872,10 +872,10 @@ class XmlDocument(SubXmlBase):
                 continue
 
             if issubclass(member.type, (ByteArray, File)):
-                value = self.from_string(member.type, value_str,
+                value = self.from_unicode(member.type, value_str,
                                                        self.binary_encoding)
             else:
-                value = self.from_string(member.type, value_str)
+                value = self.from_unicode(member.type, value_str)
 
             setattr(inst, key, value)
 
@@ -959,7 +959,7 @@ class XmlDocument(SubXmlBase):
         if s is None:
             s = ''
 
-        retval = self.from_string(cls, s)
+        retval = self.from_unicode(cls, s)
 
         if self.validator is self.SOFT_VALIDATION and not (
                                               cls.validate_native(cls, retval)):
@@ -972,7 +972,7 @@ class XmlDocument(SubXmlBase):
                                         cls.validate_string(cls, element.text)):
             raise ValidationError(element.text)
 
-        retval = self.from_string(cls, element.text)
+        retval = self.from_unicode(cls, element.text)
 
         if self.validator is self.SOFT_VALIDATION and not (
                                             cls.validate_native(cls, retval)):
@@ -985,7 +985,7 @@ class XmlDocument(SubXmlBase):
                                         cls.validate_string(cls, element.text)):
             raise ValidationError(element.text)
 
-        retval = self.from_string(cls, element.text, self.binary_encoding)
+        retval = self.from_unicode(cls, element.text, self.binary_encoding)
 
         if self.validator is self.SOFT_VALIDATION and not (
                                             cls.validate_native(cls, retval)):

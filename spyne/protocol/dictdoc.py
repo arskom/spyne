@@ -373,15 +373,15 @@ class SimpleDictDocument(DictDocument):
                     if isinstance(v2, File.Value):
                         native_v2 = v2
                     else:
-                        native_v2 = self.from_string(member.type, v2,
+                        native_v2 = self.from_unicode(member.type, v2,
                                                            self.binary_encoding)
 
                 elif issubclass(member.type, ByteArray):
-                    native_v2 = self.from_string(member.type, v2,
+                    native_v2 = self.from_unicode(member.type, v2,
                                                            self.binary_encoding)
                 else:
                     try:
-                        native_v2 = self.from_string(member.type, v2)
+                        native_v2 = self.from_unicode(member.type, v2)
                     except ValidationError as e:
                         raise ValidationError(str(e),
                             "Validation failed for %r.%r: %%r" % (cls, k))
@@ -648,9 +648,9 @@ class HierDictDocument(DictDocument):
                 raise ValidationError((key, inst))
 
             if issubclass(cls, (ByteArray, File)):
-                retval = self.from_string(cls, inst, self.binary_encoding)
+                retval = self.from_unicode(cls, inst, self.binary_encoding)
             else:
-                retval = self.from_string(cls, inst)
+                retval = self.from_unicode(cls, inst)
 
         # validate native type
         if validator is self.SOFT_VALIDATION and \
