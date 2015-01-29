@@ -130,6 +130,10 @@ def call_pytest_subprocess(*tests, **kwargs):
 
 def call_trial(*tests, **kwargs):
     import spyne.test
+    try:
+        import twisted.scripts.trial
+    except ImportError:
+        return 1
 
     global _ctr
     _ctr += 1
@@ -285,6 +289,7 @@ class RunTests(ExtendedTestCommand):
         if not IS_PYPY:
             ret = call_pytest_subprocess('interop/test_suds.py',
                                      capture=self.capture) or ret
+
         ret = call_trial('interop/test_soap_client_http_twisted.py',
                          'transport/test_msgpack.py',
                          capture=self.capture) or ret
