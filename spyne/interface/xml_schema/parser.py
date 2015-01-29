@@ -138,7 +138,8 @@ hier_repr_ns = Thier_repr(with_ns=True)
 
 
 class XmlSchemaParser(object):
-    def __init__(self, files, base_dir=None, repr_=Thier_repr(with_ns=False)):
+    def __init__(self, files, base_dir=None, repr_=Thier_repr(with_ns=False),
+                                                         force_full_parse=True):
         self.retval = {}
         self.indent = 0
         self.files = files
@@ -153,6 +154,7 @@ class XmlSchemaParser(object):
         self.tns = None
         self.pending_elements = None
         self.pending_types = None
+        self.force_full_parse = force_full_parse
 
     def clone(self, indent=0, base_dir=None):
         retval = copy(self)
@@ -615,8 +617,8 @@ class XmlSchemaParser(object):
                     c.print_pending()
                 self.debug0('')
 
-                # FIXME: This has no guarantee of working yet covers all the
-                # schema files found in the wild so far.
+                # FIXME: should put this in a while loop that loops until no
+                # changes occur
                 for c in chain([self], self.children):
                     c.process_pending()
                 for c in chain([self], self.children):
@@ -624,6 +626,6 @@ class XmlSchemaParser(object):
                 self.debug0('')
 
                 for c in chain([self], self.children):
-                    c.print_pending(fail=True)
+                    c.print_pending(fail=self.force_full_parse)
 
         return self.retval
