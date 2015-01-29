@@ -27,7 +27,7 @@ import spyne.const.xml_ns
 
 from decimal import Decimal
 
-from spyne.util import Break
+from spyne.util import Break, six
 from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
@@ -452,7 +452,7 @@ class ModelBase(object):
         """
         Returns unicode(value). This should be overridden if this is not enough.
         """
-        return unicode(value)
+        return six.text_type(value)
 
     @classmethod
     def get_documentation(cls):
