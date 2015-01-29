@@ -139,7 +139,7 @@ hier_repr_ns = Thier_repr(with_ns=True)
 
 class XmlSchemaParser(object):
     def __init__(self, files, base_dir=None, repr_=Thier_repr(with_ns=False),
-                                                         force_full_parse=True):
+                                                         skip_errors=False):
         self.retval = {}
         self.indent = 0
         self.files = files
@@ -154,7 +154,7 @@ class XmlSchemaParser(object):
         self.tns = None
         self.pending_elements = None
         self.pending_types = None
-        self.force_full_parse = force_full_parse
+        self.skip_errors = skip_errors
 
     def clone(self, indent=0, base_dir=None):
         retval = copy(self)
@@ -626,6 +626,6 @@ class XmlSchemaParser(object):
                 self.debug0('')
 
                 for c in chain([self], self.children):
-                    c.print_pending(fail=self.force_full_parse)
+                    c.print_pending(fail=(not self.skip_errors))
 
         return self.retval

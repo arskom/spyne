@@ -140,44 +140,44 @@ def get_xml_as_object(elt, cls):
 
 
 def parse_schema_string(s, files={}, repr_=Thier_repr(with_ns=False),
-                                                         force_full_parse=True):
+                                                         skip_errors=False):
     """Parses a schema string and returns a _Schema object.
 
     :param s: The string or bytes object that contains the schema document.
     :param files: A dict that maps namespaces to path to schema files that
         contain the schema document for those namespaces.
     :param repr_: A callable that functions as `repr`.
-    :param force_full_parse: Have the parser let go of types that could not be
-        fully parsed for one reason or the other. See debug log for details.
+    :param skip_errors: Skip parsing errors and return a partial schema.
+        See debug log for details.
 
     :return: :class:`spyne.interface.xml_schema.parser._Schema` instance.
     """
 
     elt = etree.fromstring(s, parser=PARSER)
     return XmlSchemaParser(files, repr_=repr_,
-                            force_full_parse=force_full_parse).parse_schema(elt)
+                            skip_errors=skip_errors).parse_schema(elt)
 
 
 def parse_schema_element(elt, files={}, repr_=Thier_repr(with_ns=False),
-                                                         force_full_parse=True):
+                                                         skip_errors=False):
     """Parses a `<xs:schema>` element and returns a _Schema object.
 
     :param elt: The `<xs:schema>` element, an lxml.etree._Element instance.
     :param files: A dict that maps namespaces to path to schema files that
         contain the schema document for those namespaces.
     :param repr_: A callable that functions as `repr`.
-    :param force_full_parse: Have the parser let go of types that could not be
-        fully parsed for one reason or the other. See debug log for details.
+    :param skip_errors: Skip parsing errors and return a partial schema.
+        See debug log for details.
 
     :return: :class:`spyne.interface.xml_schema.parser._Schema` instance.
     """
 
     return XmlSchemaParser(files, repr_=repr_,
-                            force_full_parse=force_full_parse).parse_schema(elt)
+                            skip_errors=skip_errors).parse_schema(elt)
 
 
 def parse_schema_file(file_name, files={}, repr_=Thier_repr(with_ns=False),
-                                                         force_full_parse=True):
+                                                         skip_errors=False):
     """Parses a schema file and returns a _Schema object. Schema files typically
     have the `*.xsd` extension.
 
@@ -186,8 +186,8 @@ def parse_schema_file(file_name, files={}, repr_=Thier_repr(with_ns=False),
     :param files: A dict that maps namespaces to path to schema files that
         contain the schema document for those namespaces.
     :param repr_: A callable that functions as `repr`.
-    :param force_full_parse: Have the parser let go of types that could not be
-        fully parsed for one reason or the other. See debug log for details.
+    :param skip_errors: Skip parsing errors and return a partial schema.
+        See debug log for details.
 
     :return: :class:`spyne.interface.xml_schema.parser._Schema` instance.
     """
@@ -195,4 +195,4 @@ def parse_schema_file(file_name, files={}, repr_=Thier_repr(with_ns=False),
     elt = etree.fromstring(open(file_name, 'rb').read(), parser=PARSER)
     wd = abspath(dirname(file_name))
     return XmlSchemaParser(files, wd, repr_=repr_,
-                            force_full_parse=force_full_parse).parse_schema(elt)
+                            skip_errors=skip_errors).parse_schema(elt)
