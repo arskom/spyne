@@ -154,7 +154,8 @@ def parse_schema_string(s, files={}, repr_=Thier_repr(with_ns=False),
     """
 
     elt = etree.fromstring(s, parser=PARSER)
-    return XmlSchemaParser(files, repr_=repr_).parse_schema(elt)
+    return XmlSchemaParser(files, repr_=repr_,
+                            force_full_parse=force_full_parse).parse_schema(elt)
 
 
 def parse_schema_element(elt, files={}, repr_=Thier_repr(with_ns=False),
