@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 
 import msgpack
 
+from time import time
+from hashlib import md5
+
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, Factory, connectionDone, \
     ClientFactory
@@ -55,6 +58,7 @@ class TwistedMessagePackProtocolClientFactory(ClientFactory):
     def buildProtocol(self, address):
         return TwistedMessagePackProtocol(self.app, self.base, factory=self)
 
+def _cha(*args): return args
 
 class TwistedMessagePackProtocol(Protocol):
     def __init__(self, app, base=MessagePackServerBase,
@@ -63,7 +67,24 @@ class TwistedMessagePackProtocol(Protocol):
         self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self._transport = base(app)
 
+        self.sessid = ''
+        self.sent_bytes = 0
+        self.recv_bytes = 0
+
+    def gen_sessid(self, *args):
+        """It's up to you to use this in a subclass."""
+
+        retval = _cha(
+            Address.from_twisted_address(self.transport.getPeer()),
+            time(),
+            *args
+        )
+
+        return md5(repr(retval)).hexdigest()
+
     def connectionMade(self):
+        self.sent_bytes = 0
+        self.recv_bytes = 0
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_made", self)
 
@@ -73,6 +94,7 @@ class TwistedMessagePackProtocol(Protocol):
 
     def dataReceived(self, data):
         self._buffer.feed(data)
+        self.recv_bytes += len(data)
 
         for msg in self._buffer:
             self.process_incoming_message(msg)
@@ -82,8 +104,13 @@ class TwistedMessagePackProtocol(Protocol):
         p_ctx.transport.remote_addr = Address.from_twisted_address(
                                                        self.transport.getPeer())
         p_ctx.transport.protocol = self
+        p_ctx.transport.sessid = self.sessid
 
         self.process_contexts(p_ctx, others)
+
+    def transport_write(self, data):
+        self.sent_bytes += len(data)
+        self.transport.write(data)
 
     def handle_error(self, p_ctx, others, exc):
         self._transport.get_out_string(p_ctx)
@@ -99,7 +126,7 @@ class TwistedMessagePackProtocol(Protocol):
         out_string = msgpack.packb([
             error, msgpack.packb(data),
         ])
-        self.transport.write(out_string)
+        self.transport_write(out_string)
         p_ctx.transport.resp_length = len(out_string)
         p_ctx.close()
 
@@ -149,7 +176,7 @@ def _eb_deferred(retval, prot, p_ctx, others):
         p_ctx.out_error = InternalError(retval.value)
 
     prot.handle_error(p_ctx, others, p_ctx.out_error)
-    prot.transport.write(''.join(p_ctx.out_string))
+    prot.transport_write(''.join(p_ctx.out_string))
     p_ctx.transport.resp_length = len(p_ctx.out_string)
     prot.transport.loseConnection()
 
@@ -167,7 +194,7 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
         prot._transport.pack(p_ctx)
 
         out_string = ''.join(p_ctx.out_string)
-        prot.transport.write(out_string)
+        prot.transport_write(out_string)
         p_ctx.transport.resp_length = len(out_string)
 
     except Exception as e:
