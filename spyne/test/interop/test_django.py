@@ -260,6 +260,10 @@ class EmailRegexTestCase(TestCase):
         """Test invalid email."""
         self.assertIsNone(re.match(email_re, '@example.com'))
 
+    def test_invalid_tld(self):
+        """Test if email from Top Level Domain is invalid."""
+        self.assertIsNone(re.match(email_re, 'babushka@email'))
+
 
 class DjangoServiceTestCase(TestCase):
 

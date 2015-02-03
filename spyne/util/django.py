@@ -50,7 +50,9 @@ from spyne.util.six import add_metaclass
 email_re = re.compile(
     r"[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
     r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*@"
+    # domain should contain at least 2 parts
     r"[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
+    r"\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
     r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*", re.IGNORECASE)
 
 
