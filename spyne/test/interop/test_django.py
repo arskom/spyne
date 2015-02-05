@@ -244,25 +244,35 @@ class ModelTestCase(TestCase):
             assert False, 'Can create non abstract custom model'
 
 
+# in XmlSchema ^ and $ are set implicitly
+python_email_re = '^' + email_re.pattern + '$'
+
+
 class EmailRegexTestCase(TestCase):
 
     """Tests for email_re."""
 
     def test_empty(self):
         """Empty string is invalid email."""
-        self.assertIsNone(re.match(email_re, ''))
+        self.assertIsNone(re.match(python_email_re, ''))
 
     def test_valid(self):
         """Test valid email."""
-        self.assertIsNotNone(re.match(email_re, 'valid.email@example.com'))
+        self.assertIsNotNone(re.match(python_email_re,
+                                      'valid.email@example.com'))
+
+    def test_valid_single_letter_domain(self):
+        """Test valid email."""
+        self.assertIsNotNone(re.match(python_email_re, 'valid.email@e.x.com'))
 
     def test_invalid(self):
         """Test invalid email."""
-        self.assertIsNone(re.match(email_re, '@example.com'))
+        self.assertIsNone(re.match(python_email_re, '@example.com'))
 
     def test_invalid_tld(self):
         """Test if email from Top Level Domain is invalid."""
-        self.assertIsNone(re.match(email_re, 'babushka@email'))
+        self.assertIsNone(re.match(python_email_re, 'babushka@email'))
+        self.assertIsNone(re.match(python_email_re, 'babushka@domain.email-'))
 
 
 class DjangoServiceTestCase(TestCase):
