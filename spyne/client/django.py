@@ -32,6 +32,11 @@ from spyne.client import RemoteProcedureBase
 
 
 class _RemoteProcedure(RemoteProcedureBase):
+    def __init__(self, url, app, name, out_header=None, *args, **kwargs):
+        super(_RemoteProcedure, self).__init__(url, app, name, out_header=out_header)
+
+        self.secure = kwargs.get('secure', False)
+
     def __call__(self, *args, **kwargs):
         response = self.get_django_response(*args, **kwargs)
         code = response.status_code
@@ -66,13 +71,13 @@ class _RemoteProcedure(RemoteProcedureBase):
         out_string = ''.join(self.ctx.out_string)
         # Hack
         client = Client()
-        return client.post(self.url, content_type='text/xml', data=out_string)
+        return client.post(self.url, content_type='text/xml', data=out_string, secure=self.secure)
 
 
 class DjangoTestClient(ClientBase):
     """The Django test client transport."""
 
-    def __init__(self, url, app):
+    def __init__(self, url, app, secure=False):
         super(DjangoTestClient, self).__init__(url, app)
 
-        self.service = Service(_RemoteProcedure, url, app)
+        self.service = Service(_RemoteProcedure, url, app, secure=secure)
