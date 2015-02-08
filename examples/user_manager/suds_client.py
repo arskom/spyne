@@ -37,24 +37,24 @@ c = Client('http://localhost:8000?wsdl')
 u = c.factory.create("User")
 
 u.user_name = 'dave'
-u.first_name = 'david'
-u.last_name = 'smith'
+u.full_name = 'david smith'
+u.email = 'dave@email.com'
 
 u.permissions = c.factory.create("PermissionArray")
 
 permission = c.factory.create("Permission")
-permission.application = 'table'
-permission.operation = 'write'
+permission.application = 'usermgr'
+permission.operation = 'modify'
 u.permissions.Permission.append(permission)
 
 permission = c.factory.create("Permission")
-permission.application = 'table'
+permission.application = 'accountmgr'
 permission.operation = 'read'
 u.permissions.Permission.append(permission)
 
 print(u)
 
-retval = c.service.add_user(u)
+retval = c.service.put_user(u)
 print(retval)
 
 print(c.service.get_user(retval))
