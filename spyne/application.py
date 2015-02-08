@@ -20,6 +20,7 @@
 import logging
 logger = logging.getLogger(__name__)
 logger_client = logging.getLogger('.'.join([__name__, 'client']))
+logger_server = logging.getLogger('.'.join([__name__, 'server']))
 
 from spyne import BODY_STYLE_EMPTY
 from spyne import BODY_STYLE_BARE
@@ -174,7 +175,7 @@ class Application(object):
                                                'method_exception_object', ctx)
 
         except Exception as e:
-            logger.exception(e)
+            logger_server.exception(e)
 
             ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
 

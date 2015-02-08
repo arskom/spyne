@@ -32,6 +32,8 @@ class BODY_STYLE_EMPTY: pass
 class BODY_STYLE_BARE: pass
 
 
+# When spyne.server.twisted gets imported, this type gets a static method named
+# `from_twisted_address`. Dark magic.
 Address = namedtuple("Address", ["type", "host", "port"])
 
 class _add_address_types():
@@ -42,8 +44,6 @@ class _add_address_types():
     def address_str(self):
         return ":".join((self.type, self.host, str(self.port)))
     Address.__str__ = address_str
-
-_add_address_types()
 
 
 class AuxMethodContext(object):
@@ -59,7 +59,7 @@ class AuxMethodContext(object):
 class TransportContext(object):
     """Generic object that holds transport-specific context information"""
     def __init__(self, parent, transport, type=None):
-        self.parent = parent;
+        self.parent = parent
         """The MethodContext this object belongs to"""
 
         self.itself = transport
@@ -77,6 +77,9 @@ class TransportContext(object):
         self.remote_addr = None
         """The address of the other end of the connection."""
 
+        self.sessid = ''
+        """The session id."""
+
 
 class ProtocolContext(object):
     """Generic object that holds protocol-specific context information"""
@@ -85,7 +88,8 @@ class ProtocolContext(object):
         """The MethodContext this object belongs to"""
 
         self.itself = transport
-        """The transport itself; i.e. a ServerBase instance."""
+        """The protocol itself as passed to the `Application` init. This is a
+        `ProtocolBase` instance."""
 
         self.type = type
         """The protocol the transport uses."""

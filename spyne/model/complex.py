@@ -1066,10 +1066,15 @@ class ComplexModelBase(ModelBase):
         return cls.customize(validate_freq=False)
 
     @classmethod
-    def init_from(cls, other):
+    def init_from(cls, other, **kwargs):
         retval = cls()
+
         for k in cls._type_info:
-            setattr(retval, k, getattr(other, k, None))
+            if k in kwargs:
+                setattr(retval, k, kwargs[k])
+            elif hasattr(other, k):
+                setattr(retval, k, getattr(other, k))
+
         return retval
 
     @classmethod
