@@ -355,7 +355,7 @@ class SimpleDictDocument(DictDocument):
                 if v2 is not None and req_enc is not None \
                                         and not issubclass(member.type, String) \
                                         and issubclass(member.type, Unicode) \
-                                        and not isinstance(v2, unicode):
+                                        and not isinstance(v2, six.text_type):
                     try:
                         v2 = v2.decode(req_enc)
                     except UnicodeDecodeError as e:
