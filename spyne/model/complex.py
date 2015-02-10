@@ -733,7 +733,11 @@ class ComplexModelBase(ModelBase):
                 elif '_sa_class_manager' in cls.__dict__:
                     # except the attributes that sqlalchemy doesn't know about
                     if v.Attributes.exc_table:
-                        setattr(self, k, None)
+                        try:
+                            setattr(self, k, None)
+                        except AttributeError: # it could be a read-only property
+                            pass
+
                     elif issubclass(v, ComplexModelBase) and \
                                                   v.Attributes.store_as is None:
                         setattr(self, k, None)
