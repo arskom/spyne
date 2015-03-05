@@ -255,11 +255,11 @@ class ToParentMixin(ProtocolBase):
         parent.write(E(name, **{'{%s}nil' % NS_XSI: 'true'}))
 
     @coroutine
-    def _write_members(self, ctx, cls, inst, parent):
+    def _write_members(self, ctx, cls, inst, parent, **kwargs):
         parent_cls = getattr(cls, '__extends__', None)
 
         if not (parent_cls is None):
-            ret = self._write_members(ctx, parent_cls, inst, parent)
+            ret = self._write_members(ctx, parent_cls, inst, parent, **kwargs)
             if ret is not None:
                 try:
                     while True:
@@ -300,7 +300,7 @@ class ToParentMixin(ProtocolBase):
 
             name = "{%s}%s" % (sub_ns, sub_name)
             if subvalue is not None or v.Attributes.min_occurs > 0:
-                ret = self.to_parent(ctx, v, subvalue, parent, name)
+                ret = self.to_parent(ctx, v, subvalue, parent, name, **kwargs)
                 if ret is not None:
                     try:
                         while True:
@@ -313,12 +313,12 @@ class ToParentMixin(ProtocolBase):
                             pass
 
     @coroutine
-    def complex_to_parent(self, ctx, cls, inst, parent, name):
+    def complex_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         inst = cls.get_serialization_instance(inst)
 
         # TODO: Put xml attributes as well in the below element() call.
         with parent.element(name):
-            ret = self._write_members(ctx, cls, inst, parent)
+            ret = self._write_members(ctx, cls, inst, parent, **kwargs)
             if ret is not None:
                 try:
                     while True:
