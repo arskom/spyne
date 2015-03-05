@@ -107,7 +107,12 @@ def coroutine(func):
     assert isgeneratorfunction(func)
 
     def start(*args, **kwargs):
-        ret = func(*args, **kwargs)
+        try:
+            ret = func(*args, **kwargs)
+        except TypeError as e:
+            logger.error("Function %r at %s:%d got error %r", func.func_name,
+                         func.__module__, func.__code__.co_firstlineno, e)
+            raise
 
         try:
             next(ret)
