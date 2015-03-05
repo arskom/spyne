@@ -116,7 +116,6 @@ class ToParentMixin(ProtocolBase):
 
         return retval
 
-
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_unicode(cls, inst)))
 
