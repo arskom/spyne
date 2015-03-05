@@ -47,10 +47,15 @@ class HtmlBase(XmlCloth):
     def docfile(self, *args, **kwargs):
         return etree.htmlfile(*args, **kwargs)
 
-    def write_doctype(self, xf):
+    def write_doctype(self, ctx, parent, cloth=None):
         if self.doctype is not None:
-            # FIXME: write the doctype of the cloth
-            xf.write_doctype(self.doctype)
+            parent.write_doctype(self.doctype)
+        elif cloth is not None:
+            parent.write_doctype(cloth.getroottree().docinfo.doctype)
+        else:
+            return
+
+        ctx.protocol.doctype_written = True
 
     @staticmethod
     def get_class_cloth(cls):
@@ -59,3 +64,4 @@ class HtmlBase(XmlCloth):
     @staticmethod
     def get_class_root_cloth(cls):
         return cls.Attributes._html_root_cloth
+

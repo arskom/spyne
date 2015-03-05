@@ -336,6 +336,9 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
     @coroutine
     def to_root_cloth(self, ctx, cls, inst, cloth, parent, name):
+        if not ctx.protocol.doctype_written:
+            self.write_doctype(ctx, parent, cloth)
+
         to_be_closed = False
         if not getattr(ctx.protocol, 'in_root_cloth', False):
             to_be_closed = True

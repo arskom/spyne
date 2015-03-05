@@ -81,6 +81,9 @@ class ToParentMixin(ProtocolBase):
         if ret:
             return cor_handle
 
+        if not ctx.protocol.doctype_written:
+            self.write_doctype(ctx, parent)
+
         if inst is None:
             inst = cls.Attributes.default
 
