@@ -51,3 +51,11 @@ class HtmlBase(XmlCloth):
         if self.doctype is not None:
             # FIXME: write the doctype of the cloth
             xf.write_doctype(self.doctype)
+
+    @staticmethod
+    def get_class_cloth(cls):
+        return cls.Attributes._html_cloth
+
+    @staticmethod
+    def get_class_root_cloth(cls):
+        return cls.Attributes._html_root_cloth

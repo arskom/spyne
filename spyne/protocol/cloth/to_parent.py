@@ -76,6 +76,11 @@ class ToParentMixin(ProtocolBase):
         if subprot is not None and not (subprot is self) and not nosubprot:
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
+        ret, cor_handle = self.check_class_cloths(ctx, cls, inst, parent, name,
+                                                                       **kwargs)
+        if ret:
+            return cor_handle
+
         if inst is None:
             inst = cls.Attributes.default
 

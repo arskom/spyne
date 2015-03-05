@@ -75,30 +75,35 @@ class ClothParserMixin(object):
         if cloth_parser is None:
             cloth_parser = etree.XMLParser(remove_comments=True)
 
-        self._cloth = etree.parse(file_name, parser=cloth_parser)
-        self._cloth = self._cloth.getroot()
+        cloth = etree.parse(file_name, parser=cloth_parser)
+        return cloth.getroot()
 
     def _init_cloth(self, cloth, attr_name, root_attr_name, cloth_parser):
         """Called from XmlCloth.__init__ in order to not break the dunder init
         signature consistency"""
 
+        self._cloth = None
+        self._root_cloth = None
+
         self.attr_name = attr_name
         self.root_attr_name = root_attr_name
 
         self._mrpc_cloth = self._root_cloth = None
-        self._cloth = cloth
-        if isinstance(self._cloth, string_types):
-            self._parse_file(self._cloth, cloth_parser)
+        if isinstance(cloth, string_types):
+            cloth = self._parse_file(cloth, cloth_parser)
 
-        if self._cloth is not None:
+        if cloth is None:
+            return
+
+        q = "//*[@%s]" % self.root_attr_name
+        elts = cloth.xpath(q)
+        if len(elts) > 0:
             print("Using cloth as root.")
-            q = "//*[@%s]" % self.root_attr_name
-            elts = self._cloth.xpath(q)
-            if len(elts) > 0:
-                self._root_cloth = elts[0]
+            self._root_cloth = elts[0]
+        else:
+            self._cloth = cloth
 
-        if self._cloth is not None:
-            self._mrpc_cloth = self._pop_elt(self._cloth, 'mrpc_entry')
+        self._mrpc_cloth = self._pop_elt(cloth, 'mrpc_entry')
 
     def _pop_elt(self, elt, what):
         query = '//*[@%s="%s"]' % (self.attr_name, what)
@@ -320,6 +325,11 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         ctx.protocol.eltstack = []
         ctx.protocol.ctxstack = []
         ctx.protocol.tags = set()
+
+        cls_cloth = self.get_class_cloth(cls)
+        if cls_cloth is not None:
+            print(cls, "to object cloth")
+            cloth = cls_cloth
 
         self.to_cloth(ctx, cls, inst, cloth, parent, '')
         self._close_cloth(ctx, parent)

@@ -196,12 +196,33 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     def write_doctype(self, xf):
         pass  # FIXME: write it
 
+    @staticmethod
+    def get_class_cloth(cls):
+        return cls.Attributes._xml_cloth
+
+    @staticmethod
+    def get_class_root_cloth(cls):
+        return cls.Attributes._xml_root_cloth
+
+    def check_class_cloths(self, ctx, cls, inst, parent, name, **kwargs):
+        if not getattr(ctx.protocol, 'in_root_cloth', False):
+            c = self.get_class_root_cloth(cls)
+            if c is not None:
+                print("to object root cloth")
+                return True, self.to_root_cloth(ctx, cls, inst, c, parent, name,
+                                                                       **kwargs)
+        c = self.get_class_cloth(cls)
+        if c is not None:
+            print("to object cloth")
+            return True, self.to_parent_cloth(ctx, cls, inst, c, parent, name,
+                                                                       **kwargs)
+        return False, None
+
     def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
         if self._root_cloth is not None:
             print("to root cloth")
             return self.to_root_cloth(ctx, cls, inst, self._root_cloth, parent,
                                                                            name)
-
         if self._cloth is not None:
             print("to parent cloth")
             return self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
