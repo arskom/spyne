@@ -464,6 +464,9 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         """
 
         attrs = _gen_attrs(cls_bases, cls_dict)
+        assert issubclass(attrs, ComplexModelBase.Attributes), \
+                   ("%r must be a ComplexModelBase.Attributes subclass" % attrs)
+
         cls_dict = _get_ordered_attributes(cls_name, cls_dict, attrs)
 
         type_name = cls_dict.get("__type_name__", None)
