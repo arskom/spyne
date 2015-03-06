@@ -31,7 +31,7 @@ from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
     AnyHtml, ModelBase, ByteArray, XmlData, Array, AnyUri, ImageUri
 from spyne.model.enum import EnumBase
-from spyne.protocol import ProtocolBase, get_cls_attrs
+from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
 from spyne.util.cdict import cdict
@@ -81,7 +81,7 @@ class ToParentMixin(ProtocolBase):
         if ret:
             return cor_handle
 
-        if not ctx.protocol.doctype_written:
+        if not getattr(ctx.protocol, 'doctype_written', False):
             self.write_doctype(ctx, parent)
 
         if inst is None:
@@ -229,7 +229,7 @@ class ToParentMixin(ProtocolBase):
                         pass
 
         for k, v in cls._type_info.items():
-            attr = get_cls_attrs(self, v)
+            attr = self.get_cls_attrs(v)
             if attr.exc:
                 continue
 

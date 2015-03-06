@@ -30,7 +30,6 @@ from lxml.html.builder import E
 from spyne import ModelBase, ByteArray, ComplexModelBase, Array, AnyUri, \
     ImageUri
 from spyne.model.binary import Attachment
-from spyne.protocol import get_cls_attrs
 from spyne.protocol.html import HtmlBase
 from spyne.util.six.moves.urllib.parse import urlencode, quote
 
@@ -139,7 +138,7 @@ class HtmlColumnTable(HtmlTableBase):
 
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
-                attr = get_cls_attrs(self, v)
+                attr = self.get_cls_attrs(v)
                 if attr.exc:
                     print("\tExclude table cell %r type %r" % (k, v), "for", cls)
                     continue
@@ -238,14 +237,14 @@ class HtmlColumnTable(HtmlTableBase):
                     fti = cls.get_flat_type_info(cls)
                     if self.field_name_attr is None:
                         for k, v in fti.items():
-                            attr = get_cls_attrs(self, v)
+                            attr = self.get_cls_attrs(v)
                             if attr.exc:
                                 continue
                             header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
                     else:
                         for k, v in fti.items():
-                            attr = get_cls_attrs(self, v)
+                            attr = self.get_cls_attrs(v)
                             if attr.exc:
                                 continue
                             th_attrs[self.field_name_attr] = k

@@ -166,7 +166,7 @@ from spyne.model import Time
 from spyne.model import Duration
 from spyne.model import Unicode
 
-from spyne.protocol import ProtocolBase, get_cls_attrs
+from spyne.protocol import ProtocolBase
 
 from spyne.interface.xml_schema.parser import hier_repr
 
@@ -711,7 +711,7 @@ class HierDictDocument(DictDocument):
             # with the incoming sequence with field names.
             # TODO: cache this
             items = zip([k for k,v in flat_type_info.items()
-                         if not get_cls_attrs(self, v).exc], doc)
+                         if not self.get_cls_attrs(v).exc], doc)
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
@@ -721,7 +721,7 @@ class HierDictDocument(DictDocument):
                 if member is None:
                     continue
 
-            attr = get_cls_attrs(self, member)
+            attr = self.get_cls_attrs(member)
 
             mo = attr.max_occurs
             if mo > 1:
@@ -775,7 +775,7 @@ class HierDictDocument(DictDocument):
                 yield r
 
         for k, v in cls._type_info.items():
-            attr = get_cls_attrs(self, v)
+            attr = self.get_cls_attrs(v)
 
             if getattr(attr, 'exc', None):
                 continue

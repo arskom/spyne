@@ -23,5 +23,4 @@ implementation is a subclass of ``ProtocolBase``.
 """
 
 from spyne.protocol._base import ProtocolBase
-from spyne.protocol._base import get_cls_attrs
 
