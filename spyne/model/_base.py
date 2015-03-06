@@ -70,6 +70,8 @@ class AttributesMeta(type(object)):
         return super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
+        # you will probably want to look at ModelBase._s_customize as well.
+
         nullable = cls_dict.get('nullable', None)
         nillable = cls_dict.get('nillable', None)
         if nullable is not None:
@@ -91,12 +93,17 @@ class AttributesMeta(type(object)):
 
         if 'html_cloth' in cls_dict:
             self.set_html_cloth(cls_dict.pop('html_cloth'))
+        if 'html_root_cloth' in cls_dict:
+            self.set_html_cloth(cls_dict.pop('html_root_cloth'))
 
         self._xml_cloth = None
         self._xml_root_cloth = None
 
         if 'xml_cloth' in cls_dict:
             self.set_xml_cloth(cls_dict.pop('xml_cloth'))
+
+        if 'xml_root_cloth' in cls_dict:
+            self.set_xml_cloth(cls_dict.pop('xml_root_cloth'))
 
         super(AttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
@@ -132,16 +139,14 @@ class AttributesMeta(type(object)):
         cm = ClothParserMixin.from_html_cloth(what)
         if cm._root_cloth is not None:
             self._html_root_cloth = cm._root_cloth
-            self._html_cloth = cm._cloth
         elif cm._cloth is not None:
-            self._html_root_cloth = None
             self._html_cloth = cm._cloth
         else:
             raise Exception("%r is not a suitable cloth", what)
     html_cloth = property(get_html_cloth, set_html_cloth)
 
     def get_html_root_cloth(self):
-        return self._html_cloth
+        return self._html_root_cloth
     html_root_cloth = property(get_html_root_cloth)
 
     def get_xml_cloth(self):
@@ -151,16 +156,14 @@ class AttributesMeta(type(object)):
         cm = ClothParserMixin.from_xml_cloth(what)
         if cm._root_cloth is not None:
             self._xml_root_cloth = cm._root_cloth
-            self._xml_cloth = cm._cloth
         elif cm._cloth is not None:
-            self._xml_root_cloth = None
             self._xml_cloth = cm._cloth
         else:
             raise Exception("%r is not a suitable cloth", what)
     xml_cloth = property(get_xml_cloth, set_xml_cloth)
 
     def get_xml_root_cloth(self):
-        return self._root_cloth
+        return self._xml_root_cloth
     xml_root_cloth = property(get_xml_root_cloth)
 
 
@@ -495,9 +498,13 @@ class ModelBase(object):
 
         cls_dict['Attributes'] = Attributes
 
-        # as nillable is a property, it gets reset everytime a new class is
-        # defined. So we need to reinitialize it explicitly.
-        Attributes.nillable = cls.Attributes.nillable
+        # properties get reset everytime a new class is defined. So we need
+        # to reinitialize them explicitly.
+        for k in ('nillable', '_xml_cloth', '_xml_root_cloth', '_html_cloth',
+                                                            '_html_root_cloth'):
+            v = getattr(cls.Attributes, k)
+            if v is not None:
+                setattr(Attributes, k, v)
 
         class Annotations(cls.Annotations):
             pass
