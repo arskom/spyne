@@ -120,30 +120,6 @@ class ToParentMixin(ProtocolBase):
         parent.write(E(name, self.to_unicode(cls, inst)))
 
     @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        with parent.element(name):
-            if issubclass(cls, Array):
-                # if cls is an array, inst should already be a sequence type
-                # we leave  it to the next round of to_cloth call to unwrap and
-                # deserialize it.
-                v = iter(cls._type_info.values()).next()
-                ret = self.to_parent(ctx, v, inst, parent, **kwargs)
-
-            else:
-                ret = self._get_members(ctx, cls, inst, parent, **kwargs)
-
-            if isgenerator(ret):
-                try:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
-                except Break as e:
-                    try:
-                        ret.throw(e)
-                    except StopIteration:
-                        pass
-
-    @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         if isinstance(inst, PushBase):
             while True:
@@ -174,33 +150,6 @@ class ToParentMixin(ProtocolBase):
                     except Break as e:
                         try:
                             ret.throw(e)
-                        except StopIteration:
-                            pass
-
-    @coroutine
-    def _get_members(self, ctx, cls, inst, parent, **kwargs):
-        for k, v in cls.get_flat_type_info(cls).items():
-            try:
-                subvalue = getattr(inst, k, None)
-            except:  # e.g. SqlAlchemy could throw NoSuchColumnError
-                subvalue = None
-
-            sub_name = v.Attributes.sub_name
-            if sub_name is None:
-                sub_name = k
-
-            # Don't include empty values for non-nillable optional attributes.
-            if subvalue is not None or v.Attributes.min_occurs > 0:
-                ret = self.to_parent(ctx, v, subvalue, parent, sub_name,
-                                                                       **kwargs)
-                if ret is not None:
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as b:
-                        try:
-                            ret.throw(b)
                         except StopIteration:
                             pass
 
