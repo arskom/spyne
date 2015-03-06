@@ -57,6 +57,7 @@ def email_exception(exception_address, message=""):
         logger.error("Error: unable to send email")
         logger.exception(e)
 
+
 def email_text(addresses, sender=None, subject='', message=""):
     sender = 'robot@spyne.io'
     receivers = addresses
