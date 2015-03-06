@@ -107,7 +107,7 @@ class HtmlMicroFormat(HtmlBase):
         attrs = {self.field_name_attr: name}
 
         with parent.element(self.root_tag, attrs):
-            ret = self._get_members(ctx, cls, inst, parent, **kwargs)
+            ret = self._write_members(ctx, cls, inst, parent, **kwargs)
             if isgenerator(ret):
                 try:
                     while True:
