@@ -137,8 +137,7 @@ class HtmlColumnTable(HtmlTableBase):
         print("Generate row for", cls)
 
         with parent.element('tr'):
-            for k, v in sorted(cls.get_flat_type_info(cls).items(),
-                                                            key=self.field_key):
+            for k, v in self.sort_fields(cls):
                 attr = self.get_cls_attrs(v)
                 if attr.exc:
                     print("\tExclude table cell %r type %r" % (k, v), "for", cls)
@@ -207,7 +206,7 @@ class HtmlColumnTable(HtmlTableBase):
                             parent.write(mrpc_delim)
 
                         pd = { }
-                        for k, v in cls.get_flat_type_info(cls).items():
+                        for k, v in self.sort_fields(cls):
                             if getattr(v.Attributes, 'primary_key', None):
                                 r = self.to_unicode(v, getattr(inst, k, None))
                                 if r is not None:
@@ -235,16 +234,16 @@ class HtmlColumnTable(HtmlTableBase):
                     th_attrs[self.field_name_attr] = name
 
                 if issubclass(cls, ComplexModelBase):
-                    fti = cls.get_flat_type_info(cls)
+                    fti = self.sort_fields(cls)
                     if self.field_name_attr is None:
-                        for k, v in fti.items():
+                        for k, v in fti:
                             attr = self.get_cls_attrs(v)
                             if attr.exc:
                                 continue
                             header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
                     else:
-                        for k, v in fti.items():
+                        for k, v in fti:
                             attr = self.get_cls_attrs(v)
                             if attr.exc:
                                 continue
@@ -375,7 +374,7 @@ class HtmlRowTable(HtmlTableBase):
 
         with parent.element('table', attrib):
             with parent.element('tbody'):
-                for k, v in cls.get_flat_type_info(cls).items():
+                for k, v in self.sort_fields(cls):
                     try:
                         sub_value = getattr(inst, k, None)
                     except:  # e.g. SQLAlchemy could throw NoSuchColumnError

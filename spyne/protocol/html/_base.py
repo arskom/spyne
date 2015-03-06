@@ -20,6 +20,7 @@
 from lxml import etree, html
 
 from spyne.protocol.cloth import XmlCloth
+from spyne.util import memoize_id_method
 
 
 class HtmlBase(XmlCloth):
@@ -66,11 +67,16 @@ class HtmlBase(XmlCloth):
     def get_class_root_cloth(cls):
         return cls.Attributes._html_root_cloth
 
-    def field_key(self, sort_key):
-        k, v = sort_key
-        attrs = self.get_cls_attrs(v)
-        return None if attrs.tab is None else \
-                            (attrs.tab.index, attrs.tab.htmlid), \
-               None if attrs.fieldset is None else \
-                            (attrs.fieldset.index, attrs.fieldset.htmlid), \
-               attrs.order, k
+    @memoize_id_method
+    def sort_fields(self, cls):
+        fields = list(cls.get_flat_type_info(cls).items())
+        indexes = {}
+        for i, (k, v) in enumerate(fields):
+            order = self.get_cls_attrs(v).order
+            if order is None:
+                indexes[k] = i
+            else:
+                indexes[k] = order
+
+        fields.sort(key=lambda x: indexes[x[0]])
+        return fields
