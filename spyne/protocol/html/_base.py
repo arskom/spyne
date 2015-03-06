@@ -68,15 +68,17 @@ class HtmlBase(XmlCloth):
         return cls.Attributes._html_root_cloth
 
     @memoize_id_method
-    def sort_fields(self, cls):
-        fields = list(cls.get_flat_type_info(cls).items())
+    def sort_fields(self, cls=None, items=None):
+        if items is None:
+            items = list(cls.get_flat_type_info(cls).items())
+
         indexes = {}
-        for i, (k, v) in enumerate(fields):
+        for i, (k, v) in enumerate(items):
             order = self.get_cls_attrs(v).order
             if order is None:
                 indexes[k] = i
             else:
                 indexes[k] = order
 
-        fields.sort(key=lambda x: indexes[x[0]])
-        return fields
+        items.sort(key=lambda x: indexes[x[0]])
+        return items
