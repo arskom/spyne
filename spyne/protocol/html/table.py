@@ -137,7 +137,8 @@ class HtmlColumnTable(HtmlTableBase):
         print("Generate row for", cls)
 
         with parent.element('tr'):
-            for k, v in cls.get_flat_type_info(cls).items():
+            for k, v in sorted(cls.get_flat_type_info(cls).items(),
+                                                            key=self.field_key):
                 attr = self.get_cls_attrs(v)
                 if attr.exc:
                     print("\tExclude table cell %r type %r" % (k, v), "for", cls)

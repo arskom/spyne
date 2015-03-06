@@ -66,3 +66,11 @@ class HtmlBase(XmlCloth):
     def get_class_root_cloth(cls):
         return cls.Attributes._html_root_cloth
 
+    def field_key(self, sort_key):
+        k, v = sort_key
+        attrs = self.get_cls_attrs(v)
+        return None if attrs.tab is None else \
+                            (attrs.tab.index, attrs.tab.htmlid), \
+               None if attrs.fieldset is None else \
+                            (attrs.fieldset.index, attrs.fieldset.htmlid), \
+               attrs.order, k
