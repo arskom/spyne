@@ -48,6 +48,7 @@ class HtmlBase(XmlCloth):
         return etree.htmlfile(*args, **kwargs)
 
     def write_doctype(self, ctx, parent, cloth=None):
+        ctx.protocol.doctype_written=True
         if self.doctype is not None:
             parent.write_doctype(self.doctype)
         elif cloth is not None:

@@ -41,6 +41,7 @@ class XmlClothProtocolContext(ProtocolContext):
         super(XmlClothProtocolContext, self).__init__(parent, transport)
 
         self.inst_stack = []
+        self.doctype_written = False
 
 
 class XmlCloth(ToParentMixin, ToClothMixin):
