@@ -246,16 +246,16 @@ class ToParentMixin(ProtocolBase):
                     parent.write(self.to_unicode(k.type, subvalue))
                 continue
 
-            sub_ns = v.Attributes.sub_ns
+            sub_ns = attr.sub_ns
             if sub_ns is None:
                 sub_ns = cls.get_namespace()
 
-            sub_name = v.Attributes.sub_name
+            sub_name = attr.sub_name
             if sub_name is None:
                 sub_name = k
 
             name = "{%s}%s" % (sub_ns, sub_name)
-            if subvalue is not None or v.Attributes.min_occurs > 0:
+            if subvalue is not None or attr.min_occurs > 0:
                 ret = self.to_parent(ctx, v, subvalue, parent, name, **kwargs)
                 if ret is not None:
                     try:
