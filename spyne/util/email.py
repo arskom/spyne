@@ -28,7 +28,7 @@ import traceback
 import smtplib
 
 from socket import gethostname
-from email.Utils import formatdate
+from email.utils import COMMASPACE, formatdate
 from email.mime.text import MIMEText
 
 
@@ -64,9 +64,11 @@ def email_text(addresses, sender=None, subject='', message=""):
     if sender is None:
         sender = 'Spyne <robot@spyne.io>'
 
-    error_str = ("%s\n\n%s" % (message, traceback.format_exc()))
-    msg = MIMEText(error_str.encode('utf8'), 'plain', 'utf8')
-    msg['To'] = ';'.join(addresses)
+    exc = traceback.format_exc()
+    if exc is not None:
+        message = (u"%s\n\n%s" % (message, exc))
+    msg = MIMEText(message.encode('utf8'), 'plain', 'utf8')
+    msg['To'] = COMMASPACE.join(addresses)
     msg['From'] = sender
     msg['Date'] = formatdate()
     msg['Subject'] = subject
