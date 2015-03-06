@@ -153,7 +153,7 @@ class ToParentMixin(ProtocolBase):
                         except StopIteration:
                             pass
 
-    def not_supported(self, cls, *args, **kwargs):
+    def not_supported(self, ctx, cls, *args, **kwargs):
         if not self.ignore_uncap:
             raise NotImplementedError("Serializing %r not supported!" % cls)
 
