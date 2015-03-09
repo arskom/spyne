@@ -31,9 +31,12 @@ from spyne.error import ValidationError
 from spyne.service import ServiceBase
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
+from spyne.protocol.json import JsonDocument
 from spyne.interface.wsdl import Wsdl11
-from spyne.model.primitive import Integer
 from spyne.model.primitive import String
+from spyne.model.primitive import Unicode
+from spyne.model.complex import Array
+from spyne.model.complex import ComplexModel
 from spyne.server import ServerBase
 
 from spyne import MethodContext
@@ -174,6 +177,39 @@ class TestSoap11SoftValidation(unittest.TestCase):
         server.get_in_object(ctx)
 
         self.assertEquals(isinstance(ctx.in_error, ValidationError), True)
+
+class TestJsonSoftValidation(unittest.TestCase):
+
+    def test_json_document(self):
+        class SomeComplexModel(ComplexModel):
+            _type_info = [
+                ('a', Unicode),
+                ('b', Unicode(default='default', min_occurs=1)),
+            ]
+        class SomeService(ServiceBase):
+            @srpc(SomeComplexModel)
+            def some_method(s):
+                pass
+
+        application = Application([SomeService],
+            in_protocol=JsonDocument(validator='soft'),
+            out_protocol=JsonDocument(),
+            name='Service', tns='tns',
+        )
+        server = ServerBase(application)
+
+        ctx = MethodContext(server)
+        ctx.in_string = '{"some_method": {"s": {"a": "x", "b": null}}}'
+        ctx, = server.generate_contexts(ctx)
+        server.get_in_object(ctx)
+        assert ctx.in_object.s.b == 'default'
+        assert ctx.in_error is None
+
+        ctx.in_string = '{"some_method": {"s": {"a": "x"}}}'
+        ctx, = server.generate_contexts(ctx)
+        server.get_in_object(ctx)
+        self.assertEquals(isinstance(ctx.in_error, ValidationError), True)
+
 
 if __name__ == '__main__':
     unittest.main()
