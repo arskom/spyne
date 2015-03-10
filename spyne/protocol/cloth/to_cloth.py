@@ -29,7 +29,7 @@ from inspect import isgenerator
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
-    PushBase, XmlAttribute, File, ByteArray
+    PushBase, XmlAttribute, File, ByteArray, AnyUri
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
@@ -130,6 +130,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             ModelBase: self.model_base_to_cloth,
             AnyXml: self.xml_to_cloth,
             AnyHtml: self.html_to_cloth,
+            AnyUri: self.anyuri_to_cloth,
             ComplexModelBase: self.complex_to_cloth,
         })
 
@@ -501,3 +502,9 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                             ret.throw(e)
                         except StopIteration:
                             pass
+
+    def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, **kwargs):
+        if len(cloth) == 0:
+            self._enter_cloth(ctx, cloth, parent)
+            return self.anyuri_to_parent(ctx, cls, inst, parent, **kwargs)
+        raise NotImplementedError("anyuri_to_cloth")
