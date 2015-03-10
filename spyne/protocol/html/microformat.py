@@ -48,7 +48,6 @@ class HtmlMicroFormat(HtmlBase):
         <div> or <span> tags.
 
         :param app: A spyne.application.Application instance.
-        :param validator: The validator to use. Ignored.
         :param root_tag: The type of the root tag that encapsulates the return
             data.
         :param child_tag: The type of the tag that encapsulates the fields of
@@ -107,7 +106,8 @@ class HtmlMicroFormat(HtmlBase):
         attrs = {self.field_name_attr: name}
 
         with parent.element(self.root_tag, attrs):
-            ret = self._write_members(ctx, cls, inst, parent, **kwargs)
+            ret = self._write_members(ctx, cls, inst, parent, use_ns=False,
+                                                                       **kwargs)
             if isgenerator(ret):
                 try:
                     while True:

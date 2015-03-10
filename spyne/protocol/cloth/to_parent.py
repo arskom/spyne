@@ -211,7 +211,7 @@ class ToParentMixin(ProtocolBase):
         parent.write(E(name, **{'{%s}nil' % NS_XSI: 'true'}))
 
     @coroutine
-    def _write_members(self, ctx, cls, inst, parent, **kwargs):
+    def _write_members(self, ctx, cls, inst, parent, use_ns=True, **kwargs):
         parent_cls = getattr(cls, '__extends__', None)
 
         if not (parent_cls is None):
@@ -254,7 +254,10 @@ class ToParentMixin(ProtocolBase):
             if sub_name is None:
                 sub_name = k
 
-            name = "{%s}%s" % (sub_ns, sub_name)
+            if use_ns:
+                name = "{%s}%s" % (sub_ns, sub_name)
+            else:
+                name = sub_name
             if subvalue is not None or attr.min_occurs > 0:
                 ret = self.to_parent(ctx, v, subvalue, parent, name, **kwargs)
                 if ret is not None:
