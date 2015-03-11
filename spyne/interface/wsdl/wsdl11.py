@@ -22,8 +22,6 @@ subset of the Wsdl 1.1 document standard and its helper methods.
 """
 
 import logging
-from lxml.etree import SubElement
-
 logger = logging.getLogger(__name__)
 
 import re
@@ -33,6 +31,7 @@ import spyne.const.xml_ns
 
 from lxml import etree
 from lxml.builder import E
+from lxml.etree import SubElement
 
 from spyne.const.xml import WSDL11, XSD, NS_WSA, WSDL11_SOAP, PLINK
 from spyne.interface.xml_schema import XmlSchema
