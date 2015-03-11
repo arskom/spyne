@@ -241,11 +241,6 @@ class ToParentMixin(ProtocolBase):
             # This is a tight loop, so enable this only when necessary.
             # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
-            if issubclass(v, XmlData):
-                if subvalue is not None:
-                    parent.write(self.to_unicode(k.type, subvalue))
-                continue
-
             sub_ns = attr.sub_ns
             if sub_ns is None:
                 sub_ns = cls.get_namespace()
@@ -258,6 +253,11 @@ class ToParentMixin(ProtocolBase):
                 name = "{%s}%s" % (sub_ns, sub_name)
             else:
                 name = sub_name
+            if issubclass(v, XmlData):
+                if subvalue is not None:
+                    self.to_parent(ctx, v, inst, parent, name=name, **kwargs)
+                continue
+
             if subvalue is not None or attr.min_occurs > 0:
                 ret = self.to_parent(ctx, v, subvalue, parent, name, **kwargs)
                 if ret is not None:
