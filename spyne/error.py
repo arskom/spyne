@@ -114,7 +114,8 @@ class ResourceAlreadyExistsError(Fault):
 
 class Redirect(Fault):
     def __init__(self, ctx, location, orig_exc=None):
-        super(Redirect, self).__init__('Client.MustBeRedirected')
+        super(Redirect, self).__init__('Client.MustBeRedirected',
+                                                           faultstring=location)
         self.ctx = ctx
         self.location= location
         self.orig_exc = orig_exc
