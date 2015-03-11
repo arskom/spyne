@@ -141,7 +141,7 @@ def complex_add(document, cls, tags):
             if isinstance(_ai, dict):
                 dict_to_etree(_ai, appinfo)
 
-            elif isinstance(_ai, str) or isinstance(_ai, unicode):
+            elif isinstance(_ai, string_types):
                 appinfo.text = _ai
 
             elif isinstance(_ai, etree._Element):
