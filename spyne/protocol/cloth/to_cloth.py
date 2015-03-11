@@ -29,7 +29,7 @@ from inspect import isgenerator
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
-    PushBase, XmlAttribute, File, ByteArray, AnyUri
+    PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
@@ -416,7 +416,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         parent.write(inst)
 
     @coroutine
-    def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None):
+    def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
+                                                                      **kwargs):
         fti = cls.get_flat_type_info(cls)
 
         attrs = {}
@@ -426,8 +427,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                 if ns is None:
                     ns = v.Attributes.sub_ns
 
-                k = _gen_tagname(ns, k)
                 val = getattr(inst, k, None)
+                k = _gen_tagname(ns, k)
 
                 if val is not None:
                     if issubclass(v.type, (ByteArray, File)):
@@ -435,6 +436,10 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                                                            self.binary_encoding)
                     else:
                         attrs[k] = self.to_unicode(v.type, val)
+
+            elif issubclass(v, XmlData):
+                val = getattr(inst, k, None)
+                self.to_cloth(ctx, v.type, val, cloth, parent, k, **kwargs)
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
 
@@ -458,7 +463,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             else:
                 val = getattr(inst, k, None)
 
-            ret = self.to_cloth(ctx, v, val, elt, parent, name=k)
+            ret = self.to_cloth(ctx, v, val, elt, parent, name=k, **kwargs)
             if isgenerator(ret):
                 try:
                     while True:
