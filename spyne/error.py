@@ -108,3 +108,13 @@ class ResourceAlreadyExistsError(Fault):
         super(ResourceAlreadyExistsError,
               self).__init__('Client.ResourceAlreadyExists', fault_string %
                              fault_object)
+
+
+class Redirect(Fault):
+    def __init__(self, ctx, location, orig_exc=None):
+        self.ctx = ctx
+        self.location= location
+        self.orig_exc = orig_exc
+
+    def do_redirect(self):
+        raise NotImplementedError()

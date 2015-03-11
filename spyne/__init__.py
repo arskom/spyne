@@ -54,6 +54,7 @@ from spyne.error import InternalError
 from spyne.error import ResourceNotFoundError
 from spyne.error import RespawnError
 from spyne.error import ResourceAlreadyExistsError
+from spyne.error import Redirect
 
 from spyne.client import ClientBase, RemoteProcedureBase, RemoteService
 from spyne.server import ServerBase, NullServer
