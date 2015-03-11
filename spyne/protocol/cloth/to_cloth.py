@@ -475,8 +475,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
-                                                                       **kwargs)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent,
+                                             name=name, from_arr=True, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -490,8 +490,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
         else:
             for sv in inst:
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent, from_arr=True,
-                                                                       **kwargs)
+                ret = self.to_cloth(ctx, cls, sv, cloth, parent,
+                                             from_arr=True, name=name, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -503,8 +503,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                         except StopIteration:
                             pass
 
-    def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, **kwargs):
+    def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
         if len(cloth) == 0:
             self._enter_cloth(ctx, cloth, parent)
-            return self.anyuri_to_parent(ctx, cls, inst, parent, **kwargs)
+            return self.anyuri_to_parent(ctx, cls, inst, parent, name, **kwargs)
         raise NotImplementedError("anyuri_to_cloth")
