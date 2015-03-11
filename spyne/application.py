@@ -163,6 +163,8 @@ class Application(object):
             try:
                 e.do_redirect()
 
+                ctx.out_object = [None]
+
                 # Now that the processing is switched to the outgoing message,
                 # point ctx.protocol to ctx.out_protocol
                 ctx.protocol = ctx.outprot_ctx
