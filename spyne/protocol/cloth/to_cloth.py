@@ -442,12 +442,10 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
 
-        for k, v in fti.items():
-            if not issubclass(v, XmlData):
-                continue
-
-            val = getattr(inst, k, None)
-            self.to_cloth(ctx, v.type, val, None, parent, k, **kwargs)
+        if cls.Attributes._xml_tag_body_as is not None:
+            for k, v in cls.Attributes._xml_tag_body_as:
+                val = getattr(inst, k, None)
+                self.to_cloth(ctx, v.type, val, None, parent, k, **kwargs)
 
         for elt in self._get_elts(cloth, "mrpc"):
             self._actions_to_cloth(ctx, cls, inst, elt)

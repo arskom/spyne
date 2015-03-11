@@ -807,14 +807,14 @@ class XmlDocument(SubXmlBase):
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(int)
 
-        xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
-        if xtba_key is not None:
-            if issubclass(xtba_type.type, (ByteArray, File)):
-                value = self.from_unicode(xtba_type.type, elt.text,
-                                                    self.binary_encoding)
-            else:
-                value = self.from_unicode(xtba_type.type, elt.text)
-            setattr(inst, xtba_key, value)
+        if cls.Attributes._xml_tag_body_as is not None:
+            for xtba_key, xtba_type in cls.Attributes._xml_tag_body_as:
+                if issubclass(xtba_type.type, (ByteArray, File)):
+                    value = self.from_unicode(xtba_type.type, elt.text,
+                                                        self.binary_encoding)
+                else:
+                    value = self.from_unicode(xtba_type.type, elt.text)
+                setattr(inst, xtba_key, value)
 
         # parse input to set incoming data to related attributes.
         for c in elt:
