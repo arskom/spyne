@@ -327,7 +327,7 @@ class ModelBase(object):
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
-        __use_parent_doc__ = True
+        __use_parent_doc__ = False
         """If equal to True and doc is empty, Annotations will use __doc__
         from parent. Set it to False to avoid this mechanism. This is a
         convenience option"""
