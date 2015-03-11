@@ -253,6 +253,7 @@ class ToParentMixin(ProtocolBase):
                 name = "{%s}%s" % (sub_ns, sub_name)
             else:
                 name = sub_name
+
             if issubclass(v, XmlData):
                 if subvalue is not None:
                     self.to_parent(ctx, v, inst, parent, name=name, **kwargs)

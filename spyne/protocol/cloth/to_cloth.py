@@ -20,6 +20,8 @@
 from __future__ import print_function
 
 import logging
+from spyne.model.complex import XmlModifier
+
 logger = logging.getLogger(__name__)
 
 from lxml import html, etree
@@ -437,11 +439,15 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                     else:
                         attrs[k] = self.to_unicode(v.type, val)
 
-            elif issubclass(v, XmlData):
-                val = getattr(inst, k, None)
-                self.to_cloth(ctx, v.type, val, cloth, parent, k, **kwargs)
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
+
+        for k, v in fti.items():
+            if not issubclass(v, XmlData):
+                continue
+
+            val = getattr(inst, k, None)
+            self.to_cloth(ctx, v.type, val, None, parent, k, **kwargs)
 
         for elt in self._get_elts(cloth, "mrpc"):
             self._actions_to_cloth(ctx, cls, inst, elt)
@@ -453,6 +459,9 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             if v is None:
                 logger.warning("elt id %r not in %r", k, cls)
                 self._enter_cloth(ctx, elt, parent, skip=True)
+                continue
+
+            if issubclass(cls, XmlModifier):
                 continue
 
             if issubclass(cls, Array):
@@ -509,7 +518,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                             pass
 
     def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
+        self._enter_cloth(ctx, cloth, parent)
         if len(cloth) == 0:
-            self._enter_cloth(ctx, cloth, parent)
             return self.anyuri_to_parent(ctx, cls, inst, parent, name, **kwargs)
         raise NotImplementedError("anyuri_to_cloth")
