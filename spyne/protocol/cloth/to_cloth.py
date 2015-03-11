@@ -424,21 +424,21 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
         attrs = {}
         for k, v in fti.items():
-            if issubclass(v, XmlAttribute):
-                ns = v._ns
-                if ns is None:
-                    ns = v.Attributes.sub_ns
+            if not issubclass(v, XmlAttribute):
+                continue
 
-                val = getattr(inst, k, None)
-                k = _gen_tagname(ns, k)
+            ns = v._ns
+            if ns is None:
+                ns = v.Attributes.sub_ns
 
-                if val is not None:
-                    if issubclass(v.type, (ByteArray, File)):
-                        attrs[k] = self.to_unicode(v.type, val,
-                                                           self.binary_encoding)
-                    else:
-                        attrs[k] = self.to_unicode(v.type, val)
+            val = getattr(inst, k, None)
+            k = _gen_tagname(ns, k)
 
+            if val is not None:
+                if issubclass(v.type, (ByteArray, File)):
+                    attrs[k] = self.to_unicode(v.type, val, self.binary_encoding)
+                else:
+                    attrs[k] = self.to_unicode(v.type, val)
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
 
