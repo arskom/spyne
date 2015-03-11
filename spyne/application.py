@@ -25,7 +25,7 @@ logger_server = logging.getLogger('.'.join([__name__, 'server']))
 from spyne import BODY_STYLE_EMPTY
 from spyne import BODY_STYLE_BARE
 from spyne import BODY_STYLE_WRAPPED
-from spyne.model.fault import Fault
+from spyne.error import Fault, Redirect
 from spyne.interface import Interface
 from spyne import EventManager
 from spyne.util.appreg import register_application
@@ -150,8 +150,8 @@ class Application(object):
                 # the return value should already be wrapped by a sequence.
                 ctx.out_object = [ctx.out_object]
 
-            # Now that the processing is switched to the outgoing message, point
-            # ctx.protocol to ctx.out_protocol
+            # Now that the processing is switched to the outgoing message,
+            # point ctx.protocol to ctx.out_protocol
             ctx.protocol = ctx.outprot_ctx
 
             # fire events
@@ -159,6 +159,30 @@ class Application(object):
             if ctx.service_class is not None:
                 ctx.service_class.event_manager.fire_event(
                                                     'method_return_object', ctx)
+        except Redirect as e:
+            try:
+                e.do_redirect()
+
+                # Now that the processing is switched to the outgoing message,
+                # point ctx.protocol to ctx.out_protocol
+                ctx.protocol = ctx.outprot_ctx
+
+                # fire events
+                self.event_manager.fire_event('method_redirect', ctx)
+                if ctx.service_class is not None:
+                    ctx.service_class.event_manager.fire_event(
+                                                         'method_redirect', ctx)
+
+            except Exception as e:
+                logger_server.exception(e)
+                ctx.out_error = Fault('Server',
+                                             get_fault_string_from_exception(e))
+
+                # fire events
+                self.event_manager.fire_event('method_redirect_exception', ctx)
+                if ctx.service_class is not None:
+                    ctx.service_class.event_manager.fire_event(
+                                               'method_redirect_exception', ctx)
 
         except Fault as e:
             if e.faultcode == 'Client' or e.faultcode.startswith('Client.'):

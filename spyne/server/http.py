@@ -19,11 +19,21 @@
 
 from collections import defaultdict
 
-from spyne import TransportContext, MethodDescriptor
-from spyne import MethodContext
-from spyne.protocol.http import HttpPattern
+from spyne import TransportContext, MethodDescriptor, MethodContext, Redirect
 from spyne.server import ServerBase
-from spyne.const.http import gen_body_redirect, HTTP_301, HTTP_302
+from spyne.const.http import gen_body_redirect, \
+    HTTP_301, HTTP_302, HTTP_303, HTTP_307
+from spyne.protocol.http import HttpPattern
+
+
+class HttpRedirect(Redirect):
+    def do_redirect(self):
+        if not isinstance(self.ctx.transport, HttpTransportContext):
+            if self.orig_exc is not None:
+                raise self.orig_exc
+            raise TypeError(self.ctx.transport)
+
+        self.ctx.transport.respond(HTTP_302, location=self.location)
 
 
 class HttpTransportContext(TransportContext):
@@ -59,7 +69,7 @@ class HttpTransportContext(TransportContext):
 
     def respond(self, resp_code, **kwargs):
         self.resp_code = resp_code
-        if resp_code in (HTTP_301, HTTP_302):
+        if resp_code in (HTTP_301, HTTP_302, HTTP_303, HTTP_307):
             l = kwargs.pop('location')
             self.resp_headers['Location'] = l
             self.parent.out_string = [gen_body_redirect(resp_code, l)]
