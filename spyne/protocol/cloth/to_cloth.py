@@ -20,8 +20,6 @@
 from __future__ import print_function
 
 import logging
-from spyne.model.complex import XmlModifier
-
 logger = logging.getLogger(__name__)
 
 from lxml import html, etree
@@ -32,6 +30,8 @@ from spyne.util import Break, coroutine
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
     PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData
+from spyne.model.complex import XmlModifier
+
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
@@ -213,7 +213,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         automatically with subsequent calls to _enter_cloth and finally to
         _close_cloth."""
 
-        print("entering", cloth.tag, cloth.attrib, cloth.nsmap, "skip=%s" % skip)
+        print("entering", cloth.tag, cloth.attrib,
+                 "nsmap=%r" % cloth.nsmap, "attrs=%r" % attrs, "skip=%s" % skip)
 
         tags = ctx.protocol.tags
         eltstack = ctx.protocol.eltstack
@@ -252,7 +253,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             prevsibls = _prevsibls(anc, since=last_elt)
             for elt in prevsibls:
                 if id(elt) in tags:
-                    print("\skip  anc prevsibl", elt.tag, elt.attrib)
+                    print("\tskip  anc prevsibl", elt.tag, elt.attrib)
                     continue
                 print("\twrite anc prevsibl", elt.tag, elt.attrib, id(elt))
                 parent.write(elt)
@@ -280,6 +281,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                 continue
             print("\twrite cloth prevsibl", elt.tag, elt.attrib)
             parent.write(elt)
+
+        skip = skip or (cloth.tag == "spynedata")
 
         if skip:
             tags.add(id(cloth))
@@ -442,11 +445,6 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
 
-        if cls.Attributes._xml_tag_body_as is not None:
-            for k, v in cls.Attributes._xml_tag_body_as:
-                val = getattr(inst, k, None)
-                self.to_cloth(ctx, v.type, val, None, parent, k, **kwargs)
-
         for elt in self._get_elts(cloth, "mrpc"):
             self._actions_to_cloth(ctx, cls, inst, elt)
 
@@ -459,8 +457,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                 self._enter_cloth(ctx, elt, parent, skip=True)
                 continue
 
-            if issubclass(cls, XmlModifier):
-                continue
+            if issubclass(v, XmlData):
+                v = v.type
 
             if issubclass(cls, Array):
                 # if cls is an array, inst should already be a sequence type
