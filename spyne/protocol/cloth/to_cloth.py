@@ -216,6 +216,9 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         print("entering", cloth.tag, cloth.attrib,
                  "nsmap=%r" % cloth.nsmap, "attrs=%r" % attrs, "skip=%s" % skip)
 
+        if not ctx.protocol.doctype_written:
+            self.write_doctype(ctx, parent, cloth)
+
         tags = ctx.protocol.tags
         eltstack = ctx.protocol.eltstack
         ctxstack = ctx.protocol.ctxstack
@@ -342,9 +345,6 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
     @coroutine
     def to_root_cloth(self, ctx, cls, inst, cloth, parent, name):
-        if not ctx.protocol.doctype_written:
-            self.write_doctype(ctx, parent, cloth)
-
         to_be_closed = False
         if not getattr(ctx.protocol, 'in_root_cloth', False):
             to_be_closed = True
