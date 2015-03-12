@@ -30,13 +30,14 @@ import cgi
 import threading
 import itertools
 
-from spyne.util.six.moves.urllib.parse import unquote
+from spyne.util.six.moves.urllib.parse import unquote, quote
 
 try:
     from werkzeug.formparser import parse_form_data
 except ImportError as import_error:
     def parse_form_data(*args, **kwargs):
         raise import_error
+
 
 from spyne.util.six import string_types, BytesIO
 from spyne.util.six.moves.http_cookies import SimpleCookie
@@ -131,6 +132,13 @@ class WsgiTransportContext(HttpTransportContext):
 
     def get_path(self):
         return self.req_env['PATH_INFO']
+
+    def get_path_and_qs(self):
+        retval = quote(self.req_env.get('PATH_INFO', ''))
+        qs = self.req_env.get('QUERY_STRING', None)
+        if qs is not None:
+            retval += '?' + qs
+        return retval
 
     def get_cookie(self, key):
         cookie_string = self.req_env.get('HTTP_COOKIE', None)

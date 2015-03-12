@@ -163,6 +163,9 @@ class TwistedHttpTransportContext(HttpTransportContext):
     def get_path(self):
         return self.req.URLPath().path
 
+    def get_path_and_qs(self):
+        return self.req.uri
+
 
 class TwistedHttpMethodContext(HttpMethodContext):
     default_transport_context = TwistedHttpTransportContext
