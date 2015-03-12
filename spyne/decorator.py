@@ -342,7 +342,7 @@ def rpc(*params, **kparams):
             body_style = BODY_STYLE_WRAPPED
             body_style_str = _validate_body_style(kparams)
             if body_style_str.endswith('bare'):
-                if body_style == 'out_bare':
+                if body_style_str == 'out_bare':
                     body_style = BODY_STYLE_OUT_BARE
                 else:
                     body_style = BODY_STYLE_BARE
