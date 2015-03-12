@@ -584,8 +584,6 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
                 p_ctx.service_class.event_manager.fire_event(
                     'method_redirect', p_ctx)
 
-            request.finish()
-
         except Exception as e:
             logger_server.exception(e)
             p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
@@ -608,8 +606,6 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
                                                'method_exception_object', p_ctx)
 
         request.write(ret)
-        request.finish()
-
 
     else:
         p_ctx.out_error = ret.value
@@ -621,3 +617,5 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
         if p_ctx.service_class is not None:
             p_ctx.service_class.event_manager.fire_event(
                                                'method_exception_object', p_ctx)
+
+    request.finish()
