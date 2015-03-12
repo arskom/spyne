@@ -88,16 +88,20 @@ class AttributesMeta(type(object)):
         if not hasattr(self, '_default_factory'):
             self._default_factory = None
 
-        self._html_cloth = None
-        self._html_root_cloth = None
+        if not hasattr(self, '_html_cloth'):
+            self._html_cloth = None
+        if not hasattr(self, '_html_root_cloth'):
+            self._html_root_cloth = None
 
         if 'html_cloth' in cls_dict:
             self.set_html_cloth(cls_dict.pop('html_cloth'))
         if 'html_root_cloth' in cls_dict:
             self.set_html_cloth(cls_dict.pop('html_root_cloth'))
 
-        self._xml_cloth = None
-        self._xml_root_cloth = None
+        if not hasattr(self, '_xml_cloth'):
+            self._xml_cloth = None
+        if not hasattr(self, '_xml_root_cloth'):
+            self._xml_root_cloth = None
 
         if 'xml_cloth' in cls_dict:
             self.set_xml_cloth(cls_dict.pop('xml_cloth'))
