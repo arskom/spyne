@@ -172,6 +172,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         try:
             with self.docfile(ctx.out_stream) as xf:
                 ctx.protocol.doctype_written = False
+                ctx.protocol.prot_stack = []
                 ret = self.subserialize(ctx, cls, inst, xf, name)
                 if isgenerator(ret):  # Poor man's yield from
                     try:
@@ -220,18 +221,26 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         return False, None
 
     def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
+        print("\tpush", self)
+        ctx.protocol.prot_stack.append(self)
+
         if self._root_cloth is not None:
             print("to root cloth")
-            return self.to_root_cloth(ctx, cls, inst, self._root_cloth, parent,
-                                                                           name)
+            retval = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
+                                                                   parent, name)
 
-        if self._cloth is not None:
+        elif self._cloth is not None:
             print("to parent cloth")
-            return self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
+            retval = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                            name)
+        else:
+            print("to parent")
+            retval = self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        print("to parent")
-        return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+        print("\tpop", self)
+        ctx.protocol.prot_stack.pop()
+
+        return retval
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")
