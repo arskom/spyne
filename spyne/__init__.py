@@ -25,6 +25,7 @@ DEFAULT_LANGUAGE = 'en'
 
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE
+from spyne._base import BODY_STYLE_OUT_BARE
 from spyne._base import BODY_STYLE_EMPTY
 from spyne._base import AuxMethodContext
 from spyne._base import TransportContext
