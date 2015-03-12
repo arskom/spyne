@@ -73,12 +73,15 @@ class HtmlBase(XmlCloth):
             items = list(cls.get_flat_type_info(cls).items())
 
         indexes = {}
-        for i, (k, v) in enumerate(items):
+        for k, v in items:
+            order = self.get_cls_attrs(v).order
+            if order is not None:
+                indexes[k] = order
+
+        for k, v in items:
             order = self.get_cls_attrs(v).order
             if order is None:
-                indexes[k] = i
-            else:
-                indexes[k] = order
+                indexes[k] = len(indexes)
 
         items.sort(key=lambda x: indexes[x[0]])
         return items
