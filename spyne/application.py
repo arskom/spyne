@@ -140,14 +140,15 @@ class Application(object):
             if ctx.service_class is not None:
                 ctx.service_class.event_manager.fire_event('method_call', ctx)
 
-            # call the method
+            # call user method
             ctx.out_object = self.call_wrapper(ctx)
 
             # out object is always an iterable of return values. see
             # MethodContext docstrings for more info
             if ctx.descriptor.body_style is not BODY_STYLE_WRAPPED or \
                                 len(ctx.descriptor.out_message._type_info) <= 1:
-                # the return value should already be wrapped by a sequence.
+                # if it's not a wrapped method, OR there's just one return type
+                # we wrap it ourselves
                 ctx.out_object = [ctx.out_object]
 
             # Now that the processing is switched to the outgoing message,
