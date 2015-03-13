@@ -43,6 +43,8 @@ class XmlClothProtocolContext(ProtocolContext):
         self.inst_stack = []
         self.prot_stack = []
         self.doctype_written = False
+        self.in_root_cloth = False
+        self.close_until = None
 
 
 class XmlCloth(ToParentMixin, ToClothMixin):

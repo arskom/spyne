@@ -319,6 +319,12 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
     def _close_cloth(self, ctx, parent):
         for elt, elt_ctx in reversed(tuple(zip(ctx.protocol.eltstack,
                                                        ctx.protocol.ctxstack))):
+            cu = ctx.protocol[self].close_until
+            if elt is cu:
+                logger.debug("closed until %r, breaking", cu)
+                ctx.protocol[self].close_cloth = None
+                break
+
             if elt_ctx is not None:
                 self.event_manager.fire_event(("before_exit", elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)
@@ -332,23 +338,39 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                 if sibl.tail is not None:
                     parent.write(sibl.tail)
 
+    @coroutine
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
                                                       from_arr=False, **kwargs):
+        if len(ctx.protocol.eltstack) > 0:
+            ctx.protocol[self].close_until = ctx.protocol.eltstack[-1]
 
         cls_cloth = self.get_class_cloth(cls)
         if cls_cloth is not None:
             logger.debug("%r to object cloth", cls)
             cloth = cls_cloth
 
-        self.to_cloth(ctx, cls, inst, cloth, parent, '')
-        self._close_cloth(ctx, parent)
+        ret = self.to_cloth(ctx, cls, inst, cloth, parent, '')
+        if isgenerator(ret):
+            try:
+                while True:
+                    sv2 = (yield)
+                    ret.send(sv2)
+            except Break as e:
+                try:
+                    ret.throw(e)
+                except (Break, StopIteration, GeneratorExit):
+                    pass
+                finally:
+                    self._close_cloth(ctx, parent)
+        else:
+            self._close_cloth(ctx, parent)
 
     @coroutine
     def to_root_cloth(self, ctx, cls, inst, cloth, parent, name):
-        to_be_closed = False
-        if not getattr(ctx.protocol, 'in_root_cloth', False):
-            to_be_closed = True
-            ctx.protocol.in_root_cloth = True
+        if len(ctx.protocol.eltstack) > 0:
+            ctx.protocol[self].close_until = ctx.protocol.eltstack[-1]
+
+        else:
             self._enter_cloth(ctx, cloth, parent)
 
         ret = self.start_to_parent(ctx, cls, inst, parent, name)
@@ -363,11 +385,9 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                 except (Break, StopIteration, GeneratorExit):
                     pass
                 finally:
-                    if to_be_closed:
-                        self._close_cloth(ctx, parent)
+                    self._close_cloth(ctx, parent)
         else:
-            if to_be_closed:
-                self._close_cloth(ctx, parent)
+            self._close_cloth(ctx, parent)
 
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
