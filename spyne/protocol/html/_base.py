@@ -20,7 +20,15 @@
 from lxml import etree, html
 
 from spyne.protocol.cloth import XmlCloth
+from spyne.protocol.cloth._base import XmlClothProtocolContext
 from spyne.util import memoize_id_method
+
+
+class HtmlClothProtocolContext(XmlClothProtocolContext):
+    def __init__(self, parent, transport):
+        super(HtmlClothProtocolContext, self).__init__(parent, transport)
+
+        self.assets = []
 
 
 class HtmlBase(XmlCloth):
@@ -57,6 +65,9 @@ class HtmlBase(XmlCloth):
             return
 
         ctx.protocol.doctype_written = True
+
+    def get_context(self, parent, transport):
+        return HtmlClothProtocolContext(parent, transport)
 
     @staticmethod
     def get_class_cloth(cls):
