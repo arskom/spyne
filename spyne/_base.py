@@ -640,6 +640,8 @@ class FakeContext(object):
             self.outprot_ctx = self.out_protocol.get_context(self, None)
         else:
             self.outprot_ctx = type("ProtocolContext", (object,), {})()
+            self.outprot_ctx.prot_stack = []
+            self.outprot_ctx.doctype_written = None
 
         self.protocol = self.outprot_ctx
         self.transport = type("ProtocolContext", (object,), {})()
