@@ -213,11 +213,17 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         if not getattr(ctx.protocol, 'in_root_cloth', False):
             c = self.get_class_root_cloth(cls)
             if c is not None:
+                if not ctx.protocol.doctype_written:
+                    self.write_doctype(ctx, parent, c)
+
                 logger.debug("to object root cloth")
                 return True, self.to_root_cloth(ctx, cls, inst, c, parent, name,
                                                                        **kwargs)
         c = self.get_class_cloth(cls)
         if c is not None:
+            if not ctx.protocol.doctype_written:
+                self.write_doctype(ctx, parent, c)
+
             logger.debug("to object cloth")
             return True, self.to_parent_cloth(ctx, cls, inst, c, parent, name,
                                                                        **kwargs)

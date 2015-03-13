@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 from lxml import etree, html
 
 from spyne.protocol.cloth import XmlCloth
@@ -59,14 +62,20 @@ class HtmlBase(XmlCloth):
         return etree.htmlfile(*args, **kwargs)
 
     def write_doctype(self, ctx, parent, cloth=None):
-        if self.doctype is not None:
-            parent.write_doctype(self.doctype)
-        elif cloth is not None:
-            parent.write_doctype(cloth.getroottree().docinfo.doctype)
+        if cloth is not None:
+            dt = cloth.getroottree().docinfo.doctype
+        elif self.doctype is not None:
+            dt = self.doctype
+        elif self._root_cloth is not None:
+            dt = self._root_cloth.getroottree().docinfo.doctype
+        elif self._cloth is not None:
+            dt = self._cloth.getroottree().docinfo.doctype
         else:
             return
 
+        parent.write_doctype(dt)
         ctx.protocol.doctype_written = True
+        logger.debug("Doctype written as: '%s'", dt)
 
     def get_context(self, parent, transport):
         return HtmlClothProtocolContext(parent, transport)
