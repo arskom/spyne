@@ -75,7 +75,7 @@ class ToParentMixin(ProtocolBase):
         if not getattr(ctx.protocol, 'doctype_written', False):
             self.write_doctype(ctx, parent)
 
-        self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+        return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         # if polymorphic, rather use incoming class
