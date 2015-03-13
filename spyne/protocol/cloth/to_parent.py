@@ -69,45 +69,60 @@ class ToParentMixin(ProtocolBase):
         })
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
+        # if polymorphic, rather use incoming class
         if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
             cls = inst.__class__
 
+        # if there's a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self) and not nosubprot:
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
+        # if there's a class cloth, switch to it
         ret, cor_handle = self.check_class_cloths(ctx, cls, inst, parent, name,
                                                                        **kwargs)
         if ret:
             return cor_handle
 
+        # if instance is None use the default factory to generate one
         if not getattr(ctx.protocol, 'doctype_written', False):
             self.write_doctype(ctx, parent)
-
-        if inst is None:
-            inst = cls.Attributes.default
 
         _df = cls.Attributes.default_factory
         if inst is None and callable(_df):
             inst = _df()
 
+        # if instance is still None use the default value
+        if inst is None:
+            inst = cls.Attributes.default
+
+        # if instance is still None use the global null handler to serialize it
         if inst is None and self.use_global_null_handler:
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+        # if requested, ignore wrappers
         if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
             cls, inst = self.strip_wrappers(cls, inst)
 
+        # if cls is an iterable of values and it's not been iterated on, do it
         from_arr = kwargs.get('from_arr', False)
         if inst is not None and not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+        # fetch the serializer for the class at hand
         ctx.outprot_ctx.inst_stack.append(inst)
         try:
             handler = self.serialization_handlers[cls]
         except KeyError:
+            # if this protocol uncapable of serializing this class
+            if self.ignore_uncap:
+                return # ignore it if requested
+
+            # raise the error otherwise
             logger.error("%r is missing handler for %r", self, cls)
             raise
 
+        # finally, serialize the value. retval is the coroutine handle if any
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 
         # FIXME: to_parent must be made to a coroutine for the below to remain
