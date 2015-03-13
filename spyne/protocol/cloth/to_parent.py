@@ -115,8 +115,11 @@ class ToParentMixin(ProtocolBase):
         if inst is not None and not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        # fetch the serializer for the class at hand
+        # push the instance at hand to instance stack. this makes it easier for
+        # protocols do make decisions based on parents of instances at hand.
         ctx.outprot_ctx.inst_stack.append(inst)
+
+        # fetch the serializer for the class at hand
         try:
             handler = self.serialization_handlers[cls]
         except KeyError:
