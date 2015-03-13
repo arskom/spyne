@@ -229,7 +229,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             last_elt = eltstack[-1]
 
         # move up in tag stack until the ancestors of both
-        # source and target are the same
+        # source and target tags match
         while ancestors[:len(eltstack)] != eltstack:
             elt = eltstack.pop()
             elt_ctx = ctxstack.pop()
@@ -252,7 +252,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
         # write remaining ancestors of the target node.
         for anc in ancestors[len(eltstack):]:
-            # write previous siblins of ancestors (if any)
+            # write previous siblings of ancestors (if any)
             prevsibls = _prevsibls(anc, since=last_elt)
             for elt in prevsibls:
                 if id(elt) in tags:
@@ -263,6 +263,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
             # enter the ancestor node
             if len(eltstack) == 0:
+                # if this is the first node ever, initialize namespaces as well
                 anc_ctx = parent.element(anc.tag, anc.attrib, nsmap=anc.nsmap)
             else:
                 anc_ctx = parent.element(anc.tag, anc.attrib)
@@ -298,7 +299,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
             attrib.update(attrs)
 
-            self.event_manager.fire_event(("before_entry", cloth), ctx, parent, attrib)
+            self.event_manager.fire_event(("before_entry", cloth), ctx,
+                                                                 parent, attrib)
 
             if len(eltstack) == 0:
                 curtag = parent.element(cloth.tag, attrib, nsmap=cloth.nsmap)
