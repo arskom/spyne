@@ -30,7 +30,7 @@ from spyne.model import ImageUri
 from spyne.model import AnyUri
 from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
-from spyne.util import coroutine, Break, six
+from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 

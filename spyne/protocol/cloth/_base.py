@@ -222,7 +222,8 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         return False, None
 
     def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
-        ctx.protocol.prot_stack.append(self)
+        pstack = ctx.protocol.prot_stack
+        pstack.append(self)
         logger.debug("push prot %r. newlen: %d", self, len(pstack))
 
         if self._root_cloth is not None:
@@ -238,7 +239,8 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             logger.debug("to parent")
             retval = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        ctx.protocol.prot_stack.pop()
+        # FIXME: if retval is a coroutine handle, this will be inconsistent
+        pstack.pop()
         logger.debug("pop prot  %r. newlen: %d", self, len(pstack))
 
         return retval

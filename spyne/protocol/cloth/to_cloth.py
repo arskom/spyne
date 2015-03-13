@@ -30,7 +30,6 @@ from spyne.util import Break, coroutine
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
     PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData
-from spyne.model.complex import XmlModifier
 
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
