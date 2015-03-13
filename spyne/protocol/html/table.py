@@ -302,12 +302,15 @@ class HtmlColumnTable(HtmlTableBase):
         if from_arr:
             return self._gen_row(ctx, cls, inst, parent, name, **kwargs)
         else:
-            return self._gen_table(ctx, cls, inst, parent, name, self._gen_row,
+            return self.wrap_table(ctx, cls, inst, parent, name, self._gen_row,
                                                                        **kwargs)
 
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        return self._gen_table(ctx, cls, inst, parent, name,
+        return self.wrap_table(ctx, cls, inst, parent, name,
                          super(HtmlColumnTable, self).array_to_parent, **kwargs)
+
+    def wrap_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
+        return self._gen_table(ctx, cls, inst, parent, name, gen_rows, **kwargs)
 
     # FIXME: These three should be events as well.
     def extend_table(self, ctx, cls, parent, name, **kwargs):
