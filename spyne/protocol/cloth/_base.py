@@ -111,7 +111,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         if ctx.out_stream is None:
             ctx.out_stream = StringIO()
-            print(ctx.out_stream, id(ctx.out_stream))
+            logger.debug("%r %d", ctx.out_stream, id(ctx.out_stream))
 
         if ctx.out_error is not None:
             # All errors at this point must be Fault subclasses.
@@ -211,35 +211,35 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         if not getattr(ctx.protocol, 'in_root_cloth', False):
             c = self.get_class_root_cloth(cls)
             if c is not None:
-                print("to object root cloth")
+                logger.debug("to object root cloth")
                 return True, self.to_root_cloth(ctx, cls, inst, c, parent, name,
                                                                        **kwargs)
         c = self.get_class_cloth(cls)
         if c is not None:
-            print("to object cloth")
+            logger.debug("to object cloth")
             return True, self.to_parent_cloth(ctx, cls, inst, c, parent, name,
                                                                        **kwargs)
         return False, None
 
     def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
-        print("\tpush", self)
         ctx.protocol.prot_stack.append(self)
+        logger.debug("push prot %r. newlen: %d", self, len(pstack))
 
         if self._root_cloth is not None:
-            print("to root cloth")
+            logger.debug("to root cloth")
             retval = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
                                                                    parent, name)
 
         elif self._cloth is not None:
-            print("to parent cloth")
+            logger.debug("to parent cloth")
             retval = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                            name)
         else:
-            print("to parent")
+            logger.debug("to parent")
             retval = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        print("\tpop", self)
         ctx.protocol.prot_stack.pop()
+        logger.debug("pop prot  %r. newlen: %d", self, len(pstack))
 
         return retval
 

@@ -134,18 +134,20 @@ class HtmlColumnTable(HtmlTableBase):
         if inst is None:
             return
 
-        print("Generate row for", cls)
+        logger.debug("Generate row for %r", cls)
 
         with parent.element('tr'):
             for k, v in self.sort_fields(cls):
                 attr = self.get_cls_attrs(v)
                 if attr.exc:
-                    print("\tExclude table cell %r type %r" % (k, v), "for", cls)
+                    logger.debug("\tExclude table cell %r type %r for %r",
+                                                                      k, v, cls)
                     continue
                 if not attr.get('read', True):
                     continue
 
-                print("\tGenerate table cell %r type %r" % (k, v), "for", cls)
+                logger.debug("\tGenerate table cell %r type %r for %r",
+                                                                      k, v, cls)
 
                 try:
                     sub_value = getattr(inst, k, None)
@@ -220,7 +222,7 @@ class HtmlColumnTable(HtmlTableBase):
                                                   md.in_message.get_type_name())
                         parent.write(E.a(text, href="%s?%s" % (href, params)))
 
-            print("Generate row for %r done." % cls)
+            logger.debug("Generate row for %r done.", cls)
             self.extend_data_row(ctx, cls, inst, parent, name,
                                               array_index=array_index, **kwargs)
 
