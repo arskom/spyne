@@ -235,7 +235,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                                                            name)
         else:
             print("to parent")
-            retval = self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+            retval = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         print("\tpop", self)
         ctx.protocol.prot_stack.pop()

@@ -68,6 +68,15 @@ class ToParentMixin(ProtocolBase):
             SchemaValidationError: self.schema_validation_error_to_parent,
         })
 
+    def start_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        """This is what subserialize calls"""
+
+        # if no doctype was written, write it
+        if not getattr(ctx.protocol, 'doctype_written', False):
+            self.write_doctype(ctx, parent)
+
+        self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         # if polymorphic, rather use incoming class
         if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
@@ -85,9 +94,6 @@ class ToParentMixin(ProtocolBase):
             return cor_handle
 
         # if instance is None use the default factory to generate one
-        if not getattr(ctx.protocol, 'doctype_written', False):
-            self.write_doctype(ctx, parent)
-
         _df = cls.Attributes.default_factory
         if inst is None and callable(_df):
             inst = _df()

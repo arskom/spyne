@@ -356,7 +356,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             ctx.protocol.in_root_cloth = True
             self._enter_cloth(ctx, cloth, parent)
 
-        ret = self.to_parent(ctx, cls, inst, parent, name)
+        ret = self.start_to_parent(ctx, cls, inst, parent, name)
         if isgenerator(ret):
             try:
                 while True:
