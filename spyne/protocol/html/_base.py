@@ -86,7 +86,10 @@ class HtmlBase(XmlCloth):
         for k, v in items:
             order = self.get_cls_attrs(v).order
             if order is not None:
-                indexes[k] = order
+                if order < 0:
+                    indexes[k] = len(items) + order
+                else:
+                    indexes[k] = order
 
         for k, v in items:
             order = self.get_cls_attrs(v).order
