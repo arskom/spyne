@@ -196,7 +196,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     def docfile(self, *args, **kwargs):
         return etree.xmlfile(*args, **kwargs)
 
-    def write_doctype(self, parent, cloth=None):
+    def write_doctype(self, ctx, parent, cloth=None):
         pass  # FIXME: write it
 
     @staticmethod
