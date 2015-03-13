@@ -333,9 +333,6 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
                                                       from_arr=False, **kwargs):
-        ctx.protocol.eltstack = []
-        ctx.protocol.ctxstack = []
-        ctx.protocol.tags = set()
 
         cls_cloth = self.get_class_cloth(cls)
         if cls_cloth is not None:
@@ -350,9 +347,6 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         to_be_closed = False
         if not getattr(ctx.protocol, 'in_root_cloth', False):
             to_be_closed = True
-            ctx.protocol.tags = set()
-            ctx.protocol.eltstack = []
-            ctx.protocol.ctxstack = []
             ctx.protocol.in_root_cloth = True
             self._enter_cloth(ctx, cloth, parent)
 

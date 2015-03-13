@@ -37,8 +37,8 @@ from spyne.util.six import StringIO, string_types
 
 
 class XmlClothProtocolContext(ProtocolContext):
-    def __init__(self, parent, transport):
-        super(XmlClothProtocolContext, self).__init__(parent, transport)
+    def __init__(self, parent, transport, type=None):
+        super(XmlClothProtocolContext, self).__init__(parent, transport, type)
 
         self.inst_stack = []
         self.prot_stack = []

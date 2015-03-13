@@ -25,11 +25,14 @@ from spyne.util import memoize_id_method
 
 
 class HtmlClothProtocolContext(XmlClothProtocolContext):
-    def __init__(self, parent, transport):
-        super(HtmlClothProtocolContext, self).__init__(parent, transport)
+    def __init__(self, parent, transport, type=None):
+        super(HtmlClothProtocolContext, self).__init__(parent, transport, type)
 
         self.assets = []
-
+        self.eltstack = []
+        self.ctxstack = []
+        self.tags = set()
+        self.in_root_cloth = False
 
 class HtmlBase(XmlCloth):
     mime_type = 'text/html; charset=UTF-8'
