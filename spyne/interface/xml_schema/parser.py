@@ -104,12 +104,14 @@ def Thier_repr(with_ns=False):
         retval.append(clsid)
         retval.append('(')
 
-        xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
-        if xtba_key is not None:
-            value = getattr(inst, xtba_key, None)
-            retval.append("%s,\n" % hier_repr(value, i1, I, tags))
-        else:
-            retval.append('\n')
+        xtba = cls.Attributes._xml_tag_body_as
+        if xtba is not None:
+            xtba_key, xtba_type = next(xtba)
+            if xtba_key is not None:
+                value = getattr(inst, xtba_key, None)
+                retval.append("%s,\n" % hier_repr(value, i1, I, tags))
+            else:
+                retval.append('\n')
 
         for k,v in inst.get_flat_type_info(cls).items():
             value = getattr(inst, k, None)
