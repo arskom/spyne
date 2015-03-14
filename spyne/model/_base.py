@@ -499,7 +499,6 @@ class ModelBase(object):
             Attributes.translations = {}
         if cls.Attributes.sqla_column_args is None:
             Attributes.sqla_column_args = (), {}
-
         cls_dict['Attributes'] = Attributes
 
         # properties get reset everytime a new class is defined. So we need
@@ -536,6 +535,13 @@ class ModelBase(object):
 
             elif k in ('autoincrement', 'onupdate', 'server_default'):
                 Attributes.sqla_column_args[-1][k] = v
+
+            elif k == 'values_dict':
+                assert not 'values' in v, "`values` and `values_dict` can't be" \
+                                          "specified at the same time"
+
+                Attributes.values = v.keys()
+                Attributes.values_dict = v
 
             elif k == 'max_occurs' and v in ('unbounded', 'inf', float('inf')):
                 setattr(Attributes, k, Decimal('inf'))
@@ -605,6 +611,12 @@ class SimpleModel(ModelBase):
 
         values = set()
         """The set of possible values for this type."""
+
+        # some hacks are done in _s_customize to make `values_dict`
+        # behave like `values`
+        values_dict = dict()
+        """The dict of possible values for this type. Dict keys are values and
+        dict values are either a single string or a translation dict."""
 
         _pattern_re = None
 
