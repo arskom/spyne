@@ -30,14 +30,14 @@ from spyne.model import ImageUri
 from spyne.model import AnyUri
 from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
-from spyne.util import coroutine, Break, six
+from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 
 class HtmlMicroFormat(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=False,
                        cloth=None, attr_name='spyne_id', root_attr_name='spyne',
-                                                              cloth_parser=None,
+                                            cloth_parser=None, polymorphic=True,
                     root_tag='div', child_tag='div', field_name_attr='class',
                     field_name_tag=None, field_name_class='field_name'):
         """Protocol that returns the response object according to the "html
@@ -48,7 +48,6 @@ class HtmlMicroFormat(HtmlBase):
         <div> or <span> tags.
 
         :param app: A spyne.application.Application instance.
-        :param validator: The validator to use. Ignored.
         :param root_tag: The type of the root tag that encapsulates the return
             data.
         :param child_tag: The type of the tag that encapsulates the fields of
@@ -60,7 +59,7 @@ class HtmlMicroFormat(HtmlBase):
         super(HtmlMicroFormat, self).__init__(app=app,
             ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
             cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
-            cloth_parser=cloth_parser, hier_delim=None)
+            cloth_parser=cloth_parser, polymorphic=polymorphic, hier_delim=None)
 
         assert root_tag in ('div', 'span')
         assert child_tag in ('div', 'span')
@@ -107,7 +106,8 @@ class HtmlMicroFormat(HtmlBase):
         attrs = {self.field_name_attr: name}
 
         with parent.element(self.root_tag, attrs):
-            ret = self._get_members(ctx, cls, inst, parent, **kwargs)
+            ret = self._write_members(ctx, cls, inst, parent, use_ns=False,
+                                                                       **kwargs)
             if isgenerator(ret):
                 try:
                     while True:

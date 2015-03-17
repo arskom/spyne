@@ -17,10 +17,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 from lxml import etree, html
 
 from spyne.protocol.cloth import XmlCloth
+from spyne.protocol.cloth._base import XmlClothProtocolContext
+from spyne.util import memoize_id_method
 
+
+class HtmlClothProtocolContext(XmlClothProtocolContext):
+    def __init__(self, parent, transport, type=None):
+        super(HtmlClothProtocolContext, self).__init__(parent, transport, type)
+
+        self.assets = []
+        self.eltstack = []
+        self.ctxstack = []
+        self.tags = set()
 
 class HtmlBase(XmlCloth):
     mime_type = 'text/html; charset=UTF-8'
@@ -41,13 +55,57 @@ class HtmlBase(XmlCloth):
         if cloth_parser is None:
             cloth_parser = html.HTMLParser(remove_comments=True)
 
-        self._cloth = html.parse(self._cloth, parser=cloth_parser)
-        self._cloth = self._cloth.getroot()
+        cloth = html.parse(file_name, parser=cloth_parser)
+        return cloth.getroot()
 
     def docfile(self, *args, **kwargs):
         return etree.htmlfile(*args, **kwargs)
 
-    def write_doctype(self, xf):
-        if self.doctype is not None:
-            # FIXME: write the doctype of the cloth
-            xf.write_doctype(self.doctype)
+    def write_doctype(self, ctx, parent, cloth=None):
+        if cloth is not None:
+            dt = cloth.getroottree().docinfo.doctype
+        elif self.doctype is not None:
+            dt = self.doctype
+        elif self._root_cloth is not None:
+            dt = self._root_cloth.getroottree().docinfo.doctype
+        elif self._cloth is not None:
+            dt = self._cloth.getroottree().docinfo.doctype
+        else:
+            return
+
+        parent.write_doctype(dt)
+        ctx.protocol.doctype_written = True
+        logger.debug("Doctype written as: '%s'", dt)
+
+    def get_context(self, parent, transport):
+        return HtmlClothProtocolContext(parent, transport)
+
+    @staticmethod
+    def get_class_cloth(cls):
+        return cls.Attributes._html_cloth
+
+    @staticmethod
+    def get_class_root_cloth(cls):
+        return cls.Attributes._html_root_cloth
+
+    @memoize_id_method
+    def sort_fields(self, cls=None, items=None):
+        if items is None:
+            items = list(cls.get_flat_type_info(cls).items())
+
+        indexes = {}
+        for k, v in items:
+            order = self.get_cls_attrs(v).order
+            if order is not None:
+                if order < 0:
+                    indexes[k] = len(items) + order
+                else:
+                    indexes[k] = order
+
+        for k, v in items:
+            order = self.get_cls_attrs(v).order
+            if order is None:
+                indexes[k] = len(indexes)
+
+        items.sort(key=lambda x: indexes[x[0]])
+        return items

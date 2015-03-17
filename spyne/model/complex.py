@@ -464,6 +464,9 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         """
 
         attrs = _gen_attrs(cls_bases, cls_dict)
+        assert issubclass(attrs, ComplexModelBase.Attributes), \
+                   ("%r must be a ComplexModelBase.Attributes subclass" % attrs)
+
         cls_dict = _get_ordered_attributes(cls_name, cls_dict, attrs)
 
         type_name = cls_dict.get("__type_name__", None)
@@ -502,7 +505,10 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
                                                           **v.customize_kwargs))
 
             elif issubclass(v, XmlData):
-                self.Attributes._xml_tag_body_as = k, v
+                if self.Attributes._xml_tag_body_as is None:
+                    self.Attributes._xml_tag_body_as = [(k, v)]
+                else:
+                    self.Attributes._xml_tag_body_as.append((k, v))
 
             elif issubclass(v, XmlAttribute):
                 a_of = v.attribute_of
@@ -692,21 +698,24 @@ class ComplexModelBase(ModelBase):
         """FIXME: document me yo."""
 
         _variants = None
-        _xml_tag_body_as = None, None
+        _xml_tag_body_as = None
         _delayed_child_attrs = None
         _subclasses = None
 
     def __init__(self, *args, **kwargs):
         cls = self.__class__
         fti = cls.get_flat_type_info(cls)
-        xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
 
-        if xtba_key is not None and len(args) == 1:
-            self._safe_set(xtba_key, args[0], xtba_type)
-        elif len(args) > 0:
-            raise TypeError("Positional argument is only for ComplexModels "
-                            "with XmlData field. You must use keyword "
-                            "arguments in any other case.")
+        if cls.Attributes._xml_tag_body_as is not None:
+            for arg, (xtba_key, xtba_type) in \
+                                     zip(args, cls.Attributes._xml_tag_body_as):
+                if xtba_key is not None and len(args) == 1:
+                    self._safe_set(xtba_key, arg, xtba_type)
+                elif len(args) > 0:
+                    raise TypeError(
+                                "Positional argument is only for ComplexModels "
+                                "with XmlData field. You must use keyword "
+                                "arguments in any other case.")
 
         for k,v in fti.items():
             if k in kwargs:
@@ -733,7 +742,11 @@ class ComplexModelBase(ModelBase):
                 elif '_sa_class_manager' in cls.__dict__:
                     # except the attributes that sqlalchemy doesn't know about
                     if v.Attributes.exc_table:
-                        setattr(self, k, None)
+                        try:
+                            setattr(self, k, None)
+                        except AttributeError: # it could be a read-only property
+                            pass
+
                     elif issubclass(v, ComplexModelBase) and \
                                                   v.Attributes.store_as is None:
                         setattr(self, k, None)

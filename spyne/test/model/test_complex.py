@@ -759,6 +759,8 @@ class TestDoc(unittest.TestCase):
         class SomeComplexModel(ComplexModel):
             """Some docstring"""
             some_field = Unicode
+            class Annotations(ComplexModel.Annotations):
+                __use_parent_doc__ = True
         assert "Some docstring" == SomeComplexModel.get_documentation()
 
     def test_annotation(self):
@@ -784,6 +786,8 @@ class TestDoc(unittest.TestCase):
         class SomeComplexModel(ComplexModel):
             """Some docstring"""
             some_field = Unicode
+            class Annotations(ComplexModel.Annotations):
+                __use_parent_doc__ = True
         assert "Some docstring" == SomeComplexModel.customize().get_documentation()
 
 

@@ -37,10 +37,14 @@ from spyne.util.six import StringIO, string_types
 
 
 class XmlClothProtocolContext(ProtocolContext):
-    def __init__(self, parent, transport):
-        super(XmlClothProtocolContext, self).__init__(parent, transport)
+    def __init__(self, parent, transport, type=None):
+        super(XmlClothProtocolContext, self).__init__(parent, transport, type)
 
         self.inst_stack = []
+        self.prot_stack = []
+        self.doctype_written = False
+        self.in_root_cloth = False
+        self.close_until = None
 
 
 class XmlCloth(ToParentMixin, ToClothMixin):
@@ -109,7 +113,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         if ctx.out_stream is None:
             ctx.out_stream = StringIO()
-            print(ctx.out_stream, id(ctx.out_stream))
+            logger.debug("%r %d", ctx.out_stream, id(ctx.out_stream))
 
         if ctx.out_error is not None:
             # All errors at this point must be Fault subclasses.
@@ -170,7 +174,8 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         try:
             with self.docfile(ctx.out_stream) as xf:
-                self.write_doctype(xf)
+                ctx.protocol.doctype_written = False
+                ctx.protocol.prot_stack = []
                 ret = self.subserialize(ctx, cls, inst, xf, name)
                 if isgenerator(ret):  # Poor man's yield from
                     try:
@@ -193,22 +198,60 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     def docfile(self, *args, **kwargs):
         return etree.xmlfile(*args, **kwargs)
 
-    def write_doctype(self, xf):
+    def write_doctype(self, ctx, parent, cloth=None):
         pass  # FIXME: write it
 
+    @staticmethod
+    def get_class_cloth(cls):
+        return cls.Attributes._xml_cloth
+
+    @staticmethod
+    def get_class_root_cloth(cls):
+        return cls.Attributes._xml_root_cloth
+
+    def check_class_cloths(self, ctx, cls, inst, parent, name, **kwargs):
+        if not getattr(ctx.protocol, 'in_root_cloth', False):
+            c = self.get_class_root_cloth(cls)
+            if c is not None:
+                if not ctx.protocol.doctype_written:
+                    self.write_doctype(ctx, parent, c)
+
+                logger.debug("to object root cloth")
+                return True, self.to_root_cloth(ctx, cls, inst, c, parent, name,
+                                                                       **kwargs)
+        c = self.get_class_cloth(cls)
+        if c is not None:
+            if not ctx.protocol.doctype_written:
+                self.write_doctype(ctx, parent, c)
+
+            logger.debug("to object cloth")
+            return True, self.to_parent_cloth(ctx, cls, inst, c, parent, name,
+                                                                       **kwargs)
+        return False, None
+
     def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
+        pstack = ctx.protocol.prot_stack
+        pstack.append(self)
+        logger.debug("push prot %r. newlen: %d", self, len(pstack))
+
         if self._root_cloth is not None:
-            print("to root cloth")
-            return self.to_root_cloth(ctx, cls, inst, self._root_cloth, parent,
-                                                                           name)
+            logger.debug("to root cloth")
+            retval = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
+                                                                   parent, name)
 
-        if self._cloth is not None:
-            print("to parent cloth")
-            return self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
+        elif self._cloth is not None:
+            logger.debug("to parent cloth")
+            retval = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                            name)
+        else:
+            logger.debug("to parent")
+            retval = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        print("to parent")
-        return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+        # FIXME: if retval is a coroutine handle, this will be inconsistent
+        pstack.pop()
+        logger.debug("pop prot  %r. newlen: %d", self, len(pstack))
+
+        return retval
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")

@@ -39,7 +39,7 @@ class TestModelCloth(unittest.TestCase):
             class Attributes(ComplexModel.Attributes):
                 html_cloth = html.fromstring("<html><body spyne></body></html>")
 
-        assert SomeObject.Attributes._html_cloth is not None
+        assert SomeObject.Attributes._html_cloth is None
         assert SomeObject.Attributes._html_root_cloth is not None
 
     def test_html(self):
@@ -55,7 +55,7 @@ class TestModelCloth(unittest.TestCase):
             class Attributes(ComplexModel.Attributes):
                 xml_cloth = etree.fromstring('<html><body spyne=""></body></html>')
 
-        assert SomeObject.Attributes._xml_cloth is not None
+        assert SomeObject.Attributes._xml_cloth is None
         assert SomeObject.Attributes._xml_root_cloth is not None
 
     def test_xml(self):

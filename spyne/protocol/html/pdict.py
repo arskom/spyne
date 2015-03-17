@@ -1,4 +1,4 @@
-
+# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,10 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.protocol`` package contains the
-:class:`spyne.protocol.ProtocolBase`` abstract base class. Every protocol
-implementation is a subclass of ``ProtocolBase``.
-"""
+from lxml.builder import E
+from pprint import pformat
 
-from spyne.protocol._base import ProtocolBase
+from spyne.protocol.html import HtmlBase
 
+
+class PrettyDict(HtmlBase):
+    def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        parent.write(E.pre(pformat(inst)))

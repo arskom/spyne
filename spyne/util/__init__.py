@@ -18,6 +18,8 @@
 #
 
 import logging
+import functools
+
 logger = logging.getLogger(__name__)
 
 import sys
@@ -107,7 +109,12 @@ def coroutine(func):
     assert isgeneratorfunction(func)
 
     def start(*args, **kwargs):
-        ret = func(*args, **kwargs)
+        try:
+            ret = func(*args, **kwargs)
+        except TypeError as e:
+            logger.error("Function %r at %s:%d got error %r", func.func_name,
+                         func.__module__, func.__code__.co_firstlineno, e)
+            raise
 
         try:
             next(ret)
@@ -151,6 +158,15 @@ class memoize_id(memoize):
         return tuple([id(a) for a in args]), \
                                   tuple([(k, id(v)) for k, v in kwargs.items()])
 
+class memoize_id_method(memoize_id):
+    """A memoization decorator that keeps caching until reset for unhashable
+    types. It works on id()'s of objects instead."""
+
+    def __get__(self, obj, objtype):
+        """Support instance methods."""
+        fn = functools.partial(self.__call__, obj)
+        fn.reset = self.reset
+        return fn
 
 def sanitize_args(a):
     try:

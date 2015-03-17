@@ -30,7 +30,6 @@ from lxml.html.builder import E
 from spyne import ModelBase, ByteArray, ComplexModelBase, Array, AnyUri, \
     ImageUri
 from spyne.model.binary import Attachment
-from spyne.protocol import get_cls_attrs
 from spyne.protocol.html import HtmlBase
 from spyne.util.six.moves.urllib.parse import urlencode, quote
 
@@ -135,18 +134,20 @@ class HtmlColumnTable(HtmlTableBase):
         if inst is None:
             return
 
-        print("Generate row for", cls)
+        logger.debug("Generate row for %r", cls)
 
         with parent.element('tr'):
-            for k, v in cls.get_flat_type_info(cls).items():
-                attr = get_cls_attrs(self, v)
+            for k, v in self.sort_fields(cls):
+                attr = self.get_cls_attrs(v)
                 if attr.exc:
-                    print("\tExclude table cell %r type %r" % (k, v), "for", cls)
+                    logger.debug("\tExclude table cell %r type %r for %r",
+                                                                      k, v, cls)
                     continue
                 if not attr.get('read', True):
                     continue
 
-                print("\tGenerate table cell %r type %r" % (k, v), "for", cls)
+                logger.debug("\tGenerate table cell %r type %r for %r",
+                                                                      k, v, cls)
 
                 try:
                     sub_value = getattr(inst, k, None)
@@ -207,7 +208,7 @@ class HtmlColumnTable(HtmlTableBase):
                             parent.write(mrpc_delim)
 
                         pd = { }
-                        for k, v in cls.get_flat_type_info(cls).items():
+                        for k, v in self.sort_fields(cls):
                             if getattr(v.Attributes, 'primary_key', None):
                                 r = self.to_unicode(v, getattr(inst, k, None))
                                 if r is not None:
@@ -221,7 +222,7 @@ class HtmlColumnTable(HtmlTableBase):
                                                   md.in_message.get_type_name())
                         parent.write(E.a(text, href="%s?%s" % (href, params)))
 
-            print("Generate row for %r done." % cls)
+            logger.debug("Generate row for %r done.", cls)
             self.extend_data_row(ctx, cls, inst, parent, name,
                                               array_index=array_index, **kwargs)
 
@@ -235,17 +236,17 @@ class HtmlColumnTable(HtmlTableBase):
                     th_attrs[self.field_name_attr] = name
 
                 if issubclass(cls, ComplexModelBase):
-                    fti = cls.get_flat_type_info(cls)
+                    fti = self.sort_fields(cls)
                     if self.field_name_attr is None:
-                        for k, v in fti.items():
-                            attr = get_cls_attrs(self, v)
+                        for k, v in fti:
+                            attr = self.get_cls_attrs(v)
                             if attr.exc:
                                 continue
                             header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
                     else:
-                        for k, v in fti.items():
-                            attr = get_cls_attrs(self, v)
+                        for k, v in fti:
+                            attr = self.get_cls_attrs(v)
                             if attr.exc:
                                 continue
                             th_attrs[self.field_name_attr] = k
@@ -301,12 +302,15 @@ class HtmlColumnTable(HtmlTableBase):
         if from_arr:
             return self._gen_row(ctx, cls, inst, parent, name, **kwargs)
         else:
-            return self._gen_table(ctx, cls, inst, parent, name, self._gen_row,
+            return self.wrap_table(ctx, cls, inst, parent, name, self._gen_row,
                                                                        **kwargs)
 
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        return self._gen_table(ctx, cls, inst, parent, name,
+        return self.wrap_table(ctx, cls, inst, parent, name,
                          super(HtmlColumnTable, self).array_to_parent, **kwargs)
+
+    def wrap_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
+        return self._gen_table(ctx, cls, inst, parent, name, gen_rows, **kwargs)
 
     # FIXME: These three should be events as well.
     def extend_table(self, ctx, cls, parent, name, **kwargs):
@@ -375,7 +379,7 @@ class HtmlRowTable(HtmlTableBase):
 
         with parent.element('table', attrib):
             with parent.element('tbody'):
-                for k, v in cls.get_flat_type_info(cls).items():
+                for k, v in self.sort_fields(cls):
                     try:
                         sub_value = getattr(inst, k, None)
                     except:  # e.g. SQLAlchemy could throw NoSuchColumnError

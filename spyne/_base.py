@@ -30,6 +30,7 @@ from spyne.util.oset import oset
 class BODY_STYLE_WRAPPED: pass
 class BODY_STYLE_EMPTY: pass
 class BODY_STYLE_BARE: pass
+class BODY_STYLE_OUT_BARE: pass
 
 
 # When spyne.server.twisted gets imported, this type gets a static method named
@@ -635,10 +636,16 @@ class FakeContext(object):
         else:
             self.inprot_ctx = type("ProtocolContext", (object,), {})()
 
+        from spyne.protocol.html._base import HtmlClothProtocolContext
+
         if self.out_protocol is not None:
             self.outprot_ctx = self.out_protocol.get_context(self, None)
         else:
-            self.outprot_ctx = type("ProtocolContext", (object,), {})()
+            # The outprot_ctx here must contain properties from ALL tested
+            # protocols' context objects. That's why we use
+            # HtmlClothProtocolContext here, it's just the one with most
+            # attributes.
+            self.outprot_ctx = HtmlClothProtocolContext(self, None)
 
         self.protocol = self.outprot_ctx
         self.transport = type("ProtocolContext", (object,), {})()

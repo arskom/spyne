@@ -97,8 +97,10 @@ class ResourceNotFoundError(Fault):
         super(ResourceNotFoundError, self).__init__(
             'Client.ResourceNotFound', fault_string % (fault_object,))
 
+
 class RespawnError(ResourceNotFoundError):
     pass
+
 
 class ResourceAlreadyExistsError(Fault):
     """Raised when requested resource already exists on server side."""
@@ -108,3 +110,15 @@ class ResourceAlreadyExistsError(Fault):
         super(ResourceAlreadyExistsError,
               self).__init__('Client.ResourceAlreadyExists', fault_string %
                              fault_object)
+
+
+class Redirect(Fault):
+    def __init__(self, ctx, location, orig_exc=None):
+        super(Redirect, self).__init__('Client.MustBeRedirected',
+                                                           faultstring=location)
+        self.ctx = ctx
+        self.location= location
+        self.orig_exc = orig_exc
+
+    def do_redirect(self):
+        raise NotImplementedError()

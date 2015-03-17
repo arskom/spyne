@@ -31,7 +31,7 @@ from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
     AnyHtml, ModelBase, ByteArray, XmlData, Array, AnyUri, ImageUri
 from spyne.model.enum import EnumBase
-from spyne.protocol import ProtocolBase, get_cls_attrs
+from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
 from spyne.util.cdict import cdict
@@ -68,38 +68,70 @@ class ToParentMixin(ProtocolBase):
             SchemaValidationError: self.schema_validation_error_to_parent,
         })
 
+    def start_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        """This is what subserialize calls"""
+
+        # if no doctype was written, write it
+        if not getattr(ctx.protocol, 'doctype_written', False):
+            self.write_doctype(ctx, parent)
+
+        return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
+        # if polymorphic, rather use incoming class
         if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
             cls = inst.__class__
 
+        # if there's a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self) and not nosubprot:
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
-        if inst is None:
-            inst = cls.Attributes.default
+        # if there's a class cloth, switch to it
+        ret, cor_handle = self.check_class_cloths(ctx, cls, inst, parent, name,
+                                                                       **kwargs)
+        if ret:
+            return cor_handle
 
+        # if instance is None use the default factory to generate one
         _df = cls.Attributes.default_factory
         if inst is None and callable(_df):
             inst = _df()
 
+        # if instance is still None use the default value
+        if inst is None:
+            inst = cls.Attributes.default
+
+        # if instance is still None use the global null handler to serialize it
         if inst is None and self.use_global_null_handler:
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+        # if requested, ignore wrappers
         if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
             cls, inst = self.strip_wrappers(cls, inst)
 
+        # if cls is an iterable of values and it's not been iterated on, do it
         from_arr = kwargs.get('from_arr', False)
         if inst is not None and not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+        # push the instance at hand to instance stack. this makes it easier for
+        # protocols do make decisions based on parents of instances at hand.
         ctx.outprot_ctx.inst_stack.append(inst)
+
+        # fetch the serializer for the class at hand
         try:
             handler = self.serialization_handlers[cls]
         except KeyError:
+            # if this protocol uncapable of serializing this class
+            if self.ignore_uncap:
+                return # ignore it if requested
+
+            # raise the error otherwise
             logger.error("%r is missing handler for %r", self, cls)
             raise
 
+        # finally, serialize the value. retval is the coroutine handle if any
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 
         # FIXME: to_parent must be made to a coroutine for the below to remain
@@ -108,33 +140,8 @@ class ToParentMixin(ProtocolBase):
 
         return retval
 
-
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_unicode(cls, inst)))
-
-    @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        with parent.element(name):
-            if issubclass(cls, Array):
-                # if cls is an array, inst should already be a sequence type
-                # we leave  it to the next round of to_cloth call to unwrap and
-                # deserialize it.
-                v = iter(cls._type_info.values()).next()
-                ret = self.to_parent(ctx, v, inst, parent, **kwargs)
-
-            else:
-                ret = self._get_members(ctx, cls, inst, parent, **kwargs)
-
-            if isgenerator(ret):
-                try:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
-                except Break as e:
-                    try:
-                        ret.throw(e)
-                    except StopIteration:
-                        pass
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
@@ -170,34 +177,7 @@ class ToParentMixin(ProtocolBase):
                         except StopIteration:
                             pass
 
-    @coroutine
-    def _get_members(self, ctx, cls, inst, parent, **kwargs):
-        for k, v in cls.get_flat_type_info(cls).items():
-            try:
-                subvalue = getattr(inst, k, None)
-            except:  # e.g. SqlAlchemy could throw NoSuchColumnError
-                subvalue = None
-
-            sub_name = v.Attributes.sub_name
-            if sub_name is None:
-                sub_name = k
-
-            # Don't include empty values for non-nillable optional attributes.
-            if subvalue is not None or v.Attributes.min_occurs > 0:
-                ret = self.to_parent(ctx, v, subvalue, parent, sub_name,
-                                                                       **kwargs)
-                if ret is not None:
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as b:
-                        try:
-                            ret.throw(b)
-                        except StopIteration:
-                            pass
-
-    def not_supported(self, cls, *args, **kwargs):
+    def not_supported(self, ctx, cls, *args, **kwargs):
         if not self.ignore_uncap:
             raise NotImplementedError("Serializing %r not supported!" % cls)
 
@@ -255,11 +235,11 @@ class ToParentMixin(ProtocolBase):
         parent.write(E(name, **{'{%s}nil' % NS_XSI: 'true'}))
 
     @coroutine
-    def _write_members(self, ctx, cls, inst, parent):
+    def _write_members(self, ctx, cls, inst, parent, use_ns=True, **kwargs):
         parent_cls = getattr(cls, '__extends__', None)
 
         if not (parent_cls is None):
-            ret = self._write_members(ctx, parent_cls, inst, parent)
+            ret = self._write_members(ctx, parent_cls, inst, parent, **kwargs)
             if ret is not None:
                 try:
                     while True:
@@ -273,7 +253,7 @@ class ToParentMixin(ProtocolBase):
                         pass
 
         for k, v in cls._type_info.items():
-            attr = get_cls_attrs(self, v)
+            attr = self.get_cls_attrs(v)
             if attr.exc:
                 continue
 
@@ -285,22 +265,26 @@ class ToParentMixin(ProtocolBase):
             # This is a tight loop, so enable this only when necessary.
             # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
-            if issubclass(v, XmlData):
-                if subvalue is not None:
-                    parent.write(self.to_unicode(k.type, subvalue))
-                continue
-
-            sub_ns = v.Attributes.sub_ns
+            sub_ns = attr.sub_ns
             if sub_ns is None:
                 sub_ns = cls.get_namespace()
 
-            sub_name = v.Attributes.sub_name
+            sub_name = attr.sub_name
             if sub_name is None:
                 sub_name = k
 
-            name = "{%s}%s" % (sub_ns, sub_name)
-            if subvalue is not None or v.Attributes.min_occurs > 0:
-                ret = self.to_parent(ctx, v, subvalue, parent, name)
+            if use_ns:
+                name = "{%s}%s" % (sub_ns, sub_name)
+            else:
+                name = sub_name
+
+            if issubclass(v, XmlData):
+                if subvalue is not None:
+                    self.to_parent(ctx, v, inst, parent, name=name, **kwargs)
+                continue
+
+            if subvalue is not None or attr.min_occurs > 0:
+                ret = self.to_parent(ctx, v, subvalue, parent, name, **kwargs)
                 if ret is not None:
                     try:
                         while True:
@@ -313,12 +297,12 @@ class ToParentMixin(ProtocolBase):
                             pass
 
     @coroutine
-    def complex_to_parent(self, ctx, cls, inst, parent, name):
+    def complex_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         inst = cls.get_serialization_instance(inst)
 
         # TODO: Put xml attributes as well in the below element() call.
         with parent.element(name):
-            ret = self._write_members(ctx, cls, inst, parent)
+            ret = self._write_members(ctx, cls, inst, parent, **kwargs)
             if ret is not None:
                 try:
                     while True:

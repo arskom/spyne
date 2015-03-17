@@ -363,6 +363,6 @@ class HttpPattern(object):
                                                                 methods=methods)
 
     def __repr__(self):
-        return "HttpPattern(address=%r, host=%r, verb=%r, endpoint=%r" % (
+        return "HttpPattern(address=%r, host=%r, verb=%r, endpoint=%r)" % (
                     self.address, self.host, self.verb,
                     None if self.endpoint is None else self.endpoint.name)

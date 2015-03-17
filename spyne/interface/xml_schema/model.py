@@ -141,7 +141,7 @@ def complex_add(document, cls, tags):
             if isinstance(_ai, dict):
                 dict_to_etree(_ai, appinfo)
 
-            elif isinstance(_ai, str) or isinstance(_ai, unicode):
+            elif isinstance(_ai, string_types):
                 appinfo.text = _ai
 
             elif isinstance(_ai, etree._Element):
@@ -174,11 +174,11 @@ def complex_add(document, cls, tags):
             extension.set('base', extends.get_type_name_ns(document.interface))
             sequence_parent = extension
 
-    xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
-    if xtba_key is not None:
-        _sc = etree.SubElement(sequence_parent, XSD('simpleContent'))
-        xtba_ext = etree.SubElement(_sc, XSD('extension'))
-        xtba_ext.attrib['base'] = xtba_type.type.get_type_name_ns(
+    if cls.Attributes._xml_tag_body_as is not None:
+        for xtba_key, xtba_type in cls.Attributes._xml_tag_body_as:
+            _sc = etree.SubElement(sequence_parent, XSD('simpleContent'))
+            xtba_ext = etree.SubElement(_sc, XSD('extension'))
+            xtba_ext.attrib['base'] = xtba_type.type.get_type_name_ns(
                                                              document.interface)
 
     sequence = etree.Element(XSD('sequence'))
@@ -271,7 +271,7 @@ def complex_add(document, cls, tags):
         if ao is None:
             attribute = etree.Element(XSD('attribute'))
             xml_attribute_add(v, k, attribute, document)
-            if xtba_key is None:
+            if cls.Attributes._xml_tag_body_as is None:
                 complex_type.append(attribute)
             else:
                 xtba_ext.append(attribute)

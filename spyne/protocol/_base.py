@@ -86,7 +86,7 @@ from spyne.model import Duration
 from spyne.model import Boolean
 from spyne.model.binary import Attachment # DEPRECATED
 from spyne.model.enum import EnumBase
-from spyne.util import DefaultAttrDict, memoize_id, six
+from spyne.util import DefaultAttrDict, six, memoize_id_method
 
 from spyne.util.cdict import cdict
 
@@ -292,6 +292,15 @@ class ProtocolBase(object):
         return issubclass(sub if suborig is None else suborig,
                           cls if clsorig is None else clsorig)
 
+    @memoize_id_method
+    def get_cls_attrs(self, cls):
+        attr = DefaultAttrDict([(k, getattr(cls.Attributes, k))
+                for k in dir(cls.Attributes) + META_ATTR if not k.startswith('__')])
+        if cls.Attributes.prot_attrs:
+            attr.update(cls.Attributes.prot_attrs.get(self.__class__, {}))
+            attr.update(cls.Attributes.prot_attrs.get(self, {}))
+        return attr
+
     def get_context(self, parent, transport):
         return ProtocolContext(parent, transport)
 
@@ -447,15 +456,6 @@ class ProtocolBase(object):
 
         handler = self._to_string_iterable_handlers[class_]
         return handler(class_, value)
-
-    @memoize_id
-    def get_cls_attrs(self, cls):
-        attr = DefaultAttrDict([(k, getattr(cls.Attributes, k))
-                        for k in dir(cls.Attributes) if not k.startswith('__')])
-        if cls.Attributes.prot_attrs:
-            attr.update(cls.Attributes.prot_attrs.get(self.__class__, {}))
-            attr.update(cls.Attributes.prot_attrs.get(self, {}))
-        return attr
 
     def null_to_string(self, cls, value):
         return ""
@@ -1087,13 +1087,3 @@ def _file_to_iter(f):
 
 
 META_ATTR = ['nullable', 'default_factory']
-
-
-@memoize_id
-def get_cls_attrs(prot, cls):
-    attr = DefaultAttrDict([(k, getattr(cls.Attributes, k))
-            for k in dir(cls.Attributes) + META_ATTR if not k.startswith('__')])
-    if cls.Attributes.prot_attrs:
-        attr.update(cls.Attributes.prot_attrs.get(prot.__class__, {}))
-        attr.update(cls.Attributes.prot_attrs.get(prot, {}))
-    return attr

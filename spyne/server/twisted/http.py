@@ -60,7 +60,10 @@ from twisted.web.http import CACHED
 from twisted.python.log import err
 from twisted.internet.defer import Deferred
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_EMPTY
+from spyne import BODY_STYLE_BARE, BODY_STYLE_EMPTY, Redirect
+from spyne.application import logger_server
+from spyne.application import get_fault_string_from_exception
+
 from spyne.error import InternalError
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
@@ -159,6 +162,9 @@ class TwistedHttpTransportContext(HttpTransportContext):
 
     def get_path(self):
         return self.req.URLPath().path
+
+    def get_path_and_qs(self):
+        return self.req.uri
 
 
 class TwistedHttpMethodContext(HttpMethodContext):
@@ -558,12 +564,58 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     return retval
 
 
-def _eb_deferred(retval, request, p_ctx, others, resource):
-    p_ctx.out_error = retval.value
-    if not issubclass(retval.type, Fault):
-        retval.printTraceback()
-        p_ctx.out_error = InternalError(retval.value)
+def _eb_deferred(ret, request, p_ctx, others, resource):
+    app = p_ctx.app
 
-    ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
-    request.write(ret)
+    # DRY this with what's in Application.process_request
+    if issubclass(ret.type, Redirect):
+        try:
+            ret.value.do_redirect()
+
+            # Now that the processing is switched to the outgoing message,
+            # point ctx.protocol to ctx.out_protocol
+            p_ctx.protocol = p_ctx.outprot_ctx
+
+            _cb_deferred(None, request, p_ctx, others, resource, cb=False)
+
+            # fire events
+            app.event_manager.fire_event('method_redirect', p_ctx)
+            if p_ctx.service_class is not None:
+                p_ctx.service_class.event_manager.fire_event(
+                    'method_redirect', p_ctx)
+
+        except Exception as e:
+            logger_server.exception(e)
+            p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
+
+            # fire events
+            app.event_manager.fire_event('method_redirect_exception', p_ctx)
+            if p_ctx.service_class is not None:
+                p_ctx.service_class.event_manager.fire_event(
+                    'method_redirect_exception', p_ctx)
+
+    elif issubclass(ret.type, Fault):
+        p_ctx.out_error = ret.value
+
+        ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
+
+        # fire events
+        app.event_manager.fire_event('method_exception_object', p_ctx)
+        if p_ctx.service_class is not None:
+            p_ctx.service_class.event_manager.fire_event(
+                                               'method_exception_object', p_ctx)
+
+        request.write(ret)
+
+    else:
+        p_ctx.out_error = ret.value
+        ret.printTraceback()
+        p_ctx.out_error = InternalError(ret.value)
+
+        # fire events
+        app.event_manager.fire_event('method_exception_object', p_ctx)
+        if p_ctx.service_class is not None:
+            p_ctx.service_class.event_manager.fire_event(
+                                               'method_exception_object', p_ctx)
+
     request.finish()
