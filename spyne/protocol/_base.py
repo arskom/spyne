@@ -482,7 +482,7 @@ class ProtocolBase(object):
         else:
             return cls.Attributes.format % value
 
-    def integer_from_string(self, cls, string):
+    def integer_from_string(self, cls, string, param=None):
         if cls.Attributes.max_str_len is not None and len(string) > \
                                                      cls.Attributes.max_str_len:
             raise ValidationError(string,
@@ -492,6 +492,8 @@ class ProtocolBase(object):
         try:
             return int(string)
         except ValueError:
+            if param is not None:
+                raise ValidationError(string, param + ": Could not cast %r to integer")
             raise ValidationError(string, "Could not cast %r to integer")
 
     def time_to_string(self, cls, value):

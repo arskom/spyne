@@ -941,7 +941,10 @@ class XmlDocument(SubXmlBase):
     def unicode_from_element(self, ctx, cls, element):
         if self.validator is self.SOFT_VALIDATION and not (
                                         cls.validate_string(cls, element.text)):
-            raise ValidationError(element.text)
+            if element.text is None:
+                raise ValidationError(element.text, None, element.tag)
+            else:
+                raise ValidationError(element.text)
 
         s = element.text
         if s is None:
@@ -951,16 +954,19 @@ class XmlDocument(SubXmlBase):
 
         if self.validator is self.SOFT_VALIDATION and not (
                                               cls.validate_native(cls, retval)):
-            raise ValidationError(retval)
-
+            if retval is None:
+                raise ValidationError(retval, None, element.tag)
+            else:
+                raise ValidationError(retval)
+            
         return retval
 
     def base_from_element(self, ctx, cls, element):
         if self.validator is self.SOFT_VALIDATION and not (
                                         cls.validate_string(cls, element.text)):
-            raise ValidationError(element.text)
+                raise ValidationError(element.text, None, element.tag)
 
-        retval = self.from_string(cls, element.text)
+        retval = self.from_string(cls, element.text, element.tag)
 
         if self.validator is self.SOFT_VALIDATION and not (
                                             cls.validate_native(cls, retval)):
