@@ -636,12 +636,16 @@ class FakeContext(object):
         else:
             self.inprot_ctx = type("ProtocolContext", (object,), {})()
 
+        from spyne.protocol.html._base import HtmlClothProtocolContext
+
         if self.out_protocol is not None:
             self.outprot_ctx = self.out_protocol.get_context(self, None)
         else:
-            self.outprot_ctx = type("ProtocolContext", (object,), {})()
-            self.outprot_ctx.prot_stack = []
-            self.outprot_ctx.doctype_written = None
+            # The outprot_ctx here must contain properties from ALL tested
+            # protocols' context objects. That's why we use
+            # HtmlClothProtocolContext here, it's just the one with most
+            # attributes.
+            self.outprot_ctx = HtmlClothProtocolContext(self, None)
 
         self.protocol = self.outprot_ctx
         self.transport = type("ProtocolContext", (object,), {})()
