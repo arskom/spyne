@@ -727,7 +727,8 @@ class ComplexModelBase(ModelBase):
                 def_fac = attr.default_factory
 
                 if def_fac is not None:
-                    if six.PY2:  # unbound-method error workaround. huh.
+                    if six.PY2 and hasattr(def_fac, 'im_func'):
+                        # unbound-method error workaround. huh.
                         def_fac = def_fac.im_func
                     dval = def_fac()
 
