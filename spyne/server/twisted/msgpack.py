@@ -33,28 +33,36 @@ from twisted.internet.protocol import Protocol, Factory, connectionDone, \
 from twisted.python.failure import Failure
 from twisted.python import log
 
-from spyne import EventManager, Address
+from spyne import EventManager, Address, ServerBase, Application
 from spyne.auxproc import process_contexts
 from spyne.error import InternalError
-from spyne.server.msgpack import MessagePackServerBase
 
 
 class TwistedMessagePackProtocolFactory(Factory):
-    def __init__(self, tpt=MessagePackServerBase):
+    def __init__(self, tpt):
+        assert isinstance(tpt, ServerBase)
+
         self.tpt = tpt
         self.event_manager = EventManager(self)
 
     def buildProtocol(self, address):
         return TwistedMessagePackProtocol(self.tpt, factory=self)
+
+
+TwistedMessagePackProtocolServerFactory = TwistedMessagePackProtocolFactory
 
 
 class TwistedMessagePackProtocolClientFactory(ClientFactory):
-    def __init__(self, tpt):
+    def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024):
+        assert isinstance(tpt, ServerBase)
+
         self.tpt = tpt
+        self.max_buffer_size = max_buffer_size
         self.event_manager = EventManager(self)
 
     def buildProtocol(self, address):
-        return TwistedMessagePackProtocol(self.tpt, factory=self)
+        return TwistedMessagePackProtocol(self.tpt,
+                             max_buffer_size=self.max_buffer_size, factory=self)
 
 
 def _cha(*args): return args
