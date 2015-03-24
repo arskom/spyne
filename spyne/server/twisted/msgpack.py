@@ -56,7 +56,9 @@ class TwistedMessagePackProtocolClientFactory(ClientFactory):
     def buildProtocol(self, address):
         return TwistedMessagePackProtocol(self.tpt, factory=self)
 
+
 def _cha(*args): return args
+
 
 class TwistedMessagePackProtocol(Protocol):
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, factory=None):
