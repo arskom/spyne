@@ -321,7 +321,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                                                        ctx.protocol.ctxstack))):
             cu = ctx.protocol[self].close_until
             if elt is cu:
-                logger.debug("closed until %r, breaking", cu)
+                logger.debug("closed until %r, breaking out", cu)
                 ctx.protocol[self].close_cloth = None
                 break
 
