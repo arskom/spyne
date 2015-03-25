@@ -70,6 +70,8 @@ def _cha(*args): return args
 
 class TwistedMessagePackProtocol(Protocol):
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, factory=None):
+        assert isinstance(tpt, ServerBase)
+
         self.factory = factory
         self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self.spyne_tpt = tpt
