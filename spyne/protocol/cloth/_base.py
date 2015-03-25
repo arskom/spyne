@@ -210,7 +210,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
     def check_class_cloths(self, ctx, cls, inst, parent, name, **kwargs):
         c = self.get_class_root_cloth(cls)
-        eltstack = ctx.protocol.eltstack
+        eltstack = getattr(ctx.protocol, 'eltstack', [])
         if c is not None and len(eltstack) == 0 and not (eltstack[-1] is c):
             if not ctx.protocol.doctype_written:
                 self.write_doctype(ctx, parent, c)
