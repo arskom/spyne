@@ -158,6 +158,7 @@ class memoize_id(memoize):
         return tuple([id(a) for a in args]), \
                                   tuple([(k, id(v)) for k, v in kwargs.items()])
 
+
 class memoize_id_method(memoize_id):
     """A memoization decorator that keeps caching until reset for unhashable
     types. It works on id()'s of objects instead."""
@@ -167,6 +168,7 @@ class memoize_id_method(memoize_id):
         fn = functools.partial(self.__call__, obj)
         fn.reset = self.reset
         return fn
+
 
 def sanitize_args(a):
     try:

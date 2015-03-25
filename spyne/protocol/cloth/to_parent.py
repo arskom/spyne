@@ -23,6 +23,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
+from collections import Iterable
 
 from lxml import etree, html
 from lxml.builder import E
@@ -162,6 +163,8 @@ class ToParentMixin(ProtocolBase):
                             pass
 
         else:
+            assert isinstance(inst, Iterable), ("%r is not iterable" % inst)
+
             for i, sv in enumerate(inst):
                 kwargs['from_arr'] = True
                 kwargs['array_index'] = i

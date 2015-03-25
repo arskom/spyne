@@ -91,17 +91,21 @@ class MessagePackServerBase(ServerBase):
         """msg = [IN_REQUEST, body, header]"""
 
         if not isinstance(msg, list):
-            raise ValidationError("Request must be a list")
+            logger.debug("Incoming request: %r", msg)
+            raise ValidationError(msg, "Request must be a list")
 
         if not len(msg) >= 2:
-            raise ValidationError("Request must have at least two elements.")
+            logger.debug("Incoming request: %r", msg)
+            raise ValidationError(msg, "Request must have at least two elements.")
 
         if not isinstance(msg[0], int):
-            raise ValidationError("Request version must be an integer.")
+            logger.debug("Incoming request: %r", msg)
+            raise ValidationError(msg[0], "Request version must be an integer.")
 
         processor = self._version_map.get(msg[0], None)
         if processor is None:
-            raise ValidationError("Unknown request version")
+            logger.debug("Incoming request: %r", msg)
+            raise ValidationError(msg[0], "Unknown request type")
 
         initial_ctx = processor(self, msg)
         contexts = self.generate_contexts(initial_ctx)
@@ -144,4 +148,5 @@ class MessagePackServerBase(ServerBase):
         return msgpack.dumps(str(error))
 
     def pack(self, ctx):
-        ctx.out_string = msgpack.packb([self.OUT_RESPONSE_NO_ERROR, ''.join(ctx.out_string)]),
+        ctx.out_string = msgpack.packb([self.OUT_RESPONSE_NO_ERROR,
+                                                      ''.join(ctx.out_string)]),

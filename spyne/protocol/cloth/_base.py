@@ -43,7 +43,6 @@ class XmlClothProtocolContext(ProtocolContext):
         self.inst_stack = []
         self.prot_stack = []
         self.doctype_written = False
-        self.in_root_cloth = False
         self.close_until = None
 
 
@@ -210,14 +209,14 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         return cls.Attributes._xml_root_cloth
 
     def check_class_cloths(self, ctx, cls, inst, parent, name, **kwargs):
-        if not getattr(ctx.protocol, 'in_root_cloth', False):
-            c = self.get_class_root_cloth(cls)
-            if c is not None:
-                if not ctx.protocol.doctype_written:
-                    self.write_doctype(ctx, parent, c)
+        c = self.get_class_root_cloth(cls)
+        eltstack = getattr(ctx.protocol, 'eltstack', [])
+        if c is not None and len(eltstack) == 0 and not (eltstack[-1] is c):
+            if not ctx.protocol.doctype_written:
+                self.write_doctype(ctx, parent, c)
 
-                logger.debug("to object root cloth")
-                return True, self.to_root_cloth(ctx, cls, inst, c, parent, name,
+            logger.debug("to object root cloth")
+            return True, self.to_root_cloth(ctx, cls, inst, c, parent, name,
                                                                        **kwargs)
         c = self.get_class_cloth(cls)
         if c is not None:

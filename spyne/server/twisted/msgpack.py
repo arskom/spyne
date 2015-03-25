@@ -33,39 +33,48 @@ from twisted.internet.protocol import Protocol, Factory, connectionDone, \
 from twisted.python.failure import Failure
 from twisted.python import log
 
-from spyne import EventManager, Address
+from spyne import EventManager, Address, ServerBase, Application
 from spyne.auxproc import process_contexts
 from spyne.error import InternalError
-from spyne.server.msgpack import MessagePackServerBase
 
 
 class TwistedMessagePackProtocolFactory(Factory):
-    def __init__(self, app, base=MessagePackServerBase):
-        self.app = app
-        self.base = base
+    def __init__(self, tpt):
+        assert isinstance(tpt, ServerBase)
+
+        self.tpt = tpt
         self.event_manager = EventManager(self)
 
     def buildProtocol(self, address):
-        return TwistedMessagePackProtocol(self.app, self.base, factory=self)
+        return TwistedMessagePackProtocol(self.tpt, factory=self)
+
+
+TwistedMessagePackProtocolServerFactory = TwistedMessagePackProtocolFactory
 
 
 class TwistedMessagePackProtocolClientFactory(ClientFactory):
-    def __init__(self, app, base=MessagePackServerBase):
-        self.app = app
-        self.base = base
+    def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024):
+        assert isinstance(tpt, ServerBase)
+
+        self.tpt = tpt
+        self.max_buffer_size = max_buffer_size
         self.event_manager = EventManager(self)
 
     def buildProtocol(self, address):
-        return TwistedMessagePackProtocol(self.app, self.base, factory=self)
+        return TwistedMessagePackProtocol(self.tpt,
+                             max_buffer_size=self.max_buffer_size, factory=self)
+
 
 def _cha(*args): return args
 
+
 class TwistedMessagePackProtocol(Protocol):
-    def __init__(self, app, base=MessagePackServerBase,
-                                 max_buffer_size=2 * 1024 * 1024, factory=None):
+    def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, factory=None):
+        assert isinstance(tpt, ServerBase)
+
         self.factory = factory
         self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
-        self._transport = base(app)
+        self.spyne_tpt = tpt
 
         self.sessid = ''
         self.sent_bytes = 0
@@ -100,7 +109,7 @@ class TwistedMessagePackProtocol(Protocol):
             self.process_incoming_message(msg)
 
     def process_incoming_message(self, msg):
-        p_ctx, others = self._transport.produce_contexts(msg)
+        p_ctx, others = self.spyne_tpt.produce_contexts(msg)
         p_ctx.transport.remote_addr = Address.from_twisted_address(
                                                        self.transport.getPeer())
         p_ctx.transport.protocol = self
@@ -113,12 +122,12 @@ class TwistedMessagePackProtocol(Protocol):
         self.transport.write(data)
 
     def handle_error(self, p_ctx, others, exc):
-        self._transport.get_out_string(p_ctx)
+        self.spyne_tpt.get_out_string(p_ctx)
 
         if isinstance(exc, InternalError):
-            error = self._transport.OUT_RESPONSE_SERVER_ERROR
+            error = self.spyne_tpt.OUT_RESPONSE_SERVER_ERROR
         else:
-            error = self._transport.OUT_RESPONSE_CLIENT_ERROR
+            error = self.spyne_tpt.OUT_RESPONSE_CLIENT_ERROR
 
         data = p_ctx.out_document[0]
         if isinstance(data, dict):
@@ -141,13 +150,13 @@ class TwistedMessagePackProtocol(Protocol):
             self.handle_error(p_ctx, others, p_ctx.in_error)
             return
 
-        self._transport.get_in_object(p_ctx)
+        self.spyne_tpt.get_in_object(p_ctx)
         if p_ctx.in_error:
             logger.error(p_ctx.in_error)
             self.handle_error(p_ctx, others, p_ctx.in_error)
             return
 
-        self._transport.get_out_object(p_ctx)
+        self.spyne_tpt.get_out_object(p_ctx)
         if p_ctx.out_error:
             self.handle_error(p_ctx, others, p_ctx.out_error)
             return
@@ -190,8 +199,8 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
         p_ctx.out_object = [ret]
 
     try:
-        prot._transport.get_out_string(p_ctx)
-        prot._transport.pack(p_ctx)
+        prot.spyne_tpt.get_out_string(p_ctx)
+        prot.spyne_tpt.pack(p_ctx)
 
         out_string = ''.join(p_ctx.out_string)
         prot.transport_write(out_string)
@@ -204,4 +213,4 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
     finally:
         p_ctx.close()
 
-    process_contexts(prot._transport, others, p_ctx)
+    process_contexts(prot.spyne_tpt, others, p_ctx)

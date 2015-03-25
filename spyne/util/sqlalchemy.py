@@ -400,7 +400,7 @@ class PGFileJson(PGObjectJson):
                         raise ValidationError(value.path, "Path %r contains "
                                           "relative path operators (e.g. '..')")
 
-                    data = mmap(value.handle.fileno(), 0) # 0 = whole file
+                    data = mmap(value.handle.fileno(), 0)  # 0 = whole file
                     with open(fp, 'wb') as out_file:
                         out_file.write(data)
                         data.close()
@@ -590,7 +590,7 @@ def get_pk_columns(cls):
     for k, v in cls.get_flat_type_info(cls).items():
         if v.Attributes.sqla_column_args is not None and \
                     v.Attributes.sqla_column_args[-1].get('primary_key', False):
-            retval.append((k,v))
+            retval.append((k, v))
 
     return tuple(retval) if len(retval) > 0 else None
 

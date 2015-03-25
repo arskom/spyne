@@ -25,12 +25,14 @@ from spyne.protocol.msgpack import MessagePackDocument
 
 from twisted.trial import  unittest
 
+
 class TestMessagePackServer(unittest.TestCase):
      def gen_prot(self, app):
         from spyne.server.twisted.msgpack import TwistedMessagePackProtocol
         from twisted.test.proto_helpers import StringTransportWithDisconnection
+        from spyne.server.msgpack import MessagePackServerBase
 
-        prot = TwistedMessagePackProtocol(app)
+        prot = TwistedMessagePackProtocol(MessagePackServerBase(app))
         transport = StringTransportWithDisconnection()
         prot.makeConnection(transport)
         transport.protocol = prot

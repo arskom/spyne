@@ -268,6 +268,7 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
                     try:
                         if len(base_types) > 0 and issubclass(b, ModelBase):
                             extends = cls_dict["__extends__"] = b
+                            b.get_subclasses.memo.clear()
 
                     except Exception as e:
                         logger.exception(e)
@@ -727,7 +728,8 @@ class ComplexModelBase(ModelBase):
                 def_fac = attr.default_factory
 
                 if def_fac is not None:
-                    if six.PY2:  # unbound-method error workaround. huh.
+                    if six.PY2 and hasattr(def_fac, 'im_func'):
+                        # unbound-method error workaround. huh.
                         def_fac = def_fac.im_func
                     dval = def_fac()
 

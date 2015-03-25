@@ -34,6 +34,7 @@ from decimal import Decimal as D, InvalidOperation
 from pytz import FixedOffset
 from mmap import mmap, ACCESS_READ
 from time import strptime, mktime
+from weakref import WeakKeyDictionary
 
 try:
     from lxml import etree
@@ -86,7 +87,7 @@ from spyne.model import Duration
 from spyne.model import Boolean
 from spyne.model.binary import Attachment # DEPRECATED
 from spyne.model.enum import EnumBase
-from spyne.util import DefaultAttrDict, six, memoize_id_method
+from spyne.util import DefaultAttrDict, six
 
 from spyne.util.cdict import cdict
 
@@ -149,6 +150,8 @@ class ProtocolBase(object):
 
         self.__app = None
         self.set_app(app)
+
+        self._attrcache = WeakKeyDictionary()
 
         self.event_manager = EventManager(self)
         self.ignore_uncap = ignore_uncap
@@ -292,10 +295,16 @@ class ProtocolBase(object):
         return issubclass(sub if suborig is None else suborig,
                           cls if clsorig is None else clsorig)
 
-    @memoize_id_method
     def get_cls_attrs(self, cls):
-        attr = DefaultAttrDict([(k, getattr(cls.Attributes, k))
-                for k in dir(cls.Attributes) + META_ATTR if not k.startswith('__')])
+        attr = self._attrcache.get(cls, None)
+        if attr is not None:
+            return attr
+
+        self._attrcache[cls] = attr = DefaultAttrDict([
+                (k, getattr(cls.Attributes, k))
+                        for k in dir(cls.Attributes) + META_ATTR
+                                                     if not k.startswith('__')])
+
         if cls.Attributes.prot_attrs:
             attr.update(cls.Attributes.prot_attrs.get(self.__class__, {}))
             attr.update(cls.Attributes.prot_attrs.get(self, {}))
