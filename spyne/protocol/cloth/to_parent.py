@@ -113,7 +113,7 @@ class ToParentMixin(ProtocolBase):
 
         # if cls is an iterable of values and it's not been iterated on, do it
         from_arr = kwargs.get('from_arr', False)
-        if inst is not None and not from_arr and cls.Attributes.max_occurs > 1:
+        if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         # push the instance at hand to instance stack. this makes it easier for
@@ -146,6 +146,9 @@ class ToParentMixin(ProtocolBase):
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        if inst is None:
+            inst = []
+
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
