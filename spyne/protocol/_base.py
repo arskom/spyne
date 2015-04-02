@@ -772,7 +772,7 @@ class ProtocolBase(object):
         return str(bool(value)).lower()
 
     def boolean_from_string(self, cls, string):
-        return (string.lower() in ['true', '1'])
+        return string.lower() in ('true', '1')
 
     def byte_array_from_string(self, cls, value, suggested_encoding=None):
         encoding = cls.Attributes.encoding
