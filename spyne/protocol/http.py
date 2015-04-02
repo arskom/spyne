@@ -261,6 +261,9 @@ class HttpRpc(SimpleDictDocument):
 
         ctx.out_string = ctx.out_document
 
+    def boolean_from_string(self, cls, string):
+        return string.lower() in ('true', '1', 'checked', 'on')
+
 
 _fragment_pattern_re = re.compile('<([A-Za-z0-9_]+)>')
 _full_pattern_re = re.compile('{([A-Za-z0-9_]+)}')
