@@ -41,7 +41,7 @@ class HtmlTableBase(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
             cloth=None, attr_name='spyne_id', root_attr_name='spyne',
                                                               cloth_parser=None,
-                produce_header=True, table_name_attr='class',
+                header=True, table_name_attr='class',
                 field_name_attr='class', border=0, row_class=None,
                 cell_class=None, header_cell_class=None,
                 polymorphic=True, hier_delim='.', doctype=None, link_gen=None):
@@ -52,7 +52,7 @@ class HtmlTableBase(HtmlBase):
                              cloth_parser=cloth_parser, polymorphic=polymorphic,
                                          hier_delim=hier_delim, doctype=doctype)
 
-        self.produce_header = produce_header
+        self.header = header
         self.table_name_attr = table_name_attr
         self.field_name_attr = field_name_attr
         self.border = border
@@ -277,7 +277,7 @@ class HtmlColumnTable(HtmlTableBase):
                                                                  name, **kwargs)
 
         with parent.element('table', attrib):
-            if self.produce_header:
+            if self.header:
                 self._gen_thead(ctx, cls, name, parent)
 
             with parent.element('tbody'):
@@ -403,7 +403,7 @@ class HtmlRowTable(HtmlTableBase):
                             th_attrib['class'] = self.header_cell_class
                         if self.field_name_attr is not None:
                             th_attrib[self.field_name_attr] = sub_name
-                        if self.produce_header:
+                        if self.header:
                             parent.write(E.th(
                                 self.trc(v, ctx.locale, sub_name),
                                 **th_attrib
@@ -455,7 +455,7 @@ class HtmlRowTable(HtmlTableBase):
                     if self.row_class is not None:
                         tr_attrib['class'] = self.row_class
                     with parent.element('tr', tr_attrib):
-                        if self.produce_header:
+                        if self.header:
                             parent.write(E.th(self.trc(cls, ctx.locale,
                                                           cls.get_type_name())))
                         td_attrib = {}
