@@ -65,10 +65,10 @@ As this is a quite verbose way of doing it, Spyne offers an in-line
 customization mechanism for every type: ::
 
     EmailString = Unicode.customize(
-            max_length=128,
-            pattern='[^@]+@[^@]+',
-            type_name='EmailString',
-        )
+        max_length=128,
+        pattern='[^@]+@[^@]+',
+        type_name='EmailString',
+    )
 
 Here, ``type_name`` is a special argument name that gets assigned to
 ``__type_name__`` instead of the ``Attributes`` class.
@@ -76,10 +76,10 @@ Here, ``type_name`` is a special argument name that gets assigned to
 Calling simple types directly is a shortcut to their customize method: ::
 
     EmailString = Unicode(
-            max_length=128,
-            pattern='[^@]+@[^@]+',
-            type_name='EmailString',
-        )
+        max_length=128,
+        pattern='[^@]+@[^@]+',
+        type_name='EmailString',
+    )
 
 As restricting the length of a string is very common (not all types have such
 shortcuts), the length limit can be passed as a positional argument as well:
@@ -87,9 +87,9 @@ shortcuts), the length limit can be passed as a positional argument as well:
 ::
 
     EmailString = Unicode(128,
-            pattern='[^@]+@[^@]+',
-            type_name='EmailString',
-        )
+        pattern='[^@]+@[^@]+',
+        type_name='EmailString',
+    )
 
 It's actually also not strictly necessary (yet highly recommended) to pass a
 type name: ::
@@ -130,7 +130,7 @@ Using primitives in functions are very simple. Here are some examples: ::
             """Exponentiate arbitrary rationals. A very DoS friendly service!"""
             return x ** y
 
-        utcnow = @srpc(_returns=DateTime)(datetime.utcnow)
+        utcnow = srpc(_returns=DateTime)(datetime.utcnow)
 
         @srpc(Unicode, _returns=Unicode)
         def upper(s):
@@ -268,7 +268,7 @@ are needed by Spyne users. The following are some of the more notable ones.
 * :class:`spyne.model.primitive.Boolean`: Life is simple here: Either ``True``
   or ``False``.
 
-* :class:`spyne.model.primitive.AnyUri`: An RFC-2396 & 2732 compiant URI type.
+* :class:`spyne.model.primitive.AnyUri`: An RFC-2396 & 2732 compliant URI type.
   See: http://www.w3.org/TR/xmlschema-2/#anyURI
 
   **NOT YET VALIDATED BY SOFT VALIDATION!!!** Patches are welcome :)
@@ -282,11 +282,11 @@ complete list.
 Dynamic Types
 ^^^^^^^^^^^^^
 
-While Spyne is all about putting firm restirictions on your input schema,
+While Spyne is all about putting firm restrictions on your input schema,
 it's also about flexibility.
 
 That's why, while generally discouraged, the user can choose to accept or
-return unstructed data using the :class:`spyne.model.primitive.AnyDict`, whose
+return unstructured data using the :class:`spyne.model.primitive.AnyDict`, whose
 native type is a regular ``dict`` and :class:`spyne.model.primitive.AnyXml`
 whose native type is a
 regular :class:`lxml.etree.Element`.
@@ -366,7 +366,7 @@ binary data.
 
 A few points to consider:
 
-1. ``HttpRpc`` only works with a Http transport.
+1. ``HttpRpc`` only works with an Http transport.
 2. ``HttpRpc`` supports only one file per request.
 3. Not every http transport supports incremental parsing of incoming data.
    (e.g. Twisted). Make sure to test your stack end-to-end to see how it
