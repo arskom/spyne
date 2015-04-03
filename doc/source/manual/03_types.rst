@@ -236,7 +236,7 @@ Spatial Types
 
 Spyne comes with six basic spatial types that are supported by popular packages
 like `PostGIS <http://postgis.refractions.net/>`_ and
-`Shapely <`http://toblerity.github.com/shapely/>`_.
+`Shapely <http://toblerity.github.com/shapely/>`_.
 
 These are provided as ``Unicode`` subclasses that just define proper
 constraints to force the incoming string to be compliant with the
