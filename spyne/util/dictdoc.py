@@ -69,8 +69,11 @@ def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list,
                                    complex_as=complex_as)._doc_to_object(cls, d)
 
 
-def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict,
+def get_object_as_dict(o, cls=None, ignore_wrappers=True, complex_as=dict,
                                                         protocol=_UtilProtocol):
+    if cls is None:
+        cls = o.__class__
+
     retval = protocol(ignore_wrappers=ignore_wrappers,
                                    complex_as=complex_as)._object_to_doc(cls, o)
     if not ignore_wrappers:
@@ -78,22 +81,31 @@ def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict,
     return retval
 
 
-def get_object_as_simple_dict(o, cls, hier_delim='_'):
+def get_object_as_simple_dict(o, cls=None, hier_delim='_'):
+    if cls is None:
+        cls = o.__class__
+
     return SimpleDictDocument(hier_delim=hier_delim) \
                                                   .object_to_simple_dict(cls, o)
 
 
-def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list,
+def get_object_as_json(o, cls=None, ignore_wrappers=True, complex_as=list,
                                             encoding='utf8', polymorphic=False):
+    if cls is None:
+        cls = o.__class__
+
     prot = JsonDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
                                                         polymorphic=polymorphic)
-    ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
+    ctx = FakeContext(out_document=[prot._object_to_doc(cls, o)])
     prot.create_out_string(ctx, encoding)
     return ''.join(ctx.out_string)
 
 
-def get_object_as_yaml(o, cls, ignore_wrappers=False, complex_as=dict,
+def get_object_as_yaml(o, cls=None, ignore_wrappers=False, complex_as=dict,
                                             encoding='utf8', polymorphic=False):
+    if cls is None:
+        cls = o.__class__
+
     prot = YamlDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
                                                         polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
