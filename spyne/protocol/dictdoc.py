@@ -647,7 +647,7 @@ class HierDictDocument(DictDocument):
                                 and not cls.validate_string(cls, inst)):
                 raise ValidationError((key, inst))
 
-            if issubclass(cls, (ByteArray, File)):
+            if issubclass(cls, (ByteArray, File, Uuid)):
                 retval = self.from_unicode(cls, inst, self.binary_encoding)
             else:
                 retval = self.from_unicode(cls, inst)
@@ -825,7 +825,7 @@ class HierDictDocument(DictDocument):
 
             return retval
 
-        if issubclass(cls, (ByteArray, File)):
+        if issubclass(cls, (ByteArray, File, Uuid)):
             return self.to_string(cls, inst, self.binary_encoding)
 
         return self.to_unicode(cls, inst)

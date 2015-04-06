@@ -499,11 +499,35 @@ class ProtocolBase(object):
             else:
                 raise
 
-    def uuid_to_string(self, cls, value):
-        return _uuid_serialize[cls.Attributes.serialize_as](value)
+    def uuid_to_string(self, cls, value, suggested_encoding=None):
+        attr = self.get_cls_attrs(cls)
+        ser_as = attr.serialize_as
+        encoding = attr.encoding
 
-    def uuid_from_string(self, cls, string):
-        return _uuid_deserialize[cls.Attributes.serialize_as](string)
+        if encoding is None:
+            encoding = suggested_encoding
+
+        retval = _uuid_serialize[ser_as](value)
+        if ser_as in ('bytes', 'bytes_le'):
+            retval = binary_encoding_handlers[encoding]((retval,))
+        return retval
+
+    def uuid_from_string(self, cls, string, suggested_encoding=None):
+        attr = self.get_cls_attrs(cls)
+        ser_as = attr.serialize_as
+        encoding = attr.encoding
+
+        if encoding is None:
+            encoding = suggested_encoding
+
+        retval = string
+
+        if ser_as in ('bytes', 'bytes_le'):
+            retval, = binary_decoding_handlers[encoding](string)
+
+        retval = _uuid_deserialize[ser_as](retval)
+
+        return retval
 
     def unicode_to_string(self, cls, value):
         retval = value
