@@ -95,6 +95,14 @@ only optional dependencies of Spyne, thus not handled in its setup script.
 Installing
 ==========
 
+You first need to have package manager (pip, easy_install) installed. Spyne
+ships with a setuptools bootstrapper, so if setup.py refuses to run because it
+can't find setuptools, do:
+
+    bin/distribute_setup.py
+
+You can add append --user to get it installed with $HOME/.local prefix.
+
 You can get spyne via pypi: ::
 
     easy_install spyne
