@@ -418,7 +418,8 @@ setup(
         ]
     },
 
-    cmdclass = {'test': RunTests,
-                'test_python3': RunPython3Tests
-               },
+    cmdclass = {
+        'test': RunTests,
+        'test_python3': RunPython3Tests
+    },
 )
