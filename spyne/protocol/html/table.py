@@ -143,8 +143,6 @@ class HtmlColumnTable(HtmlTableBase):
                     logger.debug("\tExclude table cell %r type %r for %r",
                                                                       k, v, cls)
                     continue
-                if not attr.get('read', True):
-                    continue
 
                 logger.debug("\tGenerate table cell %r type %r for %r",
                                                                       k, v, cls)
