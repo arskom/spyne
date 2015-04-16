@@ -54,7 +54,8 @@ TwistedMessagePackProtocolServerFactory = TwistedMessagePackProtocolFactory
 
 class TwistedMessagePackProtocolClientFactory(ClientFactory):
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024):
-        assert isinstance(tpt, ServerBase)
+        assert isinstance(tpt, ServerBase), \
+                                        "%r is not a ServerBase instance" % tpt
 
         self.tpt = tpt
         self.max_buffer_size = max_buffer_size
