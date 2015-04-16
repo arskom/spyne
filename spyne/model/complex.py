@@ -718,7 +718,7 @@ class ComplexModelBase(ModelBase):
                                 "with XmlData field. You must use keyword "
                                 "arguments in any other case.")
 
-        for k,v in fti.items():
+        for k, v in fti.items():
             if k in kwargs:
                 self._safe_set(k, kwargs[k], v)
 
