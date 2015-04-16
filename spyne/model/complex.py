@@ -741,7 +741,7 @@ class ComplexModelBase(ModelBase):
                     setattr(self, k, def_val)
 
                 # sqlalchemy objects do their own init.
-                elif '_sa_class_manager' in cls.__dict__:
+                elif hasattr(cls, '_sa_class_manager'):
                     # except the attributes that sqlalchemy doesn't know about
                     if v.Attributes.exc_table:
                         try:
