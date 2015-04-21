@@ -187,8 +187,7 @@ class Interface(object):
                 if method.aux is None:
                     yield out_header
                 if out_header.get_namespace() != self.get_tns():
-                    self.imports[self.get_tns()].add(
-                                             out_header.get_namespace())
+                    self.imports[self.get_tns()].add(out_header.get_namespace())
 
         if method.faults is None:
             method.faults = []
