@@ -45,7 +45,7 @@ def _process_v1_msg(prot, msg):
         for k, v in header.items():
             header[k] = msgpack.unpackb(v)
 
-    ctx = MessagePackMethodContext(prot)
+    ctx = MessagePackMethodContext(prot, MessagePackMethodContext.SERVER)
     ctx.in_string = [body]
     ctx.transport.in_header = header
 
@@ -61,9 +61,8 @@ class MessagePackTransportContext(TransportContext):
 
 
 class MessagePackMethodContext(MethodContext):
-    def __init__(self, transport):
-        super(MessagePackMethodContext, self).__init__(transport,
-                                                           MethodContext.SERVER)
+    def __init__(self, transport, way):
+        super(MessagePackMethodContext, self).__init__(transport, way)
 
         self.transport = MessagePackTransportContext(self, transport)
 
