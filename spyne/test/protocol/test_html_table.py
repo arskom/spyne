@@ -358,7 +358,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return s
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                out_protocol=HtmlRowTable(produce_header=False))
+                out_protocol=HtmlRowTable(header=False))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )

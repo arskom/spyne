@@ -86,7 +86,7 @@ class HtmlColumnTable(HtmlTableBase):
     as a html table using the <table> tag.
 
     :param app: A spyne.application.Application instance.
-    :param produce_header: Boolean value to determine whether to show field
+    :param header: Boolean value to determine whether to show field
         names in the beginning of the table or not. Defaults to True. Set to
         False to skip headers.
     :param table_name_attr: The name of the attribute that will contain the
@@ -330,7 +330,7 @@ class HtmlRowTable(HtmlTableBase):
     Returns one record per table in a table with two columns.
 
     :param app: A spyne.application.Application instance.
-    :param produce_header: Boolean value to determine whether to show field
+    :param header: Boolean value to determine whether to show field
         names in the beginning of the table or not. Defaults to True. Set to
         False to skip headers.
     :param table_name_attr: The name of the attribute that will contain the
