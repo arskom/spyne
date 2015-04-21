@@ -201,11 +201,16 @@ class Interface(object):
                 yield fault
 
         method.in_message.resolve_namespace(method.in_message, self.get_tns())
+        if method.in_message.get_namespace() != self.get_tns():
+            self.imports[self.get_tns()].add(method.in_message.get_namespace())
         if method.aux is None:
             yield method.in_message
 
         method.out_message.resolve_namespace(method.out_message, self.get_tns())
         assert not method.out_message.get_type_name() is method.out_message.Empty
+
+        if method.out_message.get_namespace() != self.get_tns():
+            self.imports[self.get_tns()].add(method.out_message.get_namespace())
 
         if method.aux is None:
             yield method.out_message
