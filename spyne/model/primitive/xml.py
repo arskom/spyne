@@ -58,7 +58,7 @@ class NMToken(Unicode):
     __type_name__ = 'NMTOKEN'
 
     class Attributes(Unicode.Attributes):
-        pattern = PATT_NMTOKEN
+        unicode_pattern = PATT_NMTOKEN
 
 
 class ID(NCName):
@@ -70,4 +70,3 @@ class Language(Token):
 
     class Attributes(Unicode.Attributes):
         pattern = '[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*'
-
