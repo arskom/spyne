@@ -22,6 +22,8 @@ from __future__ import print_function
 import logging
 logger = logging.getLogger(__name__)
 
+
+import re
 import pytz
 import uuid
 import errno
@@ -63,8 +65,6 @@ from spyne.error import ValidationError
 from spyne.model.binary import binary_encoding_handlers
 from spyne.model.binary import binary_decoding_handlers
 from spyne.model.binary import BINARY_ENCODING_USE_DEFAULT
-from spyne.model.primitive import _time_re
-from spyne.model.primitive import _duration_re
 
 from spyne.model import ModelBase, XmlAttribute, Array
 from spyne.model import SimpleModel
@@ -85,11 +85,27 @@ from spyne.model import Uuid
 from spyne.model import Date
 from spyne.model import Duration
 from spyne.model import Boolean
-from spyne.model.binary import Attachment # DEPRECATED
+from spyne.model.binary import Attachment  # DEPRECATED
+from spyne.model.primitive.datetime import TIME_PATTERN
+from spyne.model.primitive.datetime import DATE_PATTERN
 from spyne.model.enum import EnumBase
 from spyne.util import DefaultAttrDict, six
 
 from spyne.util.cdict import cdict
+
+
+_date_re = re.compile(DATE_PATTERN)
+_time_re = re.compile(TIME_PATTERN)
+_duration_re = re.compile(
+        r'(?P<sign>-?)'
+        r'P'
+        r'(?:(?P<years>\d+)Y)?'
+        r'(?:(?P<months>\d+)M)?'
+        r'(?:(?P<days>\d+)D)?'
+        r'(?:T(?:(?P<hours>\d+)H)?'
+        r'(?:(?P<minutes>\d+)M)?'
+        r'(?:(?P<seconds>\d+(.\d+)?)S)?)?'
+    )
 
 
 class ProtocolBase(object):
