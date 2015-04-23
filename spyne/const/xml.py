@@ -84,6 +84,7 @@ WSDL11 = Tnswrap(NS_WSDL11)
 WSDL11_SOAP = Tnswrap(NS_WSDL11_SOAP)
 
 
+# names starting with underscore need () around to be used as proper regexps
 _PATT_BASE_CHAR = \
     u"[\u0041-\u005A]|[\u0061-\u007A]|[\u00C0-\u00D6]|[\u00D8-\u00F6]" \
     u"|[\u00F8-\u00FF]|[\u0100-\u0131]|[\u0134-\u013E]|[\u0141-\u0148]" \
@@ -130,9 +131,6 @@ _PATT_BASE_CHAR = \
 
 _PATT_IDEOGRAPHIC = u"[\u4E00-\u9FA5]|\u3007|[\u3021-\u3029]"
 
-
-PATT_LETTER = u"(%s)" % u'|'.join([_PATT_BASE_CHAR, _PATT_IDEOGRAPHIC])
-
 _PATT_COMBINING_CHAR = u"[\u0300-\u0345]|[\u0360-\u0361]|[\u0483-\u0486]" \
     u"|[\u0591-\u05A1]|[\u05A3-\u05B9]|[\u05BB-\u05BD]|\u05BF|[\u05C1-\u05C2]" \
     u"|\u05C4|[\u064B-\u0652]|\u0670|[\u06D6-\u06DC]|[\u06DD-\u06DF]" \
@@ -161,6 +159,8 @@ _PATT_DIGIT = u"[\u0030-\u0039]|[\u0660-\u0669]|[\u06F0-\u06F9]|[\u0966-\u096F]"
 _PATT_EXTENDER = u"\u00B7|\u02D0|\u02D1|\u0387|\u0640|\u0E46|\u0EC6|\u3005" \
     u"|[\u3031-\u3035]|[\u309D-\u309E]|[\u30FC-\u30FE]"
 
+
+PATT_LETTER = u"(%s)" % u'|'.join([_PATT_BASE_CHAR, _PATT_IDEOGRAPHIC])
 
 PATT_NAMECHAR = u"(%s)" % u'|'.join([PATT_LETTER, _PATT_DIGIT,
                   u'.', u'-', u'_', u':', _PATT_COMBINING_CHAR, _PATT_EXTENDER])
