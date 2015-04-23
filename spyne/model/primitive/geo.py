@@ -28,6 +28,8 @@ from spyne.model import SimpleModel
 from spyne.model.primitive.string import Unicode
 
 
+FLOAT_PATTERN = r'-?[0-9]+\.?[0-9]*(e-?[0-9]+)?'
+
 
 _rinse_and_repeat = r'\s*\(%s\s*(,\s*%s)*\)\s*'
 def _get_one_point_pattern(dim):
