@@ -305,7 +305,6 @@ class XmlSchemaParser(object):
 
         self.debug1("skipping simple type: %s", name)
 
-
     def process_schema_element(self, e):
         if e.name is None:
             return
