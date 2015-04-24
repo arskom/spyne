@@ -561,8 +561,9 @@ class XmlSchemaParser(object):
             self.process_schema_element(_v)
 
     def print_pending(self, fail=False):
-        if len(self.pending_elements) > 0 or len(self.pending_types) > 0 \
-                                             or len(self.pending_type_tree) > 0:
+        ptt_pending = sum((len(v) for v in self.pending_type_tree.values())) > 0
+        if len(self.pending_elements) > 0 or len(self.pending_types) > 0 or \
+                                                                    ptt_pending:
             if fail:
                 logging.basicConfig(level=logging.DEBUG)
             self.debug0("%" * 50)
@@ -630,7 +631,8 @@ class XmlSchemaParser(object):
                 if st is not None:
                     self.retval[self.tns].types[s.name] = st
 
-                    dependents = self.pending_type_tree[self.get_name(s.name)]
+                    key = self.get_name(s.name)
+                    dependents = self.pending_type_tree[key]
                     for s, name in set(dependents):
                         st = self.process_simple_type(s, name)
                         if st is not None:
@@ -638,6 +640,8 @@ class XmlSchemaParser(object):
 
                             self.debug2("added back simple type: %s", s.name)
                             dependents.remove((s, name))
+                            if len(dependents) == 0:
+                                del self.pending_type_tree[key]
 
             # check no simple types are left behind.
             assert sum((len(v) for v in self.pending_type_tree.values())) == 0, \
