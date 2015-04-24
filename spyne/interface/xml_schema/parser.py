@@ -46,6 +46,7 @@ from spyne.model import XmlAttribute
 from spyne.model import Array
 from spyne.model import ComplexModelBase
 from spyne.model import ComplexModelMeta
+from spyne.model.complex import XmlModifier
 
 from spyne.protocol.xml import XmlDocument
 from spyne.interface.xml_schema.defn import TYPE_MAP
@@ -369,7 +370,12 @@ class XmlSchemaParser(object):
         return (a.name, XmlAttribute(t))
 
     def process_complex_type(self, c):
-        def process_type(tn, name, wrapper=lambda x: x, element=None, attribute=None):
+        def process_type(tn, name, wrapper=None, element=None, attribute=None):
+            if wrapper is None:
+                wrapper = lambda x: x
+            else:
+                assert issubclass(wrapper, XmlModifier), wrapper
+
             t = self.get_type(tn)
             key = (c.name, name)
             if t is None:
