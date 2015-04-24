@@ -458,8 +458,10 @@ class XmlSchemaParser(object):
                 process_type(a.type, a.name, XmlAttribute, attribute=a)
 
         if c.simple_content is not None:
-            ext = c.simple_content.extension
-            base_name = None
+            sc = c.simple_content
+            ext = sc.extension
+            restr = sc.restriction
+
             if ext is not None:
                 base_name = ext.base
                 b = self.get_type(ext.base)
@@ -468,14 +470,16 @@ class XmlSchemaParser(object):
                     for a in ext.attributes:
                         ti.append(self.process_attribute(a))
 
-            restr = c.simple_content.restriction
-            if restr is not None:
+            elif restr is not None:
                 base_name = restr.base
                 b = self.get_type(restr.base)
 
                 if restr.attributes is not None:
                     for a in restr.attributes:
                         ti.append(self.process_attribute(a))
+
+            else:
+                raise Exception("Invalid simpleContent tag: %r", sc)
 
             if issubclass(b, ComplexModelBase):
                 base = b
