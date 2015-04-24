@@ -34,6 +34,7 @@ from spyne.model.primitive.misc import ImageUri
 
 from spyne.model.primitive.xml import ID
 from spyne.model.primitive.xml import Token
+from spyne.model.primitive.xml import NMToken
 from spyne.model.primitive.xml import Name
 from spyne.model.primitive.xml import NCName
 from spyne.model.primitive.xml import Language
