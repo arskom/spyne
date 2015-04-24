@@ -352,7 +352,7 @@ class XmlSchemaParser(object):
                 raise ValueError(a, 'type %r not found' % a.type)
 
         elif a.simple_type is not None:
-            t = self.get_type(a.simple_type)
+            t = self.process_simple_type(a.simple_type, a.name)
 
             if t is None:
                 raise ValueError(a, 'simple type %r not found' % a.simple_type)
