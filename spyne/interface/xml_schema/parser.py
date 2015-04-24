@@ -26,7 +26,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 import os
-from spyne.util import six
 
 from itertools import chain
 from pprint import pformat
@@ -426,12 +425,7 @@ class XmlSchemaParser(object):
 
             process_type(tn, name, element=e)
 
-        class L(list):
-            def append(self, a):
-                k, v = a
-                assert isinstance(k, six.string_types), k
-                super(L, self).append(a)
-        ti = L()
+        ti = []
         base = ComplexModelBase
         if c.name in self.retval[self.tns].types:
             self.debug1("modifying existing %r", c.name)
