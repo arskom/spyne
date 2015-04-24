@@ -105,9 +105,7 @@ def Thier_repr(with_ns=False):
         i1 = i0 + 1
         i2 = i1 + 1
 
-        retval = []
-        retval.append(clsid)
-        retval.append('(')
+        retval = [clsid, '(']
 
         xtba = cls.Attributes._xml_tag_body_as
         if xtba is not None:
@@ -118,22 +116,24 @@ def Thier_repr(with_ns=False):
             else:
                 retval.append('\n')
 
-        for k,v in inst.get_flat_type_info(cls).items():
+        for k, v in inst.get_flat_type_info(cls).items():
             value = getattr(inst, k, None)
             if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
                                                             value is not None:
-                retval.append("%s%s=[\n" % (I*i1, k))
+                retval.append("%s%s=[\n" % (I * i1, k))
                 for subval in value:
-                    retval.append("%s%s,\n" % (I*i2, hier_repr(subval,i2, I, tags)))
-                retval.append('%s],\n' % (I*i1))
+                    retval.append("%s%s,\n" % (I * i2,
+                                                hier_repr(subval, i2, I, tags)))
+                retval.append('%s],\n' % (I * i1))
 
             elif issubclass(v, XmlData):
                 pass
 
             else:
-                retval.append("%s%s=%s,\n" % (I*i1, k, hier_repr(value, i1, I, tags)))
+                retval.append("%s%s=%s,\n" % (I * i1, k,
+                                                hier_repr(value, i1, I, tags)))
 
-        retval.append('%s)' % (I*i0))
+        retval.append('%s)' % (I * i0))
         return ''.join(retval)
 
     return hier_repr
@@ -156,6 +156,8 @@ class XmlSchemaParser(object):
             self.base_dir = os.getcwd()
         self.parent = None
         self.children = None
+        self.nsmap = None
+        self.schema = None
         self.prefmap = None
 
         self.tns = None
@@ -163,6 +165,7 @@ class XmlSchemaParser(object):
         self.pending_types = None
         self.pending_type_tree = None
         self.skip_errors = skip_errors
+
 
     def clone(self, indent=0, base_dir=None):
         retval = copy(self)
@@ -207,7 +210,7 @@ class XmlSchemaParser(object):
         data = open(file_name, 'rb').read()
         elt = etree.fromstring(data, parser=PARSER)
         self.nsmap.update(elt.nsmap)
-        self.prefmap = dict([(v,k) for k,v in self.nsmap.items()])
+        self.prefmap = dict([(v, k) for k, v in self.nsmap.items()])
 
         sub_schema = _prot.from_element(None, XmlSchema10, elt)
         if sub_schema.includes:
@@ -216,7 +219,7 @@ class XmlSchemaParser(object):
                 child_ctx = self.clone(base_dir=base_dir)
                 self.process_includes(inc)
                 self.nsmap.update(child_ctx.nsmap)
-                self.prefmap = dict([(v,k) for k,v in self.nsmap.items()])
+                self.prefmap = dict([(v, k) for k, v in self.nsmap.items()])
 
         for attr in ('imports', 'simple_types', 'complex_types', 'elements'):
             sub = getattr(sub_schema, attr)
@@ -367,7 +370,7 @@ class XmlSchemaParser(object):
         if len(kwargs) > 0:
             t = t.customize(**kwargs)
             self.debug2("t = t.customize(**%r)" % kwargs)
-        return (a.name, XmlAttribute(t))
+        return a.name, XmlAttribute(t)
 
     def process_complex_type(self, c):
         def process_type(tn, name, wrapper=None, element=None, attribute=None):
@@ -545,7 +548,8 @@ class XmlSchemaParser(object):
                 else:
                     retval = self.get_type("{%s}%s" % (ns, e.type))
                     if retval is None and None in self.nsmap:
-                        retval = self.get_type("{%s}%s" % (self.nsmap[None], e.type))
+                        retval = self.get_type("{%s}%s" %
+                                                     (self.nsmap[None], e.type))
                     return retval
 
         return TYPE_MAP.get("{%s}%s" % (ns, qn))
@@ -581,6 +585,7 @@ class XmlSchemaParser(object):
             self.debug0("type tree")
             self.debug0(pformat(self.pending_type_tree))
             self.debug0("%" * 50)
+
             if fail:
                 raise Exception("there are still unresolved elements")
 
@@ -608,9 +613,11 @@ class XmlSchemaParser(object):
         if schema.elements:
             schema.elements = odict([(e.name, e) for e in schema.elements])
         if schema.complex_types:
-            schema.complex_types = odict([(c.name, c) for c in schema.complex_types])
+            schema.complex_types = odict([(c.name, c)
+                                                 for c in schema.complex_types])
         if schema.simple_types:
-            schema.simple_types = odict([(s.name, s) for s in schema.simple_types])
+            schema.simple_types = odict([(s.name, s)
+                                                 for s in schema.simple_types])
         if schema.attributes:
             schema.attributes = odict([(a.name, a) for a in schema.attributes])
 
@@ -619,8 +626,8 @@ class XmlSchemaParser(object):
             for imp in schema.imports:
                 if not imp.namespace in self.retval:
                     self.debug1("%s importing %s", tns, imp.namespace)
-                    file_name = self.files[imp.namespace]
-                    self.clone(2, dirname(file_name)).parse_schema_file(file_name)
+                    fname = self.files[imp.namespace]
+                    self.clone(2, dirname(fname)).parse_schema_file(fname)
                     self.retval[tns].imports.add(imp.namespace)
 
         self.debug0("3 %s processing simple_types", G(tns))
