@@ -20,6 +20,8 @@
 # To see the list of xml schema builtins recognized by this parser, run defn.py
 # in this package.
 
+from collections import defaultdict
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -159,6 +161,7 @@ class XmlSchemaParser(object):
         self.tns = None
         self.pending_elements = None
         self.pending_types = None
+        self.pending_type_tree = None
         self.skip_errors = skip_errors
 
     def clone(self, indent=0, base_dir=None):
@@ -237,10 +240,14 @@ class XmlSchemaParser(object):
 
         base = self.get_type(item_type)
         if base is None:
-            raise ValueError(s)
+            self.pending_type_tree[self.get_name(item_type)].add((s, name))
+            self.debug1("pending  simple type list: %s "
+                                   "because of unseen base %s", name, item_type)
 
-        self.debug1("adding   simple type: %s", name)
-        retval = Array(base, serialize_as='sd-list') # FIXME: to be implemented
+            return
+
+        self.debug1("adding   simple type list: %s", name)
+        retval = Array(base, serialize_as='sd-list')  # FIXME: to be implemented
         retval.__type_name__ = name
         retval.__namespace__ = self.tns
 
@@ -248,14 +255,21 @@ class XmlSchemaParser(object):
         return retval
 
     def process_simple_type_restriction(self, s, name=None):
-        if s.restriction.base is None:
+        base_name = s.restriction.base
+        if base_name is None:
             self.debug1("skipping simple type: %s because its restriction base "
                         "could not be found", name)
             return
 
-        base = self.get_type(s.restriction.base)
+        base = self.get_type(base_name)
         if base is None:
-            raise ValueError(s)
+            self.pending_type_tree[self.get_name(base_name)].add((s, name))
+            self.debug1("pending  simple type: %s because of unseen base %s",
+                                                                name, base_name)
+
+            return
+
+        self.debug1("adding   simple type: %s", name)
 
         kwargs = {}
         restriction = s.restriction
@@ -274,7 +288,6 @@ class XmlSchemaParser(object):
             if restriction.pattern.value:
                 kwargs['pattern'] = restriction.pattern.value
 
-        self.debug1("adding   simple type: %s", name)
         retval = base.customize(**kwargs)
         retval.__type_name__ = name
         retval.__namespace__ = self.tns
@@ -491,20 +504,27 @@ class XmlSchemaParser(object):
             r = ComplexModelMeta(str(c.name), (base,), cls_dict)
             self.retval[self.tns].types[c.name] = r
 
-    def get_type(self, tn):
-        if tn is None:
-            return Null
-
+    def get_name(self, tn):
         if tn.startswith("{"):
-            ns, qn = tn[1:].split('}',1)
+            ns, qn = tn[1:].split('}', 1)
+
         elif ":" in tn:
-            ns, qn = tn.split(":",1)
+            ns, qn = tn.split(":", 1)
             ns = self.nsmap[ns]
+
         else:
             if None in self.nsmap:
                 ns, qn = self.nsmap[None], tn
             else:
                 ns, qn = self.tns, tn
+
+        return ns, qn
+
+    def get_type(self, tn):
+        if tn is None:
+            return Null
+
+        ns, qn = self.get_name(tn)
 
         ti = self.retval.get(ns)
         if ti is not None:
@@ -535,7 +555,8 @@ class XmlSchemaParser(object):
             self.process_schema_element(_v)
 
     def print_pending(self, fail=False):
-        if len(self.pending_elements) > 0 or len(self.pending_types) > 0:
+        if len(self.pending_elements) > 0 or len(self.pending_types) > 0 \
+                                             or len(self.pending_type_tree) > 0:
             if fail:
                 logging.basicConfig(level=logging.DEBUG)
             self.debug0("%" * 50)
@@ -549,16 +570,21 @@ class XmlSchemaParser(object):
             self.debug0("types")
             self.debug0(pformat(self.pending_types))
             self.debug0("%" * 50)
+
+            self.debug0("type tree")
+            self.debug0(pformat(self.pending_type_tree))
+            self.debug0("%" * 50)
             if fail:
                 raise Exception("there are still unresolved elements")
 
     def parse_schema(self, elt):
-        self.nsmap = nsmap = elt.nsmap
-        self.prefmap = prefmap = dict([(v,k) for k,v in self.nsmap.items()])
+        self.nsmap = dict(elt.nsmap.items())
+        self.prefmap = dict([(v, k) for k, v in self.nsmap.items()])
         self.schema = schema = _prot.from_element(self, XmlSchema10, elt)
 
         self.pending_types = {}
         self.pending_elements = {}
+        self.pending_type_tree = defaultdict(set)
 
         self.tns = tns = schema.target_namespace
         if self.tns is None:
@@ -594,7 +620,22 @@ class XmlSchemaParser(object):
         if schema.simple_types:
             for s in schema.simple_types.values():
                 st = self.process_simple_type(s)
-                self.retval[self.tns].types[s.name] = st
+
+                if st is not None:
+                    self.retval[self.tns].types[s.name] = st
+
+                    dependents = self.pending_type_tree[self.get_name(s.name)]
+                    for s, name in set(dependents):
+                        st = self.process_simple_type(s, name)
+                        if st is not None:
+                            self.retval[self.tns].types[s.name] = st
+
+                            self.debug2("added back simple type: %s", s.name)
+                            dependents.remove((s, name))
+
+            # check no simple types are left behind.
+            assert sum((len(v) for v in self.pending_type_tree.values())) == 0, \
+                                                 self.pending_type_tree.values()
 
         self.debug0("4 %s processing attributes", G(tns))
         if schema.attributes:
@@ -614,8 +655,8 @@ class XmlSchemaParser(object):
 
         self.process_pending()
 
-        if self.parent is None: # for the top-most schema
-            if self.children is not None: # if it uses <include> or <import>
+        if self.parent is None:  # for the top-most schema
+            if self.children is not None:  # if it uses <include> or <import>
                 # This is needed for schemas with circular imports
                 for c in chain([self], self.children):
                     c.print_pending()
