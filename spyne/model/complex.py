@@ -460,9 +460,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
     """
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
-        """This function initializes the class and registers attributes for
-        serialization.
-        """
+        """This function initializes the class and registers attributes."""
 
         attrs = _gen_attrs(cls_bases, cls_dict)
         assert issubclass(attrs, ComplexModelBase.Attributes), \

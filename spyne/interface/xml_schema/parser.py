@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+# To see the list of xml schema builtins recognized by this parser, run defn.py
+# in this package.
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -141,7 +144,7 @@ hier_repr_ns = Thier_repr(with_ns=True)
 
 class XmlSchemaParser(object):
     def __init__(self, files, base_dir=None, repr_=Thier_repr(with_ns=False),
-                                                         skip_errors=False):
+                                                             skip_errors=False):
         self.retval = {}
         self.indent = 0
         self.files = files
