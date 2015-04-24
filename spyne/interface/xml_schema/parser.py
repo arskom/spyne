@@ -305,7 +305,7 @@ class XmlSchemaParser(object):
                     "implemented", name)
 
     def process_simple_type(self, s, name=None):
-        """Returns the simple Spyne type. Doesn't do any 'pending' processing."""
+        """Returns the simple Spyne type from `<simpleType>` tag."""
 
         if name is None:
             name = s.name
