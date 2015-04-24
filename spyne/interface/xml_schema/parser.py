@@ -487,7 +487,8 @@ class XmlSchemaParser(object):
                 process_type(base_name, "_data", XmlData)
 
         if c.name in self.retval[self.tns].types:
-            self.retval[self.tns].types[c.name]._type_info.update(ti)
+            r = self.retval[self.tns].types[c.name]
+            r._type_info.update(ti)
 
         else:
             cls_dict = odict({
@@ -500,6 +501,8 @@ class XmlSchemaParser(object):
 
             r = ComplexModelMeta(str(c.name), (base,), cls_dict)
             self.retval[self.tns].types[c.name] = r
+
+        return r
 
     def get_name(self, tn):
         if tn.startswith("{"):
