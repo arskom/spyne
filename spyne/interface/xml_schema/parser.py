@@ -326,17 +326,16 @@ class XmlSchemaParser(object):
             return
 
         self.debug1("adding element: %s", e.name)
-        t = self.get_type(e.type)
 
-        key = e.name
+        t = self.get_type(e.type)
         if t:
-            if key in self.pending_elements:
-                del self.pending_elements[key]
+            if e.name in self.pending_elements:
+                del self.pending_elements[e.name]
 
             self.retval[self.tns].elements[e.name] = e
 
         else:
-            self.pending_elements[key] = e
+            self.pending_elements[e.name] = e
 
     def process_attribute(self, a):
         if a.ref is not None:
@@ -386,7 +385,7 @@ class XmlSchemaParser(object):
 
             kwargs = {}
             if element is not None:
-                if e.min_occurs != "0": # spyne default
+                if e.min_occurs != "0":  # spyne default
                     kwargs['min_occurs'] = int(e.min_occurs)
 
                 if e.max_occurs == "unbounded":
@@ -394,7 +393,7 @@ class XmlSchemaParser(object):
                 elif e.max_occurs != "1":
                     kwargs['max_occurs'] = int(e.max_occurs)
 
-                if e.nillable != True: # spyne default
+                if e.nillable != True:  # spyne default
                     kwargs['nillable'] = e.nillable
 
                 if e.default is not None:
