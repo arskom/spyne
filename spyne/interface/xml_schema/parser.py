@@ -163,9 +163,9 @@ class XmlSchemaParser(object):
         self.tns = None
         self.pending_elements = None
         self.pending_types = None
-        self.pending_type_tree = None
         self.skip_errors = skip_errors
 
+        self.pending_simple_types = defaultdict(set)
 
     def clone(self, indent=0, base_dir=None):
         retval = copy(self)
@@ -243,7 +243,7 @@ class XmlSchemaParser(object):
 
         base = self.get_type(item_type)
         if base is None:
-            self.pending_type_tree[self.get_name(item_type)].add((s, name))
+            self.pending_simple_types[self.get_name(item_type)].add((s, name))
             self.debug1("pending  simple type list: %s "
                                    "because of unseen base %s", name, item_type)
 
@@ -266,7 +266,7 @@ class XmlSchemaParser(object):
 
         base = self.get_type(base_name)
         if base is None:
-            self.pending_type_tree[self.get_name(base_name)].add((s, name))
+            self.pending_simple_types[self.get_name(base_name)].add((s, name))
             self.debug1("pending  simple type: %s because of unseen base %s",
                                                                 name, base_name)
 
@@ -309,20 +309,40 @@ class XmlSchemaParser(object):
 
     def process_simple_type(self, s, name=None):
         """Returns the simple Spyne type from `<simpleType>` tag."""
+        retval = None
 
         if name is None:
             name = s.name
 
         if s.list is not None:
-            return self.process_simple_type_list(s, name)
+            retval = self.process_simple_type_list(s, name)
 
-        if s.union is not None:
-            return self.process_simple_type_union(s, name)
+        elif s.union is not None:
+            retval = self.process_simple_type_union(s, name)
 
-        if s.restriction is not None:
-            return self.process_simple_type_restriction(s, name)
+        elif s.restriction is not None:
+            retval = self.process_simple_type_restriction(s, name)
 
-        self.debug1("skipping simple type: %s", name)
+        if retval is None:
+            self.debug1("skipping simple type: %s", name)
+            return
+
+        self.retval[self.tns].types[s.name] = retval
+
+        key = self.get_name(name)
+        dependents = self.pending_simple_types[key]
+        for s, name in set(dependents):
+            st = self.process_simple_type(s, name)
+            if st is not None:
+                self.retval[self.tns].types[s.name] = st
+
+                self.debug2("added back simple type: %s", s.name)
+                dependents.remove((s, name))
+
+        if len(dependents) == 0:
+            del self.pending_simple_types[key]
+
+        return retval
 
     def process_schema_element(self, e):
         if e.name is None:
@@ -565,7 +585,7 @@ class XmlSchemaParser(object):
             self.process_schema_element(_v)
 
     def print_pending(self, fail=False):
-        ptt_pending = sum((len(v) for v in self.pending_type_tree.values())) > 0
+        ptt_pending = sum((len(v) for v in self.pending_simple_types.values())) > 0
         if len(self.pending_elements) > 0 or len(self.pending_types) > 0 or \
                                                                     ptt_pending:
             if fail:
@@ -578,12 +598,12 @@ class XmlSchemaParser(object):
             self.debug0(pformat(self.pending_elements))
             self.debug0("")
 
-            self.debug0("types")
-            self.debug0(pformat(self.pending_types))
+            self.debug0("simple types")
+            self.debug0(pformat(self.pending_simple_types))
             self.debug0("%" * 50)
 
-            self.debug0("type tree")
-            self.debug0(pformat(self.pending_type_tree))
+            self.debug0("complex types")
+            self.debug0(pformat(self.pending_types))
             self.debug0("%" * 50)
 
             if fail:
@@ -596,7 +616,6 @@ class XmlSchemaParser(object):
 
         self.pending_types = {}
         self.pending_elements = {}
-        self.pending_type_tree = defaultdict(set)
 
         self.tns = tns = schema.target_namespace
         if self.tns is None:
@@ -633,26 +652,11 @@ class XmlSchemaParser(object):
         self.debug0("3 %s processing simple_types", G(tns))
         if schema.simple_types:
             for s in schema.simple_types.values():
-                st = self.process_simple_type(s)
+                self.process_simple_type(s)
 
-                if st is not None:
-                    self.retval[self.tns].types[s.name] = st
-
-                    key = self.get_name(s.name)
-                    dependents = self.pending_type_tree[key]
-                    for s, name in set(dependents):
-                        st = self.process_simple_type(s, name)
-                        if st is not None:
-                            self.retval[self.tns].types[s.name] = st
-
-                            self.debug2("added back simple type: %s", s.name)
-                            dependents.remove((s, name))
-                            if len(dependents) == 0:
-                                del self.pending_type_tree[key]
-
-            # check no simple types are left behind.
-            assert sum((len(v) for v in self.pending_type_tree.values())) == 0, \
-                                                 self.pending_type_tree.values()
+            # no simple types should have been left behind.
+            assert sum((len(v) for v in self.pending_simple_types.values())) == 0, \
+                                              self.pending_simple_types.values()
 
         self.debug0("4 %s processing attributes", G(tns))
         if schema.attributes:
