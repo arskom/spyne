@@ -18,12 +18,7 @@
 #
 
 from spyne.const.xml import PATT_NMTOKEN
-from spyne.const import xml_ns
 from spyne.model.primitive.string import Unicode
-
-
-_ns_xs = xml_ns.xsd
-_ns_xsi = xml_ns.xsi
 
 
 class NormalizedString(Unicode):

@@ -28,12 +28,8 @@ See :mod:`spyne.protocol._model` for {to,from}_string implementations.
 
 from __future__ import absolute_import
 
-import sys
-import decimal
-
 from spyne.model import SimpleModel
 from spyne.model.primitive import NATIVE_MAP
-from spyne.util import six
 from spyne.model._base import apply_pssm, msgpack, xml, json
 
 
