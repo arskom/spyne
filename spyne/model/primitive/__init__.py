@@ -81,6 +81,11 @@ from spyne.model.primitive.number import UnsignedLong
 from spyne.model.primitive.number import NonNegativeInteger # Xml Schema calls it so
 from spyne.model.primitive.number import UnsignedInteger
 
+from spyne.model.primitive.network import MacAddress
+from spyne.model.primitive.network import Ipv4Address
+from spyne.model.primitive.network import Ipv6Address
+
+
 # This class is DEPRECATED. Use the spyne.model.Mandatory like this:
 # >>> from spyne.model import Mandatory as M, Unicode
 # >>> MandatoryEmail = M(Unicode(pattern='[^@]+@[^@]+'))
