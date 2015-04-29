@@ -352,7 +352,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(None, value)
 
     def test_point(self):
-        from spyne.model.primitive import _get_point_pattern
+        from spyne.model.primitive.geo import _get_point_pattern
 
         a=re.compile(_get_point_pattern(2))
         assert a.match('POINT (10 40)') is not None
@@ -362,7 +362,7 @@ class TestPrimitive(unittest.TestCase):
         assert a.match('POINT(1.310e4 40)') is not None
 
     def test_multipoint(self):
-        from spyne.model.primitive import _get_multipoint_pattern
+        from spyne.model.primitive.geo import _get_multipoint_pattern
 
         a=re.compile(_get_multipoint_pattern(2))
         assert a.match('MULTIPOINT (10 40, 40 30, 20 20, 30 10)') is not None
@@ -370,26 +370,26 @@ class TestPrimitive(unittest.TestCase):
         #assert a.match('MULTIPOINT ((10 40), (40 30), (20 20), (30 10))') is not None
 
     def test_linestring(self):
-        from spyne.model.primitive import _get_linestring_pattern
+        from spyne.model.primitive.geo import _get_linestring_pattern
 
         a=re.compile(_get_linestring_pattern(2))
         assert a.match('LINESTRING (30 10, 10 30, 40 40)') is not None
 
     def test_multilinestring(self):
-        from spyne.model.primitive import _get_multilinestring_pattern
+        from spyne.model.primitive.geo import _get_multilinestring_pattern
 
         a=re.compile(_get_multilinestring_pattern(2))
         assert a.match('''MULTILINESTRING ((10 10, 20 20, 10 40),
                                 (40 40, 30 30, 40 20, 30 10))''') is not None
 
     def test_polygon(self):
-        from spyne.model.primitive import _get_polygon_pattern
+        from spyne.model.primitive.geo import _get_polygon_pattern
 
         a=re.compile(_get_polygon_pattern(2))
         assert a.match('POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))') is not None
 
     def test_multipolygon(self):
-        from spyne.model.primitive import _get_multipolygon_pattern
+        from spyne.model.primitive.geo import _get_multipolygon_pattern
 
         a=re.compile(_get_multipolygon_pattern(2))
         assert a.match('''MULTIPOLYGON (((30 20, 10 40, 45 40, 30 20)),
