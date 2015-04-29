@@ -449,6 +449,13 @@ class XmlSchemaParser(object):
                 tn = e.type
                 name = e.name
 
+                if tn is None:
+                    # According to http://www.w3.org/TR/2004/REC-xmlschema-1-20041028/structures.html#element-element
+                    # this means this element is now considered to be a
+                    # http://www.w3.org/TR/2004/REC-xmlschema-1-20041028/structures.html#ur-type-itself
+                    self.debug2("  skipped: %s ur-type", e.name)
+                    return
+
             else:
                 raise Exception("dunno")
 
