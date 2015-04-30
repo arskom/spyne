@@ -58,7 +58,6 @@ from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 
 
-
 class HelloWorldService(ServiceBase):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(ctx, name, times):
@@ -75,9 +74,8 @@ class HelloWorldService(ServiceBase):
 
 
 application = Application([HelloWorldService], 'spyne.examples.hello.soap',
-        in_protocol=Soap11(validator='lxml'),
-        out_protocol=Soap11()
-    )
+                          in_protocol=Soap11(validator='lxml'),
+                          out_protocol=Soap11())
 
 wsgi_application = WsgiApplication(application)
 
