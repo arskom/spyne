@@ -20,10 +20,10 @@
 import math
 import decimal
 import platform
-import six
 
 from spyne.model import SimpleModel
 from spyne.model.primitive import NATIVE_MAP
+from spyne.util import six
 from spyne.util import memoize
 
 
