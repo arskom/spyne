@@ -49,6 +49,7 @@ from spyne.model import ComplexModelMeta
 from spyne.model.complex import XmlModifier
 
 from spyne.protocol.xml import XmlDocument
+
 from spyne.interface.xml_schema.defn import TYPE_MAP
 from spyne.interface.xml_schema.defn import SchemaBase
 from spyne.interface.xml_schema.defn import XmlSchema10

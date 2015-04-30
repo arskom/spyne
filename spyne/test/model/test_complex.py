@@ -27,10 +27,9 @@ from lxml import etree
 
 from base64 import b64encode
 
-from spyne import Application
-from spyne import rpc
-from spyne import mrpc
-from spyne import ServiceBase
+from spyne import Application, rpc, mrpc, ServiceBase, ByteArray, Array, \
+    ComplexModel, SelfReference, XmlData, XmlAttribute, Unicode, DateTime, \
+    Float, Integer, String
 from spyne.const import xml_ns
 from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
@@ -38,17 +37,6 @@ from spyne.interface.wsdl import Wsdl11
 from spyne.protocol import ProtocolBase
 from spyne.protocol.soap import Soap11
 from spyne.server.null import NullServer
-from spyne.model import ByteArray
-from spyne.model import Array
-from spyne.model import ComplexModel
-from spyne.model import SelfReference
-from spyne.model import XmlData
-from spyne.model import XmlAttribute
-from spyne.model import Unicode
-from spyne.model import DateTime
-from spyne.model import Float
-from spyne.model import Integer
-from spyne.model import String
 
 from spyne.protocol.dictdoc import SimpleDictDocument
 from spyne.protocol.xml import XmlDocument
@@ -56,6 +44,7 @@ from spyne.protocol.xml import XmlDocument
 from spyne.test import FakeApp
 
 ns_test = 'test_namespace'
+
 
 class Address(ComplexModel):
     street = String
@@ -67,6 +56,7 @@ class Address(ComplexModel):
 
 Address.resolve_namespace(Address, __name__)
 
+
 class Person(ComplexModel):
     name = String
     birthdate = DateTime
@@ -75,6 +65,7 @@ class Person(ComplexModel):
     titles = Array(String)
 
 Person.resolve_namespace(Person, __name__)
+
 
 class Employee(Person):
     employee_id = Integer
@@ -88,15 +79,18 @@ class Level2(ComplexModel):
 
 Level2.resolve_namespace(Level2, __name__)
 
+
 class Level3(ComplexModel):
     arg1 = Integer
 
 Level3.resolve_namespace(Level3, __name__)
 
+
 class Level4(ComplexModel):
     arg1 = String
 
 Level4.resolve_namespace(Level4, __name__)
+
 
 class Level1(ComplexModel):
     level2 = Level2
@@ -104,6 +98,7 @@ class Level1(ComplexModel):
     level4 = Array(Level4)
 
 Level1.resolve_namespace(Level1, __name__)
+
 
 class TestComplexModel(unittest.TestCase):
     def test_simple_class(self):
@@ -189,15 +184,15 @@ class TestComplexModel(unittest.TestCase):
                 a.addresses.append(addr)
             peeps.append(a)
 
-        type = Array(Person)
-        type.resolve_namespace(type, __name__)
+        arr = Array(Person)
+        arr.resolve_namespace(arr, __name__)
         element = etree.Element('test')
-        XmlDocument().to_parent(None, type, peeps, element, ns_test)
+        XmlDocument().to_parent(None, arr, peeps, element, ns_test)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
 
-        peeps2 = XmlDocument().from_element(None, type, element)
+        peeps2 = XmlDocument().from_element(None, arr, element)
         for peep in peeps2:
             self.assertEquals(27, peep.age)
             self.assertEquals(25, len(peep.addresses))

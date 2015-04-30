@@ -1149,7 +1149,7 @@ class Array(ComplexModelBase):
 
     @classmethod
     def _set_serializer(cls, serializer, member_name=None):
-        if serializer.get_type_name() is ModelBase.Empty: # A customized class
+        if serializer.get_type_name() is ModelBase.Empty:  # A customized class
             member_name = "OhNoes"
             # mark array type name as "to be resolved later".
             cls.__type_name__ = ModelBase.Empty
