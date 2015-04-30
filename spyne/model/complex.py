@@ -1116,7 +1116,13 @@ class Array(ComplexModelBase):
     class Attributes(ComplexModelBase.Attributes):
         _wrapper = True
 
-    def __new__(cls, serializer, member_name=None, **kwargs):
+    def __new__(cls, serializer, member_name=None, wrapped=True, **kwargs):
+        if not wrapped:
+            if serializer.Attributes.max_occurs == 1:
+                kwargs['max_occurs'] = 'unbounded'
+
+            return serializer.customize(**kwargs)
+
         retval = cls.customize(**kwargs)
 
         _serializer = _get_spyne_type(cls.__name__, '__serializer__', serializer)

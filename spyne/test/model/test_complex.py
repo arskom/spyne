@@ -26,6 +26,7 @@ from pprint import pprint
 from lxml import etree
 
 from base64 import b64encode
+from decimal import Decimal as D
 
 from spyne import Application, rpc, mrpc, ServiceBase, ByteArray, Array, \
     ComplexModel, SelfReference, XmlData, XmlAttribute, Unicode, DateTime, \
@@ -482,6 +483,12 @@ class TestFlatDict(unittest.TestCase):
         assert d['c[1].i'] == [0, 1, 2]
 
         assert len(d) == 2
+
+    def test_array_nonwrapped(self):
+        i = Array(Integer, wrapped=False)
+
+        assert issubclass(i, Integer), i
+        assert i.Attributes.max_occurs == D('infinity')
 
 
 class TestSelfRefence(unittest.TestCase):
