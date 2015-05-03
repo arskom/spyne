@@ -242,8 +242,8 @@ class Interface(object):
                                         (c.__orig__, key, s.__orig__, key)
             return
 
-        logger.debug('\tadding method %r to match %r tag.' %
-                                                      (method.name, method_key))
+        logger.debug('\tadding method %s.%s to match %r tag.' %
+                            (s.__name__, method.function.func_name, method_key))
 
         self.method_id_map[key] = method
 
