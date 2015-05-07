@@ -175,8 +175,10 @@ class Interface(object):
                 in_header.resolve_namespace(in_header, self.get_tns())
                 if method.aux is None:
                     yield in_header
-                if in_header.get_namespace() != self.get_tns():
-                    self.imports[self.get_tns()].add(in_header.get_namespace())
+                in_header_ns = in_header.get_namespace()
+                if in_header_ns != self.get_tns() and \
+                                             self.is_valid_import(in_header_ns):
+                    self.imports[self.get_tns()].add(in_header_ns)
 
         if not (method.out_header is None):
             if not isinstance(method.out_header, (list, tuple)):
@@ -186,8 +188,10 @@ class Interface(object):
                 out_header.resolve_namespace(out_header, self.get_tns())
                 if method.aux is None:
                     yield out_header
-                if out_header.get_namespace() != self.get_tns():
-                    self.imports[self.get_tns()].add(out_header.get_namespace())
+                out_header_ns = out_header.get_namespace()
+                if out_header_ns != self.get_tns() and \
+                                            self.is_valid_import(out_header_ns):
+                    self.imports[self.get_tns()].add(out_header_ns)
 
         if method.faults is None:
             method.faults = []
@@ -201,7 +205,9 @@ class Interface(object):
                 yield fault
 
         method.in_message.resolve_namespace(method.in_message, self.get_tns())
-        if method.in_message.get_namespace() != self.get_tns():
+        in_message_ns = method.in_message.get_namespace()
+        if in_message_ns != self.get_tns() and \
+                                            self.is_valid_import(in_message_ns):
             self.imports[self.get_tns()].add(method.in_message.get_namespace())
         if method.aux is None:
             yield method.in_message
@@ -209,8 +215,10 @@ class Interface(object):
         method.out_message.resolve_namespace(method.out_message, self.get_tns())
         assert not method.out_message.get_type_name() is method.out_message.Empty
 
-        if method.out_message.get_namespace() != self.get_tns():
-            self.imports[self.get_tns()].add(method.out_message.get_namespace())
+        out_message_ns = method.out_message.get_namespace()
+        if out_message_ns != self.get_tns() and \
+                                           self.is_valid_import(out_message_ns):
+            self.imports[self.get_tns()].add(out_message_ns)
 
         if method.aux is None:
             yield method.out_message
@@ -361,7 +369,7 @@ class Interface(object):
         assert ns is not None, ('either assign a namespace to the class or call'
                         ' cls.resolve_namespace(cls, "some_default_ns") on it.')
 
-        if not (ns in self.imports):
+        if not (ns in self.imports) and self.is_valid_import(ns):
             self.imports[ns] = set()
 
         class_key = '{%s}%s' % (ns, tn)
