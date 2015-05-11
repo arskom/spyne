@@ -31,6 +31,7 @@ from spyne.model import ModelBase
 from spyne.model import Array, Iterable
 from spyne.model import ComplexModelBase
 from spyne.model.complex import XmlModifier
+from spyne.util.six import get_function_name
 
 
 def _generate_method_id(cls, descriptor):
@@ -251,7 +252,7 @@ class Interface(object):
             return
 
         logger.debug('\tadding method %s.%s to match %r tag.' %
-                            (s.__name__, method.function.func_name, method_key))
+                   (s.__name__, get_function_name(method.function), method_key))
 
         self.method_id_map[key] = method
 

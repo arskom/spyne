@@ -490,6 +490,7 @@ if PY3:
     _func_code = "__code__"
     _func_defaults = "__defaults__"
     _func_globals = "__globals__"
+    _func_name = "__name__"
 else:
     _meth_func = "im_func"
     _meth_self = "im_self"
@@ -498,6 +499,7 @@ else:
     _func_code = "func_code"
     _func_defaults = "func_defaults"
     _func_globals = "func_globals"
+    _func_name = "func_name"
 
 
 try:
@@ -545,6 +547,7 @@ get_function_closure = operator.attrgetter(_func_closure)
 get_function_code = operator.attrgetter(_func_code)
 get_function_defaults = operator.attrgetter(_func_defaults)
 get_function_globals = operator.attrgetter(_func_globals)
+get_function_name = operator.attrgetter(_func_name)
 
 
 if PY3:
