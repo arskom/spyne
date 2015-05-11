@@ -720,8 +720,8 @@ class HierDictDocument(DictDocument):
             # Input is not a dict, so we assume it's a sequence that we can pair
             # with the incoming sequence with field names.
             # TODO: cache this
-            items = zip([k for k,v in flat_type_info.items()
-                         if not self.get_cls_attrs(v).exc], doc)
+            items = zip([k for k, v in flat_type_info.items()
+                                         if not self.get_cls_attrs(v).exc], doc)
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
