@@ -22,8 +22,6 @@ that use MessagePack as serializer.
 
 Initially released in 2.8.0-rc.
 
-This module is EXPERIMENTAL. You may not recognize the code here next time you
-look at it.
 """
 
 from __future__ import absolute_import

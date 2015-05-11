@@ -22,9 +22,6 @@ Currently, only :class:`spyne.protocol.json.JsonDocument` is supported.
 
 Initially released in 2.8.0-rc.
 
-This module is EXPERIMENTAL. You may not recognize the code here next time you
-look at it.
-
 Missing Types
 =============
 

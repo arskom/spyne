@@ -19,6 +19,9 @@
 
 """The ``spyne.protocol.http`` module contains the HttpRpc protocol
 implementation.
+
+This module is EXPERIMENTAL. You may not recognize the code here next time you
+look at it.
 """
 
 import logging
