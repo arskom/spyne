@@ -153,6 +153,7 @@ from spyne.model import Fault
 from spyne.model import ComplexModelBase
 from spyne.model import Array
 from spyne.model import SimpleModel
+from spyne.model import Any
 from spyne.model import AnyDict
 from spyne.model import AnyXml
 from spyne.model import AnyHtml
@@ -319,7 +320,7 @@ class SimpleDictDocument(DictDocument):
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
         """
 
-        if issubclass(cls, AnyDict):
+        if issubclass(cls, (Any, AnyDict)):
             return doc
 
         if not issubclass(cls, ComplexModelBase):
@@ -477,9 +478,11 @@ class SimpleDictDocument(DictDocument):
         if validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
                 for path_cls in k[:-1:2]:
-                    if not path_cls.Attributes.validate_freq:
+                    attrs = self.get_cls_attrs(path_cls)
+                    if not attrs.validate_freq:
                         break
                 else:
+                    # FIXME: What the heck is this?
                     _check_freq_dict(path_cls, d)
 
         return retval
@@ -628,7 +631,7 @@ class HierDictDocument(DictDocument):
         if validator is self.SOFT_VALIDATION:
             self.validate(key, cls, inst)
 
-        if issubclass(cls, AnyDict):
+        if issubclass(cls, (Any, AnyDict)):
             return inst
 
         # get native type
@@ -662,6 +665,9 @@ class HierDictDocument(DictDocument):
     def _doc_to_object(self, cls, doc, validator=None):
         if doc is None:
             return []
+
+        if issubclass(cls, Any):
+            return doc
 
         if issubclass(cls, Array):
             retval = []
@@ -743,7 +749,8 @@ class HierDictDocument(DictDocument):
 
             frequencies[k] += 1
 
-        if validator is self.SOFT_VALIDATION and cls.Attributes.validate_freq:
+        attrs = self.get_cls_attrs(cls)
+        if validator is self.SOFT_VALIDATION and attrs.validate_freq:
             _check_freq_dict(cls, frequencies, flat_type_info)
 
         return inst
@@ -808,7 +815,7 @@ class HierDictDocument(DictDocument):
         if self.polymorphic and self.issubclass(inst.__class__, cls):
             cls = inst.__class__
 
-        if issubclass(cls, AnyDict):
+        if issubclass(cls, (Any, AnyDict)):
             return inst
 
         if issubclass(cls, Array):

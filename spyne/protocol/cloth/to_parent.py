@@ -30,7 +30,7 @@ from lxml.builder import E
 
 from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
-    AnyHtml, ModelBase, ByteArray, XmlData, Array, AnyUri, ImageUri
+    AnyHtml, ModelBase, ByteArray, XmlData, Any, AnyUri, ImageUri
 from spyne.model.enum import EnumBase
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import SchemaValidationError
@@ -61,6 +61,7 @@ class ToParentMixin(ProtocolBase):
             ImageUri: self.imageuri_to_parent,
             AnyDict: self.dict_to_parent,
             AnyHtml: self.html_to_parent,
+            Any: self.any_to_parent,
 
             Fault: self.fault_to_parent,
             EnumBase: self.enum_to_parent,
@@ -392,6 +393,9 @@ class ToParentMixin(ProtocolBase):
         if isinstance(inst, str) or isinstance(inst, six.text_type):
             inst = html.fromstring(inst)
 
+        parent.write(inst)
+
+    def any_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(inst)
 
     def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):

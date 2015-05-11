@@ -29,7 +29,7 @@ from inspect import isgenerator
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
-    PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData
+    PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData, Any
 
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
@@ -130,6 +130,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         self.rendering_handlers = cdict({
             ModelBase: self.model_base_to_cloth,
             AnyXml: self.xml_to_cloth,
+            Any: self.any_to_cloth,
             AnyHtml: self.html_to_cloth,
             AnyUri: self.anyuri_to_cloth,
             ComplexModelBase: self.complex_to_cloth,
@@ -429,6 +430,10 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         self._enter_cloth(ctx, cloth, parent)
         if isinstance(inst, string_types):
             inst = etree.fromstring(inst)
+        parent.write(inst)
+
+    def any_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+        self._enter_cloth(ctx, cloth, parent)
         parent.write(inst)
 
     def html_to_cloth(self, ctx, cls, inst, cloth, parent, name):
