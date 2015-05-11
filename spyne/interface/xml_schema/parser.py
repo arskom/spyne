@@ -20,6 +20,10 @@
 # To see the list of xml schema builtins recognized by this parser, run defn.py
 # in this package.
 
+# This module is EXPERIMENTAL. Only a subset of Xml schema standard is
+# implemented.
+
+
 from collections import defaultdict
 
 import logging
