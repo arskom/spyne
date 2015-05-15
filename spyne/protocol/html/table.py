@@ -155,6 +155,7 @@ class HtmlColumnTable(HtmlTableBase):
                 sub_name = attr.sub_name
                 if sub_name is None:
                     sub_name = k
+
                 if self.hier_delim is not None:
                     if array_index is None:
                         sub_name = "%s%s%s" % (name, self.hier_delim, sub_name)
@@ -165,6 +166,8 @@ class HtmlColumnTable(HtmlTableBase):
                 td_attrs = {}
                 if self.field_name_attr is not None:
                     td_attrs[self.field_name_attr] = attr.sub_name or k
+                if attr.hidden:
+                    td_attrs['style'] = 'display:None'
 
                 with parent.element('td', td_attrs):
                     if attr.href is not None:
@@ -195,7 +198,7 @@ class HtmlColumnTable(HtmlTableBase):
 
             m = cls.Attributes.methods
             if m is not None and len(m) > 0:
-                with parent.element('td'):
+                with parent.element('td', td_attrs):
                     first = True
                     mrpc_delim = html.fromstring("&nbsp;|&nbsp;").text
 
@@ -229,10 +232,6 @@ class HtmlColumnTable(HtmlTableBase):
 
         with parent.element('thead'):
             with parent.element('tr'):
-                th_attrs = {}
-                if self.field_name_attr is not None:
-                    th_attrs[self.field_name_attr] = name
-
                 if issubclass(cls, ComplexModelBase):
                     fti = self.sort_fields(cls)
                     if self.field_name_attr is None:
@@ -240,6 +239,11 @@ class HtmlColumnTable(HtmlTableBase):
                             attr = self.get_cls_attrs(v)
                             if attr.exc:
                                 continue
+
+                            th_attrs = {}
+                            if attr.hidden:
+                                th_attrs['style'] = 'display:None'
+
                             header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
                     else:
@@ -247,7 +251,11 @@ class HtmlColumnTable(HtmlTableBase):
                             attr = self.get_cls_attrs(v)
                             if attr.exc:
                                 continue
-                            th_attrs[self.field_name_attr] = k
+
+                            th_attrs = {self.field_name_attr: k}
+                            if attr.hidden:
+                                th_attrs['style'] = 'display:None'
+
                             header_name = self.trc(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th_attrs))
 
@@ -378,6 +386,7 @@ class HtmlRowTable(HtmlTableBase):
         with parent.element('table', attrib):
             with parent.element('tbody'):
                 for k, v in self.sort_fields(cls):
+                    sub_attrs = self.get_cls_attrs(v)
                     try:
                         sub_value = getattr(inst, k, None)
                     except:  # e.g. SQLAlchemy could throw NoSuchColumnError
@@ -401,6 +410,8 @@ class HtmlRowTable(HtmlTableBase):
                             th_attrib['class'] = self.header_cell_class
                         if self.field_name_attr is not None:
                             th_attrib[self.field_name_attr] = sub_name
+                        if sub_attrs.hidden:
+                            th_attrib['style'] = 'display:None'
                         if self.header:
                             parent.write(E.th(
                                 self.trc(v, ctx.locale, sub_name),
@@ -412,6 +423,8 @@ class HtmlRowTable(HtmlTableBase):
                             td_attrib['class'] = self.cell_class
                         if self.field_name_attr is not None:
                             td_attrib[self.field_name_attr] = sub_name
+                        if sub_attrs.hidden:
+                            td_attrib['style'] = 'display:None'
 
                         with parent.element('td', td_attrib):
                             ret = self.to_parent(ctx, v, sub_value, parent,
@@ -457,8 +470,12 @@ class HtmlRowTable(HtmlTableBase):
                             parent.write(E.th(self.trc(cls, ctx.locale,
                                                           cls.get_type_name())))
                         td_attrib = {}
+                        cls_attrs = self.get_cls_attrs(cls)
                         if self.cell_class is not None:
                             td_attrib['class'] = self.cell_class
+                        if cls_attrs.hidden:
+                            td_attrib['style'] = 'display:None'
+
                         with parent.element('td', td_attrib):
                             with parent.element('table'):
                                 ret = super(HtmlRowTable, self) \
