@@ -833,11 +833,13 @@ def _gen_array_m2m(cls, props, k, child, p):
         rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
     own_t = cls.Attributes.sqla_table
-    if own_t is not None and len(get_pk_columns(cls)) > 0:
-        # Specify primaryjoin and secondaryjoin whenever possible.
+    if p.explicit_join:
+        # Specify primaryjoin and secondaryjoin when requested.
         # There are special cases when sqlalchemy can't figure it out by itself.
         # this is where we help it when we can.
         # e.g.: http://sqlalchemy.readthedocs.org/en/rel_1_0/orm/join_conditions.html#self-referential-many-to-many-relationship
+
+        assert own_t is not None and len(get_pk_columns(cls)) > 0
 
         # FIXME: support more than one pk
         (col_pk_key, _), = get_pk_columns(cls)
