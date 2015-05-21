@@ -839,7 +839,7 @@ def _gen_array_m2m(cls, props, k, child, p):
         # this is where we help it when we can.
         # e.g.: http://sqlalchemy.readthedocs.org/en/rel_1_0/orm/join_conditions.html#self-referential-many-to-many-relationship
 
-        #FIXME: support more than one pk
+        # FIXME: support more than one pk
         (col_pk_key, _), = get_pk_columns(cls)
         col_pk = own_t.c[col_pk_key]
 
@@ -1195,7 +1195,7 @@ def gen_sqla_info(cls, cls_bases=()):
     for k, v in cls._type_info.items():
         t = get_sqlalchemy_type(v)
 
-        if t is None: # complex model
+        if t is None:  # complex model
             p = getattr(v.Attributes, 'store_as', None)
             if p is None:
                 logger.debug("Skipping %s.%s.%s: %r, store_as: %r" % (
