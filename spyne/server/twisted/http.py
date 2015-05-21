@@ -48,7 +48,10 @@ logger = logging.getLogger(__name__)
 import re
 
 from os import fstat
-from mmap import mmap
+try:
+    from mmap import mmap
+except ImportError:
+    mmap = None
 from inspect import isgenerator, isclass
 from collections import namedtuple
 
@@ -375,6 +378,7 @@ class TwistedWebResource(Resource):
             if fstat(f.fileno()).st_size == 0:
                 initial_ctx.in_string = ['']
             else:
+                assert mmap is not None, "Mmap is not supported"
                 initial_ctx.in_string = [mmap(f.fileno(), 0)]
         else:
             request.content.seek(0)
