@@ -40,8 +40,8 @@ from spyne.util.cdict import cdict
 class HtmlTableBase(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
             cloth=None, attr_name='spyne_id', root_attr_name='spyne',
-                                                              cloth_parser=None,
-                header=True, table_name_attr='class',
+                                                            cloth_parser=None,
+                header=True, table_name_attr='class', table_name=None,
                 field_name_attr='class', border=0, row_class=None,
                 cell_class=None, header_cell_class=None,
                 polymorphic=True, hier_delim='.', doctype=None, link_gen=None):
@@ -54,6 +54,7 @@ class HtmlTableBase(HtmlBase):
 
         self.header = header
         self.table_name_attr = table_name_attr
+        self.table_name = table_name
         self.field_name_attr = field_name_attr
         self.border = border
         self.row_class = row_class
@@ -92,6 +93,7 @@ class HtmlColumnTable(HtmlTableBase):
     :param table_name_attr: The name of the attribute that will contain the
         response name of the complex object in the table tag. Set to None to
         disable.
+    :param table_name: When not none, overrides what goes in `table_name_attr`.
     :param field_name_attr: The name of the attribute that will contain the
         field names of the complex object children for every table cell. Set
         to None to disable.
@@ -253,6 +255,7 @@ class HtmlColumnTable(HtmlTableBase):
                         parent.write(E.th())
 
                 else:
+                    th_attrs = {}
                     if self.field_name_attr is not None:
                         th_attrs[self.field_name_attr] = name
                     header_name = self.trc(cls, ctx.locale, name)
@@ -266,7 +269,8 @@ class HtmlColumnTable(HtmlTableBase):
 
         attrib = {}
         if self.table_name_attr is not None:
-            attrib[self.table_name_attr] = cls.get_type_name()
+            attrib[self.table_name_attr] = (self.table_name
+                        if self.table_name is not None else cls.get_type_name())
 
         self.event_manager.fire_event('before_table', ctx, cls, inst, parent,
                                                                  name, **kwargs)
@@ -333,6 +337,7 @@ class HtmlRowTable(HtmlTableBase):
     :param table_name_attr: The name of the attribute that will contain the
         response name of the complex object in the table tag. Set to None to
         disable.
+    :param table_name: When not none, overrides what goes in `table_name_attr`.
     :param field_name_attr: The name of the attribute that will contain the
         field names of the complex object children for every table cell. Set
         to None to disable.
