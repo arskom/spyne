@@ -442,6 +442,10 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             inst = html.fromstring(inst)
         parent.write(inst)
 
+    def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
+        self._enter_cloth(ctx, cloth, parent)
+        self.anyuri_to_parent(ctx, cls, inst, parent, name, **kwargs)
+
     @coroutine
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
                                                                       **kwargs):
@@ -534,9 +538,3 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                             ret.throw(e)
                         except StopIteration:
                             pass
-
-    def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
-        self._enter_cloth(ctx, cloth, parent)
-        if len(cloth) == 0:
-            return self.anyuri_to_parent(ctx, cls, inst, parent, name, **kwargs)
-        raise NotImplementedError("anyuri_to_cloth")
