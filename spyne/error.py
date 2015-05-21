@@ -69,13 +69,19 @@ InvalidRequestError = InvalidInputError
 class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
 
-    def __init__(self, obj, custom_msg='The value %r could not be validated.'):
+    def __init__(self, obj, custom_msg='The value %r could not be validated.', element=None):
         s = repr(obj)
 
         if len(s) > MAX_STRING_FIELD_LENGTH:
             s = s[:MAX_STRING_FIELD_LENGTH] + "(...)"
         try:
-            msg = custom_msg % s
+            if element is not None:
+                if obj is None:
+                    msg = '%s: The value is mandatory' % element
+                else:
+                    msg = '%s: The value %r could not be validated' % (element, s)
+            else:
+                msg = custom_msg % s
         except TypeError:
             msg = custom_msg
 
