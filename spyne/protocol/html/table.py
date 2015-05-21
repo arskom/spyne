@@ -234,30 +234,19 @@ class HtmlColumnTable(HtmlTableBase):
             with parent.element('tr'):
                 if issubclass(cls, ComplexModelBase):
                     fti = self.sort_fields(cls)
-                    if self.field_name_attr is None:
-                        for k, v in fti:
-                            attr = self.get_cls_attrs(v)
-                            if attr.exc:
-                                continue
+                    for k, v in fti:
+                        attr = self.get_cls_attrs(v)
+                        if attr.exc:
+                            continue
 
-                            th_attrs = {}
-                            if attr.hidden:
-                                th_attrs['style'] = 'display:None'
+                        th_attrs = {}
+                        if self.field_name_attr is not None:
+                            th_attrs[self.field_name_attr] = k
+                        if attr.hidden:
+                            th_attrs['style'] = 'display:None'
 
-                            header_name = self.trc(v, ctx.locale, k)
-                            parent.write(E.th(header_name, **th_attrs))
-                    else:
-                        for k, v in fti:
-                            attr = self.get_cls_attrs(v)
-                            if attr.exc:
-                                continue
-
-                            th_attrs = {self.field_name_attr: k}
-                            if attr.hidden:
-                                th_attrs['style'] = 'display:None'
-
-                            header_name = self.trc(v, ctx.locale, k)
-                            parent.write(E.th(header_name, **th_attrs))
+                        header_name = self.trc(v, ctx.locale, k)
+                        parent.write(E.th(header_name, **th_attrs))
 
                     m = cls.Attributes.methods
                     if m is not None and len(m) > 0:
