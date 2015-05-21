@@ -137,10 +137,14 @@ class _JOINED:
 
 
 def own_mapper(cls):
+    _mapper = mapper
     try:
-        return class_mapper(cls)
+        if cls:
+            _mapper = class_mapper(cls)
     except UnmappedClassError:
-        return mapper
+        pass
+
+    return _mapper
 
 
 _sq2sp_type_map = {
@@ -1235,6 +1239,7 @@ def get_spyne_type(v):
 
 
 def gen_spyne_info(cls):
+    sqla_model = cls.Attributes.sqla_model
     table = cls.Attributes.sqla_table
     _type_info = cls._type_info
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
@@ -1246,6 +1251,9 @@ def gen_spyne_info(cls):
         mapper_kwargs['include_properties'] = _type_info.keys()
 
     # Map the table to the object
-    cls_mapper = own_mapper(cls)(cls, table, *mapper_args, **mapper_kwargs)
+    if sqla_model:
+        cls_mapper = class_mapper(sqla_model).__class__(cls, table, *mapper_args, **mapper_kwargs)
+    else:
+        cls_mapper = mapper(cls, table, *mapper_args, **mapper_kwargs)
     cls.Attributes.table_name = cls.__tablename__ = table.name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
