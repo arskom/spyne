@@ -82,6 +82,7 @@ class ToParentMixin(ProtocolBase):
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         # if polymorphic, rather use incoming class
         if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
+            logger.debug("Polymorphic cls switch: %r => %r", cls, self.type)
             cls = inst.__class__
 
         # if there's a subprotocol, switch to it
@@ -127,10 +128,12 @@ class ToParentMixin(ProtocolBase):
         except KeyError:
             # if this protocol uncapable of serializing this class
             if self.ignore_uncap:
-                return # ignore it if requested
+                logger.debug("Ignore uncap %r", name)
+                return  # ignore it if requested
 
             # raise the error otherwise
-            logger.error("%r is missing handler for %r", self, cls)
+            logger.error("%r is missing handler for %r for field %r",
+                                                                self, cls, name)
             raise
 
         # finally, serialize the value. retval is the coroutine handle if any
