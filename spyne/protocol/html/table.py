@@ -146,9 +146,6 @@ class HtmlColumnTable(HtmlTableBase):
                                                                       k, v, cls)
                     continue
 
-                logger.debug("\tGenerate table cell %r type %r for %r",
-                                                                      k, v, cls)
-
                 try:
                     sub_value = getattr(inst, k, None)
                 except:  # e.g. SQLAlchemy could throw NoSuchColumnError
@@ -164,6 +161,9 @@ class HtmlColumnTable(HtmlTableBase):
                     else:
                         sub_name = "%s[%d]%s%s" % (name, array_index,
                                                      self.hier_delim, sub_name)
+
+                logger.debug("\tGenerate table cell %r type %r for %r",
+                                                               sub_name, v, cls)
 
                 td_attrs = {}
                 if self.field_name_attr is not None:

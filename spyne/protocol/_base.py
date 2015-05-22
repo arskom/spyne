@@ -45,46 +45,21 @@ except ImportError:
     etree = None
     html = None
 
-from spyne import EventManager
-from spyne import ProtocolContext
+from spyne import EventManager, ProtocolContext
+from spyne import ModelBase, XmlAttribute, Array, SimpleModel, Null, ByteArray, \
+    File, ComplexModelBase, AnyXml, AnyHtml, Unicode, String, Decimal, Double, \
+    Integer, Time, DateTime, Uuid, Date, Duration, Boolean
 
-from spyne.const.http import HTTP_400
-from spyne.const.http import HTTP_401
-from spyne.const.http import HTTP_404
-from spyne.const.http import HTTP_405
-from spyne.const.http import HTTP_413
-from spyne.const.http import HTTP_500
+from spyne.const.http import HTTP_400, HTTP_401, HTTP_404, HTTP_405, HTTP_413, \
+    HTTP_500
 
-from spyne.error import Fault, InternalError
-from spyne.error import ResourceNotFoundError
-from spyne.error import RequestTooLongError
-from spyne.error import RequestNotAllowed
-from spyne.error import InvalidCredentialsError
-from spyne.error import ValidationError
+from spyne.error import Fault, InternalError, ResourceNotFoundError, \
+    RequestTooLongError, RequestNotAllowed, InvalidCredentialsError, \
+    ValidationError
 
-from spyne.model.binary import binary_encoding_handlers
-from spyne.model.binary import binary_decoding_handlers
-from spyne.model.binary import BINARY_ENCODING_USE_DEFAULT
+from spyne.model.binary import binary_encoding_handlers, \
+    binary_decoding_handlers, BINARY_ENCODING_USE_DEFAULT
 
-from spyne.model import ModelBase, XmlAttribute, Array
-from spyne.model import SimpleModel
-from spyne.model import Null
-from spyne.model import ByteArray
-from spyne.model import File
-from spyne.model import ComplexModelBase
-from spyne.model import AnyXml
-from spyne.model import AnyHtml
-from spyne.model import Unicode
-from spyne.model import String
-from spyne.model import Decimal
-from spyne.model import Double
-from spyne.model import Integer
-from spyne.model import Time
-from spyne.model import DateTime
-from spyne.model import Uuid
-from spyne.model import Date
-from spyne.model import Duration
-from spyne.model import Boolean
 from spyne.model.binary import Attachment  # DEPRECATED
 from spyne.model.primitive.datetime import TIME_PATTERN
 from spyne.model.primitive.datetime import DATE_PATTERN
@@ -230,7 +205,6 @@ class ProtocolBase(object):
             ComplexModelBase: self.complex_model_to_string_iterable,
         })
 
-
         fsh = {
             Null: self.null_from_string,
             Time: self.time_from_string,
@@ -270,12 +244,16 @@ class ProtocolBase(object):
 
     def _datetime_from_sec(self, cls, value):
         return datetime.fromtimestamp(value)
+
     def _datetime_from_sec_float(self, cls, value):
         return datetime.fromtimestamp(value)
+
     def _datetime_from_msec(self, cls, value):
         return datetime.fromtimestamp(value // 1000)
+
     def _datetime_from_msec_float(self, cls, value):
         return datetime.fromtimestamp(value / 1000)
+
     def _datetime_from_usec(self, cls, value):
         return datetime.fromtimestamp(value / 1e6)
 
@@ -324,6 +302,7 @@ class ProtocolBase(object):
         if cls.Attributes.prot_attrs:
             attr.update(cls.Attributes.prot_attrs.get(self.__class__, {}))
             attr.update(cls.Attributes.prot_attrs.get(self, {}))
+
         return attr
 
     def get_context(self, parent, transport):
