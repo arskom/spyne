@@ -344,7 +344,7 @@ class SimpleDictDocument(DictDocument):
 
             member = simple_type_info.get(k, None)
             if member is None:
-                logger.debug("discarding field %r" % k)
+                logger.debug("\tdiscarding field %r" % k)
                 continue
 
             # extract native values from the list of strings in the flat dict
@@ -468,12 +468,12 @@ class SimpleDictDocument(DictDocument):
                 else:
                     _v.extend(value)
 
-                logger.debug("\tset array   %r(%r) = %r" %
-                                                    (member.path, pkey, value))
+                logger.debug("\tset arr %r(%r) = %r" %
+                                                  (member.path, pkey, value))
             else:
                 cinst._safe_set(member.path[-1], value[0], member.type)
-                logger.debug("\tset default %r(%r) = %r" %
-                                                    (member.path, pkey, value))
+                logger.debug("\tset val %r(%r) = %r" %
+                                                  (member.path, pkey, value[0]))
 
         if validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
