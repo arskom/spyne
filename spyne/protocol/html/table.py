@@ -200,6 +200,8 @@ class HtmlColumnTable(HtmlTableBase):
 
             m = cls.Attributes.methods
             if m is not None and len(m) > 0:
+                td_attrs = {}
+
                 with parent.element('td', td_attrs):
                     first = True
                     mrpc_delim = html.fromstring("&nbsp;|&nbsp;").text
