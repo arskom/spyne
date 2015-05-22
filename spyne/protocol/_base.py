@@ -61,8 +61,7 @@ from spyne.model.binary import binary_encoding_handlers, \
     binary_decoding_handlers, BINARY_ENCODING_USE_DEFAULT
 
 from spyne.model.binary import Attachment  # DEPRECATED
-from spyne.model.primitive.datetime import TIME_PATTERN
-from spyne.model.primitive.datetime import DATE_PATTERN
+from spyne.model.primitive.datetime import TIME_PATTERN, DATE_PATTERN
 from spyne.model.enum import EnumBase
 from spyne.util import DefaultAttrDict, six
 
@@ -136,13 +135,13 @@ class ProtocolBase(object):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                ignore_uncap=False, ignore_wrappers=False, binary_encoding=None):
+        self._attrcache = WeakKeyDictionary()
+
         self.validator = None
         self.set_validator(validator)
 
         self.__app = None
         self.set_app(app)
-
-        self._attrcache = WeakKeyDictionary()
 
         self.event_manager = EventManager(self)
         self.ignore_uncap = ignore_uncap
