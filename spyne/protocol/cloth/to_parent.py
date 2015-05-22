@@ -118,10 +118,6 @@ class ToParentMixin(ProtocolBase):
         if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        # push the instance at hand to instance stack. this makes it easier for
-        # protocols do make decisions based on parents of instances at hand.
-        ctx.outprot_ctx.inst_stack.append(inst)
-
         # fetch the serializer for the class at hand
         try:
             handler = self.serialization_handlers[cls]
@@ -135,6 +131,10 @@ class ToParentMixin(ProtocolBase):
             logger.error("%r is missing handler for %r for field %r",
                                                                 self, cls, name)
             raise
+
+        # push the instance at hand to instance stack. this makes it easier for
+        # protocols do make decisions based on parents of instances at hand.
+        ctx.outprot_ctx.inst_stack.append( (cls, inst) )
 
         # finally, serialize the value. retval is the coroutine handle if any
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
