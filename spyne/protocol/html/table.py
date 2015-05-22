@@ -172,18 +172,7 @@ class HtmlColumnTable(HtmlTableBase):
                     td_attrs['style'] = 'display:None'
 
                 with parent.element('td', td_attrs):
-                    if attr.href is not None:
-                        try:
-                            attrib = {'href': attr.href % sub_value}
-                        except:
-                            attrib = {'href': attr.href}
-
-                        with parent.element('a', attrib=attrib):
-                            ret = self.to_parent(ctx, v, sub_value, parent,
-                                              sub_name, from_arr=from_arr,
-                                              array_index=array_index, **kwargs)
-                    else:
-                        ret = self.to_parent(ctx, v, sub_value, parent,
+                    ret = self.to_parent(ctx, v, sub_value, parent,
                                               sub_name, from_arr=from_arr,
                                               array_index=array_index, **kwargs)
 
