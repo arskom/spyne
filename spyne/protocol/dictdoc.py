@@ -478,14 +478,18 @@ class SimpleDictDocument(DictDocument):
                                                   (member.path, pkey, value[0]))
 
         if validator is self.SOFT_VALIDATION:
+            s = pformat(dict((k, dict(v.items())) for k,v in frequencies.items()))
+            logger.debug("\tvalidate_freq: \n%s", s)
             for k, d in frequencies.items():
                 for path_cls in k[:-1:2]:
                     attrs = self.get_cls_attrs(path_cls)
                     if not attrs.validate_freq:
+                        logger.debug("\t\tskip validate_freq: %r", path_cls)
                         break
                 else:
-                    # FIXME: What the heck is this?
-                    _check_freq_dict(path_cls, d)
+                    path_cls = k[-2]
+                    logger.debug("\t\tdo validate_freq: %r", path_cls)
+                    self._check_freq_dict(path_cls, d)
 
         return retval
 
