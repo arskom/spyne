@@ -36,6 +36,7 @@ class HtmlClothProtocolContext(XmlClothProtocolContext):
         self.ctxstack = []
         self.tags = set()
 
+
 class HtmlBase(XmlCloth):
     mime_type = 'text/html; charset=UTF-8'
 
