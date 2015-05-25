@@ -478,8 +478,7 @@ class SimpleDictDocument(DictDocument):
                                                   (member.path, pkey, value[0]))
 
         if validator is self.SOFT_VALIDATION:
-            s = pformat(dict((k, dict(v.items())) for k,v in frequencies.items()))
-            logger.debug("\tvalidate_freq: \n%s", s)
+            logger.debug("\tvalidate_freq: \n%r", frequencies)
             for k, d in frequencies.items():
                 for path_cls in k[:-1:2]:
                     attrs = self.get_cls_attrs(path_cls)
