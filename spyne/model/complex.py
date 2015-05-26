@@ -199,6 +199,7 @@ class SelfReference(object):
             'customize_kwargs': kwargs,
         })
 
+
 def _get_spyne_type(cls_name, k, v):
     try:
         v = NATIVE_MAP.get(v, v)
@@ -663,6 +664,11 @@ class ComplexModelBase(ModelBase):
         """Customize child attributes in one go. It's a dict of dicts. This is
         ignored unless used via explicit customization."""
 
+        child_attrs_all = None
+        """Customize all child attributes. It's a dict. This is ignored unless
+        used via explicit customization. `child_attrs` always take precedence.
+        """
+
         declare_order = None
         """The order fields of the :class:``ComplexModel`` are to be declared
         in the SOAP WSDL. If this is left as None or explicitly set to
@@ -699,6 +705,7 @@ class ComplexModelBase(ModelBase):
         _variants = None
         _xml_tag_body_as = None
         _delayed_child_attrs = None
+        _delayed_child_attrs_all = None
         _subclasses = None
 
     def __init__(self, *args, **kwargs):
@@ -989,13 +996,25 @@ class ComplexModelBase(ModelBase):
         else:
             retval.Attributes._delayed_child_attrs = dict(dca.items())
 
+        child_attrs_all = kwargs.get('child_attrs_all', None)
+        if child_attrs_all is not None:
+            ti = retval._type_info
+            logger.debug("processing child_attrs_all for %r", cls)
+            for k, v in ti.items():
+                logger.debug("\tchild_attrs_all set %r=%r", k, child_attrs_all)
+                ti[k] = ti[k].customize(**child_attrs_all)
+            retval.Attributes._delayed_child_attrs_all = child_attrs_all
+
         child_attrs = kwargs.get('child_attrs', None)
         if child_attrs is not None:
             ti = retval._type_info
+            logger.debug("processing child_attrs for %r", cls)
             for k, v in child_attrs.items():
                 if k in ti:
+                    logger.debug("\tchild_attr set %r=%r", k, v)
                     ti[k] = ti[k].customize(**v)
                 else:
+                    logger.debug("\tchild_attr delayed %r=%r", k, v)
                     retval.Attributes._delayed_child_attrs[k] = v
 
         tn = kwargs.get("type_name", None)
@@ -1032,6 +1051,10 @@ class ComplexModelBase(ModelBase):
     def append_field(cls, field_name, field_type):
         assert isinstance(field_name, string_types)
 
+        dcaa = cls.Attributes._delayed_child_attrs_all
+        if dcaa is not None:
+            field_type = field_type.customize(**dcaa)
+
         dca = cls.Attributes._delayed_child_attrs
         if dca is not None:
             d_cust = dca.get(field_name, None)
@@ -1060,6 +1083,10 @@ class ComplexModelBase(ModelBase):
     def insert_field(cls, index, field_name, field_type):
         assert isinstance(index, int)
         assert isinstance(field_name, string_types)
+
+        dcaa = cls.Attributes._delayed_child_attrs_all
+        if dcaa is not None:
+            field_type = field_type.customize(**dcaa)
 
         dca = cls.Attributes._delayed_child_attrs
         if dca is not None:
