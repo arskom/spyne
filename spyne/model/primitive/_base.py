@@ -56,6 +56,11 @@ class AnyXml(SimpleModel):
 
 
 # EXPERIMENTAL
+class Any(SimpleModel):
+    pass
+
+
+# EXPERIMENTAL
 class AnyHtml(SimpleModel):
     __type_name__ = 'string'
 

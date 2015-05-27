@@ -30,7 +30,7 @@ from lxml.builder import E
 
 from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
-    AnyHtml, ModelBase, ByteArray, XmlData, Array, AnyUri, ImageUri
+    AnyHtml, ModelBase, ByteArray, XmlData, Any, AnyUri, ImageUri
 from spyne.model.enum import EnumBase
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import SchemaValidationError
@@ -61,6 +61,7 @@ class ToParentMixin(ProtocolBase):
             ImageUri: self.imageuri_to_parent,
             AnyDict: self.dict_to_parent,
             AnyHtml: self.html_to_parent,
+            Any: self.any_to_parent,
 
             Fault: self.fault_to_parent,
             EnumBase: self.enum_to_parent,
@@ -78,15 +79,20 @@ class ToParentMixin(ProtocolBase):
 
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+    def to_subprot(self, ctx, cls, inst, parent, name, subprot, **kwargs):
+        return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
+
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         # if polymorphic, rather use incoming class
         if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
+            logger.debug("Polymorphic cls switch: %r => %r", cls, self.type)
             cls = inst.__class__
 
         # if there's a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self) and not nosubprot:
-            return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
+            return self.to_subprot(ctx, cls, inst, parent, name, subprot,
+                                                                       **kwargs)
 
         # if there's a class cloth, switch to it
         ret, cor_handle = self.check_class_cloths(ctx, cls, inst, parent, name,
@@ -116,21 +122,23 @@ class ToParentMixin(ProtocolBase):
         if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        # push the instance at hand to instance stack. this makes it easier for
-        # protocols do make decisions based on parents of instances at hand.
-        ctx.outprot_ctx.inst_stack.append(inst)
-
         # fetch the serializer for the class at hand
         try:
             handler = self.serialization_handlers[cls]
         except KeyError:
             # if this protocol uncapable of serializing this class
             if self.ignore_uncap:
-                return # ignore it if requested
+                logger.debug("Ignore uncap %r", name)
+                return  # ignore it if requested
 
             # raise the error otherwise
-            logger.error("%r is missing handler for %r", self, cls)
+            logger.error("%r is missing handler for %r for field %r",
+                                                                self, cls, name)
             raise
+
+        # push the instance at hand to instance stack. this makes it easier for
+        # protocols do make decisions based on parents of instances at hand.
+        ctx.outprot_ctx.inst_stack.append( (cls, inst) )
 
         # finally, serialize the value. retval is the coroutine handle if any
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
@@ -392,6 +400,9 @@ class ToParentMixin(ProtocolBase):
         if isinstance(inst, str) or isinstance(inst, six.text_type):
             inst = html.fromstring(inst)
 
+        parent.write(inst)
+
+    def any_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(inst)
 
     def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):

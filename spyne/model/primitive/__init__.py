@@ -20,6 +20,7 @@
 NATIVE_MAP = {}
 string_encoding = 'UTF-8'  # ???
 
+from spyne.model.primitive._base import Any
 from spyne.model.primitive._base import AnyDict
 from spyne.model.primitive._base import AnyHtml
 from spyne.model.primitive._base import AnyXml

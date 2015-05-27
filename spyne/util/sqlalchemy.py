@@ -832,7 +832,25 @@ def _gen_array_m2m(cls, props, k, child, p):
     else:
         rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
-    props[k] = relationship(child, secondary=rel_t, backref=p.backref,
+    own_t = cls.Attributes.sqla_table
+    if p.explicit_join:
+        # Specify primaryjoin and secondaryjoin when requested.
+        # There are special cases when sqlalchemy can't figure it out by itself.
+        # this is where we help it when we can.
+        # e.g.: http://sqlalchemy.readthedocs.org/en/rel_1_0/orm/join_conditions.html#self-referential-many-to-many-relationship
+
+        assert own_t is not None and len(get_pk_columns(cls)) > 0
+
+        # FIXME: support more than one pk
+        (col_pk_key, _), = get_pk_columns(cls)
+        col_pk = own_t.c[col_pk_key]
+
+        props[k] = relationship(child, secondary=rel_t, backref=p.backref,
+                back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy,
+                primaryjoin=(col_pk == rel_t.c[col_own.key]),
+                secondaryjoin=(col_pk == rel_t.c[col_child.key]))
+    else:
+        props[k] = relationship(child, secondary=rel_t, backref=p.backref,
                 back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
 
 
@@ -1179,7 +1197,7 @@ def gen_sqla_info(cls, cls_bases=()):
     for k, v in cls._type_info.items():
         t = get_sqlalchemy_type(v)
 
-        if t is None: # complex model
+        if t is None:  # complex model
             p = getattr(v.Attributes, 'store_as', None)
             if p is None:
                 logger.debug("Skipping %s.%s.%s: %r, store_as: %r" % (

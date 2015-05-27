@@ -29,37 +29,35 @@ from lxml.html.builder import E
 
 from spyne import ModelBase, ByteArray, ComplexModelBase, Array, AnyUri, \
     ImageUri
-from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
-from spyne.util.six.moves.urllib.parse import urlencode, quote
-
 from spyne.util import coroutine, Break
+from spyne.util.oset import oset
 from spyne.util.cdict import cdict
+from spyne.util.six.moves.urllib.parse import urlencode, quote
 
 
 class HtmlTableBase(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
-            cloth=None, attr_name='spyne_id', root_attr_name='spyne',
-                                                              cloth_parser=None,
-                header=True, table_name_attr='class',
-                field_name_attr='class', border=0, row_class=None,
-                cell_class=None, header_cell_class=None,
-                polymorphic=True, hier_delim='.', doctype=None, link_gen=None):
+            cloth=None, cloth_parser=None, header=True, table_name_attr='class',
+                     table_name=None, table_class=None, field_name_attr='class',
+              border=0, row_class=None, cell_class=None, header_cell_class=None,
+                 polymorphic=True, hier_delim='.', doctype=None, link_gen=None):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
-                cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
-                             cloth_parser=cloth_parser, polymorphic=polymorphic,
+                cloth=cloth, cloth_parser=cloth_parser, polymorphic=polymorphic,
                                          hier_delim=hier_delim, doctype=doctype)
 
         self.header = header
         self.table_name_attr = table_name_attr
+        self.table_name = table_name
         self.field_name_attr = field_name_attr
         self.border = border
         self.row_class = row_class
         self.cell_class = cell_class
         self.header_cell_class = header_cell_class
         self.link_gen = link_gen
+        self.table_class = table_class
 
         if self.cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'cell_class' should be None or "
@@ -92,6 +90,10 @@ class HtmlColumnTable(HtmlTableBase):
     :param table_name_attr: The name of the attribute that will contain the
         response name of the complex object in the table tag. Set to None to
         disable.
+    :param table_name: When not none, overrides what goes in `table_name_attr`.
+    :param table_class: When not none, specifies what goes in `class` attribute
+        in the `<table>` tag. Table name gets appended when
+        `table_name_attr == 'class'`
     :param field_name_attr: The name of the attribute that will contain the
         field names of the complex object children for every table cell. Set
         to None to disable.
@@ -144,9 +146,6 @@ class HtmlColumnTable(HtmlTableBase):
                                                                       k, v, cls)
                     continue
 
-                logger.debug("\tGenerate table cell %r type %r for %r",
-                                                                      k, v, cls)
-
                 try:
                     sub_value = getattr(inst, k, None)
                 except:  # e.g. SQLAlchemy could throw NoSuchColumnError
@@ -155,6 +154,7 @@ class HtmlColumnTable(HtmlTableBase):
                 sub_name = attr.sub_name
                 if sub_name is None:
                     sub_name = k
+
                 if self.hier_delim is not None:
                     if array_index is None:
                         sub_name = "%s%s%s" % (name, self.hier_delim, sub_name)
@@ -162,23 +162,17 @@ class HtmlColumnTable(HtmlTableBase):
                         sub_name = "%s[%d]%s%s" % (name, array_index,
                                                      self.hier_delim, sub_name)
 
+                logger.debug("\tGenerate table cell %r type %r for %r",
+                                                               sub_name, v, cls)
+
                 td_attrs = {}
                 if self.field_name_attr is not None:
                     td_attrs[self.field_name_attr] = attr.sub_name or k
+                if attr.hidden:
+                    td_attrs['style'] = 'display:None'
 
                 with parent.element('td', td_attrs):
-                    if attr.href is not None:
-                        try:
-                            attrib = {'href': attr.href % sub_value}
-                        except:
-                            attrib = {'href': attr.href}
-
-                        with parent.element('a', attrib=attrib):
-                            ret = self.to_parent(ctx, v, sub_value, parent,
-                                              sub_name, from_arr=from_arr,
-                                              array_index=array_index, **kwargs)
-                    else:
-                        ret = self.to_parent(ctx, v, sub_value, parent,
+                    ret = self.to_parent(ctx, v, sub_value, parent,
                                               sub_name, from_arr=from_arr,
                                               array_index=array_index, **kwargs)
 
@@ -195,7 +189,9 @@ class HtmlColumnTable(HtmlTableBase):
 
             m = cls.Attributes.methods
             if m is not None and len(m) > 0:
-                with parent.element('td'):
+                td_attrs = {}
+
+                with parent.element('td', td_attrs):
                     first = True
                     mrpc_delim = html.fromstring("&nbsp;|&nbsp;").text
 
@@ -229,33 +225,28 @@ class HtmlColumnTable(HtmlTableBase):
 
         with parent.element('thead'):
             with parent.element('tr'):
-                th_attrs = {}
-                if self.field_name_attr is not None:
-                    th_attrs[self.field_name_attr] = name
-
                 if issubclass(cls, ComplexModelBase):
                     fti = self.sort_fields(cls)
-                    if self.field_name_attr is None:
-                        for k, v in fti:
-                            attr = self.get_cls_attrs(v)
-                            if attr.exc:
-                                continue
-                            header_name = self.trc(v, ctx.locale, k)
-                            parent.write(E.th(header_name, **th_attrs))
-                    else:
-                        for k, v in fti:
-                            attr = self.get_cls_attrs(v)
-                            if attr.exc:
-                                continue
+                    for k, v in fti:
+                        attr = self.get_cls_attrs(v)
+                        if attr.exc:
+                            continue
+
+                        th_attrs = {}
+                        if self.field_name_attr is not None:
                             th_attrs[self.field_name_attr] = k
-                            header_name = self.trc(v, ctx.locale, k)
-                            parent.write(E.th(header_name, **th_attrs))
+                        if attr.hidden:
+                            th_attrs['style'] = 'display:None'
+
+                        header_name = self.trc(v, ctx.locale, k)
+                        parent.write(E.th(header_name, **th_attrs))
 
                     m = cls.Attributes.methods
                     if m is not None and len(m) > 0:
                         parent.write(E.th())
 
                 else:
+                    th_attrs = {}
                     if self.field_name_attr is not None:
                         th_attrs[self.field_name_attr] = name
                     header_name = self.trc(cls, ctx.locale, name)
@@ -268,8 +259,20 @@ class HtmlColumnTable(HtmlTableBase):
         logger.debug("Generate table for %r", cls)
 
         attrib = {}
+        table_class = oset()
+        if self.table_class is not None:
+            table_class.add(self.table_class)
+
         if self.table_name_attr is not None:
-            attrib[self.table_name_attr] = cls.get_type_name()
+            tn = (self.table_name
+                        if self.table_name is not None else cls.get_type_name())
+
+            if self.table_name_attr == 'class':
+                table_class.add(tn)
+            else:
+                attrib[self.table_name_attr] = tn
+
+        attrib['class'] = ' '.join(table_class)
 
         self.event_manager.fire_event('before_table', ctx, cls, inst, parent,
                                                                  name, **kwargs)
@@ -336,6 +339,10 @@ class HtmlRowTable(HtmlTableBase):
     :param table_name_attr: The name of the attribute that will contain the
         response name of the complex object in the table tag. Set to None to
         disable.
+    :param table_name: When not none, overrides what goes in `table_name_attr`.
+    :param table_class: When not none, specifies what goes in `class` attribute
+        in the `<table>` tag. Table name gets appended when
+        `table_name_attr == 'class'`
     :param field_name_attr: The name of the attribute that will contain the
         field names of the complex object children for every table cell. Set
         to None to disable.
@@ -352,7 +359,6 @@ class HtmlRowTable(HtmlTableBase):
             AnyUri: self.anyuri_to_parent,
             ImageUri: self.imageuri_to_parent,
             ByteArray: self.not_supported,
-            Attachment: self.not_supported,
             ComplexModelBase: self.complex_model_to_parent,
             Array: self.array_to_parent,
         })
@@ -378,6 +384,7 @@ class HtmlRowTable(HtmlTableBase):
         with parent.element('table', attrib):
             with parent.element('tbody'):
                 for k, v in self.sort_fields(cls):
+                    sub_attrs = self.get_cls_attrs(v)
                     try:
                         sub_value = getattr(inst, k, None)
                     except:  # e.g. SQLAlchemy could throw NoSuchColumnError
@@ -401,6 +408,8 @@ class HtmlRowTable(HtmlTableBase):
                             th_attrib['class'] = self.header_cell_class
                         if self.field_name_attr is not None:
                             th_attrib[self.field_name_attr] = sub_name
+                        if sub_attrs.hidden:
+                            th_attrib['style'] = 'display:None'
                         if self.header:
                             parent.write(E.th(
                                 self.trc(v, ctx.locale, sub_name),
@@ -412,6 +421,8 @@ class HtmlRowTable(HtmlTableBase):
                             td_attrib['class'] = self.cell_class
                         if self.field_name_attr is not None:
                             td_attrib[self.field_name_attr] = sub_name
+                        if sub_attrs.hidden:
+                            td_attrib['style'] = 'display:None'
 
                         with parent.element('td', td_attrib):
                             ret = self.to_parent(ctx, v, sub_value, parent,
@@ -457,8 +468,12 @@ class HtmlRowTable(HtmlTableBase):
                             parent.write(E.th(self.trc(cls, ctx.locale,
                                                           cls.get_type_name())))
                         td_attrib = {}
+                        cls_attrs = self.get_cls_attrs(cls)
                         if self.cell_class is not None:
                             td_attrib['class'] = self.cell_class
+                        if cls_attrs.hidden:
+                            td_attrib['style'] = 'display:None'
+
                         with parent.element('td', td_attrib):
                             with parent.element('table'):
                                 ret = super(HtmlRowTable, self) \

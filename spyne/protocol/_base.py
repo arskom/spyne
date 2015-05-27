@@ -45,49 +45,23 @@ except ImportError:
     etree = None
     html = None
 
-from spyne import EventManager
-from spyne import ProtocolContext
+from spyne import EventManager, ProtocolContext
+from spyne.model import ModelBase, XmlAttribute, Array, SimpleModel, Null, \
+    ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, String, \
+    Decimal, Double, Integer, Time, DateTime, Uuid, Date, Duration, Boolean
 
-from spyne.const.http import HTTP_400
-from spyne.const.http import HTTP_401
-from spyne.const.http import HTTP_404
-from spyne.const.http import HTTP_405
-from spyne.const.http import HTTP_413
-from spyne.const.http import HTTP_500
+from spyne.const.http import HTTP_400, HTTP_401, HTTP_404, HTTP_405, HTTP_413, \
+    HTTP_500
 
-from spyne.error import Fault, InternalError
-from spyne.error import ResourceNotFoundError
-from spyne.error import RequestTooLongError
-from spyne.error import RequestNotAllowed
-from spyne.error import InvalidCredentialsError
-from spyne.error import ValidationError
+from spyne.error import Fault, InternalError, ResourceNotFoundError, \
+    RequestTooLongError, RequestNotAllowed, InvalidCredentialsError, \
+    ValidationError
 
-from spyne.model.binary import binary_encoding_handlers
-from spyne.model.binary import binary_decoding_handlers
-from spyne.model.binary import BINARY_ENCODING_USE_DEFAULT
+from spyne.model.binary import binary_encoding_handlers, \
+    binary_decoding_handlers, BINARY_ENCODING_USE_DEFAULT
 
-from spyne.model import ModelBase, XmlAttribute, Array
-from spyne.model import SimpleModel
-from spyne.model import Null
-from spyne.model import ByteArray
-from spyne.model import File
-from spyne.model import ComplexModelBase
-from spyne.model import AnyXml
-from spyne.model import AnyHtml
-from spyne.model import Unicode
-from spyne.model import String
-from spyne.model import Decimal
-from spyne.model import Double
-from spyne.model import Integer
-from spyne.model import Time
-from spyne.model import DateTime
-from spyne.model import Uuid
-from spyne.model import Date
-from spyne.model import Duration
-from spyne.model import Boolean
 from spyne.model.binary import Attachment  # DEPRECATED
-from spyne.model.primitive.datetime import TIME_PATTERN
-from spyne.model.primitive.datetime import DATE_PATTERN
+from spyne.model.primitive.datetime import TIME_PATTERN, DATE_PATTERN
 from spyne.model.enum import EnumBase
 from spyne.util import DefaultAttrDict, six
 
@@ -161,13 +135,13 @@ class ProtocolBase(object):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                ignore_uncap=False, ignore_wrappers=False, binary_encoding=None):
+        self._attrcache = WeakKeyDictionary()
+
         self.validator = None
         self.set_validator(validator)
 
         self.__app = None
         self.set_app(app)
-
-        self._attrcache = WeakKeyDictionary()
 
         self.event_manager = EventManager(self)
         self.ignore_uncap = ignore_uncap
@@ -230,7 +204,6 @@ class ProtocolBase(object):
             ComplexModelBase: self.complex_model_to_string_iterable,
         })
 
-
         fsh = {
             Null: self.null_from_string,
             Time: self.time_from_string,
@@ -270,12 +243,16 @@ class ProtocolBase(object):
 
     def _datetime_from_sec(self, cls, value):
         return datetime.fromtimestamp(value)
+
     def _datetime_from_sec_float(self, cls, value):
         return datetime.fromtimestamp(value)
+
     def _datetime_from_msec(self, cls, value):
         return datetime.fromtimestamp(value // 1000)
+
     def _datetime_from_msec_float(self, cls, value):
         return datetime.fromtimestamp(value / 1000)
+
     def _datetime_from_usec(self, cls, value):
         return datetime.fromtimestamp(value / 1e6)
 
@@ -324,6 +301,7 @@ class ProtocolBase(object):
         if cls.Attributes.prot_attrs:
             attr.update(cls.Attributes.prot_attrs.get(self.__class__, {}))
             attr.update(cls.Attributes.prot_attrs.get(self, {}))
+
         return attr
 
     def get_context(self, parent, transport):
@@ -547,61 +525,67 @@ class ProtocolBase(object):
 
     def unicode_to_string(self, cls, value):
         retval = value
-        if cls.Attributes.encoding is not None and \
+        cls_attrs = self.get_cls_attrs(cls)
+        if cls_attrs.encoding is not None and \
                                                isinstance(value, six.text_type):
-            retval = value.encode(cls.Attributes.encoding)
-        if cls.Attributes.format is None:
+            retval = value.encode(cls_attrs.encoding)
+        if cls_attrs.format is None:
             return retval
         else:
-            return cls.Attributes.format % retval
+            return cls_attrs.format % retval
 
     def unicode_to_unicode(self, cls, value):
         retval = value
-        if cls.Attributes.encoding is not None and \
+        cls_attrs = self.get_cls_attrs(cls)
+        if cls_attrs.encoding is not None and \
                                            isinstance(value, six.binary_type):
-            retval = value.decode(cls.Attributes.encoding)
+            retval = value.decode(cls_attrs.encoding)
 
-        if cls.Attributes.format is None:
+        if cls_attrs.format is None:
             return retval
         else:
-            return cls.Attributes.format % retval
+            return cls_attrs.format % retval
 
     def unicode_from_string(self, cls, value):
         retval = value
+        cls_attrs = self.get_cls_attrs(cls)
         if isinstance(value, six.binary_type):
-            if cls.Attributes.encoding is None:
+            if cls_attrs.encoding is None:
                 retval = six.text_type(value,
-                                           errors=cls.Attributes.unicode_errors)
+                                           errors=cls_attrs.unicode_errors)
             else:
-                retval = six.text_type(value, cls.Attributes.encoding,
-                                           errors=cls.Attributes.unicode_errors)
+                retval = six.text_type(value, cls_attrs.encoding,
+                                           errors=cls_attrs.unicode_errors)
         return retval
 
     def string_from_string(self, cls, value):
         retval = value
+        cls_attrs = self.get_cls_attrs(cls)
         if isinstance(value, six.text_type):
-            if cls.Attributes.encoding is None:
+            if cls_attrs.encoding is None:
                 raise Exception("You need to define a source encoding for "
                                 "decoding incoming unicode values.")
             else:
-                retval = value.encode(cls.Attributes.encoding)
+                retval = value.encode(cls_attrs.encoding)
 
         return retval
 
     def decimal_to_string(self, cls, value):
         D(value)  # sanity check
-        if cls.Attributes.str_format is not None:
-            return cls.Attributes.str_format.format(value)
-        elif cls.Attributes.format is not None:
-            return cls.Attributes.format % value
+        cls_attrs = self.get_cls_attrs(cls)
+        if cls_attrs.str_format is not None:
+            return cls_attrs.str_format.format(value)
+        elif cls_attrs.format is not None:
+            return cls_attrs.format % value
         else:
             return str(value)
 
     def decimal_from_string(self, cls, string):
-        if cls.Attributes.max_str_len is not None and len(string) > \
-                                                     cls.Attributes.max_str_len:
+        cls_attrs = self.get_cls_attrs(cls)
+        if cls_attrs.max_str_len is not None and len(string) > \
+                                                     cls_attrs.max_str_len:
             raise ValidationError(string, "Decimal %%r longer than %d characters"
-                                                   % cls.Attributes.max_str_len)
+                                                   % cls_attrs.max_str_len)
 
         try:
             return D(string)
@@ -610,11 +594,12 @@ class ProtocolBase(object):
 
     def double_to_string(self, cls, value):
         float(value) # sanity check
+        cls_attrs = self.get_cls_attrs(cls)
 
-        if cls.Attributes.format is None:
+        if cls_attrs.format is None:
             return repr(value)
         else:
-            return cls.Attributes.format % value
+            return cls_attrs.format % value
 
     def double_from_string(self, cls, string):
         try:
@@ -624,19 +609,21 @@ class ProtocolBase(object):
 
     def integer_to_string(self, cls, value):
         int(value)  # sanity check
+        cls_attrs = self.get_cls_attrs(cls)
 
-        if cls.Attributes.format is None:
+        if cls_attrs.format is None:
             return str(value)
         else:
-            return cls.Attributes.format % value
+            return cls_attrs.format % value
 
     def integer_from_string(self, cls, string):
+        cls_attrs = self.get_cls_attrs(cls)
         if isinstance(string, six.string_types) and \
-                                    cls.Attributes.max_str_len is not None and \
-                                    len(string) > cls.Attributes.max_str_len:
+                                    cls_attrs.max_str_len is not None and \
+                                    len(string) > cls_attrs.max_str_len:
             raise ValidationError(string,
                                     "Integer %%r longer than %d characters"
-                                                   % cls.Attributes.max_str_len)
+                                                   % cls_attrs.max_str_len)
 
         try:
             return int(string)
@@ -667,7 +654,10 @@ class ProtocolBase(object):
                                                    int(fields['sec']), microsec)
 
     def datetime_to_string(self, cls, val):
-        return _datetime_smap[cls.Attributes.serialize_as](cls, val)
+        sa = self.get_cls_attrs(cls).serialize_as
+        if sa is None:
+            return self._datetime_to_string(cls, val)
+        return _datetime_smap[sa](cls, val)
 
     def date_from_string_iso(self, cls, string):
         """This is used by protocols like SOAP who need ISO8601-formatted dates
@@ -692,7 +682,7 @@ class ProtocolBase(object):
         return cls.from_string(value)
 
     def datetime_from_string_iso(self, cls, string):
-        astz = cls.Attributes.as_timezone
+        astz = self.get_cls_attrs(cls).as_timezone
 
         match = cls._utc_re.match(string)
         if match:
@@ -723,11 +713,11 @@ class ProtocolBase(object):
         raise ValidationError(string)
 
     def datetime_from_string(self, cls, string):
-        return self._datetime_dsmap[cls.Attributes.serialize_as](cls, string)
+        return self._datetime_dsmap[self.get_cls_attrs(cls).serialize_as](cls, string)
 
     def date_from_string(self, cls, string):
         try:
-            d = datetime.strptime(string, cls.Attributes.format)
+            d = datetime.strptime(string, self.get_cls_attrs(cls).format)
             return date(d.year, d.month, d.day)
         except ValueError as e:
             match = cls._offset_re.match(string)
@@ -815,19 +805,19 @@ class ProtocolBase(object):
         return string.lower() in ('true', '1')
 
     def byte_array_from_string(self, cls, value, suggested_encoding=None):
-        encoding = cls.Attributes.encoding
+        encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
         return binary_decoding_handlers[encoding](value)
 
     def byte_array_to_string(self, cls, value, suggested_encoding=None):
-        encoding = cls.Attributes.encoding
+        encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
         return binary_encoding_handlers[encoding](value)
 
     def byte_array_to_unicode(self, cls, value, suggested_encoding=None):
-        encoding = cls.Attributes.encoding
+        encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
         if encoding is None:
@@ -839,7 +829,7 @@ class ProtocolBase(object):
         return value
 
     def file_from_string(self, cls, value, suggested_encoding=None):
-        encoding = cls.Attributes.encoding
+        encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
 
@@ -852,7 +842,7 @@ class ProtocolBase(object):
             :class:`spyne.model.File.Value` instance.
         """
 
-        encoding = cls.Attributes.encoding
+        encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
 
@@ -878,11 +868,12 @@ class ProtocolBase(object):
             :class:`spyne.model.File.Value` instance.
         """
 
-        encoding = cls.Attributes.encoding
+        cls_attrs = self.get_cls_attrs(cls)
+        encoding = cls_attrs.encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
 
-        if encoding is None and cls.Attributes.type is File.BINARY:
+        if encoding is None and cls_attrs.type is File.BINARY:
             raise ValueError("Arbitrary binary data can't be serialized to "
                              "unicode.")
 
@@ -953,7 +944,7 @@ class ProtocolBase(object):
         raise TypeError("Only primitives can be deserialized from string.")
 
     def array_from_string(self, cls, string):
-        if cls.Attributes.serialize_as != 'sd-list':
+        if self.get_cls_attrs(cls).serialize_as != 'sd-list':
             raise TypeError("Only primitives can be deserialized from string.")
 
         # sd-list being space-delimited list.
@@ -983,19 +974,41 @@ class ProtocolBase(object):
         return cls.to_unicode(value)
 
     def _datetime_from_string(self, cls, string):
-        attrs = cls.Attributes
+        attrs = self.get_cls_attrs(cls)
         format = attrs.format
 
         if format is None:
             retval = self.datetime_from_string_iso(cls, string)
         else:
-            astz = cls.Attributes.as_timezone
+            astz = attrs.as_timezone
 
             retval = datetime.strptime(string, format)
             if astz:
-                retval = retval.astimezone(cls.Attributes.as_time_zone)
+                retval = retval.astimezone(attrs.as_time_zone)
 
         return retval
+
+    def _datetime_to_string(self, cls, value):
+        cls_attrs = self.get_cls_attrs(cls)
+        if cls_attrs.as_timezone is not None and value.tzinfo is not None:
+            value = value.astimezone(cls_attrs.as_timezone)
+        if not cls_attrs.timezone:
+            value = value.replace(tzinfo=None)
+
+        format = cls_attrs.out_format
+        if format is None:
+            format = cls_attrs.format
+
+        if format is None:
+            ret_str = value.isoformat()
+        else:
+            ret_str = value.strftime(format)
+
+        string_format = cls_attrs.string_format
+        if string_format is None:
+            return ret_str
+        else:
+            return string_format % ret_str
 
 _uuid_serialize = {
     None: str,
@@ -1053,28 +1066,6 @@ def _parse_datetime_iso_match(date_match, tz=None):
     return datetime(year, month, day, hour, min, sec, usec, tz)
 
 
-def _datetime_to_string(cls, value):
-    if cls.Attributes.as_timezone is not None and value.tzinfo is not None:
-        value = value.astimezone(cls.Attributes.as_timezone)
-    if not cls.Attributes.timezone:
-        value = value.replace(tzinfo=None)
-
-    format = cls.Attributes.out_format
-    if format is None:
-        format = cls.Attributes.format
-
-    if format is None:
-        ret_str = value.isoformat()
-    else:
-        ret_str = value.strftime(format)
-
-    string_format = cls.Attributes.string_format
-    if string_format is None:
-        return ret_str
-    else:
-        return string_format % ret_str
-
-
 _dt_sec = lambda cls, val: \
         int(mktime(val.timetuple()))
 _dt_sec_float = lambda cls, val: \
@@ -1089,8 +1080,6 @@ _dt_usec = lambda cls, val: \
         int(mktime(val.timetuple())) * 1000000 + val.microsecond
 
 _datetime_smap = {
-    None: _datetime_to_string,
-
     'sec': _dt_sec,
     'secs': _dt_sec,
     'second': _dt_sec,

@@ -139,7 +139,7 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
-from collections import deque, Sized
+from collections import deque
 from collections import defaultdict
 
 from spyne.util import six
@@ -153,6 +153,7 @@ from spyne.model import Fault
 from spyne.model import ComplexModelBase
 from spyne.model import Array
 from spyne.model import SimpleModel
+from spyne.model import Any
 from spyne.model import AnyDict
 from spyne.model import AnyXml
 from spyne.model import AnyHtml
@@ -165,26 +166,7 @@ from spyne.model import Unicode
 
 from spyne.protocol import ProtocolBase
 
-from spyne.interface.xml_schema.parser import hier_repr
-
-def _check_freq_dict(cls, d, fti=None):
-    if fti is None:
-        fti = cls.get_flat_type_info(cls)
-
-    for k, v in fti.items():
-        val = d[k]
-
-        min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
-        if issubclass(v, Array) and v.Attributes.max_occurs == 1:
-            v, = v._type_info.values()
-            min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
-
-        if val < min_o:
-            raise ValidationError("%r.%s" % (cls, k),
-                            '%%s member must occur at least %d times.' % min_o)
-        elif val > max_o:
-            raise ValidationError("%r.%s" % (cls, k),
-                            '%%s member must occur at most %d times.' % max_o)
+from pprint import pformat
 
 
 def _s2cmi(m, nidx):
@@ -293,6 +275,27 @@ class DictDocument(ProtocolBase):
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         raise NotImplementedError()
 
+    def _check_freq_dict(self, cls, d, fti=None):
+        if fti is None:
+            fti = cls.get_flat_type_info(cls)
+
+        for k, v in fti.items():
+            val = d[k]
+
+            attrs = self.get_cls_attrs(v)
+            min_o, max_o = attrs.min_occurs, attrs.max_occurs
+            if issubclass(v, Array) and v.Attributes.max_occurs == 1:
+                v, = v._type_info.values()
+                attrs = self.get_cls_attrs(v)
+                min_o, max_o = attrs.min_occurs, attrs.max_occurs
+
+            if val < min_o:
+                raise ValidationError("%r.%s" % (cls, k),
+                             '%%s member must occur at least %d times.' % min_o)
+            elif val > max_o:
+                raise ValidationError("%r.%s" % (cls, k),
+                             '%%s member must occur at most %d times.' % max_o)
+
 
 class SimpleDictDocument(DictDocument):
     """This protocol contains logic for protocols that serialize and deserialize
@@ -319,7 +322,7 @@ class SimpleDictDocument(DictDocument):
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
         """
 
-        if issubclass(cls, AnyDict):
+        if issubclass(cls, (Any, AnyDict)):
             return doc
 
         if not issubclass(cls, ComplexModelBase):
@@ -343,7 +346,7 @@ class SimpleDictDocument(DictDocument):
 
             member = simple_type_info.get(k, None)
             if member is None:
-                logger.debug("discarding field %r" % k)
+                logger.debug("\tdiscarding field %r" % k)
                 continue
 
             # extract native values from the list of strings in the flat dict
@@ -467,20 +470,25 @@ class SimpleDictDocument(DictDocument):
                 else:
                     _v.extend(value)
 
-                logger.debug("\tset array   %r(%r) = %r" %
-                                                    (member.path, pkey, value))
+                logger.debug("\tset arr %r(%r) = %r" %
+                                                  (member.path, pkey, value))
             else:
                 cinst._safe_set(member.path[-1], value[0], member.type)
-                logger.debug("\tset default %r(%r) = %r" %
-                                                    (member.path, pkey, value))
+                logger.debug("\tset val %r(%r) = %r" %
+                                                  (member.path, pkey, value[0]))
 
         if validator is self.SOFT_VALIDATION:
+            logger.debug("\tvalidate_freq: \n%r", frequencies)
             for k, d in frequencies.items():
                 for path_cls in k[:-1:2]:
-                    if not path_cls.Attributes.validate_freq:
+                    attrs = self.get_cls_attrs(path_cls)
+                    if not attrs.validate_freq:
+                        logger.debug("\t\tskip validate_freq: %r", path_cls)
                         break
                 else:
-                    _check_freq_dict(path_cls, d)
+                    path_cls = k[-2]
+                    logger.debug("\t\tdo validate_freq: %r", path_cls)
+                    self._check_freq_dict(path_cls, d)
 
         return retval
 
@@ -628,7 +636,7 @@ class HierDictDocument(DictDocument):
         if validator is self.SOFT_VALIDATION:
             self.validate(key, cls, inst)
 
-        if issubclass(cls, AnyDict):
+        if issubclass(cls, (Any, AnyDict)):
             return inst
 
         # get native type
@@ -662,6 +670,9 @@ class HierDictDocument(DictDocument):
     def _doc_to_object(self, cls, doc, validator=None):
         if doc is None:
             return []
+
+        if issubclass(cls, Any):
+            return doc
 
         if issubclass(cls, Array):
             retval = []
@@ -714,8 +725,12 @@ class HierDictDocument(DictDocument):
             # Input is not a dict, so we assume it's a sequence that we can pair
             # with the incoming sequence with field names.
             # TODO: cache this
-            items = zip([k for k,v in flat_type_info.items()
-                         if not self.get_cls_attrs(v).exc], doc)
+            try:
+                items = zip([k for k, v in flat_type_info.items()
+                                         if not self.get_cls_attrs(v).exc], doc)
+            except TypeError:
+                logger.error("Invalid document %r for %r", doc, cls)
+                raise
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
@@ -743,8 +758,9 @@ class HierDictDocument(DictDocument):
 
             frequencies[k] += 1
 
-        if validator is self.SOFT_VALIDATION and cls.Attributes.validate_freq:
-            _check_freq_dict(cls, frequencies, flat_type_info)
+        attrs = self.get_cls_attrs(cls)
+        if validator is self.SOFT_VALIDATION and attrs.validate_freq:
+            self._check_freq_dict(cls, frequencies, flat_type_info)
 
         return inst
 
@@ -792,13 +808,13 @@ class HierDictDocument(DictDocument):
                 subinst = None
 
             if subinst is None:
-                subinst = v.Attributes.default
+                subinst = attr.default
 
             val = self._object_to_doc(v, subinst)
-            min_o = v.Attributes.min_occurs
+            min_o = attr.min_occurs
 
             if val is not None or min_o > 0 or self.complex_as is list:
-                sub_name = v.Attributes.sub_name
+                sub_name = attr.sub_name
                 if sub_name is None:
                     sub_name = k
 
@@ -808,7 +824,7 @@ class HierDictDocument(DictDocument):
         if self.polymorphic and self.issubclass(inst.__class__, cls):
             cls = inst.__class__
 
-        if issubclass(cls, AnyDict):
+        if issubclass(cls, (Any, AnyDict)):
             return inst
 
         if issubclass(cls, Array):

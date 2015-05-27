@@ -37,7 +37,7 @@ logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.yaml import YamlDocument
 from spyne import Application, rpc, Mandatory as M, Unicode, UnsignedInteger32, \
-    Array, Iterable, TTableModel, ServiceBase
+    Array, Iterable, TTableModel, ServiceBase, ResourceNotFoundError
 
 from spyne.util import memoize
 

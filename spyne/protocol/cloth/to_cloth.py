@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+# TODO: strip comments without removing e.g. <!--[if lt IE 9]>
+
+
 from __future__ import print_function
 
 import logging
@@ -29,7 +32,7 @@ from inspect import isgenerator
 from spyne.util import Break, coroutine
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
-    PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData
+    PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData, Any
 
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
@@ -58,36 +61,33 @@ def _gen_tagname(ns, name):
 
 
 class ClothParserMixin(object):
+    ID_ATTR_NAME = 'spyne-id'
+    DATA_TAG_NAME = 'spyne-data'
+    ROOT_ATTR_NAME = 'spyne-root'
+    TAGBAG_ATTR_NAME = 'spyne-tagbag'
+
     @classmethod
     def from_xml_cloth(cls, cloth):
         retval = cls()
-        retval._init_cloth(cloth, attr_name='spyne', root_attr_name='spyne',
-                           cloth_parser=etree.XMLParser())
+        retval._init_cloth(cloth, cloth_parser=etree.XMLParser())
         return retval
 
     @classmethod
     def from_html_cloth(cls, cloth):
         retval = cls()
-        retval._init_cloth(cloth, attr_name='spyne', root_attr_name='spyne',
-                           cloth_parser=html.HTMLParser())
+        retval._init_cloth(cloth, cloth_parser=html.HTMLParser())
         return retval
 
     def _parse_file(self, file_name, cloth_parser):
-        if cloth_parser is None:
-            cloth_parser = etree.XMLParser(remove_comments=True)
-
         cloth = etree.parse(file_name, parser=cloth_parser)
         return cloth.getroot()
 
-    def _init_cloth(self, cloth, attr_name, root_attr_name, cloth_parser):
+    def _init_cloth(self, cloth, cloth_parser):
         """Called from XmlCloth.__init__ in order to not break the dunder init
         signature consistency"""
 
         self._cloth = None
         self._root_cloth = None
-
-        self.attr_name = attr_name
-        self.root_attr_name = root_attr_name
 
         self._mrpc_cloth = self._root_cloth = None
         if isinstance(cloth, string_types):
@@ -96,18 +96,19 @@ class ClothParserMixin(object):
         if cloth is None:
             return
 
-        q = "//*[@%s]" % self.root_attr_name
+        q = "//*[@%s]" % self.ROOT_ATTR_NAME
         elts = cloth.xpath(q)
         if len(elts) > 0:
-            logger.debug("Using cloth as root.")
+            logger.debug("Using %r as root cloth.", cloth)
             self._root_cloth = elts[0]
         else:
+            logger.debug("Using %r as plain cloth.", cloth)
             self._cloth = cloth
 
         self._mrpc_cloth = self._pop_elt(cloth, 'mrpc_entry')
 
     def _pop_elt(self, elt, what):
-        query = '//*[@%s="%s"]' % (self.attr_name, what)
+        query = '//*[@%s="%s"]' % (self.ID_ATTR_NAME, what)
         retval = elt.xpath(query)
         if len(retval) > 1:
             raise ValueError("more than one element found for query %r" % query)
@@ -130,6 +131,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         self.rendering_handlers = cdict({
             ModelBase: self.model_base_to_cloth,
             AnyXml: self.xml_to_cloth,
+            Any: self.any_to_cloth,
             AnyHtml: self.html_to_cloth,
             AnyUri: self.anyuri_to_cloth,
             ComplexModelBase: self.complex_to_cloth,
@@ -137,8 +139,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
     def _get_elts(self, elt, tag_id=None):
         if tag_id is None:
-            return elt.xpath('.//*[@%s]' % self.attr_name)
-        return elt.xpath('.//*[@%s="%s"]' % (self.attr_name, tag_id))
+            return elt.xpath('.//*[@%s]' % self.ID_ATTR_NAME)
+        return elt.xpath('.//*[@%s="%s"]' % (self.ID_ATTR_NAME, tag_id))
 
     def _get_outmost_elts(self, tmpl, tag_id=None):
         ids = set()
@@ -155,14 +157,14 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                 yield elt
 
     def _get_clean_elt(self, elt, what):
-        query = '//*[@%s="%s"]' % (self.attr_name, what)
+        query = '//*[@%s="%s"]' % (self.ID_ATTR_NAME, what)
         retval = elt.xpath(query)
         if len(retval) > 1:
             raise ValueError("more than one element found for query %r" % query)
 
         elif len(retval) == 1:
             retval = retval[0]
-            del retval.attrib[self.attr_name]
+            del retval.attrib[self.ID_ATTR_NAME]
             return retval
 
     def _get_elts_by_id(self, elt, what):
@@ -287,7 +289,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             logger.debug("\twrite cloth prevsibl %s %r", elt.tag, elt.attrib)
             parent.write(elt)
 
-        skip = skip or (cloth.tag == "spynedata")
+        skip = skip or (cloth.tag == self.DATA_TAG_NAME)
 
         if skip:
             tags.add(id(cloth))
@@ -296,7 +298,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         else:
             # finally, enter the target node.
             attrib = dict([(k, v) for k, v in cloth.attrib.items()
-                           if not (k in (self.attr_name, self.root_attr_name))])
+                        if not (k in (self.ID_ATTR_NAME, self.ROOT_ATTR_NAME))])
 
             attrib.update(attrs)
 
@@ -431,11 +433,19 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             inst = etree.fromstring(inst)
         parent.write(inst)
 
+    def any_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+        self._enter_cloth(ctx, cloth, parent)
+        parent.write(inst)
+
     def html_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         self._enter_cloth(ctx, cloth, parent)
         if isinstance(inst, string_types):
             inst = html.fromstring(inst)
         parent.write(inst)
+
+    def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
+        self._enter_cloth(ctx, cloth, parent)
+        self.anyuri_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     @coroutine
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
@@ -466,7 +476,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             self._actions_to_cloth(ctx, cls, inst, elt)
 
         for i, elt in enumerate(self._get_outmost_elts(cloth)):
-            k = elt.attrib[self.attr_name]
+            k = elt.attrib[self.ID_ATTR_NAME]
             v = fti.get(k, None)
 
             if v is None:
@@ -529,9 +539,3 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                             ret.throw(e)
                         except StopIteration:
                             pass
-
-    def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
-        self._enter_cloth(ctx, cloth, parent)
-        if len(cloth) == 0:
-            return self.anyuri_to_parent(ctx, cls, inst, parent, name, **kwargs)
-        raise NotImplementedError("anyuri_to_cloth")

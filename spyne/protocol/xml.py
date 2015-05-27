@@ -60,6 +60,7 @@ from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap11_env
 from spyne.const.xml_ns import const_prefmap, DEFAULT_NS
 
+from spyne.model import Any
 from spyne.model import ModelBase
 from spyne.model import Array
 from spyne.model import Iterable
@@ -73,7 +74,7 @@ from spyne.model import File
 from spyne.model import ByteArray
 from spyne.model import XmlData
 from spyne.model import XmlAttribute
-from spyne.model.binary import Attachment # deprecated
+from spyne.model.binary import Attachment  # deprecated
 from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.enum import EnumBase
 
@@ -240,6 +241,7 @@ class XmlDocument(SubXmlBase):
 
         self.serialization_handlers = cdict({
             AnyXml: self.xml_to_parent,
+            Any: self.xml_to_parent,
             Fault: self.fault_to_parent,
             AnyDict: self.dict_to_parent,
             AnyHtml: self.html_to_parent,
@@ -256,6 +258,7 @@ class XmlDocument(SubXmlBase):
         self.deserialization_handlers = cdict({
             AnyHtml: self.html_from_element,
             AnyXml: self.xml_from_element,
+            Any: self.xml_from_element,
             Array: self.array_from_element,
             Fault: self.fault_from_element,
             AnyDict: self.dict_from_element,
@@ -782,6 +785,9 @@ class XmlDocument(SubXmlBase):
         if isinstance(inst, str) or isinstance(inst, unicode):
             inst = etree.fromstring(inst)
 
+        _append(parent, E(_gen_tagname(ns, name), inst))
+
+    def any_to_parent(self, ctx, cls, inst, parent, ns, name):
         _append(parent, E(_gen_tagname(ns, name), inst))
 
     def html_to_parent(self, ctx, cls, inst, parent, ns, name):
