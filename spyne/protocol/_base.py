@@ -242,19 +242,39 @@ class ProtocolBase(object):
         }
 
     def _datetime_from_sec(self, cls, value):
-        return datetime.fromtimestamp(value)
+        try:
+            return datetime.fromtimestamp(value)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     def _datetime_from_sec_float(self, cls, value):
-        return datetime.fromtimestamp(value)
+        try:
+            return datetime.fromtimestamp(value)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     def _datetime_from_msec(self, cls, value):
-        return datetime.fromtimestamp(value // 1000)
+        try:
+            return datetime.fromtimestamp(value // 1000)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     def _datetime_from_msec_float(self, cls, value):
-        return datetime.fromtimestamp(value / 1000)
+        try:
+            return datetime.fromtimestamp(value / 1000)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     def _datetime_from_usec(self, cls, value):
-        return datetime.fromtimestamp(value / 1e6)
+        try:
+            return datetime.fromtimestamp(value / 1e6)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     @property
     def app(self):
