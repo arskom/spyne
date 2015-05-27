@@ -29,12 +29,11 @@ from lxml.html.builder import E
 
 from spyne import ModelBase, ByteArray, ComplexModelBase, Array, AnyUri, \
     ImageUri
-from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
-from spyne.util.six.moves.urllib.parse import urlencode, quote
-
 from spyne.util import coroutine, Break
+from spyne.util.oset import oset
 from spyne.util.cdict import cdict
+from spyne.util.six.moves.urllib.parse import urlencode, quote
 
 
 class HtmlTableBase(HtmlBase):
@@ -58,6 +57,7 @@ class HtmlTableBase(HtmlBase):
         self.cell_class = cell_class
         self.header_cell_class = header_cell_class
         self.link_gen = link_gen
+        self.table_class = table_class
 
         if self.cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'cell_class' should be None or "
@@ -91,6 +91,9 @@ class HtmlColumnTable(HtmlTableBase):
         response name of the complex object in the table tag. Set to None to
         disable.
     :param table_name: When not none, overrides what goes in `table_name_attr`.
+    :param table_class: When not none, specifies what goes in `class` attribute
+        in the `<table>` tag. Table name gets appended when
+        `table_name_attr == 'class'`
     :param field_name_attr: The name of the attribute that will contain the
         field names of the complex object children for every table cell. Set
         to None to disable.
@@ -256,9 +259,20 @@ class HtmlColumnTable(HtmlTableBase):
         logger.debug("Generate table for %r", cls)
 
         attrib = {}
+        table_class = oset()
+        if self.table_class is not None:
+            table_class.add(self.table_class)
+
         if self.table_name_attr is not None:
-            attrib[self.table_name_attr] = (self.table_name
+            tn = (self.table_name
                         if self.table_name is not None else cls.get_type_name())
+
+            if self.table_name_attr == 'class':
+                table_class.add(tn)
+            else:
+                attrib[self.table_name_attr] = tn
+
+        attrib['class'] = ' '.join(table_class)
 
         self.event_manager.fire_event('before_table', ctx, cls, inst, parent,
                                                                  name, **kwargs)
@@ -326,6 +340,9 @@ class HtmlRowTable(HtmlTableBase):
         response name of the complex object in the table tag. Set to None to
         disable.
     :param table_name: When not none, overrides what goes in `table_name_attr`.
+    :param table_class: When not none, specifies what goes in `class` attribute
+        in the `<table>` tag. Table name gets appended when
+        `table_name_attr == 'class'`
     :param field_name_attr: The name of the attribute that will contain the
         field names of the complex object children for every table cell. Set
         to None to disable.
@@ -342,7 +359,6 @@ class HtmlRowTable(HtmlTableBase):
             AnyUri: self.anyuri_to_parent,
             ImageUri: self.imageuri_to_parent,
             ByteArray: self.not_supported,
-            Attachment: self.not_supported,
             ComplexModelBase: self.complex_model_to_parent,
             Array: self.array_to_parent,
         })
