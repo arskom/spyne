@@ -30,6 +30,7 @@ from copy import deepcopy
 from inspect import isgenerator
 
 from spyne.util import Break, coroutine
+from spyne.util.oset import oset
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
     PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData, Any
@@ -220,19 +221,37 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             self.write_doctype(ctx, parent, cloth)
 
         tags = ctx.protocol.tags
+        rootstack = ctx.protocol.rootstack
+        assert isinstance(rootstack, oset)
+
         eltstack = ctx.protocol.eltstack
         ctxstack = ctx.protocol.ctxstack
-        ancestors = _revancestors(cloth)
+
+        cureltstack = eltstack[rootstack.back]
+        curctxstack = ctxstack[rootstack.back]
+
+        cloth_root = cloth.getroottree().getroot()
+        if not cloth_root in rootstack:
+            rootstack.add(cloth_root)
+            cureltstack = eltstack[rootstack.back]
+            curctxstack = ctxstack[rootstack.back]
+
+            assert rootstack.back == cloth_root
+
+        while rootstack.back != cloth_root:
+            self._close_cloth(ctx, parent)
 
         last_elt = None
-        if len(eltstack) > 0:
-            last_elt = eltstack[-1]
+        if len(cureltstack) > 0:
+            last_elt = cureltstack[-1]
+
+        ancestors = _revancestors(cloth)
 
         # move up in tag stack until the ancestors of both
         # source and target tags match
-        while ancestors[:len(eltstack)] != eltstack:
-            elt = eltstack.pop()
-            elt_ctx = ctxstack.pop()
+        while ancestors[:len(cureltstack)] != cureltstack:
+            elt = cureltstack.pop()
+            elt_ctx = curctxstack.pop()
 
             last_elt = elt
             if elt_ctx is not None:
@@ -244,7 +263,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
             # unless we're at the same level as the relevant ancestor of the
             # target node
-            if ancestors[:len(eltstack)] != eltstack:
+            if ancestors[:len(cureltstack)] != cureltstack:
                 # write following siblings before closing parent node
                 for sibl in elt.itersiblings(preceding=False):
                     logger.debug("\twrite exit sibl %s %r %d",
@@ -252,7 +271,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                     parent.write(sibl)
 
         # write remaining ancestors of the target node.
-        for anc in ancestors[len(eltstack):]:
+        for anc in ancestors[len(cureltstack):]:
             # write previous siblings of ancestors (if any)
             prevsibls = _prevsibls(anc, since=last_elt)
             for elt in prevsibls:
@@ -265,7 +284,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                 parent.write(elt)
 
             # enter the ancestor node
-            if len(eltstack) == 0:
+            if len(cureltstack) == 0:
                 # if this is the first node ever, initialize namespaces as well
                 anc_ctx = parent.element(anc.tag, anc.attrib, nsmap=anc.nsmap)
             else:
@@ -274,8 +293,12 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             logger.debug("\tenter norm %s %r %d", anc.tag, anc.attrib, id(anc))
             if anc.text is not None:
                 parent.write(anc.text)
-            eltstack.append(anc)
-            ctxstack.append(anc_ctx)
+
+            rootstack.add(anc.getroottree().getroot())
+            cureltstack = eltstack[rootstack.back]
+            curctxstack = ctxstack[rootstack.back]
+            cureltstack.append(anc)
+            curctxstack.append(anc_ctx)
 
         # now that at the same level as the target node,
         # write its previous siblings
@@ -305,7 +328,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             self.event_manager.fire_event(("before_entry", cloth), ctx,
                                                                  parent, attrib)
 
-            if len(eltstack) == 0:
+            if len(cureltstack) == 0:
                 curtag = parent.element(cloth.tag, attrib, nsmap=cloth.nsmap)
             else:
                 curtag = parent.element(cloth.tag, attrib)
@@ -313,14 +336,21 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             if cloth.text is not None:
                 parent.write(cloth.text)
 
-        eltstack.append(cloth)
-        ctxstack.append(curtag)
+        rootstack.add(cloth.getroottree().getroot())
+        cureltstack = eltstack[rootstack.back]
+        curctxstack = ctxstack[rootstack.back]
+
+        cureltstack.append(cloth)
+        curctxstack.append(curtag)
 
         logger.debug("")
 
     def _close_cloth(self, ctx, parent):
-        for elt, elt_ctx in reversed(tuple(zip(ctx.protocol.eltstack,
-                                                       ctx.protocol.ctxstack))):
+        rootstack = ctx.protocol.rootstack
+        cureltstack = ctx.protocol.eltstack[rootstack.back]
+        curctxstack = ctx.protocol.ctxstack[rootstack.back]
+
+        for elt, elt_ctx in reversed(tuple(zip(cureltstack, curctxstack))):
             cu = ctx.protocol[self].close_until
             if elt is cu:
                 logger.debug("closed until %r, breaking out", cu)
@@ -339,6 +369,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                 parent.write(sibl)
                 if sibl.tail is not None:
                     parent.write(sibl.tail)
+
+        rootstack.pop()
 
     @coroutine
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
@@ -372,8 +404,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         if len(ctx.protocol.eltstack) > 0:
             ctx.protocol[self].close_until = ctx.protocol.eltstack[-1]
 
-        else:
-            self._enter_cloth(ctx, cloth, parent)
+        self._enter_cloth(ctx, cloth, parent)
 
         ret = self.start_to_parent(ctx, cls, inst, parent, name)
         if isgenerator(ret):

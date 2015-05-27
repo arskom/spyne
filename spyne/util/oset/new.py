@@ -62,13 +62,13 @@ class oset(collections.MutableSet):
         return '%s(%r)' % (self.__class__.__name__, list(self))
 
     def __eq__(self, other):
-        if isinstance(other, OrderedSet):
+        if isinstance(other, oset):
             return len(self) == len(other) and list(self) == list(other)
         return set(self) == set(other)
 
-    def __del__(self):
-        self.clear()                    # remove circular references
-
+    @property
+    def back(self):
+        return self.end[1][0]
 
 if __name__ == '__main__':
     print((oset('abracadabra')))
@@ -78,3 +78,12 @@ if __name__ == '__main__':
     stuff.add(1)
     print(stuff)
     print((oset('simsalabim')))
+    o = oset('abcde')
+    print(o)
+    print(o.end)
+
+    o = oset()
+    print(o.back)
+
+    o = oset([3])
+    print(o.back)

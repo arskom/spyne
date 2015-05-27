@@ -20,11 +20,14 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from collections import defaultdict
+
 from lxml import etree, html
 
 from spyne.protocol.cloth import XmlCloth
 from spyne.protocol.cloth._base import XmlClothProtocolContext
 from spyne.util import memoize_id_method
+from spyne.util.oset import oset
 
 
 class HtmlClothProtocolContext(XmlClothProtocolContext):
@@ -32,8 +35,9 @@ class HtmlClothProtocolContext(XmlClothProtocolContext):
         super(HtmlClothProtocolContext, self).__init__(parent, transport, type)
 
         self.assets = []
-        self.eltstack = []
-        self.ctxstack = []
+        self.eltstack = defaultdict(list)
+        self.ctxstack = defaultdict(list)
+        self.rootstack = oset()
         self.tags = set()
 
 
