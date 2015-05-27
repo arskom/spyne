@@ -79,6 +79,9 @@ class ToParentMixin(ProtocolBase):
 
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+    def to_subprot(self, ctx, cls, inst, parent, name, subprot, **kwargs):
+        return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
+
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         # if polymorphic, rather use incoming class
         if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
@@ -88,7 +91,8 @@ class ToParentMixin(ProtocolBase):
         # if there's a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self) and not nosubprot:
-            return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
+            return self.to_subprot(ctx, cls, inst, parent, name, subprot,
+                                                                       **kwargs)
 
         # if there's a class cloth, switch to it
         ret, cor_handle = self.check_class_cloths(ctx, cls, inst, parent, name,
