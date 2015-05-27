@@ -46,9 +46,9 @@ except ImportError:
     html = None
 
 from spyne import EventManager, ProtocolContext
-from spyne import ModelBase, XmlAttribute, Array, SimpleModel, Null, ByteArray, \
-    File, ComplexModelBase, AnyXml, AnyHtml, Unicode, String, Decimal, Double, \
-    Integer, Time, DateTime, Uuid, Date, Duration, Boolean
+from spyne.model import ModelBase, XmlAttribute, Array, SimpleModel, Null, \
+    ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, String, \
+    Decimal, Double, Integer, Time, DateTime, Uuid, Date, Duration, Boolean
 
 from spyne.const.http import HTTP_400, HTTP_401, HTTP_404, HTTP_405, HTTP_413, \
     HTTP_500
