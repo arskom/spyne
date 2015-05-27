@@ -34,6 +34,12 @@ except ImportError as e:
     def YamlDocument(*args, **kwargs):
         raise e
 
+try:
+    from spyne.protocol.msgpack import MessagePackDocument
+except ImportError as e:
+    def MessagePackDocument(*args, **kwargs):
+        raise e
+
 
 from spyne.model.primitive import Double
 from spyne.model.primitive import Boolean
@@ -108,6 +114,18 @@ def get_object_as_yaml(o, cls=None, ignore_wrappers=False, complex_as=dict,
 
     prot = YamlDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
                                                         polymorphic=polymorphic)
+    ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
+    prot.create_out_string(ctx, encoding)
+    return ''.join(ctx.out_string)
+
+
+def get_object_as_msgpack(o, cls=None, ignore_wrappers=False, complex_as=dict,
+                                            encoding='utf8', polymorphic=False):
+    if cls is None:
+        cls = o.__class__
+
+    prot = MessagePackDocument(ignore_wrappers=ignore_wrappers,
+                                 complex_as=complex_as, polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
     prot.create_out_string(ctx, encoding)
     return ''.join(ctx.out_string)
