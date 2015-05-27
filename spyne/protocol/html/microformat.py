@@ -36,8 +36,7 @@ from spyne.util.cdict import cdict
 
 class HtmlMicroFormat(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=False,
-                       cloth=None, attr_name='spyne_id', root_attr_name='spyne',
-                                            cloth_parser=None, polymorphic=True,
+                              cloth=None, cloth_parser=None, polymorphic=True,
                     root_tag='div', child_tag='div', field_name_attr='class',
                     field_name_tag=None, field_name_class='field_name'):
         """Protocol that returns the response object according to the "html
@@ -57,9 +56,9 @@ class HtmlMicroFormat(HtmlBase):
         """
 
         super(HtmlMicroFormat, self).__init__(app=app,
-            ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
-            cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
-            cloth_parser=cloth_parser, polymorphic=polymorphic, hier_delim=None)
+                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
+                cloth=cloth, cloth_parser=cloth_parser, polymorphic=polymorphic,
+                                                                hier_delim=None)
 
         assert root_tag in ('div', 'span')
         assert child_tag in ('div', 'span')

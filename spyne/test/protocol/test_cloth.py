@@ -82,6 +82,7 @@ class TestXmlCloth(unittest.TestCase):
             assert spid is None
 
         with etree.xmlfile(self.stream) as parent:
+            XmlCloth.ID_ATTR_NAME = 'spyne_id'
             XmlCloth(cloth=cloth).subserialize(self.ctx, cls, inst, parent)
         elt = etree.fromstring(self.stream.getvalue())
         print(etree.tostring(elt, pretty_print=True))
