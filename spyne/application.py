@@ -275,6 +275,8 @@ class Application(object):
         return self.interface._has_callbacks()
 
     def reinitialize(self, server):
+        """This is normally called on transport instantiation by ServerBase"""
+
         seen = set()
 
         from spyne import MethodDescriptor
