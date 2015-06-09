@@ -50,6 +50,7 @@ from sqlalchemy.orm.util import class_mapper
 from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.ext.associationproxy import association_proxy
 
+from spyne.store.relational.simple import PGLTree
 from spyne.store.relational.document import PGXml, PGObjectXml, PGObjectJson, \
     PGFileJson
 from spyne.store.relational.document import PGHtml
@@ -73,7 +74,7 @@ from spyne.model import SimpleModel, AnyDict, Enum, ByteArray, Array, \
     Double, Decimal, String, Unicode, Boolean, Integer, Integer8, Integer16, \
     Integer32, Integer64, Point, Line, Polygon, MultiPoint, MultiLine, \
     MultiPolygon, UnsignedInteger, UnsignedInteger8, UnsignedInteger16, \
-    UnsignedInteger32, UnsignedInteger64, File
+    UnsignedInteger32, UnsignedInteger64, File, Ltree
 
 from spyne.util import sanitize_args
 
@@ -112,7 +113,8 @@ _sq2sp_type_map = {
     sqlalchemy.Date: Date,
     sqlalchemy.Time: Time,
 
-    PGUuid: Uuid
+    PGUuid: Uuid,
+    PGLTree: Ltree,
 }
 
 
@@ -130,6 +132,10 @@ def _get_sqlalchemy_type(cls):
     db_type = cls.Attributes.db_type
     if db_type is not None:
         return db_type
+
+    # must be above Unicode, because Uuid is Unicode's subclass
+    elif issubclass(cls, Ltree):
+        return PGLTree
 
     # must be above Unicode, because Uuid is Unicode's subclass
     if issubclass(cls, Uuid):

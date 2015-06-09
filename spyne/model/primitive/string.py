@@ -31,6 +31,11 @@ from spyne.model.primitive._base import re_match_with_span
 UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
                                                             {'x': '[a-fA-F0-9]'}
 
+LTREE_PATTERN = u"\W+(\\.\W+)*"
+
+# Actual ltree max size is 65536 but it's advised to keep it under 2048.
+LTREE_OPTIMAL_SIZE = 2048
+
 
 class Unicode(SimpleModel):
     """The type to represent human-readable data. Its native format is `unicode`
@@ -191,6 +196,15 @@ class Uuid(Unicode(pattern=UUID_PATTERN)):
     @staticmethod
     def validate_native(cls, value):
         return SimpleModel.validate_native(cls, value)
+
+
+class Ltree(Unicode(LTREE_OPTIMAL_SIZE, unicode_pattern=LTREE_PATTERN)):
+    """A special kind of String type designed to hold the Ltree type from
+    Postgresql."""
+
+    __namespace__ = 'http://spyne.io/schema'
+    __type_name__ = 'ltreeString'
+
 
 if six.PY3:
     NATIVE_MAP.update({
