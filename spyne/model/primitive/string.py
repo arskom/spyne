@@ -19,11 +19,17 @@
 
 import sys
 import decimal
+import uuid
 
-from spyne.model._base import SimpleModel
 from spyne.model.primitive import NATIVE_MAP
-from spyne.model.primitive._base import re_match_with_span
 from spyne.util import six
+from spyne.model._base import SimpleModel
+from spyne.model.primitive._base import re_match_with_span
+
+
+
+UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
+                                                            {'x': '[a-fA-F0-9]'}
 
 
 class Unicode(SimpleModel):
@@ -51,7 +57,7 @@ class Unicode(SimpleModel):
         info: http://www.regular-expressions.info/xml.html"""
 
         unicode_pattern = None
-        """Same as ``pattern``, but, will be compiled with UNICODE.
+        """Same as ``pattern``, but, will be compiled with ``re.UNICODE``.
         See: https://docs.python.org/2/library/re.html#re.UNICODE"""
 
         encoding = None
@@ -130,6 +136,61 @@ class AnyUri(Unicode):
             self.text = text
             self.content = content
 
+
+class ImageUri(AnyUri):
+    """A special kind of String that holds the uri of an image."""
+
+
+def _uuid_validate_string(cls, value):
+    return (     SimpleModel.validate_string(cls, value)
+        and (value is None or (
+            cls.Attributes.min_len <= len(value) <= cls.Attributes.max_len
+            and re_match_with_span(cls.Attributes, value)
+        )))
+
+
+def _Tuuid_validate(key):
+    from uuid import UUID
+
+    def _uvalid(cls, v):
+        try:
+            UUID(**{key:v})
+        except ValueError:
+            return False
+        return True
+    return _uvalid
+
+
+_uuid_validate = {
+    None: _uuid_validate_string,
+    'hex': _Tuuid_validate('hex'),
+    'urn': _Tuuid_validate('urn'),
+    six.binary_type: _Tuuid_validate('bytes'),
+    'bytes': _Tuuid_validate('bytes'),
+    'bytes_le': _Tuuid_validate('bytes_le'),
+    'fields': _Tuuid_validate('fields'),
+    int: _Tuuid_validate('int'),
+    'int': _Tuuid_validate('int'),
+}
+
+
+class Uuid(Unicode(pattern=UUID_PATTERN)):
+    """Unicode subclass for Universially-Unique Identifiers."""
+
+    __namespace__ = 'http://spyne.io/schema'
+    __type_name__ = 'uuid'
+    Value = uuid.UUID
+
+    class Attributes(Unicode(pattern=UUID_PATTERN).Attributes):
+        serialize_as = None
+
+    @staticmethod
+    def validate_string(cls, value):
+        return _uuid_validate[cls.Attributes.serialize_as](cls, value)
+
+    @staticmethod
+    def validate_native(cls, value):
+        return SimpleModel.validate_native(cls, value)
 
 if six.PY3:
     NATIVE_MAP.update({

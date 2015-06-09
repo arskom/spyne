@@ -29,9 +29,8 @@ from spyne.model.primitive._base import Boolean
 from spyne.model.primitive.string import Unicode
 from spyne.model.primitive.string import String
 from spyne.model.primitive.string import AnyUri
-
-from spyne.model.primitive.misc import Uuid
-from spyne.model.primitive.misc import ImageUri
+from spyne.model.primitive.string import Uuid
+from spyne.model.primitive.string import ImageUri
 
 from spyne.model.primitive.xml import ID
 from spyne.model.primitive.xml import Token
