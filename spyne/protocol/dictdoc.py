@@ -821,7 +821,8 @@ class HierDictDocument(DictDocument):
                 yield (sub_name, val)
 
     def _to_dict_value(self, cls, inst):
-        if self.polymorphic and self.issubclass(inst.__class__, cls):
+        if self.polymorphic and inst.__class__ is not cls and \
+                                           self.issubclass(inst.__class__, cls):
             logger.debug("Polymorhphic switch %r => %r", cls, inst.__class__)
             cls = inst.__class__
 
