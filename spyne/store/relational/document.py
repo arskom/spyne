@@ -24,7 +24,7 @@ import os
 import json
 import shutil
 
-from mmap import mmap
+from mmap import mmap, ACCESS_READ
 
 import sqlalchemy.dialects
 
@@ -292,7 +292,7 @@ class PGFileJson(PGObjectJson):
                 if ret:
                     h = retval.handle = SeekableFileProxy(open(path, 'rb'))
                     if os.fstat(retval.handle.fileno()).st_size > 0:
-                        h.mmap = mmap(h.fileno(), 0, access=mmap.ACCESS_READ)
+                        h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
                         retval.data = [h.mmap]
                         # FIXME: Where do we close this mmap?
                     else:
