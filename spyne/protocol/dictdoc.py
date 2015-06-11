@@ -480,14 +480,14 @@ class SimpleDictDocument(DictDocument):
         if validator is self.SOFT_VALIDATION:
             logger.debug("\tvalidate_freq: \n%r", frequencies)
             for k, d in frequencies.items():
-                for path_cls in k[:-1:2]:
+                for i, path_cls in enumerate(k[:-1:2]):
                     attrs = self.get_cls_attrs(path_cls)
                     if not attrs.validate_freq:
-                        logger.debug("\t\tskip validate_freq: %r", path_cls)
+                        logger.debug("\t\tskip validate_freq: %r", k[:i*2])
                         break
                 else:
                     path_cls = k[-2]
-                    logger.debug("\t\tdo validate_freq: %r", path_cls)
+                    logger.debug("\t\tdo validate_freq: %r", k)
                     self._check_freq_dict(path_cls, d)
 
         return retval
