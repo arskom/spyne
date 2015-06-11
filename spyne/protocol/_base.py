@@ -957,13 +957,13 @@ class ProtocolBase(object):
     def attachment_from_string(self, cls, value):
         return Attachment(data=value)
 
-    def complex_model_base_to_string(self, cls, value):
+    def complex_model_base_to_string(self, cls, value, **kwargs):
         raise TypeError("Only primitives can be serialized to string.")
 
-    def complex_model_base_from_string(self, cls, string):
+    def complex_model_base_from_string(self, cls, string, **kwargs):
         raise TypeError("Only primitives can be deserialized from string.")
 
-    def array_from_string(self, cls, string):
+    def array_from_string(self, cls, string, **kwargs):
         if self.get_cls_attrs(cls).serialize_as != 'sd-list':
             raise TypeError("Only primitives can be deserialized from string.")
 
