@@ -303,19 +303,18 @@ class ModelBase(object):
         * If the value is a string, the value will denote the indexing method
           used by the database. See: http://www.postgresql.org/docs/9.2/static/indexes-types.html
 
-        * If the vale is a tuple of two strings, the first value will denote the
-          index name and the second value will denote the indexing method as
+        * If the value is a tuple of two strings, the first value will denote
+          the index name and the second value will denote the indexing method as
           above.
         """
 
-        read_only= False
+        read_only = False
         """If True, the attribute won't be initialized from outside values."""
 
         prot_attrs = None
-        """to be implemented."""
-        #"""Customize child attributes for protocols. It's a dict of dicts.
-        #The key is either a ProtocolBase subclass or a ProtocolBase instance.
-        #Instances override classes."""
+        """Customize child attributes for protocols. It's a dict of dicts.
+        The key is either a ProtocolBase subclass or a ProtocolBase instance.
+        Instances override classes."""
 
         pa = None
         """Alias for prot_attrs."""
