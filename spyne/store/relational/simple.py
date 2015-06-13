@@ -22,7 +22,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.dialects.postgresql.base import PGUuid
 from sqlalchemy.dialects.postgresql.base import ischema_names, PGTypeCompiler, ARRAY
 from sqlalchemy.sql.sqltypes import Concatenable
-from sqlalchemy.sql.type_api import TypeEngine, UserDefinedType
+from sqlalchemy.sql.type_api import UserDefinedType
 
 
 @compiles(PGUuid, "sqlite")

@@ -27,7 +27,6 @@ from spyne.model._base import SimpleModel
 from spyne.model.primitive._base import re_match_with_span
 
 
-
 UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
                                                             {'x': '[a-fA-F0-9]'}
 
