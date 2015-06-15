@@ -148,6 +148,7 @@ class ProtocolBase(object):
         self.ignore_wrappers = ignore_wrappers
         self.message = None
         self.binary_encoding = binary_encoding
+
         if self.binary_encoding is None:
             self.binary_encoding = self.default_binary_encoding
 
