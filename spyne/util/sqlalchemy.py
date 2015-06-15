@@ -31,7 +31,11 @@ import os
 import shutil
 import sqlalchemy
 
-from mmap import mmap, ACCESS_READ
+try:
+    from mmap import mmap, ACCESS_READ
+except ImportError:
+    ACCESS_READ = None
+    mmap = None
 from spyne.util.six import string_types
 from spyne.util.fileproxy import SeekableFileProxy
 
@@ -400,6 +404,7 @@ class PGFileJson(PGObjectJson):
                         raise ValidationError(value.path, "Path %r contains "
                                           "relative path operators (e.g. '..')")
 
+                    assert mmap is not None, "Mmap is not supported"
                     data = mmap(value.handle.fileno(), 0)  # 0 = whole file
                     with open(fp, 'wb') as out_file:
                         out_file.write(data)
@@ -459,6 +464,7 @@ class PGFileJson(PGObjectJson):
                 if ret:
                     h = retval.handle = SeekableFileProxy(open(path, 'rb'))
                     if fstat(retval.handle.fileno()).st_size > 0:
+                        assert mmap is not None, "Mmap is not supported"
                         h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
                         retval.data = [h.mmap]
                         # FIXME: Where do we close this mmap?

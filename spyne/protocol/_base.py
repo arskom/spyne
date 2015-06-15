@@ -34,7 +34,11 @@ from datetime import timedelta, time, datetime, date
 from math import modf
 from decimal import Decimal as D, InvalidOperation
 from pytz import FixedOffset
-from mmap import mmap, ACCESS_READ
+try:
+    from mmap import mmap, ACCESS_READ
+except ImportError:
+    ACCESS_READ = None
+    mmap = None
 from time import strptime, mktime
 from weakref import WeakKeyDictionary
 
@@ -854,6 +858,7 @@ class ProtocolBase(object):
                 assert isinstance(value.handle, file)
 
                 fileno = value.handle.fileno()
+                assert mmap is not None, "Mmap is not supported"
                 data = mmap(fileno, 0, access=ACCESS_READ)
 
                 return binary_encoding_handlers[encoding](data)
@@ -881,6 +886,7 @@ class ProtocolBase(object):
 
     def file_to_string_iterable(self, cls, value):
         if value.data is not None:
+            assert mmap is not None, "Mmap is not supported"
             if isinstance(value.data, (list, tuple)) and \
                     isinstance(value.data[0], mmap):
                 return _file_to_iter(value.data[0])

@@ -203,33 +203,60 @@ class XmlSchema(InterfaceDocumentBase):
         self.build_schema_nodes(with_schema_location=True)
 
         pref_tns = self.interface.get_namespace_prefix(self.interface.tns)
-        tmp_dir_name = tempfile.mkdtemp(prefix='spyne')
-        logger.debug("generating schema for targetNamespace=%r, prefix: "
-                  "%r in dir %r" % (self.interface.tns, pref_tns, tmp_dir_name))
+        try:
+            tmp_dir_name = tempfile.mkdtemp(prefix='spyne')
+            logger.debug("generating schema for targetNamespace=%r, prefix: "
+                     "%r in dir %r" % (self.interface.tns, pref_tns,
+                                       tmp_dir_name))
+        except NotImplementedError:
+            # appengine does not support mkdtemp, using memcache
+            tmp_dir_name = False
+            from google.appengine.api import memcache
 
         try:
             # serialize nodes to files
             for k, v in self.schema_dict.items():
-                file_name = '%s/%s.xsd' % (tmp_dir_name, k)
-                with open(file_name, 'wb') as f:
-                    etree.ElementTree(v).write(f, pretty_print=True)
+                file_name = '%s/%s.xsd' % (tmp_dir_name if tmp_dir_name else
+                                           'spyne', k)
+
+                if not tmp_dir_name and memcache.get(file_name) is not None:
+                    # already in memcache, skip
+                    continue
+
+                f = open(file_name, 'wb') if tmp_dir_name else\
+                    tempfile.TemporaryFile()
+                etree.ElementTree(v).write(f, pretty_print=True)
+
+                if not tmp_dir_name:
+                    # add to memcache with timeout of one hour
+                    memcache.add(key=file_name, value=f.getvalue(), time=3600)
+
+                f.close()
 
                 logger.debug("writing %r for ns %s" %
                              (file_name, self.interface.nsmap[k]))
 
-            with open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r') as f:
-                try:
-                    self.validation_schema = etree.XMLSchema(etree.parse(f))
-
-                except Exception:
+            try:
+                f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r') if \
+                    tmp_dir_name else tempfile.TemporaryFile()
+                if not tmp_dir_name:
+                    # get from memcache
+                    text = memcache.get('%s/%s.xsd' % ('spyne', pref_tns))
+                    f.write(text)
                     f.seek(0)
-                    logger.error("This is a Spyne error. Please seek support "
-                                 "with a minimal test case that reproduces "
-                                 "this error.")
-                    raise
+                self.validation_schema = etree.XMLSchema(etree.parse(f))
+            except Exception:
+                f.seek(0)
+                logger.error("This is a Spyne error. Please seek support "
+                             "with a minimal test case that reproduces "
+                             "this error.")
+                raise
+            finally:
+                f.close()
 
-            shutil.rmtree(tmp_dir_name)
-            logger.debug("Schema built. Removed %r" % tmp_dir_name)
+            if tmp_dir_name:
+                shutil.rmtree(tmp_dir_name)
+                logger.debug("Schema built. Removed %r" % tmp_dir_name)
 
         except Exception as e:
             logger.exception(e)
