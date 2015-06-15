@@ -46,8 +46,6 @@ from sqlalchemy.dialects.postgresql.base import PGUuid
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import mapper
-from sqlalchemy.orm.util import class_mapper
-from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from spyne.store.relational.simple import PGLTree
@@ -85,13 +83,6 @@ class _SINGLE:
 
 class _JOINED:
     pass
-
-
-def _own_mapper(cls):
-    try:
-        return class_mapper(cls)
-    except UnmappedClassError:
-        return mapper
 
 
 _sq2sp_type_map = {
@@ -569,7 +560,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
         setattr(self, child_right_col_name, args[0])
 
     cls_ = type("_" + cls_name, (object,), {'__init__': _i})
-    _own_mapper(cls_)(cls_, child_t)
+    mapper(cls_, child_t)
     props["_" + k] = relationship(cls_)
 
     # generate association proxy
@@ -922,7 +913,8 @@ def gen_spyne_info(cls):
         mapper_kwargs['include_properties'] = _type_info.keys()
 
     # Map the table to the object
-    cls_mapper = _own_mapper(cls)(cls, table, *mapper_args, **mapper_kwargs)
+    cls_mapper = mapper(cls, table, *mapper_args, **mapper_kwargs)
+
     cls.Attributes.table_name = cls.__tablename__ = table.name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
 
