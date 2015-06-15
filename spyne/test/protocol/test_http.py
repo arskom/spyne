@@ -23,7 +23,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from spyne.util import six
 from spyne.util.six import StringIO
 from spyne.util.six.moves.http_cookies import SimpleCookie
 
@@ -552,6 +551,33 @@ class Test(unittest.TestCase):
                                    '&ccm[0].c=b')
         s = ''.join(list(ctx.out_string))
         assert s == "[CCM(i=1, c=['a', 'b'], s='s')]"
+
+    def test_default(self):
+        class CM(ComplexModel):
+            _type_info = [
+                ("i", Integer),
+                ("s", String(default='default')),
+            ]
+
+        class SomeService(ServiceBase):
+            @srpc(CM, _returns=String)
+            def some_call(cm):
+                return repr(cm)
+
+        # s is missing
+        ctx = _test([SomeService], 'cm.i=1')
+        s = ''.join(ctx.out_string)
+        assert s == "CM(i=1, s='default')"
+
+        # s is None
+        ctx = _test([SomeService], 'cm.i=1&cm.s')
+        s = ''.join(ctx.out_string)
+        assert s == "CM(i=1)"
+
+        # s is empty
+        ctx = _test([SomeService], 'cm.i=1&cm.s=')
+        s = ''.join(ctx.out_string)
+        assert s == "CM(i=1, s='')"
 
     def test_nested_flatten_with_primitive_array(self):
         class CCM(ComplexModel):

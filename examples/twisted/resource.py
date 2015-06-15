@@ -65,27 +65,30 @@ If you call sleep, it sleeps by returning a deferred: ::
     sys     0m0.000s
 """
 
-
-import logging
 import sys
+import time
+import logging
 
 from twisted.internet import reactor
 from twisted.web.server import Site
 from twisted.internet.task import deferLater
-from spyne.model import Unicode, Integer, Double
+from twisted.python import log
 
-from spyne.model.binary import ByteArray
-from spyne.model.complex import Iterable
-
+from spyne import Unicode, Integer, Double, ByteArray, Iterable, rpc, \
+    ServiceBase, Application
 from spyne.server.twisted import TwistedWebResource
-from spyne.decorator import rpc
-from spyne.service import ServiceBase
+from spyne.protocol.http import HttpRpc
 
-from _service import initialize
-from _service import SomeService
+HOST = '0.0.0.0'
+PORT = 9758
 
-host = '0.0.0.0'
-port = 9758
+
+class SomeService(ServiceBase):
+    @rpc(Integer, _returns=Integer)
+    def block(ctx, seconds):
+        """Blocks the current thread for given number of seconds."""
+        time.sleep(seconds)
+        return seconds
 
 
 class SomeNonBlockingService(ServiceBase):
@@ -104,7 +107,8 @@ class SomeNonBlockingService(ServiceBase):
         """Sends multiple hello messages by waiting given number of seconds
         inbetween."""
 
-        times = [times] # Workaround for Python 2's lacking of nonlocal
+        times = [times]  # Workaround for Python 2's lacking of nonlocal
+
         def _cb(response):
             if times[0] > 0:
                 response.append(
@@ -116,14 +120,25 @@ class SomeNonBlockingService(ServiceBase):
         return Iterable.Push(_cb)
 
 
+def initialize(services, tns='spyne.examples.twisted.resource'):
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
+    observer = log.PythonLoggingObserver('twisted')
+    log.startLoggingWithObserver(observer.emit, setStdout=False)
+
+    return Application(services, 'spyne.examples.twisted.hello',
+                                in_protocol=HttpRpc(), out_protocol=HttpRpc())
+
+
 if __name__=='__main__':
     application = initialize([SomeService, SomeNonBlockingService])
     resource = TwistedWebResource(application)
     site = Site(resource)
 
-    reactor.listenTCP(port, site, interface=host)
+    reactor.listenTCP(PORT, site, interface=HOST)
 
-    logging.info("listening on: %s:%d" % (host,port))
-    logging.info('wsdl is at: http://%s:%d/?wsdl' % (host, port))
+    logging.info("listening on: %s:%d" % (HOST,PORT))
+    logging.info('wsdl is at: http://%s:%d/?wsdl' % (HOST, PORT))
 
     sys.exit(reactor.run())

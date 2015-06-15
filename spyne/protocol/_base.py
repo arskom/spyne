@@ -60,10 +60,10 @@ from spyne.error import Fault, InternalError, ResourceNotFoundError, \
 from spyne.model.binary import binary_encoding_handlers, \
     binary_decoding_handlers, BINARY_ENCODING_USE_DEFAULT
 
+from spyne.util import DefaultAttrDict, six
+from spyne.model.enum import EnumBase
 from spyne.model.binary import Attachment  # DEPRECATED
 from spyne.model.primitive.datetime import TIME_PATTERN, DATE_PATTERN
-from spyne.model.enum import EnumBase
-from spyne.util import DefaultAttrDict, six
 
 from spyne.util.cdict import cdict
 
@@ -148,6 +148,7 @@ class ProtocolBase(object):
         self.ignore_wrappers = ignore_wrappers
         self.message = None
         self.binary_encoding = binary_encoding
+
         if self.binary_encoding is None:
             self.binary_encoding = self.default_binary_encoding
 
@@ -242,19 +243,39 @@ class ProtocolBase(object):
         }
 
     def _datetime_from_sec(self, cls, value):
-        return datetime.fromtimestamp(value)
+        try:
+            return datetime.fromtimestamp(value)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     def _datetime_from_sec_float(self, cls, value):
-        return datetime.fromtimestamp(value)
+        try:
+            return datetime.fromtimestamp(value)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     def _datetime_from_msec(self, cls, value):
-        return datetime.fromtimestamp(value // 1000)
+        try:
+            return datetime.fromtimestamp(value // 1000)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     def _datetime_from_msec_float(self, cls, value):
-        return datetime.fromtimestamp(value / 1000)
+        try:
+            return datetime.fromtimestamp(value / 1000)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     def _datetime_from_usec(self, cls, value):
-        return datetime.fromtimestamp(value / 1e6)
+        try:
+            return datetime.fromtimestamp(value / 1e6)
+        except TypeError:
+            logger.error("Invalid value %r", value)
+            raise
 
     @property
     def app(self):
@@ -584,8 +605,8 @@ class ProtocolBase(object):
         cls_attrs = self.get_cls_attrs(cls)
         if cls_attrs.max_str_len is not None and len(string) > \
                                                      cls_attrs.max_str_len:
-            raise ValidationError(string, "Decimal %%r longer than %d characters"
-                                                   % cls_attrs.max_str_len)
+            raise ValidationError(string, "Decimal %%r longer than %d "
+                                          "characters" % cls_attrs.max_str_len)
 
         try:
             return D(string)
@@ -641,7 +662,7 @@ class ProtocolBase(object):
         match = _time_re.match(string)
         if match is None:
             raise ValidationError(string, "%%r does not match regex %r " %
-                                                                   _time_re.pattern)
+                                                               _time_re.pattern)
 
         fields = match.groupdict(0)
         microsec = fields.get('sec_frac')
@@ -663,14 +684,21 @@ class ProtocolBase(object):
         """This is used by protocols like SOAP who need ISO8601-formatted dates
         no matter what.
         """
+
         try:
             return date(*(strptime(string, '%Y-%m-%d')[0:3]))
+
         except ValueError:
             match = cls._offset_re.match(string)
+
             if match:
-                return date(int(match.group('year')), int(match.group('month')), int(match.group('day')))
-            else:
-                raise ValidationError(string)
+                year = int(match.group('year'))
+                month = int(match.group('month'))
+                day = int(match.group('day'))
+
+                return date(year, month, day)
+
+            raise ValidationError(string)
 
     def enum_base_from_string(self, cls, value):
         if self.validator is self.SOFT_VALIDATION and not (
@@ -695,7 +723,8 @@ class ProtocolBase(object):
         if match is None:
             match = cls._offset_re.match(string)
             if match:
-                tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
+                tz_hr, tz_min = [int(match.group(x))
+                                                   for x in ("tz_hr", "tz_min")]
                 tz = FixedOffset(tz_hr * 60 + tz_min, {})
                 retval = _parse_datetime_iso_match(match, tz=tz)
                 if astz is not None:
@@ -713,7 +742,8 @@ class ProtocolBase(object):
         raise ValidationError(string)
 
     def datetime_from_string(self, cls, string):
-        return self._datetime_dsmap[self.get_cls_attrs(cls).serialize_as](cls, string)
+        serialize_as = self.get_cls_attrs(cls).serialize_as
+        return self._datetime_dsmap[serialize_as](cls, string)
 
     def date_from_string(self, cls, string):
         try:
@@ -723,9 +753,10 @@ class ProtocolBase(object):
             match = cls._offset_re.match(string)
             if match:
                 return date(int(match.group('year')),
-                                int(match.group('month')), int(match.group('day')))
+                            int(match.group('month')), int(match.group('day')))
             else:
-                raise ValidationError(string, "%%r: %s" % repr(e).replace("%", "%%"))
+                raise ValidationError(string,
+                                         "%%r: %s" % repr(e).replace("%", "%%"))
 
     def duration_to_string(self, cls, value):
         if value.days < 0:
@@ -778,7 +809,7 @@ class ProtocolBase(object):
         duration = _duration_re.match(string).groupdict(0)
         if duration is None:
             raise ValidationError("time data '%s' does not match regex '%s'" %
-                                                    (string, _duration_re.pattern))
+                                                 (string, _duration_re.pattern))
 
         days = int(duration['days'])
         days += int(duration['months']) * 30
@@ -937,13 +968,13 @@ class ProtocolBase(object):
     def attachment_from_string(self, cls, value):
         return Attachment(data=value)
 
-    def complex_model_base_to_string(self, cls, value):
+    def complex_model_base_to_string(self, cls, value, **kwargs):
         raise TypeError("Only primitives can be serialized to string.")
 
-    def complex_model_base_from_string(self, cls, string):
+    def complex_model_base_from_string(self, cls, string, **kwargs):
         raise TypeError("Only primitives can be deserialized from string.")
 
-    def array_from_string(self, cls, string):
+    def array_from_string(self, cls, string, **kwargs):
         if self.get_cls_attrs(cls).serialize_as != 'sd-list':
             raise TypeError("Only primitives can be deserialized from string.")
 

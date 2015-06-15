@@ -239,7 +239,6 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             assert ret["some_callResponse"]['some_callResult'][0]["ECM"]["s"] == "4x"
             assert ret["some_callResponse"]['some_callResult'][0]["ECM"]["d"] == "2011-12-13T14:15:16+00:00"
 
-
         def test_invalid_request(self):
             class SomeService(ServiceBase):
                 @srpc(Integer, String, DateTime)
@@ -1254,5 +1253,30 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             print(serializer.loads(s))
             print(serializer.loads(d))
             assert s == d
+
+        def test_default(self):
+            class SomeComplexModel(ComplexModel):
+                _type_info = [
+                    ('a', Unicode),
+                    ('b', Unicode(default='default')),
+                ]
+
+            class SomeService(ServiceBase):
+                @srpc(SomeComplexModel)
+                def some_method(s):
+                    pass
+
+            ctx = _dry_me([SomeService],
+                            {"some_method": [{"s": {"a": "x", "b": None}}]},
+                                                               polymorphic=True)
+
+            assert ctx.in_object.s.b == None
+            assert ctx.in_error is None
+
+            ctx = _dry_me([SomeService], {"some_method": {"s": {"a": "x"}}},
+                                                               polymorphic=True)
+
+            assert ctx.in_object.s.b == 'default'
+            assert ctx.in_error is None
 
     return Test

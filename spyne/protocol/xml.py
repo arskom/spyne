@@ -45,7 +45,7 @@ from lxml.etree import XMLParser
 
 from spyne import BODY_STYLE_WRAPPED
 
-from spyne.util import _bytes_join, Break, coroutine
+from spyne.util import Break, coroutine
 from spyne.util.six import text_type, string_types
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import etree_to_dict, dict_to_etree,\
@@ -155,6 +155,28 @@ class XmlDocument(SubXmlBase):
                 ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
                 Both ``'lxml'`` and ``'schema'`` values are equivalent to
                 ``XmlDocument.SCHEMA_VALIDATION``.
+    :param replace_null_with_default: If False, does not replace incoming
+        explicit null values with denoted default values. This is against Xml
+        Schema standard but consistent with other Spyne protocol
+        implementations. Set this to False if you want cross-protocol
+        compatibility.
+
+        Relevant quote from xml schema primer
+        (http://www.w3.org/TR/xmlschema-0/):
+
+        ..
+            When a value is present and is null The schema processor treats
+            defaulted elements slightly differently. When an element is declared
+            with a default value, the value of the element is whatever value
+            appears as the element's content in the instance document; if the
+            element appears without any content, the schema processor provides
+            the element with a value equal to that of the default attribute.
+            However, if the element does not appear in the instance document,
+            the schema processor does not provide the element at all. In
+            summary, the differences between element and attribute defaults can
+            be stated as: Default attribute values apply when attributes are
+            missing, and default element values apply when elements are empty.
+
     :param xml_declaration: Whether to add xml_declaration to the responses
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations
@@ -208,7 +230,9 @@ class XmlDocument(SubXmlBase):
     soap_env = const_prefmap[soap11_env]
     ns_soap_env = soap11_env
 
-    def __init__(self, app=None, validator=None, xml_declaration=True,
+    def __init__(self, app=None, validator=None,
+                replace_null_with_default=True,
+                xml_declaration=True,
                 cleanup_namespaces=True, encoding=None, pretty_print=False,
                 attribute_defaults=False,
                 dtd_validation=False,
@@ -228,8 +252,10 @@ class XmlDocument(SubXmlBase):
 
         super(XmlDocument, self).__init__(app, validator,
                                                 binary_encoding=binary_encoding)
+
         self.xml_declaration = xml_declaration
         self.cleanup_namespaces = cleanup_namespaces
+        self.replace_null_with_default = replace_null_with_default
 
         if encoding is None:
             self.encoding = 'UTF-8'
@@ -379,7 +405,10 @@ class XmlDocument(SubXmlBase):
             if self.validator is self.SOFT_VALIDATION and not \
                                                         cls.Attributes.nillable:
                 raise ValidationError('')
-            return cls.Attributes.default
+
+            if self.replace_null_with_default:
+                return cls.Attributes.default
+            return None
 
         # if present, use the xsi:type="ns0:ObjectName"
         # attribute to instantiate subclass objects

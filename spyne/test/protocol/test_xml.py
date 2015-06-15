@@ -23,6 +23,7 @@ from __future__ import print_function
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+
 import unittest
 import decimal
 import datetime
@@ -48,6 +49,7 @@ from spyne.protocol.xml import SchemaValidationError
 from spyne.util import six
 from spyne.util.xml import get_xml_as_object, get_object_as_xml
 from spyne.server.wsgi import WsgiApplication
+from spyne.const.xml import NS_XSI
 
 
 class TestXml(unittest.TestCase):
@@ -164,6 +166,7 @@ class TestXml(unittest.TestCase):
             "s2": "cc",
             "s3": "dd",
         }
+
         class C(ComplexModel):
             __namespace__ = "aa"
             a = Integer
@@ -196,6 +199,7 @@ class TestXml(unittest.TestCase):
             "s2": "cc",
             "s3": "dd",
         }
+
         class C(ComplexModel):
             __namespace__ = "aa"
             a = XmlAttribute(Integer)
@@ -286,7 +290,6 @@ class TestXml(unittest.TestCase):
             '//tns:some_call%s/text()' % RESULT_SUFFIX,
             namespaces=app.interface.nsmap)[0]
         assert ret == 'hello'
-
 
         # Invalid call
         ctx = self._get_ctx(server, [
@@ -481,6 +484,51 @@ class TestIncremental(unittest.TestCase):
         eltstr = etree.tostring(elt)
         print(eltstr)
         assert b'<detail><this>that</this></detail>' in eltstr
+
+    def test_default(self):
+        class SomeComplexModel(ComplexModel):
+            _type_info = [
+                ('a', Unicode),
+                ('b', Unicode(default='default')),
+            ]
+
+        obj = XmlDocument().from_element(
+            None, SomeComplexModel,
+            etree.fromstring("""
+                <hey>
+                    <a>string</a>
+                </hey>
+            """)
+        )
+
+        # xml schema says it should be None
+        assert obj.b == 'default'
+
+        obj = XmlDocument().from_element(
+            None, SomeComplexModel,
+            etree.fromstring("""
+                <hey>
+                    <a>string</a>
+                    <b xsi:nil="true" xmlns:xsi="%s"/>
+                </hey>
+            """ % NS_XSI)
+        )
+
+        # xml schema says it should be 'default'
+        assert obj.b == 'default'
+
+        obj = XmlDocument(replace_null_with_default=False).from_element(
+            None, SomeComplexModel,
+            etree.fromstring("""
+                <hey>
+                    <a>string</a>
+                    <b xsi:nil="true" xmlns:xsi="%s"/>
+                </hey>
+            """ % NS_XSI)
+        )
+
+        # xml schema says it should be 'default'
+        assert obj.b is None
 
 
 if __name__ == '__main__':

@@ -554,14 +554,14 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         if tn is None:
             if t is not None:
                 self.Attributes.sqla_metadata = t.metadata
-                from spyne.util.sqlalchemy import gen_spyne_info
+                from spyne.store.relational import gen_spyne_info
 
                 gen_spyne_info(self)
 
         # For spyne objects being converted to a sqlalchemy table
         elif meta is not None and (tn is not None or t is not None) and \
                                                        len(self._type_info) > 0:
-            from spyne.util.sqlalchemy import gen_sqla_info
+            from spyne.store.relational import gen_sqla_info
 
             gen_sqla_info(self, cls_bases)
 
@@ -1258,7 +1258,7 @@ class Iterable(Array):
 
 @memoize
 def TTableModelBase():
-    from spyne.util.sqlalchemy import add_column
+    from spyne.store.relational import add_column
 
     class TableModelBase(ComplexModelBase):
         @classmethod

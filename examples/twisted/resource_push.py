@@ -29,8 +29,13 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-port = 8000
-host = '127.0.0.1'
+
+"""This shows the async push capabilities of Spyne using twisted in async mode.
+
+In this example, user code runs directly in the reactor loop. Data is pushed to
+the output slowly without blocking other requests.
+"""
+
 
 import logging
 import sys
@@ -39,17 +44,15 @@ from twisted.internet import reactor
 from twisted.internet.task import deferLater
 from twisted.web.server import Site
 
-from spyne.application import Application
+from spyne import Application, rpc, ServiceBase, Iterable, Unicode, \
+    UnsignedInteger
 from spyne.protocol.http import HttpRpc
-
 from spyne.protocol.html import HtmlColumnTable
-
 from spyne.server.twisted import TwistedWebResource
 
-from spyne.decorator import rpc
-from spyne.service import ServiceBase
-from spyne.model.complex import Iterable
-from spyne.model.primitive import Unicode, UnsignedInteger
+
+HOST = '127.0.0.1'
+PORT = 8000
 
 
 class HelloWorldService(ServiceBase):
@@ -58,6 +61,7 @@ class HelloWorldService(ServiceBase):
     def say_hello(ctx, name, times):
         # workaround for Python2's lacking of nonlocal
         times = [times]
+
         def _cb(push):
             # This callback is called immediately after the function returns.
 
@@ -98,11 +102,11 @@ if __name__=='__main__':
     resource = TwistedWebResource(application)
     site = Site(resource)
 
-    reactor.listenTCP(port, site, interface=host)
+    reactor.listenTCP(PORT, site, interface=HOST)
 
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-    logging.info("listening on: %s:%d" % (host,port))
-    logging.info('wsdl is at: http://%s:%d/?wsdl' % (host, port))
+    logging.info("listening on: %s:%d" % (HOST,PORT))
+    logging.info('wsdl is at: http://%s:%d/?wsdl' % (HOST, PORT))
 
     sys.exit(reactor.run())

@@ -271,6 +271,7 @@ class HttpRpc(SimpleDictDocument):
 _fragment_pattern_re = re.compile('<([A-Za-z0-9_]+)>')
 _full_pattern_re = re.compile('{([A-Za-z0-9_]+)}')
 
+
 class HttpPattern(object):
     """Experimental. Stay away.
 

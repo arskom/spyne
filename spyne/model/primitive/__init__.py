@@ -29,9 +29,9 @@ from spyne.model.primitive._base import Boolean
 from spyne.model.primitive.string import Unicode
 from spyne.model.primitive.string import String
 from spyne.model.primitive.string import AnyUri
-
-from spyne.model.primitive.misc import Uuid
-from spyne.model.primitive.misc import ImageUri
+from spyne.model.primitive.string import Uuid
+from spyne.model.primitive.string import ImageUri
+from spyne.model.primitive.string import Ltree
 
 from spyne.model.primitive.xml import ID
 from spyne.model.primitive.xml import Token
@@ -41,14 +41,14 @@ from spyne.model.primitive.xml import NCName
 from spyne.model.primitive.xml import Language
 from spyne.model.primitive.xml import NormalizedString
 
-from spyne.model.primitive.geo import Point
-from spyne.model.primitive.geo import Line
-from spyne.model.primitive.geo import LineString
-from spyne.model.primitive.geo import Polygon
-from spyne.model.primitive.geo import MultiPoint
-from spyne.model.primitive.geo import MultiLine
-from spyne.model.primitive.geo import MultiLineString
-from spyne.model.primitive.geo import MultiPolygon
+from spyne.model.primitive.spatial import Point
+from spyne.model.primitive.spatial import Line
+from spyne.model.primitive.spatial import LineString
+from spyne.model.primitive.spatial import Polygon
+from spyne.model.primitive.spatial import MultiPoint
+from spyne.model.primitive.spatial import MultiLine
+from spyne.model.primitive.spatial import MultiLineString
+from spyne.model.primitive.spatial import MultiPolygon
 
 # Date/Time types
 from spyne.model.primitive.datetime import Date

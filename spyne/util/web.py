@@ -27,9 +27,15 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from spyne.util import six
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
+from twisted.python import log
+from twisted.python.threadpool import ThreadPool
+from twisted.internet import reactor
+from twisted.internet.threads import deferToThreadPool
 
-from spyne import BODY_STYLE_WRAPPED, rpc, ByteArray
+from spyne import BODY_STYLE_WRAPPED, rpc
+from spyne.util import six
 from spyne.application import Application as AppBase
 from spyne.const import MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
@@ -44,15 +50,7 @@ from spyne.model import Mandatory as M, UnsignedInteger32, PushBase, Iterable, \
 from spyne.model import Unicode
 from spyne.model import Array
 from spyne.model import ComplexModelBase
-from spyne.util.sqlalchemy import PGFileJson
-
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
-
-from twisted.python import log
-from twisted.python.threadpool import ThreadPool
-from twisted.internet import reactor
-from twisted.internet.threads import deferToThreadPool
+from spyne.store.relational import PGFileJson
 
 
 EXCEPTION_ADDRESS = None

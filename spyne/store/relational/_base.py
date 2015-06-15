@@ -17,40 +17,22 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Just for Postgresql, just for fun. As of yet, at least.
-
-In case it's not obvious, this module is EXPERIMENTAL.
-"""
 
 from __future__ import absolute_import, print_function
 
 import logging
 logger = logging.getLogger(__name__)
 
-import os
-import shutil
 import sqlalchemy
-
-from mmap import mmap, ACCESS_READ
-from spyne.util.six import string_types
-from spyne.util.fileproxy import SeekableFileProxy
 
 try:
     import simplejson as json
 except ImportError:
     import json
 
-from spyne.util import six
-
-from os import fstat
-from os.path import join, isabs, abspath, dirname, basename, isfile
-from uuid import uuid1
+from os.path import isabs
 from inspect import isclass
 
-from lxml import etree
-from lxml import html
-
-from sqlalchemy import sql
 from sqlalchemy import event
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import Index
@@ -62,21 +44,20 @@ from sqlalchemy.dialects.postgresql import FLOAT
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
 from sqlalchemy.dialects.postgresql.base import PGUuid
 
-from sqlalchemy.ext.compiler import compiles
-
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import mapper
-from sqlalchemy.orm.util import class_mapper
-from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.ext.associationproxy import association_proxy
 
-from sqlalchemy.types import UserDefinedType
-
-from spyne.error import ValidationError
+from spyne.store.relational.simple import PGLTree
+from spyne.store.relational.document import PGXml, PGObjectXml, PGObjectJson, \
+    PGFileJson
+from spyne.store.relational.document import PGHtml
+from spyne.store.relational.document import PGJson
+from spyne.store.relational.spatial import PGGeometry
 
 # internal types
 from spyne.model.enum import EnumBase
-from spyne.model.complex import XmlModifier, ComplexModel
+from spyne.model.complex import XmlModifier
 
 # Config types
 from spyne.model.complex import xml as c_xml
@@ -91,11 +72,9 @@ from spyne.model import SimpleModel, AnyDict, Enum, ByteArray, Array, \
     Double, Decimal, String, Unicode, Boolean, Integer, Integer8, Integer16, \
     Integer32, Integer64, Point, Line, Polygon, MultiPoint, MultiLine, \
     MultiPolygon, UnsignedInteger, UnsignedInteger8, UnsignedInteger16, \
-    UnsignedInteger32, UnsignedInteger64, File
+    UnsignedInteger32, UnsignedInteger64, File, Ltree
 
 from spyne.util import sanitize_args
-from spyne.util.xml import get_object_as_xml
-from spyne.util.xml import get_xml_as_object
 
 
 # Inheritance type constants.
@@ -104,13 +83,6 @@ class _SINGLE:
 
 class _JOINED:
     pass
-
-
-def own_mapper(cls):
-    try:
-        return class_mapper(cls)
-    except UnmappedClassError:
-        return mapper
 
 
 _sq2sp_type_map = {
@@ -132,7 +104,8 @@ _sq2sp_type_map = {
     sqlalchemy.Date: Date,
     sqlalchemy.Time: Time,
 
-    PGUuid: Uuid
+    PGUuid: Uuid,
+    PGLTree: Ltree,
 }
 
 
@@ -146,336 +119,14 @@ def _sp_attrs_to_sqla_constraints(cls, v, col_kwargs=None, col=None):
             col.nullable = False
 
 
-@compiles(PGUuid, "sqlite")
-def compile_uuid_sqlite(type_, compiler, **kw):
-    return "BLOB"
-
-
-class PGGeometry(UserDefinedType):
-    """Geometry type for Postgis 2"""
-
-    class PlainWkt:pass
-    class PlainWkb:pass
-
-    def __init__(self, geometry_type='GEOMETRY', srid=4326, dimension=2,
-                                                                format='wkt'):
-        self.geometry_type = geometry_type.upper()
-        self.name = 'geometry'
-        self.srid = int(srid)
-        self.dimension = dimension
-        self.format = format
-
-        if self.format == 'wkt':
-            self.format = PGGeometry.PlainWkt
-        elif self.format == 'wkb':
-            self.format = PGGeometry.PlainWkb
-
-    def get_col_spec(self):
-        return '%s(%s,%d)' % (self.name, self.geometry_type, self.srid)
-
-    def column_expression(self, col):
-        if self.format is PGGeometry.PlainWkb:
-            return sql.func.ST_AsBinary(col, type_=self)
-        if self.format is PGGeometry.PlainWkt:
-            return sql.func.ST_AsText(col, type_=self)
-
-    def result_processor(self, dialect, coltype):
-        if self.format is PGGeometry.PlainWkt:
-            def process(value):
-                if value is not None:
-                    return value
-
-        if self.format is PGGeometry.PlainWkb:
-            def process(value):
-                if value is not None:
-                    return sql.func.ST_AsBinary(value, self.srid)
-
-        return process
-
-    def bind_expression(self, bindvalue):
-        if self.format is PGGeometry.PlainWkt:
-            return sql.func.ST_GeomFromText(bindvalue, self.srid)
-
-
-Geometry = PGGeometry
-
-@compiles(PGGeometry)
-def compile_geometry(type_, compiler, **kw):
-    return '%s(%s,%d)' % (type_.name, type_.geometry_type, type_.srid)
-
-
-@compiles(PGGeometry, "sqlite")
-def compile_geometry_sqlite(type_, compiler, **kw):
-    return "BLOB"
-
-
-class PGXml(UserDefinedType):
-    def __init__(self, pretty_print=False, xml_declaration=False,
-                                                              encoding='UTF-8'):
-        super(PGXml, self).__init__()
-        self.xml_declaration = xml_declaration
-        self.pretty_print = pretty_print
-        self.encoding = encoding
-
-    def get_col_spec(self):
-        return "xml"
-
-    def bind_processor(self, dialect):
-        def process(value):
-            if isinstance(value, str) or value is None:
-                return value
-            else:
-                return etree.tostring(value, pretty_print=self.pretty_print,
-                                 encoding=self.encoding, xml_declaration=False)
-        return process
-
-    def result_processor(self, dialect, col_type):
-        def process(value):
-            if value is not None:
-                return etree.fromstring(value)
-            else:
-                return value
-        return process
-
-sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGXml
-
-
-class PGHtml(UserDefinedType):
-    def __init__(self, pretty_print=False, encoding='UTF-8'):
-        super(PGHtml, self).__init__()
-
-        self.pretty_print = pretty_print
-        self.encoding = encoding
-
-    def get_col_spec(self):
-        return "text"
-
-    def bind_processor(self, dialect):
-        def process(value):
-            if isinstance(value, string_types) or value is None:
-                return value
-            else:
-                return html.tostring(value, pretty_print=self.pretty_print,
-                                                         encoding=self.encoding)
-        return process
-
-    def result_processor(self, dialect, col_type):
-        def process(value):
-            if value is not None and len(value) > 0:
-                return html.fromstring(value)
-            else:
-                return None
-        return process
-
-
-class PGJson(UserDefinedType):
-    def __init__(self, encoding='UTF-8'):
-        self.encoding = encoding
-
-    def get_col_spec(self):
-        return "json"
-
-    def bind_processor(self, dialect):
-        def process(value):
-            if isinstance(value, six.string_types) or value is None:
-                return value
-            else:
-                return json.dumps(value, encoding=self.encoding)
-        return process
-
-    def result_processor(self, dialect, col_type):
-        def process(value):
-            if isinstance(value, string_types):
-                return json.loads(value)
-            else:
-                return value
-        return process
-
-sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGJson
-
-
-class PGObjectXml(UserDefinedType):
-    def __init__(self, cls, root_tag_name=None, no_namespace=False,
-                                                            pretty_print=False):
-        self.cls = cls
-        self.root_tag_name = root_tag_name
-        self.no_namespace = no_namespace
-        self.pretty_print = pretty_print
-
-    def get_col_spec(self):
-        return "xml"
-
-    def bind_processor(self, dialect):
-        def process(value):
-            if value is not None:
-                return etree.tostring(get_object_as_xml(value, self.cls,
-                    self.root_tag_name, self.no_namespace), encoding='utf8',
-                          pretty_print=self.pretty_print, xml_declaration=False)
-        return process
-
-    def result_processor(self, dialect, col_type):
-        def process(value):
-            if value is not None:
-                return get_xml_as_object(etree.fromstring(value), self.cls)
-        return process
-
-
-class PGObjectJson(UserDefinedType):
-    def __init__(self, cls, ignore_wrappers=True, complex_as=dict):
-        self.cls = cls
-        self.ignore_wrappers = ignore_wrappers
-        self.complex_as = complex_as
-
-        from spyne.util.dictdoc import get_dict_as_object
-        from spyne.util.dictdoc import get_object_as_json
-        self.get_object_as_json = get_object_as_json
-        self.get_dict_as_object = get_dict_as_object
-
-    def get_col_spec(self):
-        return "json"
-
-    def bind_processor(self, dialect):
-        def process(value):
-            if value is not None:
-                return self.get_object_as_json(value, self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as,
-                    )
-        return process
-
-    def result_processor(self, dialect, col_type):
-        from spyne.util.dictdoc import JsonDocument
-
-        def process(value):
-            if isinstance(value, six.string_types):
-                return self.get_dict_as_object(json.loads(value), self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as,
-                        protocol=JsonDocument,
-                    )
-            if value is not None:
-                return self.get_dict_as_object(value, self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as,
-                        protocol=JsonDocument,
-                    )
-
-        return process
-
-
-class PGFileJson(PGObjectJson):
-    class FileData(ComplexModel):
-        _type_info = [
-            ('name', Unicode),
-            ('type', Unicode),
-            ('path', Unicode),
-        ]
-
-    def __init__(self, store, type=None):
-        if type is None:
-            type = PGFileJson.FileData
-
-        super(PGFileJson, self).__init__(type, ignore_wrappers=True,
-                                                                complex_as=list)
-        self.store = store
-
-    def bind_processor(self, dialect):
-        def process(value):
-            if value is not None:
-                if value.data is not None:
-                    value.path = uuid1().get_hex()
-                    fp = join(self.store, value.path)
-                    if not abspath(fp).startswith(self.store):
-                        raise ValidationError(value.path, "Path %r contains "
-                                          "relative path operators (e.g. '..')")
-
-                    with open(fp, 'wb') as file:
-                        for d in value.data:
-                            file.write(d)
-
-                elif value.handle is not None:
-                    value.path = uuid1().hex
-                    fp = join(self.store, value.path)
-                    if not abspath(fp).startswith(self.store):
-                        raise ValidationError(value.path, "Path %r contains "
-                                          "relative path operators (e.g. '..')")
-
-                    data = mmap(value.handle.fileno(), 0)  # 0 = whole file
-                    with open(fp, 'wb') as out_file:
-                        out_file.write(data)
-                        data.close()
-
-                elif value.path is not None:
-                    in_file_path = value.path
-
-                    if not isfile(in_file_path):
-                        logger.error("File path in %r not found" % value)
-
-                    if dirname(abspath(in_file_path)) != self.store:
-                        dest = join(self.store, uuid1().get_hex())
-
-                        if value.move:
-                            shutil.move(in_file_path, dest)
-                            print("move", in_file_path, dest)
-                        else:
-                            shutil.copy(in_file_path, dest)
-
-                        value.path = basename(dest)
-                        value.abspath = dest
-
-                else:
-                    raise ValueError("Invalid file object passed in. All of "
-                                           ".data, .handle and .path are None.")
-
-                value.store = self.store
-                value.abspath = join(self.store, value.path)
-
-                retval = self.get_object_as_json(value, self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as,
-                    )
-
-                return retval
-        return process
-
-    def result_processor(self, dialect, col_type):
-        def process(value):
-            retval = None
-
-            if isinstance(value, six.string_types):
-                value = json.loads(value)
-
-            if value is not None:
-                retval = self.get_dict_as_object(value, self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as)
-                retval.store = self.store
-                retval.abspath = path = join(self.store, retval.path)
-
-                ret = os.access(path, os.R_OK)
-                retval.handle = None
-                retval.data = ['']
-
-                if ret:
-                    h = retval.handle = SeekableFileProxy(open(path, 'rb'))
-                    if fstat(retval.handle.fileno()).st_size > 0:
-                        h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
-                        retval.data = [h.mmap]
-                        # FIXME: Where do we close this mmap?
-                    else:
-                        retval.data = ['']
-                else:
-                    logger.error("File %r is not readable", path)
-
-            return retval
-
-        return process
-
-
-def get_sqlalchemy_type(cls):
+def _get_sqlalchemy_type(cls):
     db_type = cls.Attributes.db_type
     if db_type is not None:
         return db_type
+
+    # must be above Unicode, because Uuid is Unicode's subclass
+    elif issubclass(cls, Ltree):
+        return PGLTree
 
     # must be above Unicode, because Uuid is Unicode's subclass
     if issubclass(cls, Uuid):
@@ -579,20 +230,8 @@ def get_sqlalchemy_type(cls):
         return sqlalchemy.Time
 
     elif issubclass(cls, XmlModifier):
-        retval = get_sqlalchemy_type(cls.type)
+        retval = _get_sqlalchemy_type(cls.type)
         return retval
-
-
-def get_pk_columns(cls):
-    """Return primary key fields of a Spyne object."""
-
-    retval = []
-    for k, v in cls.get_flat_type_info(cls).items():
-        if v.Attributes.sqla_column_args is not None and \
-                    v.Attributes.sqla_column_args[-1].get('primary_key', False):
-            retval.append((k, v))
-
-    return tuple(retval) if len(retval) > 0 else None
 
 
 def _get_col_o2o(parent, k, v, fk_col_name, deferrable=None, initially=None):
@@ -606,10 +245,10 @@ def _get_col_o2o(parent, k, v, fk_col_name, deferrable=None, initially=None):
     _sp_attrs_to_sqla_constraints(parent, v, col_kwargs)
 
     # get pkeys from child class
-    pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
+    pk_column, = get_pk_columns(v)  # FIXME: Support multi-col keys
 
     pk_key, pk_spyne_type = pk_column
-    pk_sqla_type = get_sqlalchemy_type(pk_spyne_type)
+    pk_sqla_type = _get_sqlalchemy_type(pk_spyne_type)
 
     # generate a fk to it from the current object (cls)
     if fk_col_name is None:
@@ -636,7 +275,7 @@ def _get_col_o2m(cls, fk_col_name, deferrable=None, initially=None):
     pk_column, = get_pk_columns(cls) # FIXME: Support multi-col keys
 
     pk_key, pk_spyne_type = pk_column
-    pk_sqla_type = get_sqlalchemy_type(pk_spyne_type)
+    pk_sqla_type = _get_sqlalchemy_type(pk_spyne_type)
 
     # generate a fk from child to the current class
     if fk_col_name is None:
@@ -867,7 +506,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
     child_left_col_name = p.left
 
     # get right(data) column info
-    child_right_col_type = get_sqlalchemy_type(child_cust)
+    child_right_col_type = _get_sqlalchemy_type(child_cust)
     child_right_col_name = p.right  # this is the data column
     if child_right_col_name is None:
         child_right_col_name = k
@@ -921,7 +560,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
         setattr(self, child_right_col_name, args[0])
 
     cls_ = type("_" + cls_name, (object,), {'__init__': _i})
-    own_mapper(cls_)(cls_, child_t)
+    mapper(cls_, child_t)
     props["_" + k] = relationship(cls_)
 
     # generate association proxy
@@ -1173,7 +812,7 @@ def add_column(cls, k, v):
     mapper_props = {}
 
     # Add to table
-    t = get_sqlalchemy_type(v)
+    t = _get_sqlalchemy_type(v)
     if t is None: # complex model
         _add_complex_type(cls, mapper_props, table, k, v)
     else:
@@ -1195,7 +834,7 @@ def gen_sqla_info(cls, cls_bases=()):
     mapper_props = {}
 
     for k, v in cls._type_info.items():
-        t = get_sqlalchemy_type(v)
+        t = _get_sqlalchemy_type(v)
 
         if t is None:  # complex model
             p = getattr(v.Attributes, 'store_as', None)
@@ -1220,7 +859,7 @@ def gen_sqla_info(cls, cls_bases=()):
     return table
 
 
-def get_spyne_type(v):
+def _get_spyne_type(v):
     """This function maps sqlalchemy types to spyne types."""
 
     rpc_type = None
@@ -1269,11 +908,24 @@ def gen_spyne_info(cls):
 
     if len(_type_info) == 0:
         for c in table.c:
-            _type_info[c.name] = get_spyne_type(c)
+            _type_info[c.name] = _get_spyne_type(c)
     else:
         mapper_kwargs['include_properties'] = _type_info.keys()
 
     # Map the table to the object
-    cls_mapper = own_mapper(cls)(cls, table, *mapper_args, **mapper_kwargs)
+    cls_mapper = mapper(cls, table, *mapper_args, **mapper_kwargs)
+
     cls.Attributes.table_name = cls.__tablename__ = table.name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
+
+
+def get_pk_columns(cls):
+    """Return primary key fields of a Spyne object."""
+
+    retval = []
+    for k, v in cls.get_flat_type_info(cls).items():
+        if v.Attributes.sqla_column_args is not None and \
+                    v.Attributes.sqla_column_args[-1].get('primary_key', False):
+            retval.append((k, v))
+
+    return tuple(retval) if len(retval) > 0 else None
