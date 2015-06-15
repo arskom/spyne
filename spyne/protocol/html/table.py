@@ -41,7 +41,8 @@ class HtmlTableBase(HtmlBase):
             cloth=None, cloth_parser=None, header=True, table_name_attr='class',
                      table_name=None, table_class=None, field_name_attr='class',
               border=0, row_class=None, cell_class=None, header_cell_class=None,
-                 polymorphic=True, hier_delim='.', doctype=None, link_gen=None):
+                 polymorphic=True, hier_delim='.', doctype=None, link_gen=None,
+                 mrpc_delim_text='|'):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
@@ -58,6 +59,7 @@ class HtmlTableBase(HtmlBase):
         self.header_cell_class = header_cell_class
         self.link_gen = link_gen
         self.table_class = table_class
+        self.mrpc_delim_text = mrpc_delim_text
 
         if self.cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'cell_class' should be None or "
@@ -100,6 +102,7 @@ class HtmlColumnTable(HtmlTableBase):
     :param row_class: value that goes inside the <tr class="">
     :param cell_class: value that goes inside the <td class="">
     :param header_cell_class: value that goes inside the <th class="">
+    :param mrpc_delim_text: The text that goes between mrpc calls.
     """
 
     def __init__(self, *args, **kwargs):
@@ -138,6 +141,12 @@ class HtmlColumnTable(HtmlTableBase):
 
         logger.debug("Generate row for %r", cls)
 
+        mrpc_delim_elt = ''
+        if self.mrpc_delim_text is not None:
+            mrpc_delim_elt = E.span(self.mrpc_delim_text,
+                                      **{'class': 'mrpc-delimiter'})
+            mrpc_delim_elt.tail = ' '
+
         with parent.element('tr'):
             for k, v in self.sort_fields(cls):
                 attr = self.get_cls_attrs(v)
@@ -175,7 +184,6 @@ class HtmlColumnTable(HtmlTableBase):
                     ret = self.to_parent(ctx, v, sub_value, parent,
                                               sub_name, from_arr=from_arr,
                                               array_index=array_index, **kwargs)
-
                     if isgenerator(ret):
                         try:
                             while True:
@@ -189,17 +197,17 @@ class HtmlColumnTable(HtmlTableBase):
 
             m = cls.Attributes.methods
             if m is not None and len(m) > 0:
-                td_attrs = {}
+                td_attrs = {'class': 'mrpc-cell'}
 
                 with parent.element('td', td_attrs):
                     first = True
-                    mrpc_delim = html.fromstring("&nbsp;|&nbsp;").text
 
                     for mn, md in self._methods(cls, inst):
                         if first:
                             first = False
-                        else:
-                            parent.write(mrpc_delim)
+                        elif mrpc_delim_elt is not None:
+                            parent.write(" ")
+                            parent.write(mrpc_delim_elt)
 
                         pd = { }
                         for k, v in self.sort_fields(cls):
@@ -211,10 +219,14 @@ class HtmlColumnTable(HtmlTableBase):
                         params = urlencode(pd)
 
                         mdid2key = ctx.app.interface.method_descriptor_id_to_key
-                        href = mdid2key[id(md)].rsplit("}",1)[-1]
+                        href = mdid2key[id(md)].rsplit("}", 1)[-1]
                         text = md.translate(ctx.locale,
                                                   md.in_message.get_type_name())
-                        parent.write(E.a(text, href="%s?%s" % (href, params)))
+                        parent.write(E.a(
+                            text,
+                            href="%s?%s" % (href, params),
+                            **{'class': 'mrpc-operation'}
+                        ))
 
             logger.debug("Generate row for %r done.", cls)
             self.extend_data_row(ctx, cls, inst, parent, name,
