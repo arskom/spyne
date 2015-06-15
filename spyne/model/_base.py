@@ -21,6 +21,9 @@
 defining models.
 """
 
+import logging
+logger = logging.getLogger(__name__)
+
 import re
 
 import spyne.const.xml_ns
@@ -512,18 +515,36 @@ class ModelBase(object):
             pass
         cls_dict['Annotations'] = Annotations
 
+        # get protocol attrs
+        prot = kwargs.get('protocol', None)
+        if prot is None:
+            prot = kwargs.get('prot', None)
+        if prot is None:
+            prot = kwargs.get('p', None)
+        if prot is not None and len(prot.type_attrs) > 0:
+            # if there is a class customization from protocol, do it
+
+            type_attrs = prot.type_attrs.copy()
+            type_attrs.update(kwargs)
+            logger.debug("%r: kwargs %r => %r from prot typeattr %r",
+                                       cls, kwargs, type_attrs, prot.type_attrs)
+            kwargs = type_attrs
+
         for k, v in kwargs.items():
             if k.startswith('_'):
                 continue
 
-            elif k in ("doc", "appinfo"):
+            if k in ('protocol', 'prot', 'p'):
+                setattr(Attributes, 'prot', v)
+
+            if k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
 
             elif k in ('primary_key', 'pk'):
                 setattr(Attributes, 'primary_key', v)
                 Attributes.sqla_column_args[-1]['primary_key'] = v
 
-            elif k in ('prot_attrs', 'pa'):
+            elif k in ('protocol_attrs', 'prot_attrs', 'pa'):
                 setattr(Attributes, 'prot_attrs', _decode_pa_dict(v))
 
             elif k in ('foreign_key', 'fk'):
