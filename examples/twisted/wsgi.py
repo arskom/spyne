@@ -29,20 +29,9 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import logging
-import sys
 
-from twisted.internet import reactor
-from twisted.web.server import Site
-from twisted.web.wsgi import WSGIResource
-
-from spyne.server.wsgi import WsgiApplication
-
-from _service import initialize
-from _service import SomeService
-
-'''
-This is a blocking example running in a multi-thread twisted setup.
+"""
+This is a blocking example running in a multi-threaded twisted setup.
 
 This is a way of weakly integrating with the twisted framework -- every request
 still runs in its own thread. This way, you can still use other features of
@@ -60,21 +49,56 @@ twisted and not have to rewrite your otherwise synchronous code.
     real    0m10.038s
     user    0m0.006s
     sys     0m0.006s
-'''
+"""
 
-host = '0.0.0.0'
-port = 9757
+import sys
+import time
+import logging
+
+from twisted.internet import reactor
+from twisted.web.server import Site
+from twisted.web.wsgi import WSGIResource
+from twisted.python import log
+
+from spyne import Application, rpc, ServiceBase, Integer
+from spyne.server.wsgi import WsgiApplication
+from spyne.protocol.http import HttpRpc
 
 
-if __name__=='__main__':
+HOST = '0.0.0.0'
+PORT = 9757
+
+
+class SomeService(ServiceBase):
+    @rpc(Integer, _returns=Integer)
+    def block(ctx, seconds):
+        """Blocks the current thread for given number of seconds."""
+        time.sleep(seconds)
+        return seconds
+
+
+def initialize(services, tns='spyne.examples.twisted.resource'):
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
+    observer = log.PythonLoggingObserver('twisted')
+    log.startLoggingWithObserver(observer.emit, setStdout=False)
+
+    application = Application(services, 'spyne.examples.twisted.hello',
+                                in_protocol=HttpRpc(), out_protocol=HttpRpc())
+
+    return application
+
+
+if __name__ == '__main__':
     application = initialize([SomeService])
     wsgi_application = WsgiApplication(application)
     resource = WSGIResource(reactor, reactor, wsgi_application)
     site = Site(resource)
 
-    reactor.listenTCP(port, site, interface=host)
+    reactor.listenTCP(PORT, site, interface=HOST)
 
-    logging.info('listening on: %s:%d' % (host,port))
-    logging.info('wsdl is at: http://%s:%d/?wsdl' % (host, port))
+    logging.info('listening on: %s:%d' % (HOST,PORT))
+    logging.info('wsdl is at: http://%s:%d/?wsdl' % (HOST, PORT))
 
     sys.exit(reactor.run())
