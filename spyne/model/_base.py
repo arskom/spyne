@@ -672,12 +672,14 @@ class SimpleModel(ModelBase):
 
     @staticmethod
     def validate_native(cls, value):
-        return (     ModelBase.validate_native(cls, value)
-                and (cls.Attributes.values is None or
-                                            len(cls.Attributes.values) == 0 or (
-                     (value is None     and cls.Attributes.nillable) or
-                     (value is not None and value in cls.Attributes.values)
-                ))
+        return (ModelBase.validate_native(cls, value)
+                and (
+                    cls.Attributes.values is None or
+                    len(cls.Attributes.values) == 0 or (
+                        (value is None     and cls.Attributes.nillable) or
+                        (value is not None and value in cls.Attributes.values)
+                    )
+                )
             )
 
 

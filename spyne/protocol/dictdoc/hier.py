@@ -103,7 +103,6 @@ class HierDictDocument(DictDocument):
         self.event_manager.fire_event('after_serialize', ctx)
 
     def validate(self, key, cls, inst):
-        # validate raw input
         if inst is None and self.get_cls_attrs(cls).nullable:
             pass
 

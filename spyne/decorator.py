@@ -1,3 +1,4 @@
+
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -24,11 +25,11 @@ It's possible to create custom decorators that wrap the @srpc decorator in order
 to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
-from inspect import isclass
 
 import spyne.const.xml_ns
 
 from copy import copy
+from inspect import isclass
 
 from spyne import MethodDescriptor
 
@@ -93,12 +94,14 @@ def _produce_input_message(f, params, kparams, in_message_name,
         if len(in_params) > 1:
             raise Exception("body_style='bare' can handle at most one function "
                             "argument.")
+
         if len(in_params) == 0:
             message = ComplexModel.produce(type_name=in_message_name,
                                            namespace=ns, members=in_params)
         else:
             message, = in_params.values()
             message = message.customize(sub_name=in_message_name, sub_ns=ns)
+
             from spyne.model import ComplexModelBase
             if issubclass(message, ComplexModelBase) and not message._type_info:
                 raise Exception("body_style='bare' does not allow empty "
