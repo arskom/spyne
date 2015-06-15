@@ -104,7 +104,10 @@ class HierDictDocument(DictDocument):
 
     def validate(self, key, cls, inst):
         # validate raw input
-        if issubclass(cls, Unicode) and not isinstance(inst, six.string_types):
+        if inst is None and self.get_cls_attrs(cls).nullable:
+            pass
+
+        elif issubclass(cls, Unicode) and not isinstance(inst, six.string_types):
             raise ValidationError((key, inst))
 
     def _from_dict_value(self, key, cls, inst, validator):

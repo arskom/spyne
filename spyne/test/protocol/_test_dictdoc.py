@@ -1279,4 +1279,29 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             assert ctx.in_object.s.b == 'default'
             assert ctx.in_error is None
 
+        def test_nillable_default(self):
+            class SomeComplexModel(ComplexModel):
+                _type_info = [
+                    ('a', Unicode),
+                    ('b', Unicode(min_occurs=1, default='default', nillable=True)),
+                ]
+
+            class SomeService(ServiceBase):
+                @srpc(SomeComplexModel)
+                def some_method(s):
+                    pass
+
+            ctx = _dry_me([SomeService],
+                            {"some_method": [{"s": {"a": "x", "b": None}}]},
+                                           polymorphic=True, validator='soft')
+
+            assert ctx.in_object.s.b == None
+            assert ctx.in_error is None
+
+            ctx = _dry_me([SomeService], {"some_method": {"s": {"a": "x"}}},
+                                                               polymorphic=True)
+
+            assert ctx.in_object.s.b == 'default'
+            assert ctx.in_error is None
+
     return Test
