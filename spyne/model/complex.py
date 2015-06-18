@@ -251,7 +251,7 @@ def _gen_attrs(cls_bases, cls_dict):
 
 def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
     base_type_info = TypeInfo()
-    mixin = {}
+    mixin = TypeInfo()
     extends = cls_dict.get('__extends__', None)
     if extends is None:
         for b in cls_bases:
