@@ -16,6 +16,9 @@ spyne-2.12.0
 * HierDictDocument's broken wrapped dict support was fixed. Even though this is
   supposed to break compatibility with 2.11, virtually no one seems to use this
   feature. Only now it's mature enough to be set on stone. Let us know!
+* We now validate kwargs passed to ``@rpc``. Be sure to test your daemons before
+  deploying for production, because if you got leftovers, the server will refuse
+  to boot!
 
 spyne-2.11.0
 ------------
