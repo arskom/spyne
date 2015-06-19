@@ -382,7 +382,7 @@ class InteropMisc(ServiceBase):
     def non_nillable(n):
         return "OK"
 
-    @srpc(String, _returns=String, _public_name="do_something")
+    @srpc(String, _returns=String, _operation_name="do_something")
     def do_something_else(s):
         return s
 
@@ -400,9 +400,10 @@ class InteropMisc(ServiceBase):
         return 'a'
 
     @srpc(String,
-          _public_name="urn:#getCustomMessages",
-          _in_message="getCustomMessagesMsgIn",
-          _out_message="getCustomMessagesMsgOut",
+          # FIXME: find out why this could be needed
+          # _public_name="urn:#getCustomMessages",
+          _in_message_name="getCustomMessagesMsgIn",
+          _out_message_name="getCustomMessagesMsgOut",
           _out_variable_name="CustomMessages",
           _returns=String)
     def custom_messages(s):

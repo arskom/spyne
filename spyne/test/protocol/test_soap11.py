@@ -113,11 +113,11 @@ class TestService(ServiceBase):
     def b(ctx, p, s, a):
         return Address()
 
-    @rpc(Person, isAsync=True)
+    @rpc(Person)
     def d(ctx, Person):
         pass
 
-    @rpc(Person, isCallback=True)
+    @rpc(Person)
     def e(ctx, Person):
         pass
 
@@ -137,7 +137,8 @@ class MultipleReturnService(ServiceBase):
 
 class TestSingle(unittest.TestCase):
     def setUp(self):
-        self.app = Application([TestService], 'tns', in_protocol=Soap11(), out_protocol=Soap11())
+        self.app = Application([TestService], 'tns',
+                               in_protocol=Soap11(), out_protocol=Soap11())
         self.app.transport = 'null.spyne'
         self.srv = TestService()
 
@@ -389,7 +390,7 @@ class SOAPServiceWithHeader(ServiceBase):
         _in_header=(Action,
                     MessageID,
                     RelatesTo),
-        _out_variable_names= 'status',
+        _out_variable_name= 'status',
         _returns=Unicode
         )
     def someRequest(ctx, response):
