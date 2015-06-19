@@ -47,9 +47,7 @@ from spyne.const import add_request_suffix
 
 
 def _produce_input_message(f, params, kparams, in_message_name,
-                           in_variable_names, no_ctx, no_self, args):
-    _body_style = _validate_body_style(kparams)
-
+                      in_variable_names, no_ctx, no_self, args, body_style_str):
     arg_start = 0
     if no_ctx is False:
         arg_start += 1
@@ -90,7 +88,7 @@ def _produce_input_message(f, params, kparams, in_message_name,
         ns, _, in_message_name = in_message_name[1:].partition("}")
 
     message = None
-    if _body_style == 'bare':
+    if body_style_str == 'bare':
         if len(in_params) > 1:
             raise Exception("body_style='bare' can handle at most one function "
                             "argument.")
@@ -106,6 +104,11 @@ def _produce_input_message(f, params, kparams, in_message_name,
             if issubclass(message, ComplexModelBase) and not message._type_info:
                 raise Exception("body_style='bare' does not allow empty "
                                 "model as param")
+
+            # there can't be multiple arguments here.
+            if message.__type_name__ is ModelBase.Empty:
+                message._fill_empty_type_name(ns, in_message_name,
+                                                    "%s_arg0" % in_message_name)
 
     else:
         message = ComplexModel.produce(type_name=in_message_name,
@@ -138,25 +141,20 @@ def _validate_body_style(kparams):
     return _body_style
 
 
-def _produce_output_message(func_name, kparams):
+def _produce_output_message(func_name, body_style_str, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
     """
 
-    _returns = kparams.get('_returns')
-    _body_style = _validate_body_style(kparams)
+    _returns = kparams.pop('_returns', None)
 
-    # FIXME: Remove after detecting all broken code
-    _out_body_bare = kparams.get("_out_body_bare", 0xcc)
-    assert _out_body_bare == 0xcc
-
-    _out_message_name = kparams.get('_out_message_name', '%s%s' %
+    _out_message_name = kparams.pop('_out_message_name', '%s%s' %
                                        (func_name, spyne.const.RESPONSE_SUFFIX))
 
     out_params = TypeInfo()
 
-    if _returns and _body_style == 'wrapped':
+    if _returns and body_style_str == 'wrapped':
         if isinstance(_returns, (list, tuple)):
             default_names = ['%s%s%d'% (func_name, spyne.const.RESULT_SUFFIX, i)
                                                   for i in range(len(_returns))]
@@ -179,7 +177,7 @@ def _produce_output_message(func_name, kparams):
     if _out_message_name.startswith("{"):
         ns = _out_message_name[1:].partition("}")[0]
 
-    if _body_style.endswith('bare') and _returns is not None:
+    if body_style_str.endswith('bare') and _returns is not None:
         message = _returns.customize(sub_name=_out_message_name, sub_ns=ns)
         if message.__type_name__ is ModelBase.Empty:
             message.__type_name__ = _out_message_name
@@ -327,11 +325,21 @@ def rpc(*params, **kparams):
 
             _in_variable_names = kparams.get('_in_variable_names', {})
 
+            body_style = BODY_STYLE_WRAPPED
+            body_style_str = _validate_body_style(kparams)
+            if body_style_str.endswith('bare'):
+                if body_style_str == 'out_bare':
+                    body_style = BODY_STYLE_OUT_BARE
+                else:
+                    body_style = BODY_STYLE_BARE
+
             in_message = _produce_input_message(f, params, kparams,
-                 _in_message_name, _in_variable_names, _no_ctx, _no_self, _args)
+                                           _in_message_name, _in_variable_names,
+                                       _no_ctx, _no_self, _args, body_style_str)
 
             _out_message_name_override = not ('_out_message_name' in kparams)
-            out_message = _produce_output_message(function_name, kparams)
+            out_message = _produce_output_message(function_name, body_style_str,
+                                                                        kparams)
 
             doc = getattr(f, '__doc__')
 
@@ -342,17 +350,10 @@ def rpc(*params, **kparams):
             if _pattern is not None:
                 _patterns = [_pattern]
 
-            body_style = BODY_STYLE_WRAPPED
-            body_style_str = _validate_body_style(kparams)
             if body_style_str.endswith('bare'):
-                if body_style_str == 'out_bare':
-                    body_style = BODY_STYLE_OUT_BARE
-                else:
-                    body_style = BODY_STYLE_BARE
-
-                t = in_message
                 from spyne.model import ComplexModelBase
 
+                t = in_message
                 if issubclass(t, ComplexModelBase) and len(t._type_info) == 0:
                     body_style = BODY_STYLE_EMPTY
 

@@ -115,6 +115,24 @@ class XmlModifier(ModelBase):
         if cls.__namespace__ in xml_ns.const_prefmap:
             cls.__namespace__ = default_ns
 
+    @classmethod
+    def _fill_empty_type_name(cls, parent_ns, parent_tn, k):
+        cls.__namespace__ = parent_ns
+        tn = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
+
+        child_v = cls.type
+        child_v.__type_name__ = tn
+
+        cls._type_info = TypeInfo({tn: child_v})
+        cls.__type_name__ = '%s%s%s' % (const.ARRAY_PREFIX, tn,
+                                                         const.ARRAY_SUFFIX)
+
+        extends = child_v.__extends__
+        while extends is not None and extends.get_type_name() is cls.Empty:
+            extends._fill_empty_type_name(parent_ns, parent_tn,
+                                                    k + const.PARENT_SUFFIX)
+            extends = extends.__extends__
+
 
 class XmlData(XmlModifier):
     """Items which are marshalled as data of the parent element."""
@@ -580,45 +598,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         return odict()
 
 
-# FIXME: what an ugly hack.
-def _fill_empty_type_name(v, parent_ns, parent_tn, k):
-    v.__namespace__ = parent_ns
-    tn = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
-
-    if issubclass(v, Array):
-        child_v, = v._type_info.values()
-        child_v.__type_name__ = tn
-
-        v._type_info = TypeInfo({tn: child_v})
-        v.__type_name__ = '%s%s%s'% (const.ARRAY_PREFIX, tn, const.ARRAY_SUFFIX)
-
-        extends = child_v.__extends__
-        while extends is not None and extends.get_type_name() is v.Empty:
-            _fill_empty_type_name(extends, parent_ns, parent_tn,
-                                                        k + const.PARENT_SUFFIX)
-            extends = extends.__extends__
-
-    elif issubclass(v, XmlModifier):
-        child_v = v.type
-        child_v.__type_name__ = tn
-
-        v._type_info = TypeInfo({tn: child_v})
-        v.__type_name__ = '%s%s%s'% (const.ARRAY_PREFIX, tn, const.ARRAY_SUFFIX)
-
-        extends = child_v.__extends__
-        while extends is not None and extends.get_type_name() is v.Empty:
-            _fill_empty_type_name(extends, parent_ns, parent_tn,
-                                                        k + const.PARENT_SUFFIX)
-            extends = extends.__extends__
-
-    else:
-        v.__type_name__ = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
-        extends = v.__extends__
-        while extends is not None and extends.__type_name__ is ModelBase.Empty:
-            _fill_empty_type_name(v.__extends__, v.get_namespace(),
-                                     v.get_type_name(), k + const.PARENT_SUFFIX)
-            extends = extends.__extends__
-
 _is_array = lambda v: issubclass(v, Array) or (v.Attributes.min_occurs > 1)
 
 
@@ -947,7 +926,7 @@ class ComplexModelBase(ModelBase):
                 continue
 
             if v.__type_name__ is ModelBase.Empty:
-                _fill_empty_type_name(v, cls.get_namespace(),
+                v._fill_empty_type_name(cls.get_namespace(),
                                                          cls.get_type_name(), k)
 
             v.resolve_namespace(v, default_ns, tags)
@@ -1001,7 +980,7 @@ class ComplexModelBase(ModelBase):
             ti = retval._type_info
             logger.debug("processing child_attrs_all for %r", cls)
             for k, v in ti.items():
-                logger.debug("\tchild_attrs_all set %r=%r", k, child_attrs_all)
+                logger.debug("  child_attrs_all set %r=%r", k, child_attrs_all)
                 ti[k] = ti[k].customize(**child_attrs_all)
             retval.Attributes._delayed_child_attrs_all = child_attrs_all
 
@@ -1011,10 +990,10 @@ class ComplexModelBase(ModelBase):
             logger.debug("processing child_attrs for %r", cls)
             for k, v in child_attrs.items():
                 if k in ti:
-                    logger.debug("\tchild_attr set %r=%r", k, v)
+                    logger.debug("  child_attr set %r=%r", k, v)
                     ti[k] = ti[k].customize(**v)
                 else:
-                    logger.debug("\tchild_attr delayed %r=%r", k, v)
+                    logger.debug("  child_attr delayed %r=%r", k, v)
                     retval.Attributes._delayed_child_attrs[k] = v
 
         tn = kwargs.get("type_name", None)
@@ -1172,6 +1151,24 @@ class Array(ComplexModelBase):
             retval.__type_name__ = tn
 
         return retval
+
+    @classmethod
+    def _fill_empty_type_name(cls, parent_ns, parent_tn, k):
+        cls.__namespace__ = parent_ns
+        tn = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
+
+        child_v, = cls._type_info.values()
+        child_v.__type_name__ = tn
+
+        cls._type_info = TypeInfo({tn: child_v})
+        cls.__type_name__ = '%s%s%s' % (const.ARRAY_PREFIX, tn,
+                                                             const.ARRAY_SUFFIX)
+
+        extends = child_v.__extends__
+        while extends is not None and extends.get_type_name() is cls.Empty:
+            extends._fill_empty_type_name(parent_ns, parent_tn,
+                                                    k + const.PARENT_SUFFIX)
+            extends = extends.__extends__
 
     @classmethod
     def customize(cls, **kwargs):

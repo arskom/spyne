@@ -30,6 +30,7 @@ import spyne.const.xml_ns
 
 from decimal import Decimal
 
+from spyne import const
 from spyne.util import Break, six
 from spyne.util.cdict import cdict
 from spyne.util.odict import odict
@@ -373,6 +374,18 @@ class ModelBase(object):
 
         return cls.__namespace__
 
+    @classmethod
+    def _fill_empty_type_name(cls, parent_ns, parent_tn, k):
+        cls.__namespace__ = parent_ns
+        tn = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
+
+        cls.__type_name__ = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
+        extends = cls.__extends__
+        while extends is not None and extends.__type_name__ is ModelBase.Empty:
+            cls.__extends__._fill_empty_type_name(cls.get_namespace(),
+                               cls.get_type_name(), k + const.PARENT_SUFFIX)
+            extends = extends.__extends__
+
     # TODO: rename to "resolve_identifier"
     @staticmethod
     def resolve_namespace(cls, default_ns, tags=None):
@@ -409,6 +422,8 @@ class ModelBase(object):
 
         if cls.__namespace__ is None or len(cls.__namespace__) == 0:
             raise ValueError("You need to explicitly set %r.__namespace__" % cls)
+
+        logger.debug("    resolve ns for %r to %r", cls, cls.__namespace__)
 
         if getattr(cls, '__extends__', None) != None:
             cls.__extends__.resolve_namespace(cls.__extends__, default_ns, tags)
