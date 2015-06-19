@@ -251,7 +251,7 @@ class Interface(object):
                                         (c.__orig__, key, s.__orig__, key)
             return
 
-        logger.debug('\tadding method %s.%s to match %r tag.' %
+        logger.debug('    adding method %s.%s to match %r tag.' %
                    (s.__name__, get_function_name(method.function), method_key))
 
         self.method_id_map[key] = method
@@ -280,8 +280,8 @@ class Interface(object):
                                                    os.__module__, os.__name__))
 
     def check_method(self, method):
-        """Override this if you need to cherry-pick methods added to the interface
-        document."""
+        """Override this if you need to cherry-pick methods added to the
+        interface document."""
 
         return True
 
@@ -294,7 +294,7 @@ class Interface(object):
         # populate types
         for s in self.services:
             logger.debug("populating '%s.%s (%s)' types..." % (s.__module__,
-                                                s.__name__, s.get_service_key()))
+                                               s.__name__, s.get_service_key()))
 
             for method in s.public_methods.values():
                 if method.in_header is None:
@@ -307,15 +307,19 @@ class Interface(object):
                     method.aux.methods.append(_generate_method_id(s, method))
 
                 if not self.check_method(method):
+                    logger.debug("method %s' discarded by check_method",
+                                                               method.class_key)
                     continue
 
+                logger.debug("  enumerating classes for method '%s'",
+                                                               method.class_key)
                 for cls in self.add_method(method):
                     self.add_class(cls)
 
         # populate call routes for service methods
         for s in self.services:
             s.__tns__ = self.get_tns()
-            logger.debug("populating '%s.%s' methods..." % (s.__module__,
+            logger.debug("populating '%s.%s' routes..." % (s.__module__,
                                                                     s.__name__))
             for method in s.public_methods.values():
                 self.process_method(s, method)
@@ -374,13 +378,13 @@ class Interface(object):
             self.imports[ns] = set()
 
         class_key = '{%s}%s' % (ns, tn)
-        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+        logger.debug('    adding class %r for %r' % (repr(cls), class_key))
 
         assert class_key not in self.classes, ("Somehow, you're trying to "
             "overwrite %r by %r for class key %r." %
                                       (self.classes[class_key], cls, class_key))
 
-        assert not (cls.get_type_name() is cls.Empty)
+        assert not (cls.get_type_name() is cls.Empty), cls
 
         self.deps[cls]  # despite the appearances, this is not totally useless.
         self.classes[class_key] = cls
@@ -401,7 +405,7 @@ class Interface(object):
             if parent_ns != ns and not parent_ns in self.imports[ns] and \
                                                 self.is_valid_import(parent_ns):
                 self.imports[ns].add(parent_ns)
-                logger.debug("\timporting %r to %r because %r extends %r" % (
+                logger.debug("    importing %r to %r because %r extends %r" % (
                                             parent_ns, ns, cls.get_type_name(),
                                             extends.get_type_name()))
 
@@ -413,7 +417,7 @@ class Interface(object):
 
                 self.deps[cls].add(v)
 
-                logger.debug("\tadding %s.%s = %r", cls.get_type_name(), k, v)
+                logger.debug("    adding %s.%s = %r", cls.get_type_name(), k, v)
                 if v.get_namespace() is None:
                     v.resolve_namespace(v, ns)
 
@@ -426,7 +430,7 @@ class Interface(object):
                 if child_ns != ns and not child_ns in self.imports[ns] and \
                                                  self.is_valid_import(child_ns):
                     self.imports[ns].add(child_ns)
-                    logger.debug("\timporting %r to %r for %s.%s(%r)",
+                    logger.debug("    importing %r to %r for %s.%s(%r)",
                                        child_ns, ns, cls.get_type_name(), k, v)
 
                 if issubclass(v, XmlModifier):
@@ -436,11 +440,11 @@ class Interface(object):
                     if child_ns != ns and not child_ns in self.imports[ns] and \
                                                  self.is_valid_import(child_ns):
                         self.imports[ns].add(child_ns)
-                        logger.debug("\timporting %r to %r for %s.%s(%r)",
+                        logger.debug("    importing %r to %r for %s.%s(%r)",
                                     child_ns, ns, v.get_type_name(), k, v.type)
 
             if cls.Attributes.methods is not None:
-                logger.debug("\tpopulating member methods for '%s.%s'...",
+                logger.debug("    populating member methods for '%s.%s'...",
                                        cls.get_namespace(), cls.get_type_name())
 
                 for method_key, descriptor in cls.Attributes.methods.items():
@@ -451,7 +455,7 @@ class Interface(object):
                         self.add_class(c)
 
             if cls.Attributes._subclasses is not None:
-                logger.debug("\tadding subclasses of '%s.%s'...",
+                logger.debug("    adding subclasses of '%s.%s'...",
                                        cls.get_namespace(), cls.get_type_name())
 
                 for c in cls.Attributes._subclasses:
@@ -463,7 +467,7 @@ class Interface(object):
                             self.add_class(c, add_parent=False)
                             self.deps[c].add(cls)
                     else:
-                        logger.debug("\tnot adding %r to %r because it would "
+                        logger.debug("    not adding %r to %r because it would "
                             "cause circular imports because %r extends %r and "
                             "they don't have the same namespace" % (child_ns,
                                    ns, c.get_type_name(), cls.get_type_name()))
