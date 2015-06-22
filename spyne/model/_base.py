@@ -377,7 +377,6 @@ class ModelBase(object):
     @classmethod
     def _fill_empty_type_name(cls, parent_ns, parent_tn, k):
         cls.__namespace__ = parent_ns
-        tn = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
 
         cls.__type_name__ = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
         extends = cls.__extends__

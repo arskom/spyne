@@ -830,8 +830,7 @@ class ComplexModelBase(ModelBase):
         """
         if cls.__orig__ is None:
             return cls()
-        else:
-            return cls.__orig__()
+        return cls.__orig__()
 
     @classmethod
     @memoize_id

@@ -251,8 +251,8 @@ class Interface(object):
                                         (c.__orig__, key, s.__orig__, key)
             return
 
-        logger.debug('    adding method %s.%s to match %r tag.' %
-                   (s.__name__, get_function_name(method.function), method_key))
+        logger.debug('    adding method %s.%s to match %r tag.', s.__name__,
+                                 get_function_name(method.function), method_key)
 
         self.method_id_map[key] = method
 
@@ -293,8 +293,8 @@ class Interface(object):
 
         # populate types
         for s in self.services:
-            logger.debug("populating '%s.%s (%s)' types..." % (s.__module__,
-                                               s.__name__, s.get_service_key()))
+            logger.debug("populating '%s.%s (%s)' types...", s.__module__,
+                                                s.__name__, s.get_service_key())
 
             for method in s.public_methods.values():
                 if method.in_header is None:
@@ -319,8 +319,8 @@ class Interface(object):
         # populate call routes for service methods
         for s in self.services:
             s.__tns__ = self.get_tns()
-            logger.debug("populating '%s.%s' routes..." % (s.__module__,
-                                                                    s.__name__))
+            logger.debug("populating '%s.%s' routes...", s.__module__,
+                                                                     s.__name__)
             for method in s.public_methods.values():
                 self.process_method(s, method)
 
@@ -378,7 +378,7 @@ class Interface(object):
             self.imports[ns] = set()
 
         class_key = '{%s}%s' % (ns, tn)
-        logger.debug('    adding class %r for %r' % (repr(cls), class_key))
+        logger.debug('    adding class %r for %r', repr(cls), class_key)
 
         assert class_key not in self.classes, ("Somehow, you're trying to "
             "overwrite %r by %r for class key %r." %
@@ -405,9 +405,9 @@ class Interface(object):
             if parent_ns != ns and not parent_ns in self.imports[ns] and \
                                                 self.is_valid_import(parent_ns):
                 self.imports[ns].add(parent_ns)
-                logger.debug("    importing %r to %r because %r extends %r" % (
+                logger.debug("    importing %r to %r because %r extends %r",
                                             parent_ns, ns, cls.get_type_name(),
-                                            extends.get_type_name()))
+                                            extends.get_type_name())
 
         # add fields
         if issubclass(cls, ComplexModelBase):
@@ -469,8 +469,8 @@ class Interface(object):
                     else:
                         logger.debug("    not adding %r to %r because it would "
                             "cause circular imports because %r extends %r and "
-                            "they don't have the same namespace" % (child_ns,
-                                   ns, c.get_type_name(), cls.get_type_name()))
+                            "they don't have the same namespace", child_ns,
+                                     ns, c.get_type_name(), cls.get_type_name())
 
     def is_valid_import(self, ns):
         """This will return False for base namespaces unless told otherwise."""
