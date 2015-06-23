@@ -1090,11 +1090,19 @@ class ComplexModelBase(ModelBase):
     def init_from(cls, other, **kwargs):
         retval = cls()
 
-        for k in cls._type_info:
-            if k in kwargs:
-                setattr(retval, k, kwargs[k])
-            elif hasattr(other, k):
-                setattr(retval, k, getattr(other, k))
+        for k, v in cls._type_info.items():
+            if v.Attributes.read_only:
+                continue
+
+            try:
+                if k in kwargs:
+                    setattr(retval, k, kwargs[k])
+
+                elif hasattr(other, k):
+                    setattr(retval, k, getattr(other, k))
+
+            except AttributeError as e:
+                logger.warning("Error setting %s: %r", k, e)
 
         return retval
 
