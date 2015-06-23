@@ -58,7 +58,7 @@ from spyne.interface.xml_schema.defn import TYPE_MAP
 from spyne.interface.xml_schema.defn import SchemaBase
 from spyne.interface.xml_schema.defn import XmlSchema10
 
-from spyne.util.color import R, G, B, M, Y
+from spyne.util.color import R, G, B, MAG, YEL
 
 PARSER = etree.XMLParser(remove_comments=True)
 
@@ -592,7 +592,7 @@ class XmlSchemaParser(object):
         for (c_name, e_name), _v in list(self.pending_types.items()):
             self.process_complex_type(_v)
 
-        self.debug0("7 %s processing pending elements", Y(self.tns))
+        self.debug0("7 %s processing pending elements", YEL(self.tns))
         for _k, _v in self.pending_elements.items():
             self.process_schema_element(_v)
 
@@ -636,7 +636,7 @@ class XmlSchemaParser(object):
             return
         self.retval[tns] = _Schema()
 
-        self.debug0("1 %s processing includes", M(tns))
+        self.debug0("1 %s processing includes", MAG(tns))
         if schema.includes:
             for include in schema.includes:
                 self.process_includes(include)
@@ -681,7 +681,7 @@ class XmlSchemaParser(object):
             for c in schema.complex_types.values():
                 self.process_complex_type(c)
 
-        self.debug0("6 %s processing elements", Y(tns))
+        self.debug0("6 %s processing elements", YEL(tns))
         if schema.elements:
             for e in schema.elements.values():
                 self.process_schema_element(e)
