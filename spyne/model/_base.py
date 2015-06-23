@@ -313,7 +313,8 @@ class ModelBase(object):
         """
 
         read_only = False
-        """If True, the attribute won't be initialized from outside values."""
+        """If True, the attribute won't be initialized from outside values.
+        Set this to ``True`` for e.g. read-only properties."""
 
         prot_attrs = None
         """Customize child attributes for protocols. It's a dict of dicts.
