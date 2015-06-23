@@ -133,6 +133,9 @@ class ProtocolBase(object):
     default_string_encoding = None
     """Default encoding for text content. It could be e.g. UTF-8."""
 
+    type_attrs = {}
+    """Default customizations to be passed to underlying classes."""
+
     def __init__(self, app=None, validator=None, mime_type=None,
                ignore_uncap=False, ignore_wrappers=False, binary_encoding=None):
         self._attrcache = WeakKeyDictionary()

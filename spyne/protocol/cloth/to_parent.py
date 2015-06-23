@@ -88,28 +88,28 @@ class ToParentMixin(ProtocolBase):
             logger.debug("Polymorphic cls switch: %r => %r", cls, self.type)
             cls = inst.__class__
 
-        # if there's a subprotocol, switch to it
+        # if there is a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self) and not nosubprot:
             return self.to_subprot(ctx, cls, inst, parent, name, subprot,
                                                                        **kwargs)
 
-        # if there's a class cloth, switch to it
+        # if there is a class cloth, switch to it
         ret, cor_handle = self.check_class_cloths(ctx, cls, inst, parent, name,
                                                                        **kwargs)
         if ret:
             return cor_handle
 
-        # if instance is None use the default factory to generate one
+        # if instance is None, use the default factory to generate one
         _df = cls.Attributes.default_factory
         if inst is None and callable(_df):
             inst = _df()
 
-        # if instance is still None use the default value
+        # if instance is still None, use the default value
         if inst is None:
             inst = cls.Attributes.default
 
-        # if instance is still None use the global null handler to serialize it
+        # if instance is still None, use the global null handler to serialize it
         if inst is None and self.use_global_null_handler:
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
@@ -144,7 +144,7 @@ class ToParentMixin(ProtocolBase):
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 
         # FIXME: to_parent must be made to a coroutine for the below to remain
-        #        consistent
+        #        consistent when Iterable.Push is used.
         ctx.outprot_ctx.inst_stack.pop()
 
         return retval

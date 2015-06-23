@@ -21,12 +21,16 @@
 defining models.
 """
 
+import logging
+logger = logging.getLogger(__name__)
+
 import re
 
 import spyne.const.xml_ns
 
 from decimal import Decimal
 
+from spyne import const
 from spyne.util import Break, six
 from spyne.util.cdict import cdict
 from spyne.util.odict import odict
@@ -309,7 +313,8 @@ class ModelBase(object):
         """
 
         read_only = False
-        """If True, the attribute won't be initialized from outside values."""
+        """If True, the attribute won't be initialized from outside values.
+        Set this to ``True`` for e.g. read-only properties."""
 
         prot_attrs = None
         """Customize child attributes for protocols. It's a dict of dicts.
@@ -370,6 +375,17 @@ class ModelBase(object):
 
         return cls.__namespace__
 
+    @classmethod
+    def _fill_empty_type_name(cls, parent_ns, parent_tn, k):
+        cls.__namespace__ = parent_ns
+
+        cls.__type_name__ = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
+        extends = cls.__extends__
+        while extends is not None and extends.__type_name__ is ModelBase.Empty:
+            cls.__extends__._fill_empty_type_name(cls.get_namespace(),
+                               cls.get_type_name(), k + const.PARENT_SUFFIX)
+            extends = extends.__extends__
+
     # TODO: rename to "resolve_identifier"
     @staticmethod
     def resolve_namespace(cls, default_ns, tags=None):
@@ -406,6 +422,9 @@ class ModelBase(object):
 
         if cls.__namespace__ is None or len(cls.__namespace__) == 0:
             raise ValueError("You need to explicitly set %r.__namespace__" % cls)
+
+        # too slow
+        # logger.debug("    resolve ns for %r to %r", cls, cls.__namespace__)
 
         if getattr(cls, '__extends__', None) != None:
             cls.__extends__.resolve_namespace(cls.__extends__, default_ns, tags)
@@ -512,18 +531,36 @@ class ModelBase(object):
             pass
         cls_dict['Annotations'] = Annotations
 
+        # get protocol attrs
+        prot = kwargs.get('protocol', None)
+        if prot is None:
+            prot = kwargs.get('prot', None)
+        if prot is None:
+            prot = kwargs.get('p', None)
+        if prot is not None and len(prot.type_attrs) > 0:
+            # if there is a class customization from protocol, do it
+
+            type_attrs = prot.type_attrs.copy()
+            type_attrs.update(kwargs)
+            logger.debug("%r: kwargs %r => %r from prot typeattr %r",
+                                       cls, kwargs, type_attrs, prot.type_attrs)
+            kwargs = type_attrs
+
         for k, v in kwargs.items():
             if k.startswith('_'):
                 continue
 
-            elif k in ("doc", "appinfo"):
+            if k in ('protocol', 'prot', 'p'):
+                setattr(Attributes, 'prot', v)
+
+            if k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
 
             elif k in ('primary_key', 'pk'):
                 setattr(Attributes, 'primary_key', v)
                 Attributes.sqla_column_args[-1]['primary_key'] = v
 
-            elif k in ('prot_attrs', 'pa'):
+            elif k in ('protocol_attrs', 'prot_attrs', 'pa'):
                 setattr(Attributes, 'prot_attrs', _decode_pa_dict(v))
 
             elif k in ('foreign_key', 'fk'):
@@ -651,12 +688,14 @@ class SimpleModel(ModelBase):
 
     @staticmethod
     def validate_native(cls, value):
-        return (     ModelBase.validate_native(cls, value)
-                and (cls.Attributes.values is None or
-                                            len(cls.Attributes.values) == 0 or (
-                     (value is None     and cls.Attributes.nillable) or
-                     (value is not None and value in cls.Attributes.values)
-                ))
+        return (ModelBase.validate_native(cls, value)
+                and (
+                    cls.Attributes.values is None or
+                    len(cls.Attributes.values) == 0 or (
+                        (value is None     and cls.Attributes.nillable) or
+                        (value is not None and value in cls.Attributes.values)
+                    )
+                )
             )
 
 

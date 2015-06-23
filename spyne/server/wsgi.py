@@ -482,22 +482,6 @@ class WsgiApplication(HttpBase):
 
             yield data
 
-    def generate_map_adapter(self, ctx):
-        """This function runs on first request because it needs the
-        `'SERVER_NAME'` from the wsgi request environment.
-        """
-
-        try:
-            self._mtx_build_map_adapter.acquire()
-            if self._map_adapter is None:
-                # If url map is not bound before, bind url_map
-                req_env = ctx.transport.req_env
-                self._map_adapter = self._http_patterns.bind(
-                                                    req_env['SERVER_NAME'], "/")
-
-        finally:
-            self._mtx_build_map_adapter.release()
-
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the wsgi
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.

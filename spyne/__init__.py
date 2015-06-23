@@ -20,6 +20,7 @@
 __version__ = '2.12.0'
 
 from pytz import utc as LOCAL_TZ
+from decimal import Decimal as D
 
 DEFAULT_LANGUAGE = 'en'
 
@@ -44,6 +45,7 @@ from spyne.service import ServiceBase
 from spyne.application import Application
 
 from spyne.model import *
+from spyne.model import Mandatory as M
 
 from spyne.error import InvalidCredentialsError
 from spyne.error import RequestTooLongError

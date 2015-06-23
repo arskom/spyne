@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import absolute_import
+
 try:
     import colorama
     R = lambda s: ''.join((colorama.Fore.RED, colorama.Style.BRIGHT, s,
@@ -25,15 +27,25 @@ try:
                                                     colorama.Style.RESET_ALL))
     B = lambda s: ''.join((colorama.Fore.BLUE, colorama.Style.BRIGHT, s,
                                                     colorama.Style.RESET_ALL))
-    Y = lambda s: ''.join((colorama.Fore.YELLOW, colorama.Style.BRIGHT, s,
+    YEL = lambda s: ''.join((colorama.Fore.YELLOW, colorama.Style.BRIGHT, s,
                                                     colorama.Style.RESET_ALL))
-    M = lambda s: ''.join((colorama.Fore.MAGENTA, colorama.Style.BRIGHT, s,
+    MAG = lambda s: ''.join((colorama.Fore.MAGENTA, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL))
+    CYA = lambda s: ''.join((colorama.Fore.CYAN, colorama.Style.BRIGHT, s,
                                                     colorama.Style.RESET_ALL))
 
 except ImportError:
     R = lambda s: s
     G = lambda s: s
     B = lambda s: s
-    Y = lambda s: s
-    M = lambda s: s
+    YEL = lambda s: s
+    MAG = lambda s: s
+    CYA = lambda s: s
 
+if __name__ == '__main__':
+    print(R("RED"))
+    print(G("GREEN"))
+    print(B("BLUE"))
+    print(YEL("YELLOW"))
+    print(MAG("MAGENTA"))
+    print(CYA("CYAN"))

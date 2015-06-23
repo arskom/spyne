@@ -117,7 +117,7 @@ class SimpleDictDocument(DictDocument):
         simple_type_info = cls.get_simple_type_info(cls,
                                                      hier_delim=self.hier_delim)
 
-        logger.debug("Simple type info: %r", simple_type_info)
+        logger.debug("Simple type info key: %r", simple_type_info.keys())
 
         idxmap = defaultdict(dict)
         for orig_k, v in sorted(doc.items(), key=lambda _k: _k[0]):
