@@ -761,13 +761,12 @@ class ComplexModelBase(ModelBase):
 
     def _safe_set(self, key, value, t):
         if t.Attributes.read_only:
-            pass
-        else:
-            try:
-                setattr(self, key, value)
-            except AttributeError:
-                raise AttributeError("can't set attribute %s to %r" %
-                                                                   (key, value))
+            return
+
+        try:
+            setattr(self, key, value)
+        except AttributeError:
+            raise AttributeError("can't set attribute %s to %r" % (key, value))
 
     def as_dict(self):
         """Represent object as dict.
