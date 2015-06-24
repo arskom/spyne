@@ -448,6 +448,15 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             self._enter_cloth(ctx, cloth, parent)
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
+        # if instance is None, use the default factory to generate one
+        _df = cls.Attributes.default_factory
+        if inst is None and callable(_df):
+            inst = _df()
+
+        # if instance is still None, use the default value
+        if inst is None:
+            inst = cls.Attributes.default
+
         retval = None
         if inst is None:
             ctx.protocol.tags.add(id(cloth))
