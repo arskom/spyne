@@ -83,13 +83,21 @@ class ToParentMixin(ProtocolBase):
         return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
-        # if polymorphic, use incoming class
-        if self.polymorphic and inst.__class__ is not cls and \
-                                issubclass(inst.__class__, cls.__orig__ or cls):
-            logger.debug("Polymorphic cls switch: %r => %r", cls, inst.__class__)
-            cls = inst.__class__
-            if ctx.descriptor is not None:
-                cls = ctx.descriptor.returns_polymap.get(cls, cls)
+        # if polymorphic, use class returned by user code.
+        orig_cls = cls.__orig__ or cls
+        if self.polymorphic and inst.__class__ is not (orig_cls) and \
+                                           issubclass(inst.__class__, orig_cls):
+            cls_attr = self.get_cls_attrs(cls)
+            polymap_cls = cls_attr.polymap.get(inst.__class__, None)
+
+            if polymap_cls is not None:
+                cls = polymap_cls
+                logger.debug("Polymap hit cls switch: %r => %r", cls,
+                                                                 polymap_cls)
+            else:
+                cls = inst.__class__
+                logger.debug("Polymap miss cls switch: %r => %r", cls,
+                                                                 inst.__class__)
 
         # if there is a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
