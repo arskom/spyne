@@ -427,7 +427,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
+        if self.polymorphic and inst.__class__ is not cls and \
+                                issubclass(inst.__class__, cls.__orig__ or cls):
             cls = inst.__class__
 
         if inst is None:

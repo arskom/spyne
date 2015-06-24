@@ -84,9 +84,12 @@ class ToParentMixin(ProtocolBase):
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         # if polymorphic, use incoming class
-        if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
-            logger.debug("Polymorphic cls switch: %r => %r", cls, self.type)
+        if self.polymorphic and inst.__class__ is not cls and \
+                                issubclass(inst.__class__, cls.__orig__ or cls):
+            logger.debug("Polymorphic cls switch: %r => %r", cls, inst.__class__)
             cls = inst.__class__
+            if ctx.descriptor is not None:
+                cls = ctx.descriptor.returns_polymap.get(cls, cls)
 
         # if there is a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
