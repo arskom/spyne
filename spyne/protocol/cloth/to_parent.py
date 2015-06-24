@@ -83,7 +83,7 @@ class ToParentMixin(ProtocolBase):
         return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
-        # if polymorphic, rather use incoming class
+        # if polymorphic, use incoming class
         if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
             logger.debug("Polymorphic cls switch: %r => %r", cls, self.type)
             cls = inst.__class__

@@ -433,6 +433,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         if inst is None:
             inst = cls.Attributes.default
 
+        # if there's a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None and not (subprot is self):
             self._enter_cloth(ctx, cloth, parent)

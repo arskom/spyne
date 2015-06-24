@@ -251,7 +251,7 @@ class Interface(object):
                                         (c.__orig__, key, s.__orig__, key)
             return
 
-        logger.debug('    adding method %s.%s to match %r tag.', s.__name__,
+        logger.debug('  adding method %s.%s to match %r tag.', s.__name__,
                                  get_function_name(method.function), method_key)
 
         self.method_id_map[key] = method
