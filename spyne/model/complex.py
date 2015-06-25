@@ -973,6 +973,17 @@ class ComplexModelBase(ModelBase):
         else:
             retval.Attributes._delayed_child_attrs = dict(dca.items())
 
+        tn = kwargs.get("type_name", None)
+        if tn is not None:
+            retval.__type_name__ = tn
+
+        ns = kwargs.get("namespace", None)
+        if ns is not None:
+            retval.__namespace__ = ns
+
+        if not cls is ComplexModel:
+            cls._process_variants(retval)
+
         child_attrs_all = kwargs.get('child_attrs_all', None)
         if child_attrs_all is not None:
             ti = retval._type_info
@@ -993,17 +1004,6 @@ class ComplexModelBase(ModelBase):
                 else:
                     logger.debug("  child_attr delayed %r=%r", k, v)
                     retval.Attributes._delayed_child_attrs[k] = v
-
-        tn = kwargs.get("type_name", None)
-        if tn is not None:
-            retval.__type_name__ = tn
-
-        ns = kwargs.get("namespace", None)
-        if ns is not None:
-            retval.__namespace__ = ns
-
-        if not cls is ComplexModel:
-            cls._process_variants(retval)
 
         # we could be smarter, but customize is supposed to be called only
         # during daemon initialization, so it's not really necessary.
