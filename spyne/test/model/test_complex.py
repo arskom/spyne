@@ -793,5 +793,203 @@ class TestDoc(unittest.TestCase):
         assert "Some docstring" == SomeComplexModel.customize().get_documentation()
 
 
+class TestCustomize(unittest.TestCase):
+    def test_base_class(self):
+        class A(ComplexModel):
+            s = Unicode
+
+        assert A.customize().__extends__ is None
+
+        class B(A):
+            i = Integer
+
+        assert B.__orig__ is None
+
+        B2 = B.customize()
+
+        assert B2.__orig__ is B
+        assert B2.__extends__ is A
+
+        B3 = B2.customize()
+
+        assert B3.__orig__ is B
+        assert B3.__extends__ is A
+
+    def test_noop(self):
+        class A(ComplexModel):
+            s = Unicode
+
+        assert A.get_flat_type_info(A)['s'].Attributes.max_len == D('inf')
+
+    def test_cust_simple(self):
+        # simple types are different from complex ones for __extends__ handling.
+        # simple types set __orig__ and __extends__ on customization.
+        # complex types set __orig__ but not extend.
+        # for complex types, __extend__ is set only on explicit inheritance
+
+        t = Unicode(max_len=10)
+
+        assert t.Attributes.max_len == 10
+        assert t.__extends__ is Unicode
+        assert t.__orig__ is Unicode
+
+    def test_cust_simple_again(self):
+        t = Unicode(max_len=10)
+        t2 = t(min_len=5)
+
+        assert t2.Attributes.max_len == 10
+        assert t2.Attributes.min_len == 5
+        assert t2.__extends__ is t
+        assert t2.__orig__ is Unicode
+
+    def test_cust_complex(self):
+        class A(ComplexModel):
+            s = Unicode
+
+        A2 = A.customize(
+            child_attrs=dict(
+                s=dict(
+                    max_len=10
+                )
+            )
+        )
+
+        assert A2.get_flat_type_info(A2)['s'].Attributes.max_len == 10
+
+    def test_cust_base_class(self):
+        class A(ComplexModel):
+            s = Unicode
+
+        class B(A):
+            i = Integer
+
+        B2 = B.customize(
+            child_attrs=dict(
+                s=dict(
+                    max_len=10,
+                ),
+            ),
+        )
+
+        assert B2.get_flat_type_info(B2)['s'].Attributes.max_len == 10
+
+    def test_cust_again_base_class(self):
+        class A(ComplexModel):
+            s = Unicode
+
+        A2 = A.customize(
+            child_attrs=dict(
+                s=dict(
+                    max_len=10,
+                ),
+            ),
+        )
+
+        class B(A2):
+            i = Integer
+
+        assert B.__extends__ is A2
+        assert B.__orig__ is None
+
+        B2 = B.customize(
+            child_attrs=dict(
+                s=dict(
+                    min_len=5,
+                ),
+            ),
+        )
+
+        assert B2.get_flat_type_info(B2)['s'].Attributes.max_len == 10
+
+    def test_cust_array(self):
+        A = Array(Unicode)
+
+        assert A.__orig__ is Array
+        assert A.__extends__ is None
+        assert issubclass(A, Array)
+
+    def test_cust_array_again(self):
+        A = Array(Unicode)
+
+        A = A.customize(foo='bar')
+
+        assert A.Attributes.foo == 'bar'
+        assert A.__orig__ is Array
+        assert A.__extends__ is None
+        assert issubclass(A, Array)
+
+    def test_cust_array_serializer(self):
+        A = Array(Unicode)
+
+        A = A.customize(
+            serializer_attrs=dict(
+                max_len=10,
+            ),
+        )
+
+        serializer, = A._type_info.values()
+
+        assert serializer.Attributes.max_len == 10
+        assert serializer.__orig__ is Unicode
+        assert issubclass(serializer, Unicode)
+
+    def test_cust_sub_array(self):
+        """vanilla class is passed as base"""
+        class A(ComplexModel):
+            s = Array(Unicode)
+
+        d = dict(
+            child_attrs=dict(
+                s=dict(
+                    serializer_attrs=dict(
+                        max_len=10,
+                    ),
+                ),
+            ),
+        )
+
+        A2 = A.customize(**d)
+
+        ser, = A2._type_info['s']._type_info.values()
+        assert ser.Attributes.max_len == 10
+
+        class B(A):
+            i = Integer
+
+        B2 = B.customize(**d)
+
+        b2_fti = B2.get_flat_type_info(B2)
+        ser, = b2_fti['s']._type_info.values()
+
+        assert ser.Attributes.max_len == 10
+
+    def test_cust_sub_array_again(self):
+        """cust. class is passed as base"""
+
+        class A(ComplexModel):
+            s = Array(Unicode)
+
+        d = dict(
+            child_attrs=dict(
+                s=dict(
+                    serializer_attrs=dict(
+                        max_len=10,
+                    ),
+                ),
+            ),
+        )
+
+        A2 = A.customize(**d)
+
+        class B(A2):
+            i = Integer
+
+        B2 = B.customize(**d)
+        b2_fti = B2.get_flat_type_info(B2)
+        ser, = b2_fti['s']._type_info.values()
+
+        assert ser.Attributes.max_len == 10
+
+
 if __name__ == '__main__':
     unittest.main()

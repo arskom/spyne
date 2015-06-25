@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 import decimal
 
+from copy import copy
 from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
@@ -271,28 +272,51 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
     base_type_info = TypeInfo()
     mixin = TypeInfo()
     extends = cls_dict.get('__extends__', None)
+
+    # user did not specify explicit base class so let's try to derive it from
+    # the actual class hierarchy
     if extends is None:
-        for b in cls_bases:
+        # we don't want origs end up as base classes
+        orig = cls_dict.get("__orig__", None)
+        if orig is None:
+            orig = getattr(cls, '__orig__', None)
+
+        if orig is not None:
+            bases = orig.__bases__
+            logger.debug("Got bases for %s from orig: %r", cls_name, bases)
+        else:
+            bases = cls_bases
+            logger.debug("Got bases for %s from meta: %r", cls_name, bases)
+
+        for b in bases:
             base_types = getattr(b, "_type_info", None)
 
-            if base_types is not None:
-                if getattr(b, '__mixin__', False) == True:
-                    mixin.update(b.get_flat_type_info(b))
-                else:
-                    if not (extends in (None, b)):
-                        raise Exception("Spyne objects do not support multiple "
-                            "inheritance. Use mixins if you need to reuse "
-                            "fields from multiple classes.")
+            # we don't care about non-ComplexModel bases
+            if base_types is None:
+                continue
 
-                    try:
-                        if len(base_types) > 0 and issubclass(b, ModelBase):
-                            extends = cls_dict["__extends__"] = b
-                            b.get_subclasses.memo.clear()
+            # mixins are simple
+            if getattr(b, '__mixin__', False) == True:
+                logger.debug("Adding fields from mixin %r to '%s'", b, cls_name)
+                mixin.update(b.get_flat_type_info(b))
 
-                    except Exception as e:
-                        logger.exception(e)
-                        logger.error(repr(extends))
-                        raise
+                if not '__mixin__' in cls_dict:
+                    cls_dict['__mixin__'] = False
+
+                continue
+
+            if not (extends in (None, b)):
+                raise Exception("Spyne objects do not support multiple "
+                    "inheritance. Use mixins if you need to reuse "
+                    "fields from multiple classes.")
+
+            if len(base_types) > 0 and issubclass(b, ModelBase):
+                extends = cls_dict["__extends__"] = b
+                if extends.__orig__ is not None and not "__orig__" in cls_dict:
+                    cls_dict["__orig__"] = None
+
+                b.get_subclasses.memo.clear()
+                logger.debug("Registering %r as base of '%s'", b, cls_name)
 
     if not ('_type_info' in cls_dict):
         cls_dict['_type_info'] = _type_info = TypeInfo()
@@ -314,6 +338,7 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
             _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
     _type_info.update(mixin)
+
     return _type_info
 
 
@@ -985,23 +1010,37 @@ class ComplexModelBase(ModelBase):
             cls._process_variants(retval)
 
         child_attrs_all = kwargs.get('child_attrs_all', None)
-        if child_attrs_all is not None:
+        if False and child_attrs_all is not None:
             ti = retval._type_info
             logger.debug("processing child_attrs_all for %r", cls)
             for k, v in ti.items():
                 logger.debug("  child_attrs_all set %r=%r", k, child_attrs_all)
                 ti[k] = ti[k].customize(**child_attrs_all)
+
+            if retval.__extends__ is not None:
+                retval.__extends__ = retval.__extends__.customize(
+                                                child_attrs_all=child_attrs_all)
+
             retval.Attributes._delayed_child_attrs_all = child_attrs_all
 
-        child_attrs = kwargs.get('child_attrs', None)
+        child_attrs = copy(kwargs.get('child_attrs', None))
         if child_attrs is not None:
             ti = retval._type_info
             logger.debug("processing child_attrs for %r", cls)
-            for k, v in child_attrs.items():
+            for k, v in list(child_attrs.items()):
                 if k in ti:
                     logger.debug("  child_attr set %r=%r", k, v)
                     ti[k] = ti[k].customize(**v)
-                else:
+                    del child_attrs[k]
+
+            base_fti = {}
+            if retval.__extends__ is not None:
+                retval.__extends__ = retval.__extends__.customize(
+                                                        child_attrs=child_attrs)
+                base_fti = retval.__extends__.get_flat_type_info(
+                                                             retval.__extends__)
+            for k, v in child_attrs.items():
+                if not k in base_fti:
                     logger.debug("  child_attr delayed %r=%r", k, v)
                     retval.Attributes._delayed_child_attrs[k] = v
 
@@ -1208,7 +1247,7 @@ class Array(ComplexModelBase):
             serializer = serializer.customize(max_occurs=decimal.Decimal('inf'))
 
         assert isinstance(member_name, string_types), member_name
-        cls._type_info = {member_name: serializer}
+        cls._type_info = TypeInfo({member_name: serializer})
 
     # the array belongs to its child's namespace, it doesn't have its own
     # namespace.

@@ -513,6 +513,8 @@ class ModelBase(object):
 
         if getattr(cls, '__orig__', None) is None:
             cls_dict['__orig__'] = cls
+        else:
+            cls_dict['__orig__'] = cls.__orig__
 
         class Attributes(cls.Attributes):
             pass
