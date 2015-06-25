@@ -985,6 +985,8 @@ class ComplexModelBase(ModelBase):
 
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
         cls_dict['__module__'] = cls.__module__
+        if not '__extends__' in cls_dict:
+            cls_dict['__extends__'] = cls.__extends__
 
         retval = type(cls_name, cls_bases, cls_dict)
         retval._type_info = TypeInfo(cls._type_info)
@@ -1056,7 +1058,6 @@ class ComplexModelBase(ModelBase):
     def _process_variants(cls, retval):
         orig = getattr(retval, '__orig__', None)
         if orig is not None:
-            retval.__extends__ = getattr(orig, '__extends__', None)
             if orig.Attributes._variants is None:
                 orig.Attributes._variants = WeakKeyDictionary()
             orig.Attributes._variants[retval] = True

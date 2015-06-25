@@ -990,6 +990,19 @@ class TestCustomize(unittest.TestCase):
 
         assert ser.Attributes.max_len == 10
 
+    def test_cust_side_effect(self):
+        class A(ComplexModel):
+            s = Unicode
+            i = Integer
+        class B(A):
+            d = DateTime
+
+        B2 = B.customize(child_attrs=dict(s=dict(max_len=10)))
+        assert B2.get_flat_type_info(B2)['s'].Attributes.max_len == 10
+
+        B3 = B2.customize(child_attrs=dict(d=dict(format="%y")))
+        assert B3.get_flat_type_info(B3)['s'].Attributes.max_len == 10
+
 
 if __name__ == '__main__':
     unittest.main()
