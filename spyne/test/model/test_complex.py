@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 import pytz
 import datetime
 import unittest
@@ -964,7 +965,7 @@ class TestCustomize(unittest.TestCase):
         assert ser.Attributes.max_len == 10
 
     def test_cust_sub_array_again(self):
-        """cust. class is passed as base"""
+        """customized class is passed as base"""
 
         class A(ComplexModel):
             s = Array(Unicode)
@@ -994,6 +995,7 @@ class TestCustomize(unittest.TestCase):
         class A(ComplexModel):
             s = Unicode
             i = Integer
+
         class B(A):
             d = DateTime
 
