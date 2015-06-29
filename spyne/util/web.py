@@ -322,7 +322,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
                 retval.append("(...)")
                 break
 
-            if t.Attributes.logged:
+            if not t.Attributes.logged:
                 continue
 
             try:
