@@ -834,7 +834,7 @@ def gen_sqla_info(cls, cls_bases=()):
     table = _check_table(cls)
     mapper_props = {}
 
-    for k, v in cls._type_info.items():
+    for k, v in cls.get_flat_type_info(cls).items():
         t = _get_sqlalchemy_type(v)
 
         if t is None:  # complex model
@@ -904,7 +904,7 @@ def _get_spyne_type(v):
 
 def gen_spyne_info(cls):
     table = cls.Attributes.sqla_table
-    _type_info = cls._type_info
+    _type_info = cls.get_flat_type_info(cls)
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
 
     if len(_type_info) == 0:
