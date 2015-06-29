@@ -37,6 +37,7 @@ from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
 
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
+from spyne.util.color import B
 
 _revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
 
@@ -61,6 +62,7 @@ def _gen_tagname(ns, name):
     return name
 
 
+# TODO: implement tagbag
 class ClothParserMixin(object):
     ID_ATTR_NAME = 'spyne-id'
     DATA_TAG_NAME = 'spyne-data'
@@ -422,6 +424,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         else:
             self._close_cloth(ctx, parent)
 
+    # TODO: Maybe DRY this with to_parent?
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
         if cloth is None:
@@ -457,6 +460,9 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         if inst is None:
             inst = cls.Attributes.default
 
+        prot_name = self.__class__.__name__
+        logger.debug("%s.to_cloth: %r '%s' inst: %r", B(prot_name), cls, name,
+                                                                           inst)
         retval = None
         if inst is None:
             ctx.protocol.tags.add(id(cloth))

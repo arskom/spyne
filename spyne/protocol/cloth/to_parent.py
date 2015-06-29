@@ -35,6 +35,7 @@ from spyne.model.enum import EnumBase
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
+from spyne.util.color import B
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
 
@@ -83,6 +84,8 @@ class ToParentMixin(ProtocolBase):
         return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
+        prot_name = self.__class__.__name__
+
         # if polymorphic, use class returned by user code.
         orig_cls = cls.__orig__ or cls
         if self.polymorphic and inst.__class__ is not (orig_cls) and \
@@ -122,6 +125,9 @@ class ToParentMixin(ProtocolBase):
 
         # if instance is still None, use the global null handler to serialize it
         if inst is None and self.use_global_null_handler:
+            logger.debug("%s.null_to_parent: %r '%s'", B(prot_name), cls,
+                                                                     name, inst)
+
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         # if requested, ignore wrappers
@@ -152,6 +158,8 @@ class ToParentMixin(ProtocolBase):
         ctx.outprot_ctx.inst_stack.append( (cls, inst) )
 
         # finally, serialize the value. retval is the coroutine handle if any
+        logger.debug("%s.to_parent: %r '%s' inst: %r", B(prot_name), cls,
+                                                                     name, inst)
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 
         # FIXME: to_parent must be made to a coroutine for the below to remain

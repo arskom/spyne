@@ -333,6 +333,11 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
                     retval.append("%s=%s" % (k, log_repr(v, t, parent=k,
                                                                     tags=tags)))
                     i += 1
+                try:
+                    v = getattr(obj, k, None)
+                except (AttributeError, KeyError):
+                    v = None
+
 
         return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
