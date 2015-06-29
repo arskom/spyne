@@ -824,6 +824,69 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert D().t == 2
         assert D2().t == 2
 
+    def test_base_append_simple(self):
+        class B(TableModel):
+            __tablename__ = 'b'
+            __mapper_args__ = {
+                'polymorphic_on': 't',
+                'polymorphic_identity': 1,
+            }
+
+            id = Integer32(pk=True)
+            t = M(Integer32)
+
+        class C(B):
+            __mapper_args__ = {
+                'polymorphic_identity': 1,
+            }
+            s = Unicode
+
+        B.append_field('i', Integer32)
+
+        self.metadata.create_all()
+
+        self.session.add(C(s="foo", i=42))
+        self.session.commit()
+
+        c = self.session.query(C).first()
+
+        assert c.s == 'foo'
+        assert c.i == 42
+        assert c.t == 1
+
+    def test_base_append_complex(self):
+        class B(TableModel):
+            __tablename__ = 'b'
+            __mapper_args__ = {
+                'polymorphic_on': 't',
+                'polymorphic_identity': 1,
+            }
+
+            id = Integer32(pk=True)
+            t = M(Integer32)
+
+        class C(B):
+            __mapper_args__ = {
+                'polymorphic_identity': 1,
+            }
+            s = Unicode
+
+        class D(TableModel):
+            __tablename__ = 'd'
+            id = Integer32(pk=True)
+            i = M(Integer32)
+
+        B.append_field('d', D.store_as('table'))
+
+        self.metadata.create_all()
+
+        self.session.add(C(d=D(i=42)))
+        self.session.commit()
+
+        c = self.session.query(C).first()
+
+        assert c.d.i == 42
+
 
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):
