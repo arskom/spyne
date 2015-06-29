@@ -20,6 +20,7 @@
 import logging
 logger = logging.getLogger('spyne.interface.xml_schema')
 
+import os
 import shutil
 import tempfile
 
@@ -210,14 +211,14 @@ class XmlSchema(InterfaceDocumentBase):
         try:
             # serialize nodes to files
             for k, v in self.schema_dict.items():
-                file_name = '%s/%s.xsd' % (tmp_dir_name, k)
+                file_name = os.path.join(tmp_dir_name, "%s.xsd" % k)
                 with open(file_name, 'wb') as f:
                     etree.ElementTree(v).write(f, pretty_print=True)
 
                 logger.debug("writing %r for ns %s" %
                              (file_name, self.interface.nsmap[k]))
 
-            with open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r') as f:
+            with open(os.path.join(tmp_dir_name, "%s.xsd" % pref_tns), 'r') as f:
                 try:
                     self.validation_schema = etree.XMLSchema(etree.parse(f))
 
