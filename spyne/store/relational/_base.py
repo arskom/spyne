@@ -722,11 +722,12 @@ def _convert_fake_table(cls, table):
 
 
 def _gen_mapper(cls, props, table, cls_bases):
-    """
+    """Generate SQLAlchemy mapper from Spyne definition data.
+
     :param cls: La Class.
     :param props: a dict.
-    :param table: a Table instance. Not a _FakeTable.
-    :param cls_bases: Class bases.
+    :param table: a Table instance. Not a `_FakeTable` or anything.
+    :param cls_bases: Sequence of class bases.
     """
 
     inheritance, base_class, base_mapper, inc = _check_inheritance(cls, cls_bases)
