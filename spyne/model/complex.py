@@ -977,7 +977,12 @@ class ComplexModelBase(ModelBase):
     @classmethod
     def customize(cls, **kwargs):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
-        ``**kwargs`` and returns the new class."""
+        ``**kwargs`` and returns the new class.
+
+        Because each class is registered as a variant of the original (__orig__)
+        class, using this function to generate classes dynamically on-the-fly
+        could cause memory leaks. You have been warned.
+        """
 
         store_as = apply_pssm(kwargs.get('store_as', None), PSSM_VALUES)
         if store_as is not None:
