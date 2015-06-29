@@ -23,7 +23,8 @@
 from __future__ import print_function
 
 import logging
-logger = logging.getLogger(__name__)
+logger_c = logging.getLogger("%s.cloth" % __name__)
+logger_s = logging.getLogger("%s.serializer" % __name__)
 
 from lxml import html, etree
 from copy import deepcopy
@@ -102,10 +103,10 @@ class ClothParserMixin(object):
         q = "//*[@%s]" % self.ROOT_ATTR_NAME
         elts = cloth.xpath(q)
         if len(elts) > 0:
-            logger.debug("Using %r as root cloth.", cloth)
+            logger_c.debug("Using %r as root cloth.", cloth)
             self._root_cloth = elts[0]
         else:
-            logger.debug("Using %r as plain cloth.", cloth)
+            logger_c.debug("Using %r as plain cloth.", cloth)
             self._cloth = cloth
 
         self._mrpc_cloth = self._pop_elt(cloth, 'mrpc_entry')
@@ -172,7 +173,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
     def _get_elts_by_id(self, elt, what):
         retval = elt.xpath('//*[@id="%s"]' % what)
-        logger.debug("id=%r got %r", what, retval)
+        logger_c.debug("id=%r got %r", what, retval)
         return retval
 
     @staticmethod
@@ -191,7 +192,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
     def _actions_to_cloth(self, ctx, cls, inst, template):
         if self._mrpc_cloth is None:
-            logger.warning("missing 'mrpc_template'")
+            logger_c.warning("missing 'mrpc_template'")
             return
 
         for elt in self._get_elts(template, "mrpc"):
@@ -216,7 +217,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         automatically with subsequent calls to _enter_cloth and finally to
         _close_cloth."""
 
-        logger.debug("entering %s %r nsmap=%r attrs=%r skip=%s",
+        logger_c.debug("entering %s %r nsmap=%r attrs=%r skip=%s",
                               cloth.tag, cloth.attrib, cloth.nsmap, attrs, skip)
 
         if not ctx.protocol.doctype_written:
@@ -259,7 +260,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             if elt_ctx is not None:
                 self.event_manager.fire_event(("before_exit", elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)
-                logger.debug("\texit norm %s %s", elt.tag, elt.attrib)
+                logger_c.debug("\texit norm %s %s", elt.tag, elt.attrib)
                 if elt.tail is not None:
                     parent.write(elt.tail)
 
@@ -268,7 +269,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             if ancestors[:len(cureltstack)] != cureltstack:
                 # write following siblings before closing parent node
                 for sibl in elt.itersiblings(preceding=False):
-                    logger.debug("\twrite exit sibl %s %r %d",
+                    logger_c.debug("\twrite exit sibl %s %r %d",
                                                 sibl.tag, sibl.attrib, id(sibl))
                     parent.write(sibl)
 
@@ -278,10 +279,10 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             prevsibls = _prevsibls(anc, since=last_elt)
             for elt in prevsibls:
                 if id(elt) in tags:
-                    logger.debug("\tskip  anc prevsibl %s %r",
+                    logger_c.debug("\tskip  anc prevsibl %s %r",
                                                             elt.tag, elt.attrib)
                     continue
-                logger.debug("\twrite anc prevsibl %s %r %d",
+                logger_c.debug("\twrite anc prevsibl %s %r %d",
                                                    elt.tag, elt.attrib, id(elt))
                 parent.write(elt)
 
@@ -292,7 +293,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             else:
                 anc_ctx = parent.element(anc.tag, anc.attrib)
             anc_ctx.__enter__()
-            logger.debug("\tenter norm %s %r %d", anc.tag, anc.attrib, id(anc))
+            logger_c.debug("\tenter norm %s %r %d", anc.tag, anc.attrib, id(anc))
             if anc.text is not None:
                 parent.write(anc.text)
 
@@ -309,9 +310,9 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             if elt is last_elt:
                 continue
             if id(elt) in tags:
-                logger.debug("\tskip  cloth prevsibl %s %r",elt.tag, elt.attrib)
+                logger_c.debug("\tskip  cloth prevsibl %s %r",elt.tag, elt.attrib)
                 continue
-            logger.debug("\twrite cloth prevsibl %s %r", elt.tag, elt.attrib)
+            logger_c.debug("\twrite cloth prevsibl %s %r", elt.tag, elt.attrib)
             parent.write(elt)
 
         skip = skip or (cloth.tag == self.DATA_TAG_NAME)
@@ -345,7 +346,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         cureltstack.append(cloth)
         curctxstack.append(curtag)
 
-        logger.debug("")
+        logger_c.debug("")
 
     def _close_cloth(self, ctx, parent):
         rootstack = ctx.protocol.rootstack
@@ -355,19 +356,19 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         for elt, elt_ctx in reversed(tuple(zip(cureltstack, curctxstack))):
             cu = ctx.protocol[self].close_until
             if elt is cu:
-                logger.debug("closed until %r, breaking out", cu)
+                logger_c.debug("closed until %r, breaking out", cu)
                 ctx.protocol[self].close_cloth = None
                 break
 
             if elt_ctx is not None:
                 self.event_manager.fire_event(("before_exit", elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)
-                logger.debug("exit %s close", elt.tag)
+                logger_c.debug("exit %s close", elt.tag)
                 if elt.tail is not None:
                     parent.write(elt.tail)
 
             for sibl in elt.itersiblings(preceding=False):
-                logger.debug("write %s nextsibl", sibl.tag)
+                logger_c.debug("write %s nextsibl", sibl.tag)
                 parent.write(sibl)
                 if sibl.tail is not None:
                     parent.write(sibl.tail)
@@ -382,7 +383,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
         cls_cloth = self.get_class_cloth(cls)
         if cls_cloth is not None:
-            logger.debug("%r to object cloth", cls)
+            logger_c.debug("%r to object cloth", cls)
             cloth = cls_cloth
 
         ret = self.to_cloth(ctx, cls, inst, cloth, parent, '')
@@ -438,11 +439,11 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
 
             if polymap_cls is not None:
                 cls = polymap_cls
-                logger.debug("Polymap hit cls switch: %r => %r", cls,
+                logger_c.debug("Polymap hit cls switch: %r => %r", cls,
                                                                  polymap_cls)
             else:
                 cls = inst.__class__
-                logger.debug("Polymap miss cls switch: %r => %r", cls,
+                logger_c.debug("Polymap miss cls switch: %r => %r", cls,
                                                                  inst.__class__)
 
         # if there's a subprotocol, switch to it
@@ -461,7 +462,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             inst = cls.Attributes.default
 
         prot_name = self.__class__.__name__
-        logger.debug("%s.to_cloth: %r '%s' inst: %r", B(prot_name), cls, name,
+        logger_s.debug("%s.to_cloth: %r '%s' inst: %r", B(prot_name), cls, name,
                                                                            inst)
         retval = None
         if inst is None:
@@ -536,7 +537,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
             v = fti.get(k, None)
 
             if v is None:
-                logger.warning("elt id %r not in %r", k, cls)
+                logger_c.warning("elt id %r not in %r", k, cls)
                 self._enter_cloth(ctx, elt, parent, skip=True)
                 continue
 
