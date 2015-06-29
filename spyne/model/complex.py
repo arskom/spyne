@@ -790,7 +790,8 @@ class ComplexModelBase(ModelBase):
 
         try:
             setattr(self, key, value)
-        except AttributeError:
+        except AttributeError as e:
+            logger.exception(e)
             raise AttributeError("can't set attribute %s to %r" % (key, value))
 
     def as_dict(self):
