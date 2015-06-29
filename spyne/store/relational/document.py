@@ -31,14 +31,23 @@ import sqlalchemy.dialects
 from uuid import uuid1
 from os.path import join, abspath, dirname, basename, isfile
 
-from lxml import etree
-from lxml import html
+try:
+    from lxml import etree
+    from lxml import html
+    from spyne.util.xml import get_object_as_xml, get_xml_as_object
+
+except ImportError as e:
+    etree = None
+    html = None
+    def get_object_as_xml(*args, **kwargs):
+        raise e
+    def get_xml_as_object(*args, **kwargs):
+        raise e
 
 from sqlalchemy.sql.type_api import UserDefinedType
 
 from spyne import ComplexModel, ValidationError, Unicode
 from spyne.util.six import string_types
-from spyne.util.xml import get_object_as_xml, get_xml_as_object
 from spyne.util.fileproxy import SeekableFileProxy
 
 
