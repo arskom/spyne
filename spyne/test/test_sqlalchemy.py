@@ -32,6 +32,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 
+from spyne import M
+
 from spyne.model import XmlAttribute, File
 from spyne.model import XmlData
 from spyne.model import ComplexModel
@@ -780,6 +782,29 @@ class TestSqlAlchemySchema(unittest.TestCase):
             store_as=table(left='d_id'),
         ))
         assert C.__table__.c['d_id'].nullable == False
+
+    def test_polymorphic_cust(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            __mapper_args__ = {
+                'polymorphic_on': 't',
+                'polymorphic_identity': 1,
+            }
+
+            id = Integer32(pk=True)
+            t = M(Integer32)
+
+        class D(C):
+            __mapper_args__ = {
+                'polymorphic_identity': 2,
+            }
+            d = Unicode
+
+        D2 = D.customize()
+
+        assert C().t == 1
+        assert D().t == 2
+        assert D2().t == 2
 
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):
