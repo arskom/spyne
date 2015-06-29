@@ -783,6 +783,18 @@ class TestSqlAlchemySchema(unittest.TestCase):
         ))
         assert C.__table__.c['d_id'].nullable == False
 
+    def test_append_field_cust(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(pk=True)
+
+        C2 = C.customize()
+
+        C.append_field("s", Unicode)
+
+        assert "s" in C2._type_info
+        assert "s" in C2.Attributes.sqla_mapper.columns
+
     def test_polymorphic_cust(self):
         class C(TableModel):
             __tablename__ = "c"
@@ -805,6 +817,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert C().t == 1
         assert D().t == 2
         assert D2().t == 2
+
 
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):
