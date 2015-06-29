@@ -650,9 +650,9 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.add(SomeTable(id=1,i=2,s='s'))
         self.session.commit()
 
-        st = self.session.query(SomeTableSubset).get(1)
-        sts = self.session.query(SomeTableOtherSubset).get(1)
-        stos = self.session.query(SomeTableSubset).get(1)
+        st = self.session.query(SomeTable).get(1)
+        sts = self.session.query(SomeTableSubset).get(1)
+        stos = self.session.query(SomeTableOtherSubset).get(1)
 
         sts.i = 3
         sts.s = 'ss' # will not be flushed to db
