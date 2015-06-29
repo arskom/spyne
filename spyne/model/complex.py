@@ -1319,14 +1319,16 @@ def TTableModelBase():
             super(TableModelBase, cls).append_field(field_name, field_type)
             # There could have been changes to field_type in ComplexModel so we
             # should not use field_type directly from above
-            add_column(cls, field_name, cls._type_info[field_name])
+            if cls.__table__ is not None:
+                add_column(cls, field_name, cls._type_info[field_name])
 
         @classmethod
         def insert_field(cls, index, field_name, field_type):
             super(TableModelBase, cls).insert_field(index, field_name, field_type)
             # There could have been changes to field_type in ComplexModel so we
             # should not use field_type directly from above
-            add_column(cls, field_name, cls._type_info[field_name])
+            if cls.__table__ is not None:
+                add_column(cls, field_name, cls._type_info[field_name])
 
     return TableModelBase
 
