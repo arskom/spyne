@@ -582,7 +582,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
         for k, v in type_info.items():
             if issubclass(v, SelfReference):
-                self.replace_field(k, self.customize(*v.customize_args,
+                self._replace_field(k, self.customize(*v.customize_args,
                                                           **v.customize_kwargs))
 
             elif issubclass(v, XmlData):
@@ -1076,7 +1076,7 @@ class ComplexModelBase(ModelBase):
             retval.Attributes._variants = None
 
     @classmethod
-    def append_field(cls, field_name, field_type):
+    def _append_field_impl(cls, field_name, field_type):
         assert isinstance(field_name, string_types)
 
         dcaa = cls.Attributes._delayed_child_attrs_all
@@ -1090,25 +1090,29 @@ class ComplexModelBase(ModelBase):
                 field_type = field_type.customize(**d_cust)
 
         cls._type_info[field_name] = field_type
+
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
+
+    @classmethod
+    def _append_to_variants(cls, field_name, field_type):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
                 c.append_field(field_name, field_type)
-        ComplexModelBase.get_flat_type_info.memo.clear()
-        ComplexModelBase.get_simple_type_info.memo.clear()
 
     @classmethod
-    def replace_field(cls, field_name, field_type):
-        assert isinstance(field_name, string_types)
+    def append_field(cls, field_name, field_type):
+        cls._append_field_impl(field_name, field_type)
+        cls._append_to_variants(field_name, field_type)
 
-        cls._type_info[field_name] = field_type
+    @classmethod
+    def _insert_to_variants(cls, index, field_name, field_type):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
-                c.replace_field(field_name, field_type)
-        ComplexModelBase.get_flat_type_info.memo.clear()
-        ComplexModelBase.get_simple_type_info.memo.clear()
+                c.insert_field(index, field_name, field_type)
 
     @classmethod
-    def insert_field(cls, index, field_name, field_type):
+    def _insert_field_impl(cls, index, field_name, field_type):
         assert isinstance(index, int)
         assert isinstance(field_name, string_types)
 
@@ -1123,11 +1127,34 @@ class ComplexModelBase(ModelBase):
                 field_type = field_type.customize(**d_cust)
 
         cls._type_info.insert(index, (field_name, field_type))
-        if cls.Attributes._variants is not None:
-            for c in cls.Attributes._variants:
-                c.insert_field(index, field_name, field_type)
+
         ComplexModelBase.get_flat_type_info.memo.clear()
         ComplexModelBase.get_simple_type_info.memo.clear()
+
+    @classmethod
+    def insert_field(cls, index, field_name, field_type):
+        cls._insert_field_impl(index, field_name, field_type)
+        cls._insert_to_variants(index, field_name, field_type)
+
+    @classmethod
+    def _replace_in_variants(cls, field_name, field_type):
+        if cls.Attributes._variants is not None:
+            for c in cls.Attributes._variants:
+                c._replace_field(field_name, field_type)
+
+    @classmethod
+    def _replace_field_impl(cls, field_name, field_type):
+        assert isinstance(field_name, string_types)
+
+        cls._type_info[field_name] = field_type
+
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
+
+    @classmethod
+    def _replace_field(cls, field_name, field_type):
+        cls._replace_field_impl(field_name, field_type)
+        cls._replace_in_variants(field_name, field_type)
 
     @classmethod
     def store_as(cls, what):
@@ -1317,19 +1344,25 @@ def TTableModelBase():
     class TableModelBase(ComplexModelBase):
         @classmethod
         def append_field(cls, field_name, field_type):
-            super(TableModelBase, cls).append_field(field_name, field_type)
+            cls._append_field_impl(field_name, field_type)
             # There could have been changes to field_type in ComplexModel so we
             # should not use field_type directly from above
             if cls.__table__ is not None:
                 add_column(cls, field_name, cls._type_info[field_name])
+            cls._append_to_variants(field_name, field_type)
+
+        @classmethod
+        def replace_field(cls, field_name, field_type):
+            raise NotImplementedError()
 
         @classmethod
         def insert_field(cls, index, field_name, field_type):
-            super(TableModelBase, cls).insert_field(index, field_name, field_type)
+            cls._insert_field_impl(index, field_name, field_type)
             # There could have been changes to field_type in ComplexModel so we
             # should not use field_type directly from above
             if cls.__table__ is not None:
                 add_column(cls, field_name, cls._type_info[field_name])
+            cls._insert_to_variants(index, field_name, field_type)
 
     return TableModelBase
 
