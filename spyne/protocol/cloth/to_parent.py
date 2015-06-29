@@ -290,7 +290,7 @@ class ToParentMixin(ProtocolBase):
             attr = self.get_cls_attrs(v)
             if attr.exc:
                 prot_name = self.__class__.__name__
-                logger.debug("%s: excluded for %s.", prot_name)
+                logger.debug("%s: excluded for %s.", k, prot_name)
                 continue
 
             try:  # e.g. SqlAlchemy could throw NoSuchColumnError
