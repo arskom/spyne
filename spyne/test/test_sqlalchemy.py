@@ -783,7 +783,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         ))
         assert C.__table__.c['d_id'].nullable == False
 
-    def test_append_field_cust(self):
+    def _test_append_field_cust(self):
         class C(TableModel):
             __tablename__ = "c"
             id = Integer32(pk=True)
@@ -791,6 +791,8 @@ class TestSqlAlchemySchema(unittest.TestCase):
         C2 = C.customize()
 
         C.append_field("s", Unicode)
+
+        C()
 
         self.metadata.create_all()
 
