@@ -792,8 +792,14 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         C.append_field("s", Unicode)
 
+        self.metadata.create_all()
+
         assert "s" in C2._type_info
         assert "s" in C2.Attributes.sqla_mapper.columns
+
+        self.session.add(C2(s='foo'))
+        self.session.commit()
+        assert self.session.query(C).first().s == 'foo'
 
     def test_polymorphic_cust(self):
         class C(TableModel):
