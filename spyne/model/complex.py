@@ -300,7 +300,7 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
                 logger.debug("Adding fields from mixin %r to '%s'", b, cls_name)
                 mixin.update(b.get_flat_type_info(b))
 
-                if not '__mixin__' in cls_dict:
+                if '__mixin__' not in cls_dict:
                     cls_dict['__mixin__'] = False
 
                 continue
@@ -496,6 +496,43 @@ def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
                 raise Exception("%r is already defined: %r" %
                                                         (key, _type_info[key]))
             _type_info_alt[key] = v, k
+
+
+def _process_child_attrs(cls, retval, kwargs):
+    child_attrs_all = kwargs.get('child_attrs_all', None)
+    if False and child_attrs_all is not None:
+        ti = retval._type_info
+        logger.debug("processing child_attrs_all for %r", cls)
+        for k, v in ti.items():
+            logger.debug("  child_attrs_all set %r=%r", k, child_attrs_all)
+            ti[k] = ti[k].customize(**child_attrs_all)
+
+        if retval.__extends__ is not None:
+            retval.__extends__ = retval.__extends__.customize(
+                                            child_attrs_all=child_attrs_all)
+
+        retval.Attributes._delayed_child_attrs_all = child_attrs_all
+
+    child_attrs = copy(kwargs.get('child_attrs', None))
+    if child_attrs is not None:
+        ti = retval._type_info
+        logger.debug("processing child_attrs for %r", cls)
+        for k, v in list(child_attrs.items()):
+            if k in ti:
+                logger.debug("  child_attr set %r=%r", k, v)
+                ti[k] = ti[k].customize(**v)
+                del child_attrs[k]
+
+        base_fti = {}
+        if retval.__extends__ is not None:
+            retval.__extends__ = retval.__extends__.customize(
+                                                    child_attrs=child_attrs)
+            base_fti = retval.__extends__.get_flat_type_info(
+                                                         retval.__extends__)
+        for k, v in child_attrs.items():
+            if not k in base_fti:
+                logger.debug("  child_attr delayed %r=%r", k, v)
+                retval.Attributes._delayed_child_attrs[k] = v
 
 
 class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
@@ -991,7 +1028,7 @@ class ComplexModelBase(ModelBase):
 
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
         cls_dict['__module__'] = cls.__module__
-        if not '__extends__' in cls_dict:
+        if '__extends__' not in cls_dict:
             cls_dict['__extends__'] = cls.__extends__
 
         retval = type(cls_name, cls_bases, cls_dict)
@@ -1014,43 +1051,10 @@ class ComplexModelBase(ModelBase):
         if ns is not None:
             retval.__namespace__ = ns
 
-        if not cls is ComplexModel:
+        if cls is not ComplexModel:
             cls._process_variants(retval)
 
-        child_attrs_all = kwargs.get('child_attrs_all', None)
-        if False and child_attrs_all is not None:
-            ti = retval._type_info
-            logger.debug("processing child_attrs_all for %r", cls)
-            for k, v in ti.items():
-                logger.debug("  child_attrs_all set %r=%r", k, child_attrs_all)
-                ti[k] = ti[k].customize(**child_attrs_all)
-
-            if retval.__extends__ is not None:
-                retval.__extends__ = retval.__extends__.customize(
-                                                child_attrs_all=child_attrs_all)
-
-            retval.Attributes._delayed_child_attrs_all = child_attrs_all
-
-        child_attrs = copy(kwargs.get('child_attrs', None))
-        if child_attrs is not None:
-            ti = retval._type_info
-            logger.debug("processing child_attrs for %r", cls)
-            for k, v in list(child_attrs.items()):
-                if k in ti:
-                    logger.debug("  child_attr set %r=%r", k, v)
-                    ti[k] = ti[k].customize(**v)
-                    del child_attrs[k]
-
-            base_fti = {}
-            if retval.__extends__ is not None:
-                retval.__extends__ = retval.__extends__.customize(
-                                                        child_attrs=child_attrs)
-                base_fti = retval.__extends__.get_flat_type_info(
-                                                             retval.__extends__)
-            for k, v in child_attrs.items():
-                if not k in base_fti:
-                    logger.debug("  child_attr delayed %r=%r", k, v)
-                    retval.Attributes._delayed_child_attrs[k] = v
+        _process_child_attrs(cls, retval, kwargs)
 
         # we could be smarter, but customize is supposed to be called only
         # during daemon initialization, so it's not really necessary.

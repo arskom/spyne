@@ -39,9 +39,9 @@ try:
 except ImportError as e:
     etree = None
     html = None
-    def get_object_as_xml(*args, **kwargs):
+    def get_object_as_xml(*_, **__):
         raise e
-    def get_xml_as_object(*args, **kwargs):
+    def get_xml_as_object(*_, **__):
         raise e
 
 from sqlalchemy.sql.type_api import UserDefinedType
