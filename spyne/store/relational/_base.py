@@ -749,6 +749,8 @@ def _gen_mapper(cls, props, table, cls_bases):
         if not isinstance(po, Column):
             mapper_kwargs['polymorphic_on'] = table.c[po]
         else:
+            logger.warning("Deleted invalid 'polymorphic_on' value %r for %r.",
+                                                                        po, cls)
             del mapper_kwargs['polymorphic_on']
 
     if base_mapper is not None:
