@@ -323,23 +323,25 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
                 break
 
             if t.Attributes.logged:
-                try:
-                    v = getattr(obj, k, None)
-                except (AttributeError, KeyError):
-                    v = None
+                continue
 
-                # HACK!: sometimes non-db attributes restored from database don't
-                # get properly reinitialized.
-                if isclass(v) and issubclass(v, ModelBase):
-                    continue
+            try:
+                v = getattr(obj, k, None)
+            except (AttributeError, KeyError):
+                v = None
 
-                polymap = t.Attributes.polymap
-                if polymap is not None:
-                    t = polymap.get(v.__class__, t)
+            # HACK!: sometimes non-db attributes restored from database don't
+            # get properly reinitialized.
+            if isclass(v) and issubclass(v, ModelBase):
+                continue
 
-                if v is not None:
-                    retval.append("%s=%s" % (k, log_repr(v, t, parent=k, tags=tags)))
-                    i += 1
+            polymap = t.Attributes.polymap
+            if polymap is not None:
+                t = polymap.get(v.__class__, t)
+
+            if v is not None:
+                retval.append("%s=%s" % (k, log_repr(v, t, parent=k, tags=tags)))
+                i += 1
 
         return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
