@@ -323,7 +323,11 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
                 break
 
             if t.Attributes.logged:
-                v = getattr(obj, k, None)
+                try:
+                    v = getattr(obj, k, None)
+                except (AttributeError, KeyError):
+                    v = None
+
                 # HACK!: sometimes non-db attributes restored from database don't
                 # get properly reinitialized.
                 if isclass(v) and issubclass(v, ModelBase):
