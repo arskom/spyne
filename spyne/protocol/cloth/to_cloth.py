@@ -38,7 +38,6 @@ from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
 
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
-from spyne.util.color import B
 
 _revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
 
@@ -428,6 +427,8 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
     # TODO: Maybe DRY this with to_parent?
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
+        prot_name = self.__class__.__name__
+
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
@@ -461,11 +462,12 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         if inst is None:
             inst = cls.Attributes.default
 
-        prot_name = self.__class__.__name__
-        logger_s.debug("%s.to_cloth: %r '%s' inst: %r", B(prot_name), cls, name,
-                                                                           inst)
         retval = None
         if inst is None:
+            identifier = "%s.%s" % (prot_name, "null_to_cloth")
+            logger_s.debug("Writing %s using %s for %s.", name,
+                                                identifier, cls.get_type_name())
+
             ctx.protocol.tags.add(id(cloth))
             if cls.Attributes.min_occurs > 0:
                 parent.write(cloth)
@@ -476,6 +478,11 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
                                                                       name=name)
 
             handler = self.rendering_handlers[cls]
+
+            identifier = "%s.%s" % (prot_name, handler.__name__)
+            logger_s.debug("Writing %s using %s for %s. Inst: %r", name,
+                                          identifier, cls.get_type_name(), inst)
+
             retval = handler(ctx, cls, inst, cloth, parent, name=name)
 
         return retval

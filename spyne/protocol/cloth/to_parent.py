@@ -35,7 +35,6 @@ from spyne.model.enum import EnumBase
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
-from spyne.util.color import B
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
 
@@ -125,9 +124,9 @@ class ToParentMixin(ProtocolBase):
 
         # if instance is still None, use the global null handler to serialize it
         if inst is None and self.use_global_null_handler:
-            logger.debug("%s.null_to_parent: %r '%s'", B(prot_name), cls,
-                                                                     name, inst)
-
+            identifier = prot_name + '.null_to_parent'
+            logger.debug("Writing %s using %s for %s.", name, identifier,
+                                                            cls.get_type_name())
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         # if requested, ignore wrappers
@@ -158,8 +157,10 @@ class ToParentMixin(ProtocolBase):
         ctx.outprot_ctx.inst_stack.append( (cls, inst) )
 
         # finally, serialize the value. retval is the coroutine handle if any
-        logger.debug("%s.to_parent: %r '%s' inst: %r", B(prot_name), cls,
-                                                                     name, inst)
+        identifier = "%s.%s" % (prot_name, handler.__name__)
+        logger.debug("Writing %s using %s for %s. Inst: %r", name,
+                                          identifier, cls.get_type_name(), inst)
+
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 
         # FIXME: to_parent must be made to a coroutine for the below to remain
@@ -288,6 +289,8 @@ class ToParentMixin(ProtocolBase):
         for k, v in cls._type_info.items():
             attr = self.get_cls_attrs(v)
             if attr.exc:
+                prot_name = self.__class__.__name__
+                logger.debug("%s: excluded for %s.", prot_name)
                 continue
 
             try:  # e.g. SqlAlchemy could throw NoSuchColumnError
