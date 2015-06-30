@@ -19,17 +19,24 @@
 
 """The ``spyne.model.binary`` package contains binary type markers."""
 
-import os
-import base64
+import logging
+import shutil
 import tempfile
 
+logger = logging.getLogger(__name__)
+
+import os
+import base64
+
+from mmap import mmap, ACCESS_READ
 from base64 import b64encode
 from base64 import b64decode
 from base64 import urlsafe_b64encode
 from base64 import urlsafe_b64decode
 from binascii import hexlify
 from binascii import unhexlify
-from os.path import abspath, isdir
+from os.path import abspath, isdir, join, isfile, dirname, basename
+from uuid import uuid1, uuid4
 
 from spyne.util.six import StringIO
 from spyne.error import ValidationError
@@ -216,24 +223,32 @@ class _Value(ComplexModel):
         to the contents of this file.
         """
 
-        iter(self.data)
+        if self.data is not None:
+            if self.path is None:
+                self.handle = tempfile.NamedTemporaryFile()
+                self.path = self.handle.name
+            else:
+                self.handle = open(self.path, 'wb')
 
-        if self.path is None:
-            handle, self.path = tempfile.mkstemp()
-            f = os.fdopen(handle, 'wb')
+            # data is a ByteArray, so a sequence of str/bytes objects
+            for d in self.data:
+                self.handle.write(d)
+
+        elif self.handle is not None:
+            self.data = mmap(self.handle.fileno(), 0)  # 0 = whole file
+
+        elif self.path is not None:
+            if not isfile(self.path):
+                logger.error("File path in %r not found" % self)
+
+            self.handle = open(self.path, 'rb')
+            self.data = mmap(self.handle.fileno(), 0, access=ACCESS_READ)
+            self.abspath = abspath(self.path)
+            self.path = basename(self.path)
+
         else:
-            assert os.path.isabs(self.path)
-            f = open(self.path, 'wb')
-
-        if self.name is None:
-            self.name = os.path.basename(self.path)
-
-        for data in self.data:
-            f.write(data)
-
-        f.close()
-
-        self.data = None
+            raise ValueError("Invalid file object passed in. All of "
+                                   ".data, .handle and .path are None.")
 
 
 class File(SimpleModel):
