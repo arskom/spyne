@@ -501,7 +501,7 @@ def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
 
 def _process_child_attrs(cls, retval, kwargs):
     child_attrs_all = kwargs.get('child_attrs_all', None)
-    if False and child_attrs_all is not None:
+    if child_attrs_all is not None:
         ti = retval._type_info
         logger.debug("processing child_attrs_all for %r", cls)
         for k, v in ti.items():
