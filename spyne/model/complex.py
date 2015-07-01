@@ -531,7 +531,7 @@ def _process_child_attrs(cls, retval, kwargs):
             base_fti = retval.__extends__.get_flat_type_info(
                                                          retval.__extends__)
         for k, v in child_attrs.items():
-            if not k in base_fti:
+            if k not in base_fti:
                 logger.debug("  child_attr delayed %r=%r", k, v)
                 retval.Attributes._delayed_child_attrs[k] = v
 
