@@ -116,19 +116,25 @@ class HtmlColumnTable(HtmlTableBase):
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
+
+
+        inst_str = ''
+        if inst is not None:
+            inst_str = self.to_unicode(cls, inst)
+
         if from_arr:
             td_attrs = {}
             #if self.field_name_attr:
             #    td_attrs[self.field_name_attr] = name
             parent.write(E.tr(
                 E.td(
-                    self.to_unicode(cls, inst),
+                    inst_str,
                     **td_attrs
                 )
             ))
 
         else:
-            parent.write(self.to_unicode(cls, inst))
+            parent.write(inst_str)
 
     @coroutine
     def _gen_row(self, ctx, cls, inst, parent, name, from_arr=False,
