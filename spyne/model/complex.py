@@ -313,8 +313,8 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
             if len(base_types) > 0 and issubclass(b, ModelBase):
                 extends = cls_dict["__extends__"] = b
                 assert extends.__orig__ is None, "You can't inherit from a " \
-                    "customized class. You should first get your class hierarchy" \
-                    "right, then start customizing classes."
+                    "customized class. You should first get your class " \
+                    "hierarchy right, then start customizing classes."
 
                 b.get_subclasses.memo.clear()
                 logger.debug("Registering %r as base of '%s'", b, cls_name)
