@@ -172,8 +172,8 @@ class TwistedMessagePackProtocol(Protocol):
 
             self._delaying = self._wait_for_next_chunk()
 
-            logger.info("%s One chunk written, waiting for next chunk...",
-                                                                    self.sessid)
+            logger.debug("%s One %db chunk written, waiting for next chunk...",
+                                                        self.sessid, len(chunk))
 
     def handle_error(self, p_ctx, others, exc):
         self.spyne_tpt.get_out_string(p_ctx)
