@@ -142,10 +142,9 @@ class TwistedMessagePackProtocol(Protocol):
         self.process_contexts(p_ctx, others)
 
     def transport_write(self, data):
-        self.sent_bytes += len(data)
-
         if self.out_chunk_size == 0:
             self.transport.write(data)
+            self.sent_bytes += len(data)
 
         else:
             self.out_chunks.append(gen_chunks(data, self.out_chunk_size))
@@ -165,13 +164,15 @@ class TwistedMessagePackProtocol(Protocol):
         if chunk is None:
             self._delaying = None
 
-            logger.debug("%s no more chunks...", self.sessid)
+            logger.info("%s no more chunks...", self.sessid)
 
         else:
             self.transport.write(chunk)
+            self.sent_bytes += len(chunk)
+
             self._delaying = self._wait_for_next_chunk()
 
-            logger.debug("%s One chunk written, waiting for next chunk...",
+            logger.info("%s One chunk written, waiting for next chunk...",
                                                                     self.sessid)
 
     def handle_error(self, p_ctx, others, exc):
