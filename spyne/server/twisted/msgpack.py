@@ -157,7 +157,7 @@ class TwistedMessagePackProtocol(Protocol):
     def _write_single_chunk(self):
         try:
             chunk = chain(*self.out_chunks).next()
-        except StopIteration as e:
+        except StopIteration:
             chunk = None
             self.out_chunks.clear()
 

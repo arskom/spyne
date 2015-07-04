@@ -557,17 +557,17 @@ def _parse_datetime_iso_match(date_match, tz=None):
     month = int(fields.get('month'))
     day = int(fields.get('day'))
     hour = int(fields.get('hr'))
-    min = int(fields.get('min'))
-    sec = int(fields.get('sec'))
-    usec = fields.get("sec_frac")
-    if usec is None:
-        usec = 0
+    minute = int(fields.get('min'))
+    second = int(fields.get('sec'))
+    usecond = fields.get("sec_frac")
+    if usecond is None:
+        usecond = 0
     else:
         # we only get the most significant 6 digits because that's what
         # datetime can handle.
-        usec = int(round(float(usec) * 1e6))
+        usecond = int(round(float(usecond) * 1e6))
 
-    return datetime(year, month, day, hour, min, sec, usec, tz)
+    return datetime(year, month, day, hour, minute, second, usecond, tz)
 
 
 _dt_sec = lambda cls, val: \

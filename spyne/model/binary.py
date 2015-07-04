@@ -20,13 +20,11 @@
 """The ``spyne.model.binary`` package contains binary type markers."""
 
 import logging
-import shutil
-import tempfile
-
 logger = logging.getLogger(__name__)
 
 import os
 import base64
+import tempfile
 
 from mmap import mmap, ACCESS_READ
 from base64 import b64encode
@@ -35,8 +33,7 @@ from base64 import urlsafe_b64encode
 from base64 import urlsafe_b64decode
 from binascii import hexlify
 from binascii import unhexlify
-from os.path import abspath, isdir, join, isfile, dirname, basename
-from uuid import uuid1, uuid4
+from os.path import abspath, isdir, isfile, basename
 
 from spyne.util.six import StringIO
 from spyne.error import ValidationError
@@ -239,7 +236,7 @@ class _Value(ComplexModel):
 
         elif self.path is not None:
             if not isfile(self.path):
-                logger.error("File path in %r not found" % self)
+                logger.error("File path in %r not found", self)
 
             self.handle = open(self.path, 'rb')
             self.data = mmap(self.handle.fileno(), 0, access=ACCESS_READ)

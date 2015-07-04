@@ -494,14 +494,14 @@ class InProtocolBase(ProtocolMixin):
 
     def _datetime_from_string(self, cls, string):
         attrs = self.get_cls_attrs(cls)
-        format = attrs.format
+        date_format = attrs.format
 
-        if format is None:
+        if date_format is None:
             retval = self.datetime_from_string_iso(cls, string)
         else:
             astz = attrs.as_timezone
 
-            retval = datetime.strptime(string, format)
+            retval = datetime.strptime(string, date_format)
             if astz:
                 retval = retval.astimezone(attrs.as_time_zone)
 
