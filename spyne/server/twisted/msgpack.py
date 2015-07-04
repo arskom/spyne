@@ -26,7 +26,11 @@ import msgpack
 
 from time import time
 from hashlib import md5
+from collections import deque
+from itertools import chain
 
+from twisted.internet import reactor
+from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, Factory, connectionDone, \
     ClientFactory
@@ -66,11 +70,26 @@ class TwistedMessagePackProtocolClientFactory(ClientFactory):
                              max_buffer_size=self.max_buffer_size, factory=self)
 
 
-def _cha(*args): return args
+def _cha(*args):
+    return args
+
+
+def gen_chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i+n]
 
 
 class TwistedMessagePackProtocol(Protocol):
-    def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, factory=None):
+    def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, out_chunk_size=0,
+                                           out_chunk_delay_sec=1, factory=None):
+        """
+
+        :param tpt: Spyne transport.
+        :param max_buffer_size: Max. encoded message size.
+        :param out_chunk_size: Split
+        :param factory: Twisted protocol factory
+        """
         assert isinstance(tpt, ServerBase)
 
         self.factory = factory
@@ -80,6 +99,10 @@ class TwistedMessagePackProtocol(Protocol):
         self.sessid = ''
         self.sent_bytes = 0
         self.recv_bytes = 0
+        self.out_chunks = deque()
+        self.out_chunk_size = out_chunk_size
+        self.out_chunk_delay_sec = out_chunk_delay_sec
+        self._delaying = None
 
     def gen_sessid(self, *args):
         """It's up to you to use this in a subclass."""
@@ -120,7 +143,36 @@ class TwistedMessagePackProtocol(Protocol):
 
     def transport_write(self, data):
         self.sent_bytes += len(data)
-        self.transport.write(data)
+
+        if self.out_chunk_size == 0:
+            self.transport.write(data)
+
+        else:
+            self.out_chunks.append(gen_chunks(data, self.out_chunk_size))
+            self._write_single_chunk()
+
+    def _wait_for_next_chunk(self):
+        return deferLater(reactor, self.out_chunk_delay_sec,
+                                                       self._write_single_chunk)
+
+    def _write_single_chunk(self):
+        try:
+            chunk = chain(*self.out_chunks).next()
+        except StopIteration as e:
+            chunk = None
+            self.out_chunks.clear()
+
+        if chunk is None:
+            self._delaying = None
+
+            logger.debug("%s no more chunks...", self.sessid)
+
+        else:
+            self.transport.write(chunk)
+            self._delaying = self._wait_for_next_chunk()
+
+            logger.debug("%s One chunk written, waiting for next chunk...",
+                                                                    self.sessid)
 
     def handle_error(self, p_ctx, others, exc):
         self.spyne_tpt.get_out_string(p_ctx)
