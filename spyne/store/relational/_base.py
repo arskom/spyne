@@ -906,7 +906,7 @@ def _get_spyne_type(v):
 
 def gen_spyne_info(cls):
     table = cls.Attributes.sqla_table
-    _type_info = cls.get_flat_type_info(cls)
+    _type_info = cls._type_info
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
 
     if len(_type_info) == 0:
