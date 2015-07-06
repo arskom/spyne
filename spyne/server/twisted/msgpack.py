@@ -37,7 +37,7 @@ from twisted.internet.protocol import Protocol, Factory, connectionDone, \
 from twisted.python.failure import Failure
 from twisted.python import log
 
-from spyne import EventManager, Address, ServerBase, Application
+from spyne import EventManager, Address, ServerBase
 from spyne.auxproc import process_contexts
 from spyne.error import InternalError
 
@@ -74,22 +74,17 @@ def _cha(*args):
     return args
 
 
-def gen_chunks(l, n):
-    """Yield successive n-sized chunks from l."""
-    for i in range(0, len(l), n):
-        yield l[i:i+n]
-
-
 class TwistedMessagePackProtocol(Protocol):
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, out_chunk_size=0,
                                            out_chunk_delay_sec=1, factory=None):
-        """
+        """Twisted protocol implementation for Spyne's MessagePack transport.
 
         :param tpt: Spyne transport.
         :param max_buffer_size: Max. encoded message size.
         :param out_chunk_size: Split
         :param factory: Twisted protocol factory
         """
+
         assert isinstance(tpt, ServerBase)
 
         self.factory = factory
@@ -103,6 +98,12 @@ class TwistedMessagePackProtocol(Protocol):
         self.out_chunk_size = out_chunk_size
         self.out_chunk_delay_sec = out_chunk_delay_sec
         self._delaying = None
+
+    @staticmethod
+    def gen_chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in range(0, len(l), n):
+            yield l[i:i+n]
 
     def gen_sessid(self, *args):
         """It's up to you to use this in a subclass."""
@@ -147,7 +148,7 @@ class TwistedMessagePackProtocol(Protocol):
             self.sent_bytes += len(data)
 
         else:
-            self.out_chunks.append(gen_chunks(data, self.out_chunk_size))
+            self.out_chunks.append(self.gen_chunks(data, self.out_chunk_size))
             self._write_single_chunk()
 
     def _wait_for_next_chunk(self):
@@ -164,7 +165,7 @@ class TwistedMessagePackProtocol(Protocol):
         if chunk is None:
             self._delaying = None
 
-            logger.info("%s no more chunks...", self.sessid)
+            logger.debug("%s no more chunks...", self.sessid)
 
         else:
             self.transport.write(chunk)
@@ -172,8 +173,8 @@ class TwistedMessagePackProtocol(Protocol):
 
             self._delaying = self._wait_for_next_chunk()
 
-            logger.debug("%s One %db chunk written, waiting for next chunk...",
-                                                        self.sessid, len(chunk))
+            logger.debug("%s One chunk of %d bytes written. "
+                           "Waiting for next chunk...", self.sessid, len(chunk))
 
     def handle_error(self, p_ctx, others, exc):
         self.spyne_tpt.get_out_string(p_ctx)
