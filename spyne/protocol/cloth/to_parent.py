@@ -103,7 +103,9 @@ class ToParentMixin(ProtocolBase):
 
         # if there is a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
-        if subprot is not None and not (subprot is self) and not nosubprot:
+        if subprot is not None and not nosubprot and not \
+                                           (subprot in ctx.protocol.prot_stack):
+            logger.debug("Subprot from %r to %r", self, subprot)
             return self.to_subprot(ctx, cls, inst, parent, name, subprot,
                                                                        **kwargs)
 
