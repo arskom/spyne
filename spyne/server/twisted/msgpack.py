@@ -240,9 +240,13 @@ def _eb_deferred(retval, prot, p_ctx, others):
         p_ctx.out_error = InternalError(retval.value)
 
     prot.handle_error(p_ctx, others, p_ctx.out_error)
-    prot.transport_write(''.join(p_ctx.out_string))
-    p_ctx.transport.resp_length = len(p_ctx.out_string)
-    prot.transport.loseConnection()
+
+    data_len = 0
+    for data in p_ctx.out_string:
+        prot.transport_write(data)
+        data_len += len(data)
+
+    p_ctx.transport.resp_length = data_len
 
     return Failure(p_ctx.out_error, p_ctx.out_error.__class__, tb)
 
