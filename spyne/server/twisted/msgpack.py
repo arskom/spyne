@@ -22,6 +22,7 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import sys
 import msgpack
 
 from time import time
@@ -222,22 +223,23 @@ class TwistedMessagePackProtocol(Protocol):
             ret = p_ctx.out_object[0]
 
         if isinstance(ret, Deferred):
-            ret.addCallback(_cb_deferred, self, p_ctx, others)
-            ret.addErrback(_eb_deferred, self, p_ctx, others)
+            ret.addCallbacks(_cb_deferred, _eb_deferred,
+                             [self, p_ctx, others], {},
+                             [self, p_ctx, others], {})
             ret.addErrback(log.err)
 
         else:
             _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
 
 
-def _eb_deferred(retval, prot, p_ctx, others):
-    p_ctx.out_error = retval.value
+def _eb_deferred(fail, prot, p_ctx, others):
+    p_ctx.out_error = fail.value
     tb = None
 
-    if isinstance(retval, Failure):
-        tb = retval.getTracebackObject()
-        retval.printTraceback()
-        p_ctx.out_error = InternalError(retval.value)
+    if isinstance(fail, Failure):
+        tb = fail.getTracebackObject()
+        fail.printTraceback()
+        p_ctx.out_error = InternalError(fail.value)
 
     prot.handle_error(p_ctx, others, p_ctx.out_error)
 
