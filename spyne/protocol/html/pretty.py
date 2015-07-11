@@ -23,6 +23,6 @@ from pprint import pformat
 from spyne.protocol.html import HtmlBase
 
 
-class PrettyDict(HtmlBase):
+class PrettyFormat(HtmlBase):
     def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E.pre(pformat(inst)))
