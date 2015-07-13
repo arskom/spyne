@@ -224,9 +224,10 @@ class XmlSchema(InterfaceDocumentBase):
 
                 except Exception:
                     f.seek(0)
-                    logger.error("This is a Spyne error. Please seek support "
-                                 "with a minimal test case that reproduces "
-                                 "this error.")
+                    logger.error("This could be a Spyne error. Unless you're "
+                                 "sure the reason for this error is outside "
+                                 "Spyne, please open a new issue with a "
+                                 "minimal test case that reproduces it.")
                     raise
 
             shutil.rmtree(tmp_dir_name)
