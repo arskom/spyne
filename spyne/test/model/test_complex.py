@@ -878,29 +878,14 @@ class TestCustomize(unittest.TestCase):
         class A(ComplexModel):
             s = Unicode
 
-        A2 = A.customize(
-            child_attrs=dict(
-                s=dict(
-                    max_len=10,
-                ),
-            ),
-        )
-
-        class B(A2):
-            i = Integer
-
-        assert B.__extends__ is A2
-        assert B.__orig__ is None
-
-        B2 = B.customize(
-            child_attrs=dict(
-                s=dict(
-                    min_len=5,
-                ),
-            ),
-        )
-
-        assert B2.get_flat_type_info(B2)['s'].Attributes.max_len == 10
+        A2 = A.customize()
+        try:
+            class B(A2):
+                i = Integer
+        except AssertionError:
+            pass
+        else:
+            raise Exception("must fail")
 
     def test_cust_array(self):
         A = Array(Unicode)
@@ -959,33 +944,6 @@ class TestCustomize(unittest.TestCase):
 
         B2 = B.customize(**d)
 
-        b2_fti = B2.get_flat_type_info(B2)
-        ser, = b2_fti['s']._type_info.values()
-
-        assert ser.Attributes.max_len == 10
-
-    def test_cust_sub_array_again(self):
-        """customized class is passed as base"""
-
-        class A(ComplexModel):
-            s = Array(Unicode)
-
-        d = dict(
-            child_attrs=dict(
-                s=dict(
-                    serializer_attrs=dict(
-                        max_len=10,
-                    ),
-                ),
-            ),
-        )
-
-        A2 = A.customize(**d)
-
-        class B(A2):
-            i = Integer
-
-        B2 = B.customize(**d)
         b2_fti = B2.get_flat_type_info(B2)
         ser, = b2_fti['s']._type_info.values()
 
