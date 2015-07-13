@@ -824,7 +824,10 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         assert C().t == 1
         assert D().t == 2
-        assert D2().t == 2
+
+        # That's the way SQLAlchemy works. Don't use customized classes in
+        # anywhere other than interface definitions
+        assert D2().t == None
 
     def test_base_append_simple(self):
         class B(TableModel):
