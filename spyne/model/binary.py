@@ -223,7 +223,7 @@ class _Value(ComplexModel):
         if self.data is not None:
             if self.path is None:
                 self.handle = tempfile.NamedTemporaryFile()
-                self.path = self.handle.name
+                self.name = self.path = self.handle.name
             else:
                 self.handle = open(self.path, 'wb')
 
@@ -241,7 +241,7 @@ class _Value(ComplexModel):
             self.handle = open(self.path, 'rb')
             self.data = mmap(self.handle.fileno(), 0, access=ACCESS_READ)
             self.abspath = abspath(self.path)
-            self.path = basename(self.path)
+            self.name = self.path = basename(self.path)
 
         else:
             raise ValueError("Invalid file object passed in. All of "
