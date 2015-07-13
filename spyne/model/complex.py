@@ -754,6 +754,10 @@ class ComplexModelBase(ModelBase):
         cls = self.__class__
         fti = cls.get_flat_type_info(cls)
 
+        if cls.__orig__ is not None:
+            logger.warning("%r seems to be a customized class. They are not "
+                      "supposed to be instantiated. You have been warned.", cls)
+
         if cls.Attributes._xml_tag_body_as is not None:
             for arg, (xtba_key, xtba_type) in \
                                      zip(args, cls.Attributes._xml_tag_body_as):
