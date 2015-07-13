@@ -474,10 +474,10 @@ class InProtocolBase(ProtocolMixin):
     def attachment_from_string(self, cls, value):
         return Attachment(data=value)
 
-    def complex_model_base_from_string(self, cls, string, **kwargs):
+    def complex_model_base_from_string(self, cls, string, **_):
         raise TypeError("Only primitives can be deserialized from string.")
 
-    def array_from_string(self, cls, string, **kwargs):
+    def array_from_string(self, cls, string, **_):
         if self.get_cls_attrs(cls).serialize_as != 'sd-list':
             raise TypeError("Only primitives can be deserialized from string.")
 

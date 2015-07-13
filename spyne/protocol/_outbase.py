@@ -497,14 +497,14 @@ class OutProtocolBase(ProtocolMixin):
         if not cls_attrs.timezone:
             value = value.replace(tzinfo=None)
 
-        format = cls_attrs.out_format
-        if format is None:
-            format = cls_attrs.format
+        out_format = cls_attrs.out_format
+        if out_format is None:
+            out_format = cls_attrs.format
 
-        if format is None:
+        if out_format is None:
             ret_str = value.isoformat()
         else:
-            ret_str = value.strftime(format)
+            ret_str = value.strftime(out_format)
 
         string_format = cls_attrs.string_format
         if string_format is None:
