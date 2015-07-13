@@ -232,7 +232,7 @@ def rpc(*params, **kparams):
 
     :param _returns: Denotes The return type of the function. It can be a
         type or a sequence of types for functions that have multiple return
-         values.
+        values.
     :param _in_header: A type or an iterable of types that that this method
         accepts as incoming header.
     :param _out_header: A type or an iterable of types that that this method

@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 import decimal
 
+from copy import copy
 from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
@@ -271,28 +272,52 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
     base_type_info = TypeInfo()
     mixin = TypeInfo()
     extends = cls_dict.get('__extends__', None)
+
+    # user did not specify explicit base class so let's try to derive it from
+    # the actual class hierarchy
     if extends is None:
-        for b in cls_bases:
+        # we don't want origs end up as base classes
+        orig = cls_dict.get("__orig__", None)
+        if orig is None:
+            orig = getattr(cls, '__orig__', None)
+
+        if orig is not None:
+            bases = orig.__bases__
+            logger.debug("Got bases for %s from orig: %r", cls_name, bases)
+        else:
+            bases = cls_bases
+            logger.debug("Got bases for %s from meta: %r", cls_name, bases)
+
+        for b in bases:
             base_types = getattr(b, "_type_info", None)
 
-            if base_types is not None:
-                if getattr(b, '__mixin__', False) == True:
-                    mixin.update(b.get_flat_type_info(b))
-                else:
-                    if not (extends in (None, b)):
-                        raise Exception("Spyne objects do not support multiple "
-                            "inheritance. Use mixins if you need to reuse "
-                            "fields from multiple classes.")
+            # we don't care about non-ComplexModel bases
+            if base_types is None:
+                continue
 
-                    try:
-                        if len(base_types) > 0 and issubclass(b, ModelBase):
-                            extends = cls_dict["__extends__"] = b
-                            b.get_subclasses.memo.clear()
+            # mixins are simple
+            if getattr(b, '__mixin__', False) == True:
+                logger.debug("Adding fields from mixin %r to '%s'", b, cls_name)
+                mixin.update(b.get_flat_type_info(b))
 
-                    except Exception as e:
-                        logger.exception(e)
-                        logger.error(repr(extends))
-                        raise
+                if '__mixin__' not in cls_dict:
+                    cls_dict['__mixin__'] = False
+
+                continue
+
+            if not (extends in (None, b)):
+                raise Exception("Spyne objects do not support multiple "
+                    "inheritance. Use mixins if you need to reuse "
+                    "fields from multiple classes.")
+
+            if len(base_types) > 0 and issubclass(b, ModelBase):
+                extends = cls_dict["__extends__"] = b
+                assert extends.__orig__ is None, "You can't inherit from a " \
+                    "customized class. You should first get your class " \
+                    "hierarchy right, then start customizing classes."
+
+                b.get_subclasses.memo.clear()
+                logger.debug("Registering %r as base of '%s'", b, cls_name)
 
     if not ('_type_info' in cls_dict):
         cls_dict['_type_info'] = _type_info = TypeInfo()
@@ -314,6 +339,7 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
             _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
     _type_info.update(mixin)
+
     return _type_info
 
 
@@ -473,6 +499,43 @@ def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
             _type_info_alt[key] = v, k
 
 
+def _process_child_attrs(cls, retval, kwargs):
+    child_attrs_all = kwargs.get('child_attrs_all', None)
+    if child_attrs_all is not None:
+        ti = retval._type_info
+        logger.debug("processing child_attrs_all for %r", cls)
+        for k, v in ti.items():
+            logger.debug("  child_attrs_all set %r=%r", k, child_attrs_all)
+            ti[k] = ti[k].customize(**child_attrs_all)
+
+        if retval.__extends__ is not None:
+            retval.__extends__ = retval.__extends__.customize(
+                                            child_attrs_all=child_attrs_all)
+
+        retval.Attributes._delayed_child_attrs_all = child_attrs_all
+
+    child_attrs = copy(kwargs.get('child_attrs', None))
+    if child_attrs is not None:
+        ti = retval._type_info
+        logger.debug("processing child_attrs for %r", cls)
+        for k, v in list(child_attrs.items()):
+            if k in ti:
+                logger.debug("  child_attr set %r=%r", k, v)
+                ti[k] = ti[k].customize(**v)
+                del child_attrs[k]
+
+        base_fti = {}
+        if retval.__extends__ is not None:
+            retval.__extends__ = retval.__extends__.customize(
+                                                    child_attrs=child_attrs)
+            base_fti = retval.__extends__.get_flat_type_info(
+                                                         retval.__extends__)
+        for k, v in child_attrs.items():
+            if k not in base_fti:
+                logger.debug("  child_attr delayed %r=%r", k, v)
+                retval.Attributes._delayed_child_attrs[k] = v
+
+
 class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
     """This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
@@ -519,7 +582,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
         for k, v in type_info.items():
             if issubclass(v, SelfReference):
-                self.replace_field(k, self.customize(*v.customize_args,
+                self._replace_field(k, self.customize(*v.customize_args,
                                                           **v.customize_kwargs))
 
             elif issubclass(v, XmlData):
@@ -691,6 +754,10 @@ class ComplexModelBase(ModelBase):
         cls = self.__class__
         fti = cls.get_flat_type_info(cls)
 
+        if cls.__orig__ is not None:
+            logger.warning("%r seems to be a customized class. They are not "
+                      "supposed to be instantiated. You have been warned.", cls)
+
         if cls.Attributes._xml_tag_body_as is not None:
             for arg, (xtba_key, xtba_type) in \
                                      zip(args, cls.Attributes._xml_tag_body_as):
@@ -765,7 +832,8 @@ class ComplexModelBase(ModelBase):
 
         try:
             setattr(self, key, value)
-        except AttributeError:
+        except AttributeError as e:
+            logger.exception(e)
             raise AttributeError("can't set attribute %s to %r" % (key, value))
 
     def as_dict(self):
@@ -952,7 +1020,12 @@ class ComplexModelBase(ModelBase):
     @classmethod
     def customize(cls, **kwargs):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
-        ``**kwargs`` and returns the new class."""
+        ``**kwargs`` and returns the new class.
+
+        Because each class is registered as a variant of the original (__orig__)
+        class, using this function to generate classes dynamically on-the-fly
+        could cause memory leaks. You have been warned.
+        """
 
         store_as = apply_pssm(kwargs.get('store_as', None), PSSM_VALUES)
         if store_as is not None:
@@ -960,6 +1033,8 @@ class ComplexModelBase(ModelBase):
 
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
         cls_dict['__module__'] = cls.__module__
+        if '__extends__' not in cls_dict:
+            cls_dict['__extends__'] = cls.__extends__
 
         retval = type(cls_name, cls_bases, cls_dict)
         retval._type_info = TypeInfo(cls._type_info)
@@ -973,27 +1048,6 @@ class ComplexModelBase(ModelBase):
         else:
             retval.Attributes._delayed_child_attrs = dict(dca.items())
 
-        child_attrs_all = kwargs.get('child_attrs_all', None)
-        if child_attrs_all is not None:
-            ti = retval._type_info
-            logger.debug("processing child_attrs_all for %r", cls)
-            for k, v in ti.items():
-                logger.debug("  child_attrs_all set %r=%r", k, child_attrs_all)
-                ti[k] = ti[k].customize(**child_attrs_all)
-            retval.Attributes._delayed_child_attrs_all = child_attrs_all
-
-        child_attrs = kwargs.get('child_attrs', None)
-        if child_attrs is not None:
-            ti = retval._type_info
-            logger.debug("processing child_attrs for %r", cls)
-            for k, v in child_attrs.items():
-                if k in ti:
-                    logger.debug("  child_attr set %r=%r", k, v)
-                    ti[k] = ti[k].customize(**v)
-                else:
-                    logger.debug("  child_attr delayed %r=%r", k, v)
-                    retval.Attributes._delayed_child_attrs[k] = v
-
         tn = kwargs.get("type_name", None)
         if tn is not None:
             retval.__type_name__ = tn
@@ -1002,11 +1056,13 @@ class ComplexModelBase(ModelBase):
         if ns is not None:
             retval.__namespace__ = ns
 
-        if not cls is ComplexModel:
+        if cls is not ComplexModel:
             cls._process_variants(retval)
 
-        # we could be smarter, but customize is supposed to be called only while
-        # daemon initialization, so it's not really necessary.
+        _process_child_attrs(cls, retval, kwargs)
+
+        # we could be smarter, but customize is supposed to be called only
+        # during daemon initialization, so it's not really necessary.
         ComplexModelBase.get_subclasses.memo.clear()
         ComplexModelBase.get_flat_type_info.memo.clear()
         ComplexModelBase.get_simple_type_info.memo.clear()
@@ -1017,7 +1073,6 @@ class ComplexModelBase(ModelBase):
     def _process_variants(cls, retval):
         orig = getattr(retval, '__orig__', None)
         if orig is not None:
-            retval.__extends__ = getattr(orig, '__extends__', None)
             if orig.Attributes._variants is None:
                 orig.Attributes._variants = WeakKeyDictionary()
             orig.Attributes._variants[retval] = True
@@ -1025,7 +1080,7 @@ class ComplexModelBase(ModelBase):
             retval.Attributes._variants = None
 
     @classmethod
-    def append_field(cls, field_name, field_type):
+    def _append_field_impl(cls, field_name, field_type):
         assert isinstance(field_name, string_types)
 
         dcaa = cls.Attributes._delayed_child_attrs_all
@@ -1039,25 +1094,29 @@ class ComplexModelBase(ModelBase):
                 field_type = field_type.customize(**d_cust)
 
         cls._type_info[field_name] = field_type
+
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
+
+    @classmethod
+    def _append_to_variants(cls, field_name, field_type):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
                 c.append_field(field_name, field_type)
-        ComplexModelBase.get_flat_type_info.memo.clear()
-        ComplexModelBase.get_simple_type_info.memo.clear()
 
     @classmethod
-    def replace_field(cls, field_name, field_type):
-        assert isinstance(field_name, string_types)
+    def append_field(cls, field_name, field_type):
+        cls._append_field_impl(field_name, field_type)
+        cls._append_to_variants(field_name, field_type)
 
-        cls._type_info[field_name] = field_type
+    @classmethod
+    def _insert_to_variants(cls, index, field_name, field_type):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
-                c.replace_field(field_name, field_type)
-        ComplexModelBase.get_flat_type_info.memo.clear()
-        ComplexModelBase.get_simple_type_info.memo.clear()
+                c.insert_field(index, field_name, field_type)
 
     @classmethod
-    def insert_field(cls, index, field_name, field_type):
+    def _insert_field_impl(cls, index, field_name, field_type):
         assert isinstance(index, int)
         assert isinstance(field_name, string_types)
 
@@ -1072,11 +1131,34 @@ class ComplexModelBase(ModelBase):
                 field_type = field_type.customize(**d_cust)
 
         cls._type_info.insert(index, (field_name, field_type))
-        if cls.Attributes._variants is not None:
-            for c in cls.Attributes._variants:
-                c.insert_field(index, field_name, field_type)
+
         ComplexModelBase.get_flat_type_info.memo.clear()
         ComplexModelBase.get_simple_type_info.memo.clear()
+
+    @classmethod
+    def insert_field(cls, index, field_name, field_type):
+        cls._insert_field_impl(index, field_name, field_type)
+        cls._insert_to_variants(index, field_name, field_type)
+
+    @classmethod
+    def _replace_in_variants(cls, field_name, field_type):
+        if cls.Attributes._variants is not None:
+            for c in cls.Attributes._variants:
+                c._replace_field(field_name, field_type)
+
+    @classmethod
+    def _replace_field_impl(cls, field_name, field_type):
+        assert isinstance(field_name, string_types)
+
+        cls._type_info[field_name] = field_type
+
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
+
+    @classmethod
+    def _replace_field(cls, field_name, field_type):
+        cls._replace_field_impl(field_name, field_type)
+        cls._replace_in_variants(field_name, field_type)
 
     @classmethod
     def store_as(cls, what):
@@ -1208,7 +1290,7 @@ class Array(ComplexModelBase):
             serializer = serializer.customize(max_occurs=decimal.Decimal('inf'))
 
         assert isinstance(member_name, string_types), member_name
-        cls._type_info = {member_name: serializer}
+        cls._type_info = TypeInfo({member_name: serializer})
 
     # the array belongs to its child's namespace, it doesn't have its own
     # namespace.
@@ -1266,17 +1348,25 @@ def TTableModelBase():
     class TableModelBase(ComplexModelBase):
         @classmethod
         def append_field(cls, field_name, field_type):
-            super(TableModelBase, cls).append_field(field_name, field_type)
+            cls._append_field_impl(field_name, field_type)
             # There could have been changes to field_type in ComplexModel so we
             # should not use field_type directly from above
-            add_column(cls, field_name, cls._type_info[field_name])
+            if cls.__table__ is not None:
+                add_column(cls, field_name, cls._type_info[field_name])
+            cls._append_to_variants(field_name, field_type)
+
+        @classmethod
+        def replace_field(cls, field_name, field_type):
+            raise NotImplementedError()
 
         @classmethod
         def insert_field(cls, index, field_name, field_type):
-            super(TableModelBase, cls).insert_field(index, field_name, field_type)
+            cls._insert_field_impl(index, field_name, field_type)
             # There could have been changes to field_type in ComplexModel so we
             # should not use field_type directly from above
-            add_column(cls, field_name, cls._type_info[field_name])
+            if cls.__table__ is not None:
+                add_column(cls, field_name, cls._type_info[field_name])
+            cls._insert_to_variants(index, field_name, field_type)
 
     return TableModelBase
 

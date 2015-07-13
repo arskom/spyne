@@ -32,6 +32,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 
+from spyne import M
+
 from spyne.model import XmlAttribute, File
 from spyne.model import XmlData
 from spyne.model import ComplexModel
@@ -648,9 +650,9 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.add(SomeTable(id=1,i=2,s='s'))
         self.session.commit()
 
-        st = self.session.query(SomeTableSubset).get(1)
-        sts = self.session.query(SomeTableOtherSubset).get(1)
-        stos = self.session.query(SomeTableSubset).get(1)
+        st = self.session.query(SomeTable).get(1)
+        sts = self.session.query(SomeTableSubset).get(1)
+        stos = self.session.query(SomeTableOtherSubset).get(1)
 
         sts.i = 3
         sts.s = 'ss' # will not be flushed to db
@@ -678,7 +680,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert c.f.type == "type"
         assert str(c.f.data[0][:]) == "data"
 
-    def test_add_field_complex_existing_column(self):
+    def test_append_field_complex_existing_column(self):
         class C(TableModel):
             __tablename__ = "c"
             u = Unicode(pk=True)
@@ -691,7 +693,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         C.append_field('d', D.store_as('table'))
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
 
-    def _test_add_field_complex_explicit_existing_column(self):
+    def _test_append_field_complex_explicit_existing_column(self):
         class C(TableModel):
             __tablename__ = "c"
             id = Integer32(pk=True)
@@ -704,7 +706,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             c = C.store_as('table')
             c_id = Integer32(15)
 
-    def test_add_field_complex_circular_array(self):
+    def test_append_field_complex_circular_array(self):
         class C(TableModel):
             __tablename__ = "cc"
             id = Integer32(pk=True)
@@ -723,7 +725,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.commit()
         assert c1.d.id == 1
 
-    def test_add_field_complex_new_column(self):
+    def test_append_field_complex_new_column(self):
         class C(TableModel):
             __tablename__ = "c"
             u = Unicode(pk=True)
@@ -736,7 +738,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
         assert isinstance(C.Attributes.sqla_table.c['d_id'].type, sqlalchemy.Integer)
 
-    def test_add_field_array(self):
+    def test_append_field_array(self):
         class C(TableModel):
             __tablename__ = "c"
             id = Integer32(pk=True)
@@ -750,7 +752,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         print(repr(D.Attributes.sqla_table))
         assert isinstance(D.Attributes.sqla_table.c['c_id'].type, sqlalchemy.Integer)
 
-    def test_add_field_array_many(self):
+    def test_append_field_array_many(self):
         class C(TableModel):
             __tablename__ = "c"
             id = Integer32(pk=True)
@@ -765,7 +767,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert 'c_id' in rel_table.c
         assert 'd_id' in rel_table.c
 
-    def test_add_field_complex_cust(self):
+    def test_append_field_complex_cust(self):
         class C(TableModel):
             __tablename__ = "c"
             id = Integer32(pk=True)
@@ -780,6 +782,116 @@ class TestSqlAlchemySchema(unittest.TestCase):
             store_as=table(left='d_id'),
         ))
         assert C.__table__.c['d_id'].nullable == False
+
+    def _test_append_field_cust(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(pk=True)
+
+        C2 = C.customize()
+
+        C.append_field("s", Unicode)
+
+        C()
+
+        self.metadata.create_all()
+
+        assert "s" in C2._type_info
+        assert "s" in C2.Attributes.sqla_mapper.columns
+
+        self.session.add(C2(s='foo'))
+        self.session.commit()
+        assert self.session.query(C).first().s == 'foo'
+
+    def test_polymorphic_cust(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            __mapper_args__ = {
+                'polymorphic_on': 't',
+                'polymorphic_identity': 1,
+            }
+
+            id = Integer32(pk=True)
+            t = M(Integer32)
+
+        class D(C):
+            __mapper_args__ = {
+                'polymorphic_identity': 2,
+            }
+            d = Unicode
+
+        D2 = D.customize()
+
+        assert C().t == 1
+        assert D().t == 2
+
+        # That's the way SQLAlchemy works. Don't use customized classes in
+        # anywhere other than interface definitions
+        assert D2().t == None
+
+    def test_base_append_simple(self):
+        class B(TableModel):
+            __tablename__ = 'b'
+            __mapper_args__ = {
+                'polymorphic_on': 't',
+                'polymorphic_identity': 1,
+            }
+
+            id = Integer32(pk=True)
+            t = M(Integer32)
+
+        class C(B):
+            __mapper_args__ = {
+                'polymorphic_identity': 1,
+            }
+            s = Unicode
+
+        B.append_field('i', Integer32)
+
+        self.metadata.create_all()
+
+        self.session.add(C(s="foo", i=42))
+        self.session.commit()
+
+        c = self.session.query(C).first()
+
+        assert c.s == 'foo'
+        assert c.i == 42
+        assert c.t == 1
+
+    def test_base_append_complex(self):
+        class B(TableModel):
+            __tablename__ = 'b'
+            __mapper_args__ = {
+                'polymorphic_on': 't',
+                'polymorphic_identity': 1,
+            }
+
+            id = Integer32(pk=True)
+            t = M(Integer32)
+
+        class C(B):
+            __mapper_args__ = {
+                'polymorphic_identity': 1,
+            }
+            s = Unicode
+
+        class D(TableModel):
+            __tablename__ = 'd'
+            id = Integer32(pk=True)
+            i = M(Integer32)
+
+        B.append_field('d', D.store_as('table'))
+
+        self.metadata.create_all()
+
+        self.session.add(C(d=D(i=42)))
+        self.session.commit()
+
+        c = self.session.query(C).first()
+
+        assert c.d.i == 42
+
 
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):

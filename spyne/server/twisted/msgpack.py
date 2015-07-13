@@ -26,14 +26,18 @@ import msgpack
 
 from time import time
 from hashlib import md5
+from collections import deque
+from itertools import chain
 
+from twisted.internet import reactor
+from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, Factory, connectionDone, \
     ClientFactory
 from twisted.python.failure import Failure
 from twisted.python import log
 
-from spyne import EventManager, Address, ServerBase, Application
+from spyne import EventManager, Address, ServerBase
 from spyne.auxproc import process_contexts
 from spyne.error import InternalError
 
@@ -66,11 +70,21 @@ class TwistedMessagePackProtocolClientFactory(ClientFactory):
                              max_buffer_size=self.max_buffer_size, factory=self)
 
 
-def _cha(*args): return args
+def _cha(*args):
+    return args
 
 
 class TwistedMessagePackProtocol(Protocol):
-    def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, factory=None):
+    def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, out_chunk_size=0,
+                                           out_chunk_delay_sec=1, factory=None):
+        """Twisted protocol implementation for Spyne's MessagePack transport.
+
+        :param tpt: Spyne transport.
+        :param max_buffer_size: Max. encoded message size.
+        :param out_chunk_size: Split
+        :param factory: Twisted protocol factory
+        """
+
         assert isinstance(tpt, ServerBase)
 
         self.factory = factory
@@ -80,6 +94,16 @@ class TwistedMessagePackProtocol(Protocol):
         self.sessid = ''
         self.sent_bytes = 0
         self.recv_bytes = 0
+        self.out_chunks = deque()
+        self.out_chunk_size = out_chunk_size
+        self.out_chunk_delay_sec = out_chunk_delay_sec
+        self._delaying = None
+
+    @staticmethod
+    def gen_chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in range(0, len(l), n):
+            yield l[i:i+n]
 
     def gen_sessid(self, *args):
         """It's up to you to use this in a subclass."""
@@ -119,8 +143,38 @@ class TwistedMessagePackProtocol(Protocol):
         self.process_contexts(p_ctx, others)
 
     def transport_write(self, data):
-        self.sent_bytes += len(data)
-        self.transport.write(data)
+        if self.out_chunk_size == 0:
+            self.transport.write(data)
+            self.sent_bytes += len(data)
+
+        else:
+            self.out_chunks.append(self.gen_chunks(data, self.out_chunk_size))
+            self._write_single_chunk()
+
+    def _wait_for_next_chunk(self):
+        return deferLater(reactor, self.out_chunk_delay_sec,
+                                                       self._write_single_chunk)
+
+    def _write_single_chunk(self):
+        try:
+            chunk = chain(*self.out_chunks).next()
+        except StopIteration:
+            chunk = None
+            self.out_chunks.clear()
+
+        if chunk is None:
+            self._delaying = None
+
+            logger.debug("%s no more chunks...", self.sessid)
+
+        else:
+            self.transport.write(chunk)
+            self.sent_bytes += len(chunk)
+
+            self._delaying = self._wait_for_next_chunk()
+
+            logger.debug("%s One chunk of %d bytes written. "
+                           "Waiting for next chunk...", self.sessid, len(chunk))
 
     def handle_error(self, p_ctx, others, exc):
         self.spyne_tpt.get_out_string(p_ctx)
@@ -168,27 +222,32 @@ class TwistedMessagePackProtocol(Protocol):
             ret = p_ctx.out_object[0]
 
         if isinstance(ret, Deferred):
-            ret.addCallback(_cb_deferred, self, p_ctx, others)
-            ret.addErrback(_eb_deferred, self, p_ctx, others)
+            ret.addCallbacks(_cb_deferred, _eb_deferred,
+                             [self, p_ctx, others], {},
+                             [self, p_ctx, others], {})
             ret.addErrback(log.err)
 
         else:
             _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
 
 
-def _eb_deferred(retval, prot, p_ctx, others):
-    p_ctx.out_error = retval.value
+def _eb_deferred(fail, prot, p_ctx, others):
+    p_ctx.out_error = fail.value
     tb = None
 
-    if isinstance(retval, Failure):
-        tb = retval.getTracebackObject()
-        retval.printTraceback()
-        p_ctx.out_error = InternalError(retval.value)
+    if isinstance(fail, Failure):
+        tb = fail.getTracebackObject()
+        fail.printTraceback()
+        p_ctx.out_error = InternalError(fail.value)
 
     prot.handle_error(p_ctx, others, p_ctx.out_error)
-    prot.transport_write(''.join(p_ctx.out_string))
-    p_ctx.transport.resp_length = len(p_ctx.out_string)
-    prot.transport.loseConnection()
+
+    data_len = 0
+    for data in p_ctx.out_string:
+        prot.transport_write(data)
+        data_len += len(data)
+
+    p_ctx.transport.resp_length = data_len
 
     return Failure(p_ctx.out_error, p_ctx.out_error.__class__, tb)
 

@@ -19,6 +19,7 @@ spyne-2.12.0
 * We now validate kwargs passed to ``@rpc``. Be sure to test your daemons before
   deploying for production, because if you got leftovers, the server will refuse
   to boot!
+* It's now forbidden to inherit from a customized class.
 
 spyne-2.11.0
 ------------

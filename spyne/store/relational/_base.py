@@ -722,11 +722,12 @@ def _convert_fake_table(cls, table):
 
 
 def _gen_mapper(cls, props, table, cls_bases):
-    """
+    """Generate SQLAlchemy mapper from Spyne definition data.
+
     :param cls: La Class.
     :param props: a dict.
-    :param table: a Table instance. Not a _FakeTable.
-    :param cls_bases: Class bases.
+    :param table: a Table instance. Not a `_FakeTable` or anything.
+    :param cls_bases: Sequence of class bases.
     """
 
     inheritance, base_class, base_mapper, inc = _check_inheritance(cls, cls_bases)
@@ -748,6 +749,8 @@ def _gen_mapper(cls, props, table, cls_bases):
         if not isinstance(po, Column):
             mapper_kwargs['polymorphic_on'] = table.c[po]
         else:
+            logger.warning("Deleted invalid 'polymorphic_on' value %r for %r.",
+                                                                        po, cls)
             del mapper_kwargs['polymorphic_on']
 
     if base_mapper is not None:
@@ -833,7 +836,7 @@ def gen_sqla_info(cls, cls_bases=()):
     table = _check_table(cls)
     mapper_props = {}
 
-    for k, v in cls._type_info.items():
+    for k, v in cls.get_flat_type_info(cls).items():
         t = _get_sqlalchemy_type(v)
 
         if t is None:  # complex model

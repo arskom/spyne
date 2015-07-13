@@ -29,6 +29,13 @@ class oset(collections.MutableSet):
             curr = end[PREV]
             curr[NEXT] = end[PREV] = self.map[key] = [key, curr, end]
 
+    def extend(self, keys):
+        for key in keys:
+            if key not in self.map:
+                end = self.end
+                curr = end[PREV]
+                curr[NEXT] = end[PREV] = self.map[key] = [key, curr, end]
+
     def discard(self, key):
         if key in self.map:
             key, prev, next = self.map.pop(key)

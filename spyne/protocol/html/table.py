@@ -42,7 +42,7 @@ class HtmlTableBase(HtmlBase):
                      table_name=None, table_class=None, field_name_attr='class',
               border=0, row_class=None, cell_class=None, header_cell_class=None,
                  polymorphic=True, hier_delim='.', doctype=None, link_gen=None,
-                 mrpc_delim_text='|'):
+                 mrpc_delim_text='|', table_width=None):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
@@ -59,6 +59,7 @@ class HtmlTableBase(HtmlBase):
         self.header_cell_class = header_cell_class
         self.link_gen = link_gen
         self.table_class = table_class
+        self.table_width = table_width
         self.mrpc_delim_text = mrpc_delim_text
 
         if self.cell_class is not None and field_name_attr == 'class':
@@ -116,19 +117,23 @@ class HtmlColumnTable(HtmlTableBase):
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
+        inst_str = ''
+        if inst is not None:
+            inst_str = self.to_unicode(cls, inst)
+
         if from_arr:
             td_attrs = {}
             #if self.field_name_attr:
             #    td_attrs[self.field_name_attr] = name
             parent.write(E.tr(
                 E.td(
-                    self.to_unicode(cls, inst),
+                    inst_str,
                     **td_attrs
                 )
             ))
 
         else:
-            parent.write(self.to_unicode(cls, inst))
+            parent.write(inst_str)
 
     @coroutine
     def _gen_row(self, ctx, cls, inst, parent, name, from_arr=False,
@@ -285,6 +290,8 @@ class HtmlColumnTable(HtmlTableBase):
                 attrib[self.table_name_attr] = tn
 
         attrib['class'] = ' '.join(table_class)
+        if self.table_width is not None:
+            attrib['width'] = self.table_width
 
         self.event_manager.fire_event('before_table', ctx, cls, inst, parent,
                                                                  name, **kwargs)
@@ -392,6 +399,8 @@ class HtmlRowTable(HtmlTableBase):
         attrib = {}
         if self.table_name_attr is not None:
             attrib[self.table_name_attr] = cls.get_type_name()
+        if self.table_width is not None:
+            attrib['width'] = self.table_width
 
         with parent.element('table', attrib):
             with parent.element('tbody'):
@@ -470,6 +479,8 @@ class HtmlRowTable(HtmlTableBase):
                 table_attrib = {}
                 if self.table_name_attr:
                     table_attrib = {self.table_name_attr: name}
+                if self.table_width is not None:
+                    table_attrib['width'] = self.table_width
 
                 with parent.element('table', table_attrib):
                     tr_attrib = {}

@@ -83,14 +83,29 @@ class ToParentMixin(ProtocolBase):
         return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
-        # if polymorphic, rather use incoming class
-        if self.polymorphic and issubclass(inst.__class__, cls.__orig__ or cls):
-            logger.debug("Polymorphic cls switch: %r => %r", cls, self.type)
-            cls = inst.__class__
+        prot_name = self.__class__.__name__
+
+        # if polymorphic, use class returned by user code.
+        orig_cls = cls.__orig__ or cls
+        if self.polymorphic and inst.__class__ is not (orig_cls) and \
+                                           issubclass(inst.__class__, orig_cls):
+            cls_attr = self.get_cls_attrs(cls)
+            polymap_cls = cls_attr.polymap.get(inst.__class__, None)
+
+            if polymap_cls is not None:
+                cls = polymap_cls
+                logger.debug("Polymap hit cls switch: %r => %r", cls,
+                                                                 polymap_cls)
+            else:
+                cls = inst.__class__
+                logger.debug("Polymap miss cls switch: %r => %r", cls,
+                                                                 inst.__class__)
 
         # if there is a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)
-        if subprot is not None and not (subprot is self) and not nosubprot:
+        if subprot is not None and not nosubprot and not \
+                                           (subprot in ctx.protocol.prot_stack):
+            logger.debug("Subprot from %r to %r", self, subprot)
             return self.to_subprot(ctx, cls, inst, parent, name, subprot,
                                                                        **kwargs)
 
@@ -111,6 +126,9 @@ class ToParentMixin(ProtocolBase):
 
         # if instance is still None, use the global null handler to serialize it
         if inst is None and self.use_global_null_handler:
+            identifier = prot_name + '.null_to_parent'
+            logger.debug("Writing %s using %s for %s.", name, identifier,
+                                                            cls.get_type_name())
             return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         # if requested, ignore wrappers
@@ -141,6 +159,10 @@ class ToParentMixin(ProtocolBase):
         ctx.outprot_ctx.inst_stack.append( (cls, inst) )
 
         # finally, serialize the value. retval is the coroutine handle if any
+        identifier = "%s.%s" % (prot_name, handler.__name__)
+        logger.debug("Writing %s using %s for %s. Inst: %r", name,
+                                          identifier, cls.get_type_name(), inst)
+
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 
         # FIXME: to_parent must be made to a coroutine for the below to remain
@@ -269,6 +291,8 @@ class ToParentMixin(ProtocolBase):
         for k, v in cls._type_info.items():
             attr = self.get_cls_attrs(v)
             if attr.exc:
+                prot_name = self.__class__.__name__
+                logger.debug("%s: excluded for %s.", k, prot_name)
                 continue
 
             try:  # e.g. SqlAlchemy could throw NoSuchColumnError

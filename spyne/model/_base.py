@@ -332,6 +332,10 @@ class ModelBase(object):
         """An integer that's passed to ``_type_info.insert()`` as first argument
          when not None. ``.append()`` is used otherwise."""
 
+        polymap = {}
+        """A dict of classes that override polymorphic substitions for classes
+        given as keys to classes given as values."""
+
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
@@ -509,6 +513,8 @@ class ModelBase(object):
 
         if getattr(cls, '__orig__', None) is None:
             cls_dict['__orig__'] = cls
+        else:
+            cls_dict['__orig__'] = cls.__orig__
 
         class Attributes(cls.Attributes):
             pass
