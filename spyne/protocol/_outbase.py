@@ -42,8 +42,8 @@ except ImportError:
 from spyne.protocol._base import ProtocolMixin
 
 from spyne.model import ModelBase, XmlAttribute, SimpleModel, Null, \
-    ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, Decimal, Double, Integer, Time, DateTime, Uuid, \
-    Duration, Boolean
+    ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, Decimal, \
+    Double, Integer, Time, DateTime, Uuid, Duration, Boolean
 
 from spyne.const.http import HTTP_400, HTTP_401, HTTP_404, HTTP_405, HTTP_413, \
     HTTP_500
@@ -217,22 +217,22 @@ class OutProtocolBase(ProtocolMixin):
         handler = self._to_string_iterable_handlers[class_]
         return handler(class_, value)
 
-    def null_to_string(self, cls, value):
+    def null_to_string(self, cls, value, **_):
         return ""
 
-    def any_xml_to_string(self, cls, value):
+    def any_xml_to_string(self, cls, value, **_):
         return etree.tostring(value)
 
-    def any_xml_to_unicode(self, cls, value):
+    def any_xml_to_unicode(self, cls, value, **_):
         return etree.tostring(value, encoding='unicode')
 
-    def any_html_to_string(self, cls, value):
+    def any_html_to_string(self, cls, value, **_):
         return html.tostring(value)
 
-    def any_html_to_unicode(self, cls, value):
+    def any_html_to_unicode(self, cls, value, **_):
         return html.tostring(value, encoding='unicode')
 
-    def uuid_to_string(self, cls, value, suggested_encoding=None):
+    def uuid_to_string(self, cls, value, suggested_encoding=None, **_):
         attr = self.get_cls_attrs(cls)
         ser_as = attr.serialize_as
         encoding = attr.encoding
@@ -245,22 +245,21 @@ class OutProtocolBase(ProtocolMixin):
             retval = binary_encoding_handlers[encoding]((retval,))
         return retval
 
-    def unicode_to_string(self, cls, value):
+    def unicode_to_string(self, cls, value, **_):
         retval = value
         cls_attrs = self.get_cls_attrs(cls)
-        if cls_attrs.encoding is not None and \
-                                               isinstance(value, six.text_type):
+        if cls_attrs.encoding is not None and isinstance(value, six.text_type):
             retval = value.encode(cls_attrs.encoding)
         if cls_attrs.format is None:
             return retval
         else:
             return cls_attrs.format % retval
 
-    def unicode_to_unicode(self, cls, value):
+    def unicode_to_unicode(self, cls, value, **_):
         retval = value
         cls_attrs = self.get_cls_attrs(cls)
         if cls_attrs.encoding is not None and \
-                                           isinstance(value, six.binary_type):
+                                             isinstance(value, six.binary_type):
             retval = value.decode(cls_attrs.encoding)
 
         if cls_attrs.format is None:
@@ -268,7 +267,7 @@ class OutProtocolBase(ProtocolMixin):
         else:
             return cls_attrs.format % retval
 
-    def decimal_to_string(self, cls, value):
+    def decimal_to_string(self, cls, value, **_):
         D(value)  # sanity check
         cls_attrs = self.get_cls_attrs(cls)
         if cls_attrs.str_format is not None:
@@ -278,7 +277,7 @@ class OutProtocolBase(ProtocolMixin):
         else:
             return str(value)
 
-    def double_to_string(self, cls, value):
+    def double_to_string(self, cls, value, **_):
         float(value) # sanity check
         cls_attrs = self.get_cls_attrs(cls)
 
@@ -287,7 +286,7 @@ class OutProtocolBase(ProtocolMixin):
         else:
             return cls_attrs.format % value
 
-    def integer_to_string(self, cls, value):
+    def integer_to_string(self, cls, value, **_):
         int(value)  # sanity check
         cls_attrs = self.get_cls_attrs(cls)
 
@@ -296,9 +295,8 @@ class OutProtocolBase(ProtocolMixin):
         else:
             return cls_attrs.format % value
 
-    def time_to_string(self, cls, value):
+    def time_to_string(self, cls, value, **_):
         """Returns ISO formatted dates."""
-
         return value.isoformat()
 
     def datetime_to_string(self, cls, val):
@@ -307,7 +305,7 @@ class OutProtocolBase(ProtocolMixin):
             return self._datetime_to_string(cls, val)
         return _datetime_smap[sa](cls, val)
 
-    def duration_to_string(self, cls, value):
+    def duration_to_string(self, cls, value, **_):
         if value.days < 0:
             value = -value
             negative = True
@@ -354,16 +352,16 @@ class OutProtocolBase(ProtocolMixin):
 
         return ''.join(retval)
 
-    def boolean_to_string(self, cls, value):
+    def boolean_to_string(self, cls, value, **_):
         return str(bool(value)).lower()
 
-    def byte_array_to_string(self, cls, value, suggested_encoding=None):
+    def byte_array_to_string(self, cls, value, suggested_encoding=None, **_):
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
         return binary_encoding_handlers[encoding](value)
 
-    def byte_array_to_unicode(self, cls, value, suggested_encoding=None):
+    def byte_array_to_unicode(self, cls, value, suggested_encoding=None, **_):
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
@@ -372,7 +370,7 @@ class OutProtocolBase(ProtocolMixin):
                              "unicode")
         return binary_encoding_handlers[encoding](value)
 
-    def byte_array_to_string_iterable(self, cls, value):
+    def byte_array_to_string_iterable(self, cls, value, **_):
         return value
 
     def file_to_string(self, cls, value, suggested_encoding=None):
@@ -419,7 +417,7 @@ class OutProtocolBase(ProtocolMixin):
 
         return self.file_to_string(cls, value, suggested_encoding)
 
-    def file_to_string_iterable(self, cls, value):
+    def file_to_string_iterable(self, cls, value, **_):
         if value.data is not None:
             if isinstance(value.data, (list, tuple)) and \
                     isinstance(value.data[0], mmap):
@@ -447,18 +445,18 @@ class OutProtocolBase(ProtocolMixin):
             else:
                 raise InternalError("Error accessing requested file")
 
-    def simple_model_to_string_iterable(self, cls, value):
-        retval = self.to_string(cls, value)
+    def simple_model_to_string_iterable(self, cls, value, **kwargs):
+        retval = self.to_string(cls, value, **kwargs)
         if retval is None:
             return ('',)
         return (retval,)
 
-    def complex_model_to_string_iterable(self, cls, value):
+    def complex_model_to_string_iterable(self, cls, value, **_):
         if self.ignore_uncap:
             return tuple()
         raise TypeError("This protocol can only serialize primitives.")
 
-    def attachment_to_string(self, cls, value):
+    def attachment_to_string(self, cls, value, **_):
         if not (value.data is None):
             # the data has already been loaded, just encode
             # and return the element
@@ -474,25 +472,25 @@ class OutProtocolBase(ProtocolMixin):
 
         return data
 
-    def complex_model_base_to_string(self, cls, value, **kwargs):
+    def complex_model_base_to_string(self, cls, value, **_):
         raise TypeError("Only primitives can be serialized to string.")
 
-    def xmlattribute_to_string(self, cls, string):
-        return self.to_string(cls.type, string)
+    def xmlattribute_to_string(self, cls, string, **kwargs):
+        return self.to_string(cls.type, string, **kwargs)
 
-    def xmlattribute_to_unicode(self, cls, string):
-        return self.to_unicode(cls.type, string)
+    def xmlattribute_to_unicode(self, cls, string, **kwargs):
+        return self.to_unicode(cls.type, string, **kwargs)
 
-    def model_base_to_string_iterable(self, cls, value):
-        return cls.to_string_iterable(value)
+    def model_base_to_string_iterable(self, cls, value, **kwargs):
+        return cls.to_string_iterable(value, **kwargs)
 
-    def model_base_to_string(self, cls, value):
-        return cls.to_string(value)
+    def model_base_to_string(self, cls, value, **kwargs):
+        return cls.to_string(value, **kwargs)
 
-    def model_base_to_unicode(self, cls, value):
-        return cls.to_unicode(value)
+    def model_base_to_unicode(self, cls, value, **kwargs):
+        return cls.to_unicode(value, **kwargs)
 
-    def _datetime_to_string(self, cls, value):
+    def _datetime_to_string(self, cls, value, **_):
         cls_attrs = self.get_cls_attrs(cls)
         if cls_attrs.as_timezone is not None and value.tzinfo is not None:
             value = value.astimezone(cls_attrs.as_timezone)
