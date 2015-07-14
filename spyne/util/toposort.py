@@ -22,6 +22,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+
+from pprint import pformat
+
 try:
     from functools import reduce
 except:
@@ -44,4 +47,4 @@ def toposort2(data):
         data = dict([(item, (dep - ordered)) for item,dep in data.items()
                                                         if item not in ordered])
 
-    assert not data, "A cyclic dependency exists amongst %r" % data
+    assert not data, "A cyclic dependency exists amongst\n%s" % pformat(data)
