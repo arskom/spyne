@@ -24,7 +24,7 @@ Module that contains the Spyne Application Registry.
 import logging
 logger = logging.getLogger(__name__)
 
-_applications = {}
+applications = {}
 
 try:
     from collections import namedtuple
@@ -52,7 +52,7 @@ def register_application(app):
     except ImportError:
         stack = None
 
-    prev = _applications.get(key, None)
+    prev = applications.get(key, None)
 
     if prev is not None:
         if hash(prev.app) == hash(app):
@@ -71,7 +71,7 @@ def register_application(app):
                 logger.debug("Stack trace of the instantiation:\n%s" %
                                    '====================\n'.join(stack_traces))
 
-    _applications[key] = _ApplicationMetaData(app=app, inst_stack=[stack],
+    applications[key] = _ApplicationMetaData(app=app, inst_stack=[stack],
                           null=NullServer(app, appinit=False),
                           ostr=NullServer(app, appinit=False, ostr=True)
     )
@@ -80,4 +80,4 @@ def register_application(app):
 
 
 def get_application(tns, name='Application'):
-    return _applications.get((tns, name), None)
+    return applications.get((tns, name), None)
