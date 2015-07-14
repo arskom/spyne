@@ -28,8 +28,10 @@ import sys
 
 from lxml import etree
 
+
 def cache_order(l, ns):
     return dict([ ("{%s}%s" % (ns, a), l.index(a)) for a in l])
+
 
 wsdl_order = ('types', 'message', 'service', 'portType', 'binding')
 wsdl_order = cache_order(wsdl_order, ns_wsdl)
@@ -96,6 +98,7 @@ def sort_wsdl(tree):
 
         for e in nodes:
             s.append(e)
+
 
 if __name__ == '__main__':
     sys.exit(main())

@@ -27,6 +27,7 @@ try:
 except:
     pass
 
+
 def toposort2(data):
     for k, v in data.items():
         v.discard(k) # Ignore self dependencies
@@ -41,6 +42,6 @@ def toposort2(data):
             break
         yield sorted(ordered, key=lambda x:repr(x))
         data = dict([(item, (dep - ordered)) for item,dep in data.items()
-                                                       if item not in ordered])
+                                                        if item not in ordered])
 
     assert not data, "A cyclic dependency exists amongst %r" % data
