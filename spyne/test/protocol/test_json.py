@@ -97,6 +97,7 @@ class TestSpyneJsonRpc1(unittest.TestCase):
         assert ctx.out_document == {"ver": 1, "fault": {
                         'faultcode': 'Server', 'faultstring': 'Internal Error'}}
 
+
 class TestJsonDocument(unittest.TestCase):
     def test_out_kwargs(self):
         class SomeService(ServiceBase):
@@ -178,6 +179,7 @@ class TestJsonP(unittest.TestCase):
         server = NullServer(app, ostr=True)
         print(''.join(server.service.yay()))
         # assert false
+
 
 if __name__ == '__main__':
     unittest.main()
