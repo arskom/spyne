@@ -18,7 +18,7 @@
 #
 
 import logging
-logger = logging.getLogger('spyne.interface.xml_schema')
+logger = logging.getLogger('.'.join(__name__.split(".")[:-1]))
 
 import os
 import shutil
