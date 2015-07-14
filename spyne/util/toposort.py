@@ -32,6 +32,9 @@ except:
 
 
 def toposort2(data):
+    if len(data) == 0:
+        raise StopIteration()
+
     for k, v in data.items():
         v.discard(k) # Ignore self dependencies
 
