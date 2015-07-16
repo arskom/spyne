@@ -326,11 +326,17 @@ def strip_regex_metachars(pattern):
     return pattern[start:till]
 
 
+# django's own slug_re.pattern is invalid according to xml schema -- it doesn't
+# like the location of the dash character. using the equivalent pattern accepted
+# by xml schema here.
+SLUG_RE_PATTERN = '[a-zA-Z0-9_-]+'
+
+
 DEFAULT_FIELD_MAP = (
     ('AutoField', primitive.Integer32),
     ('CharField', primitive.NormalizedString),
     ('SlugField', primitive.Unicode(
-        type_name='Slug', pattern=strip_regex_metachars(slug_re.pattern))),
+        type_name='Slug', pattern=strip_regex_metachars(SLUG_RE_PATTERN))),
     ('TextField', primitive.Unicode),
     ('EmailField', primitive.Unicode(
         type_name='Email', pattern=strip_regex_metachars(email_re.pattern))),
