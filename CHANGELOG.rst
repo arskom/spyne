@@ -9,7 +9,10 @@ spyne-2.12.0
 * NullServer now supports async.
 * XmlCloth was rewritten while less sleep-deprived.
 * ProtocolBase now also implements serializing primitives to unicode.
-* Add initial support for parsing xsi:type. It's an experimental feature.
+* Add initial support for input polymorphism to XmlDocument (parsing xsi:type).
+  It's an experimental feature.
+* Add output polymorphism for all protocols. It's off-by-default for XmlDocument
+  and friends, on-by-default for others.
 * Add stub implementation for SOAP 1.2
 * Add initial implementation for SOAP 1.2 Faults.
 * Remove the deprecated ``interface`` argument to ``Application``\.
@@ -19,7 +22,9 @@ spyne-2.12.0
 * We now validate kwargs passed to ``@rpc``. Be sure to test your daemons before
   deploying for production, because if you got leftovers, the server will refuse
   to boot!
-* It's now forbidden to inherit from a customized class.
+* It's now forbidden (by assert) to inherit from a customized class.
+* It's also forbidden (by convention) to instantiate a customized class. Don't
+  do it! The warning will be converted to an assert in the future.
 
 spyne-2.11.0
 ------------
