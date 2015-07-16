@@ -50,6 +50,7 @@ from spyne.util.six import text_type, string_types
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import etree_to_dict, dict_to_etree,\
     root_dict_to_etree
+from spyne.const.xml import XSI
 
 from spyne.error import Fault
 from spyne.error import ValidationError
@@ -80,7 +81,9 @@ from spyne.model.enum import EnumBase
 
 from spyne.protocol import ProtocolBase
 
-NIL_ATTR = {'{%s}nil' % _ns_xsi: 'true'}
+
+NIL_ATTR = {XSI('nil'): 'true'}
+XSI_TYPE = XSI('type')
 
 
 def _append(parent, child_elt):
@@ -89,10 +92,12 @@ def _append(parent, child_elt):
     else:
         parent.write(child_elt)
 
+
 def _gen_tagname(ns, name):
     if ns is not None:
         name = "{%s}%s" % (ns, name)
     return name
+
 
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
@@ -248,6 +253,7 @@ class XmlDocument(SubXmlBase):
                 compact=True,
                 binary_encoding=None,
                 parse_xsi_type=True,
+                polymorphic=False,
             ):
 
         super(XmlDocument, self).__init__(app, validator,
@@ -262,6 +268,7 @@ class XmlDocument(SubXmlBase):
         else:
             self.encoding = encoding
 
+        self.polymorphic = polymorphic
         self.pretty_print = pretty_print
         self.parse_xsi_type = parse_xsi_type
 
@@ -297,7 +304,6 @@ class XmlDocument(SubXmlBase):
             ComplexModelBase: self.complex_from_element,
         })
 
-        self.log_messages = (logger.level == logging.DEBUG)
         self.parser_kwargs = dict(
             attribute_defaults=attribute_defaults,
             dtd_validation=dtd_validation,
@@ -346,7 +352,7 @@ class XmlDocument(SubXmlBase):
             else:
                 line_header = LIGHT_RED + "Response:" + END_COLOR
         finally:
-            if self.log_messages:
+            if logger.level == logging.DEBUG:
                 logger.debug("%s %s" % (line_header, ctx.method_request_string))
                 logger.debug(etree.tostring(ctx.in_document, pretty_print=True))
 
@@ -413,7 +419,7 @@ class XmlDocument(SubXmlBase):
         # if present, use the xsi:type="ns0:ObjectName"
         # attribute to instantiate subclass objects
         if self.parse_xsi_type:
-            xsi_type = element.get('{%s}type' % _ns_xsi, None)
+            xsi_type = element.get(XSI_TYPE, None)
             if xsi_type is not None:
                 if ":" in xsi_type:
                     prefix, objtype = xsi_type.split(':', 1)
@@ -437,6 +443,8 @@ class XmlDocument(SubXmlBase):
         return handler(ctx, cls, element)
 
     def to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
+        cls, add_type = self.get_polymorphic_target(cls, inst)
+
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None:
             return subprot.subserialize(ctx, cls, inst, parent, ns,
@@ -450,6 +458,8 @@ class XmlDocument(SubXmlBase):
         if inst is None:
             return self.null_to_parent(ctx, cls, inst, parent, ns,
                                                                 *args, **kwargs)
+
+        kwargs['add_type'] = add_type
         return handler(ctx, cls, inst, parent, ns, *args, **kwargs)
 
     def deserialize(self, ctx, message):
@@ -483,7 +493,7 @@ class XmlDocument(SubXmlBase):
         else:
             ctx.in_object = self.from_element(ctx, body_class, ctx.in_body_doc)
 
-        if self.log_messages and message is self.REQUEST:
+        if logger.level == logging.DEBUG and message is self.REQUEST:
             line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
 
             logger.debug("%s %s" % (line_header, etree.tostring(ctx.out_document,
@@ -554,7 +564,7 @@ class XmlDocument(SubXmlBase):
                                           pretty_print=self.pretty_print,
                                           xml_declaration=self.xml_declaration)]
 
-        if self.log_messages:
+        if logger.level == logging.DEBUG:
             logger.debug('%sResponse%s %s' % (LIGHT_RED, END_COLOR,
                             etree.tostring(ctx.out_document,
                                           pretty_print=True, encoding='UTF-8')))
@@ -580,14 +590,30 @@ class XmlDocument(SubXmlBase):
         if hasattr(ctx.out_stream, 'finish'):
             ctx.out_stream.finish()
 
-    def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        _append(parent, E(_gen_tagname(ns, name),
-                       self.to_unicode(cls, inst, self.binary_encoding)))
+    def _gen_tag(self, cls, ns, name, add_type=False, **_):
+        if ns is not None:
+            name = "{%s}%s" % (ns, name)
 
-    def modelbase_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        _append(parent, E(_gen_tagname(ns, name), self.to_unicode(cls, inst)))
+        retval = E(name)
+        if add_type:
+            retval.attrib[XSI_TYPE] = cls.get_type_name_ns(self.app.interface)
 
-    def null_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
+        return retval
+
+    def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name='retval',
+                                                                      **kwargs):
+        elt = self._gen_tag(cls, ns, name, **kwargs)
+        elt.text = self.to_unicode(cls, inst, self.binary_encoding)
+        _append(parent, elt)
+
+    def modelbase_to_parent(self, ctx, cls, inst, parent, ns, name='retval',
+                                                                      **kwargs):
+        elt = self._gen_tag(cls, ns, name, **kwargs)
+        elt.text = self.to_unicode(cls, inst)
+        _append(parent, elt)
+
+    def null_to_parent(self, ctx, cls, inst, parent, ns, name='retval',
+                                                                      **kwargs):
         if issubclass(cls, XmlAttribute):
             return
 
@@ -595,21 +621,27 @@ class XmlDocument(SubXmlBase):
             parent.attrib.update(NIL_ATTR)
 
         else:
-            _append(parent, E(_gen_tagname(ns, name), **NIL_ATTR))
+            elt = self._gen_tag(cls, ns, name, **kwargs)
+            elt.attrib.update(NIL_ATTR)
+            _append(parent, elt)
 
     def null_from_element(self, ctx, cls, element):
         return None
 
-    def xmldata_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def xmldata_to_parent(self, ctx, cls, inst, parent, ns, name,
+                                                      add_type=False, **_):
         ns = cls._ns
         if ns is None:
             ns = cls.Attributes.sub_ns
 
         name = _gen_tagname(ns, name)
 
+        if add_type:
+            parent.attrib[XSI_TYPE] = cls.get_type_name_ns(self.app.interface)
+
         cls.marshall(self, name, inst, parent)
 
-    def xmlattribute_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def xmlattribute_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         ns = cls._ns
         if ns is None:
             ns = cls.Attributes.sub_ns
@@ -623,14 +655,19 @@ class XmlDocument(SubXmlBase):
             else:
                 parent.set(name, self.to_unicode(cls.type, inst))
 
-    def attachment_to_parent(self, cls, inst, ns, parent, name='retval'):
+    def attachment_to_parent(self, cls, inst, ns, parent, name='retval', **_):
         _append(parent, E(_gen_tagname(ns, name),
-                        ''.join([b.decode('ascii') for b in cls.to_base64(inst)])))
+                    ''.join([b.decode('ascii') for b in cls.to_base64(inst)])))
 
     @coroutine
-    def gen_members_parent(self, ctx, cls, inst, parent, tag_name, subelts):
+    def gen_members_parent(self, ctx, cls, inst, parent, tag_name, subelts,
+                                                                      add_type):
+        attrib = {}
+        if add_type:
+            attrib[XSI_TYPE] = cls.get_type_name_ns(self.app.interface)
+
         if isinstance(parent, etree._Element):
-            elt = etree.SubElement(parent, tag_name)
+            elt = etree.SubElement(parent, tag_name, attrib=attrib)
             elt.extend(subelts)
             ret = self._get_members_etree(ctx, cls, inst, elt)
 
@@ -647,7 +684,7 @@ class XmlDocument(SubXmlBase):
                         pass
 
         else:
-            with parent.element(tag_name):
+            with parent.element(tag_name, attrib=attrib):
                 for e in subelts:
                     parent.write(e)
                 ret = self._get_members_etree(ctx, cls, inst, parent)
@@ -753,7 +790,8 @@ class XmlDocument(SubXmlBase):
         except Break:
             pass
 
-    def complex_to_parent(self, ctx, cls, inst, parent, ns, name=None):
+    def complex_to_parent(self, ctx, cls, inst, parent, ns, name=None,
+                                                           add_type=False, **_):
         sub_name = cls.Attributes.sub_name
         if sub_name is not None:
             name = sub_name
@@ -767,7 +805,9 @@ class XmlDocument(SubXmlBase):
         tag_name = _gen_tagname(ns, name)
 
         inst = cls.get_serialization_instance(inst)
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [])
+
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [],
+                                                                       add_type)
 
     def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
         tag_name = "{%s}Fault" % self.ns_soap_env
@@ -790,9 +830,10 @@ class XmlDocument(SubXmlBase):
             raise TypeError('Fault detail Must be dict, got', type(inst.detail))
 
         # add other nonstandard fault subelements with get_members_etree
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
+                                                        subelts, add_type=False)
 
-    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
+    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns,**_):
         tag_name = "{%s}Fault" % self.ns_soap_env
 
         subelts = [
@@ -805,27 +846,28 @@ class XmlDocument(SubXmlBase):
             _append(subelts, E('detail', inst.detail))
 
         # add other nonstandard fault subelements with get_members_etree
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
+                                                        subelts, add_type=False)
 
-    def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
-        self.modelbase_to_parent(ctx, cls, str(inst), parent, ns, name)
+    def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval', **kwargs):
+        self.modelbase_to_parent(ctx, cls, str(inst), parent, ns, name, **kwargs)
 
-    def xml_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def xml_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         if isinstance(inst, str) or isinstance(inst, unicode):
             inst = etree.fromstring(inst)
 
         _append(parent, E(_gen_tagname(ns, name), inst))
 
-    def any_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def any_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         _append(parent, E(_gen_tagname(ns, name), inst))
 
-    def html_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def html_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         if isinstance(inst, string_types) and len(inst) > 0:
             inst = html.fromstring(inst)
 
         _append(parent, E(_gen_tagname(ns, name), inst))
 
-    def dict_to_parent(self, ctx, cls, inst, parent, ns, name):
+    def dict_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         elt = E(_gen_tagname(ns, name))
         dict_to_etree(inst, elt)
 

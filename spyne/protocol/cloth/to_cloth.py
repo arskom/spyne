@@ -36,7 +36,7 @@ from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
     PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData, Any
 
-from spyne.protocol import ProtocolBase
+from spyne.protocol import OutProtocolBase
 from spyne.util.cdict import cdict
 
 _revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
@@ -122,12 +122,11 @@ class ClothParserMixin(object):
             return retval
 
 
-class ToClothMixin(ProtocolBase, ClothParserMixin):
-    def __init__(self, app=None, validator=None, mime_type=None,
-                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
-        super(ToClothMixin, self).__init__(app=app, validator=validator,
-                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
-                                                ignore_wrappers=ignore_wrappers)
+class ToClothMixin(OutProtocolBase, ClothParserMixin):
+    def __init__(self, app=None, mime_type=None, ignore_uncap=False,
+                                       ignore_wrappers=False, polymorphic=True):
+        super(ToClothMixin, self).__init__(app=app, mime_type=mime_type,
+                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers)
 
         self.polymorphic = polymorphic
 
@@ -432,20 +431,7 @@ class ToClothMixin(ProtocolBase, ClothParserMixin):
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        orig_cls = cls.__orig__ or cls
-        if self.polymorphic and inst.__class__ is not (orig_cls) and \
-                                           issubclass(inst.__class__, orig_cls):
-            cls_attr = self.get_cls_attrs(cls)
-            polymap_cls = cls_attr.polymap.get(inst.__class__, None)
-
-            if polymap_cls is not None:
-                cls = polymap_cls
-                logger_c.debug("Polymap hit cls switch: %r => %r", cls,
-                                                                 polymap_cls)
-            else:
-                cls = inst.__class__
-                logger_c.debug("Polymap miss cls switch: %r => %r", cls,
-                                                                 inst.__class__)
+        cls, switched = self.get_polymorphic_target(cls, inst)
 
         # if there's a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)

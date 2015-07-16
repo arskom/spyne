@@ -347,7 +347,7 @@ class TestXmlAttribute(unittest.TestCase):
         Soap11().to_parent(None, PacketAttribute, gg, element, gg.get_namespace())
 
         element = element[0]
-        #print etree.tostring(element, pretty_print=True)
+        print etree.tostring(element, pretty_print=True)
         self.assertEquals(element.attrib['Data'], b64string)
 
         s1 = Soap11().from_element(None, PacketAttribute, element)

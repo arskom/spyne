@@ -32,7 +32,7 @@ from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
     AnyHtml, ModelBase, ByteArray, XmlData, Any, AnyUri, ImageUri
 from spyne.model.enum import EnumBase
-from spyne.protocol import ProtocolBase
+from spyne.protocol import OutProtocolBase
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
 from spyne.util.cdict import cdict
@@ -43,10 +43,10 @@ from spyne.util.etreeconv import dict_to_etree
 from spyne.util.six import string_types
 
 
-class ToParentMixin(ProtocolBase):
-    def __init__(self, app=None, validator=None, mime_type=None,
+class ToParentMixin(OutProtocolBase):
+    def __init__(self, app=None, mime_type=None,
                  ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
-        super(ToParentMixin, self).__init__(app=app, validator=validator,
+        super(ToParentMixin, self).__init__(app=app,
                                  mime_type=mime_type, ignore_uncap=ignore_uncap,
                                  ignore_wrappers=ignore_wrappers)
 
@@ -85,21 +85,7 @@ class ToParentMixin(ProtocolBase):
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         prot_name = self.__class__.__name__
 
-        # if polymorphic, use class returned by user code.
-        orig_cls = cls.__orig__ or cls
-        if self.polymorphic and inst.__class__ is not (orig_cls) and \
-                                           issubclass(inst.__class__, orig_cls):
-            cls_attr = self.get_cls_attrs(cls)
-            polymap_cls = cls_attr.polymap.get(inst.__class__, None)
-
-            if polymap_cls is not None:
-                cls = polymap_cls
-                logger.debug("Polymap hit cls switch: %r => %r", cls,
-                                                                 polymap_cls)
-            else:
-                cls = inst.__class__
-                logger.debug("Polymap miss cls switch: %r => %r", cls,
-                                                                 inst.__class__)
+        cls, switched = self.get_polymorphic_target(cls, inst)
 
         # if there is a subprotocol, switch to it
         subprot = getattr(cls.Attributes, 'prot', None)

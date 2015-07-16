@@ -298,21 +298,7 @@ class HierDictDocument(DictDocument):
                 yield (sub_name, val)
 
     def _to_dict_value(self, cls, inst):
-        # if polymorphic, use class returned by user code.
-        orig_cls = cls.__orig__ or cls
-        if self.polymorphic and inst.__class__ is not (orig_cls) and \
-                                           issubclass(inst.__class__, orig_cls):
-            cls_attr = self.get_cls_attrs(cls)
-            polymap_cls = cls_attr.polymap.get(inst.__class__, None)
-
-            if polymap_cls is not None:
-                cls = polymap_cls
-                logger.debug("Polymap hit cls switch: %r => %r", cls,
-                                                                 polymap_cls)
-            else:
-                cls = inst.__class__
-                logger.debug("Polymap miss cls switch: %r => %r", cls,
-                                                                 inst.__class__)
+        cls, switched = self.get_polymorphic_target(cls, inst)
 
         if issubclass(cls, (Any, AnyDict)):
             return inst
