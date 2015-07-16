@@ -110,7 +110,7 @@ class ModelTestCase(TestCase):
         self.assertEqual(pk_field.Attributes.min_occurs, 0)
         self.assertFalse(pk_field.Attributes.nullable)
 
-    def test_regex_pattern_mappiing(self):
+    def test_regex_pattern_mapping(self):
         """Test if regex pattern is mapped from django model."""
         type_info = Container.get_flat_type_info(Container)
         email_field = type_info['email_field']
