@@ -115,7 +115,8 @@ class Soap12(Soap11):
         else:
             raise TypeError('Fault detail Must be dict, got', type(inst.detail))
 
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
+                                                        subelts, add_type=False)
 
 
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
@@ -144,7 +145,8 @@ class Soap12(Soap11):
 
         _append(subelts, E('{%s}Detail' % self.soap_env, inst.detail))
 
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
+                                                        subelts, add_type=False)
 
 
 
