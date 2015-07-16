@@ -192,5 +192,27 @@ class ProtocolMixin(object):
 
         return call_handles
 
+    def get_polymorphic_target(self, cls, inst):
+        """If the protocol is polymorphic, extract what's returned by the user
+        code.
+        """
+
+        orig_cls = cls.__orig__ or cls
+        if self.polymorphic and inst.__class__ is not orig_cls and \
+                                                     isinstance(inst, orig_cls):
+            cls_attr = self.get_cls_attrs(cls)
+            polymap_cls = cls_attr.polymap.get(inst.__class__, None)
+
+            if polymap_cls is not None:
+                logger.debug("Polymap hit cls switch: %r => %r", cls,
+                                                                 polymap_cls)
+                return polymap_cls, True
+            else:
+                logger.debug("Polymap miss cls switch: %r => %r", cls,
+                                                                 inst.__class__)
+                return inst.__class__, True
+
+        return cls, False
+
 
 META_ATTR = ['nullable', 'default_factory']
