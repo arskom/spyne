@@ -50,6 +50,7 @@ from spyne.util.six import text_type, string_types
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import etree_to_dict, dict_to_etree,\
     root_dict_to_etree
+from spyne.const.xml import XSI
 
 from spyne.error import Fault
 from spyne.error import ValidationError
@@ -80,7 +81,9 @@ from spyne.model.enum import EnumBase
 
 from spyne.protocol import ProtocolBase
 
-NIL_ATTR = {'{%s}nil' % _ns_xsi: 'true'}
+
+NIL_ATTR = {XSI('nil'): 'true'}
+XSI_TYPE = XSI('type')
 
 
 def _append(parent, child_elt):
@@ -89,10 +92,12 @@ def _append(parent, child_elt):
     else:
         parent.write(child_elt)
 
+
 def _gen_tagname(ns, name):
     if ns is not None:
         name = "{%s}%s" % (ns, name)
     return name
+
 
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
@@ -413,7 +418,7 @@ class XmlDocument(SubXmlBase):
         # if present, use the xsi:type="ns0:ObjectName"
         # attribute to instantiate subclass objects
         if self.parse_xsi_type:
-            xsi_type = element.get('{%s}type' % _ns_xsi, None)
+            xsi_type = element.get(XSI_TYPE, None)
             if xsi_type is not None:
                 if ":" in xsi_type:
                     prefix, objtype = xsi_type.split(':', 1)
