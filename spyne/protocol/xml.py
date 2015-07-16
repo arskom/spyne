@@ -302,7 +302,6 @@ class XmlDocument(SubXmlBase):
             ComplexModelBase: self.complex_from_element,
         })
 
-        self.log_messages = (logger.level == logging.DEBUG)
         self.parser_kwargs = dict(
             attribute_defaults=attribute_defaults,
             dtd_validation=dtd_validation,
@@ -351,7 +350,7 @@ class XmlDocument(SubXmlBase):
             else:
                 line_header = LIGHT_RED + "Response:" + END_COLOR
         finally:
-            if self.log_messages:
+            if logger.level == logging.DEBUG:
                 logger.debug("%s %s" % (line_header, ctx.method_request_string))
                 logger.debug(etree.tostring(ctx.in_document, pretty_print=True))
 
@@ -488,7 +487,7 @@ class XmlDocument(SubXmlBase):
         else:
             ctx.in_object = self.from_element(ctx, body_class, ctx.in_body_doc)
 
-        if self.log_messages and message is self.REQUEST:
+        if logger.level == logging.DEBUG and message is self.REQUEST:
             line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
 
             logger.debug("%s %s" % (line_header, etree.tostring(ctx.out_document,
@@ -559,7 +558,7 @@ class XmlDocument(SubXmlBase):
                                           pretty_print=self.pretty_print,
                                           xml_declaration=self.xml_declaration)]
 
-        if self.log_messages:
+        if logger.level == logging.DEBUG:
             logger.debug('%sResponse%s %s' % (LIGHT_RED, END_COLOR,
                             etree.tostring(ctx.out_document,
                                           pretty_print=True, encoding='UTF-8')))
