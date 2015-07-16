@@ -36,7 +36,7 @@ from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
     PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData, Any
 
-from spyne.protocol import ProtocolBase
+from spyne.protocol import OutProtocolBase
 from spyne.util.cdict import cdict
 
 _revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
@@ -122,7 +122,7 @@ class ClothParserMixin(object):
             return retval
 
 
-class ToClothMixin(ProtocolBase, ClothParserMixin):
+class ToClothMixin(OutProtocolBase, ClothParserMixin):
     def __init__(self, app=None, validator=None, mime_type=None,
                  ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
         super(ToClothMixin, self).__init__(app=app, validator=validator,

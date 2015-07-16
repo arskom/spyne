@@ -32,7 +32,7 @@ from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
     AnyHtml, ModelBase, ByteArray, XmlData, Any, AnyUri, ImageUri
 from spyne.model.enum import EnumBase
-from spyne.protocol import ProtocolBase
+from spyne.protocol import OutProtocolBase
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
 from spyne.util.cdict import cdict
@@ -43,10 +43,10 @@ from spyne.util.etreeconv import dict_to_etree
 from spyne.util.six import string_types
 
 
-class ToParentMixin(ProtocolBase):
-    def __init__(self, app=None, validator=None, mime_type=None,
+class ToParentMixin(OutProtocolBase):
+    def __init__(self, app=None, mime_type=None,
                  ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
-        super(ToParentMixin, self).__init__(app=app, validator=validator,
+        super(ToParentMixin, self).__init__(app=app,
                                  mime_type=mime_type, ignore_uncap=ignore_uncap,
                                  ignore_wrappers=ignore_wrappers)
 
