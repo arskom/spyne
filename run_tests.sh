@@ -196,10 +196,10 @@ if [ $PYIMPL == 'cpy' ]; then
     # Run tests. Tox runs coverage.
     TENV=${TOX_ENVS[$PYFLAV]};
     BASEPYTHON="$PYTHON" "$TOX" --version
-    BASEPYTHON="$PYTHON" "$TOX" -e "$TENV" || true
+    BASEPYTHON="$PYTHON" "$TOX" -e "$TENV" || true;
 
 else
     # Run tests. No coverage in jython.
-    $PYTHON setup.py test;
+    $PYTHON setup.py test || true;
 
 fi;
