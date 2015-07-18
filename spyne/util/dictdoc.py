@@ -131,11 +131,11 @@ def get_object_as_msgpack(o, cls=None, ignore_wrappers=False, complex_as=dict,
     return ''.join(ctx.out_string)
 
 
-def json_loads(s, cls, protocol=JsonDocument, encoding=None, **kwargs):
+def json_loads(s, cls, protocol=JsonDocument, **kwargs):
     prot = protocol(**kwargs)
     ctx = FakeContext(in_string=[s])
     prot.create_in_document(ctx)
-    return prot._doc_to_object(cls, ctx.in_document)
+    return prot._doc_to_object(cls, ctx.in_document, validator=prot.validator)
 
 
 get_json_as_object = json_loads
@@ -145,7 +145,7 @@ def yaml_loads(s, cls, protocol=YamlDocument, ignore_wrappers=False, **kwargs):
     prot = protocol(ignore_wrappers=ignore_wrappers, **kwargs)
     ctx = FakeContext(in_string=[s])
     prot.create_in_document(ctx)
-    return prot._doc_to_object(cls, ctx.in_document)
+    return prot._doc_to_object(cls, ctx.in_document, validator=prot.validator)
 
 
 get_yaml_as_object = yaml_loads
