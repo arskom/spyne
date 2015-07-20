@@ -45,9 +45,8 @@ class DictOfUniformArray(AnyDict):
             if not isinstance(v, list):
                 raise ValidationError(type(v), "Invalid value type %r")
             # log_repr prevents too much data going in the logs.
-            if not len(set(map(type, v))) == 1:
-                raise ValidationError(log_repr(v),
-                                      "List %s is not uniform")
+            if not len({type(subv) for subv in v}) == 1:
+                raise ValidationError(log_repr(v), "List %s is not uniform")
         return True
 
 
