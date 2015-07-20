@@ -44,25 +44,23 @@ class DictOfArray(AnyDict):
             if not isinstance(v, list):
                 raise ValidationError(type(v), "Invalid value type %r")
 
+        return True
+
+class Wrapper(ComplexModel):
+    data = DictOfArray
+
 
 # This example throws a validation error. Remove "invalid" entry from top level
 # dict to make it work.
-
-
 data = b"""
 {
     "data" : {
         "key_1" : [123, 567],
         "key_2" : ["abc", "def"],
-        "frank_underwood" : [666.66, 333.333],
-        "invalid" : {"aa":2}
+        "frank_underwood" : [666.66, 333.333]
     }
 }
 """
-
-
-class Wrapper(ComplexModel):
-    data = DictOfArray
 
 
 print json_loads(data, Wrapper, validator='soft')
