@@ -37,7 +37,8 @@ from spyne.util.web import log_repr
 
 
 class DictOfUniformArray(AnyDict):
-    @classmethod
+    # warning! it's not a classmethod!
+    @staticmethod
     def validate_native(cls, inst):
         for k, v in inst.items():
             if not isinstance(k, six.string_types):
