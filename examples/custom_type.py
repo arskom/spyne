@@ -29,8 +29,10 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from spyne import AnyDict, ValidationError
+
+from spyne import ComplexModel, AnyDict, ValidationError
 from spyne.util import six
+from spyne.util.dictdoc import json_loads
 
 
 class DictOfArray(AnyDict):
@@ -43,9 +45,9 @@ class DictOfArray(AnyDict):
                 raise ValidationError(type(v), "Invalid value type %r")
 
 
-
 # This example throws a validation error. Remove "invalid" entry from top level
 # dict to make it work.
+
 
 data = b"""
 {
@@ -57,9 +59,6 @@ data = b"""
     }
 }
 """
-
-from spyne import ComplexModel, Array, Integer, Unicode, Double
-from spyne.util.dictdoc import json_loads
 
 
 class Wrapper(ComplexModel):
