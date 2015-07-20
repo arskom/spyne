@@ -63,7 +63,8 @@ data = b"""
         "key_1" : [123, 567],
         "key_2" : ["abc", "def"],
         "frank_underwood" : [666.66, 333.333],
-        "invalid": [123, "aaa"]
+        "invalid": [123, "aaa"],
+        "invalid_type": {"life": 42}
     }
 }
 """
