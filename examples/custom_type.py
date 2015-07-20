@@ -46,6 +46,7 @@ class DictOfArray(AnyDict):
 
         return True
 
+
 class Wrapper(ComplexModel):
     data = DictOfArray
 
