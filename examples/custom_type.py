@@ -30,12 +30,13 @@
 #
 
 
-from spyne import ComplexModel, AnyDict, ValidationError
+from spyne import ComplexModel, AnyDict, ValidationError, Array, Any
 from spyne.util import six
 from spyne.util.dictdoc import json_loads
+from spyne.util.web import log_repr
 
 
-class DictOfArray(AnyDict):
+class DictOfUniformArray(AnyDict):
     @classmethod
     def validate_native(cls, inst):
         for k, v in inst.items():
@@ -43,22 +44,26 @@ class DictOfArray(AnyDict):
                 raise ValidationError(type(k), "Invalid key type %r")
             if not isinstance(v, list):
                 raise ValidationError(type(v), "Invalid value type %r")
-
+            # log_repr prevents too much data going in the logs.
+            if not len(set(map(type, v))) == 1:
+                raise ValidationError(log_repr(v),
+                                      "List %s is not uniform")
         return True
 
 
 class Wrapper(ComplexModel):
-    data = DictOfArray
+    data = DictOfUniformArray
 
 
-# This example throws a validation error. Remove "invalid" entry from top level
+# This example throws a validation error. Remove "invalid" entries from the data
 # dict to make it work.
 data = b"""
 {
     "data" : {
         "key_1" : [123, 567],
         "key_2" : ["abc", "def"],
-        "frank_underwood" : [666.66, 333.333]
+        "frank_underwood" : [666.66, 333.333],
+        "invalid": [123, "aaa"]
     }
 }
 """
