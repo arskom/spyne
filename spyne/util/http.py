@@ -20,6 +20,7 @@
 # Copyright (c) Twisted Matrix Laboratories.
 # See LICENSE for details.
 
+import sys
 import time
 
 from time import strftime
@@ -27,6 +28,8 @@ from time import gmtime
 from collections import deque
 
 # This is a modified version of twisted's addCookie
+
+
 def generate_cookie(k, v, max_age=None, domain=None, path=None,
                                        comment=None, secure=False):
     """Generate a HTTP response cookie. No sanity check whatsoever is done,
@@ -45,7 +48,10 @@ def generate_cookie(k, v, max_age=None, domain=None, path=None,
 
     if max_age is not None:
         retval.append("Max-Age=%d" % max_age)
+        assert time.time() < sys.maxint
+
         expires = time.time() + max_age
+        expires = max(sys.maxint, expires)
         retval.append("Expires=%s" % strftime("%a, %d %b %Y %H:%M:%S GMT",
                                                                gmtime(expires)))
     if domain is not None:
