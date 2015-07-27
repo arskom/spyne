@@ -4,7 +4,7 @@
 #
 # Requirements:
 #   A working build environment inside the container with OpenSSL, bzip2,
-#   libxml2 and libxsld development files. Only tested on Linux variants.
+#   libxml2 and libxslt development files. Only tested on Linux variants.
 #
 #   Last time we looked, for ubuntu, that meant:
 #     $ sudo apt-get install build-essential libssl-dev lilbbz2-dev \
@@ -26,14 +26,14 @@
 #   2. Set up stuff like git repo the usual way.
 #   3. In the 'Configuration Matrix' section, create a user-defined axis named
 #      'PYVER'. and set it to the Python versions you'd like to test, separated
-#      by whitespace. For example: '2.7 3.3'
+#      by whitespace. For example: 'cpy-2.7 cpy-3.4'
 #   4. Add a new "Execute Shell" build step and type in './run_tests.sh'.
 #   5. Add a new "Publish JUnit test report" post-build action and type in
 #      'test_result.*.xml'
 #   6. Add a new "Publish Cobertura Coverage Report" post-build action and type
 #      in 'coverage.xml'. Install the "Cobertura Coverage Report" plug-in if you
 #      don't see this option.
-#   7. Have fun!
+#   7. Nonprofit!
 #
 
 
