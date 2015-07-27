@@ -369,7 +369,7 @@ class ToParentMixin(OutProtocolBase):
                         pass
 
     @coroutine
-    def schema_validation_error_to_parent(self, ctx, cls, inst, parent):
+    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, **_):
         PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP_ENV]
         tag_name = "{%s}Fault" % NS_SOAP_ENV
 

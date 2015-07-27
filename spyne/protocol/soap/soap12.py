@@ -79,7 +79,7 @@ class Soap12(Soap11):
 
         return '.'.join(faultcode)
 
-    def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
+    def fault_to_parent(self, ctx, cls, inst, parent, ns, **_):
         tag_name = "{%s}Fault" % self.ns_soap_env
 
         reason = E("{%s}Reason" % self.ns_soap_env)
@@ -118,8 +118,7 @@ class Soap12(Soap11):
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
                                                         subelts, add_type=False)
 
-
-    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
+    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns, **_):
         tag_name = "{%s}Fault" % self.ns_soap_env
 
         subelts = [
