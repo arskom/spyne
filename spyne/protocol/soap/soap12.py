@@ -147,10 +147,7 @@ class Soap12(Soap11):
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
                                                         subelts, add_type=False)
 
-
-
     def fault_from_element(self, ctx, cls, element):
-
         nsmap  = element.nsmap
 
         code = self.generate_faultcode(element)
