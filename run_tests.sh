@@ -77,11 +77,11 @@ fi;
 
 # tox compat
 declare -A TOX_ENVS;
-TOX_ENVS["cpy26"]="py26,py26-dj1.6.x";
-TOX_ENVS["cpy27"]="py27,py27-dj1.6.x,py27-dj1.7.x,py27-dj1.8.x";
-TOX_ENVS["cpy33"]="py33,py33-dj1.7.x,py33-dj1.8.x";
-TOX_ENVS["cpy34"]="py34,py34-dj1.7.x,py34-dj1.8.x";
-TOX_ENVS["cpy35"]="py35,py35-dj1.7.x,py35-dj1.8.x";
+TOX_ENVS["cpy26"]="py26" #,py26-dj1.6.x";
+TOX_ENVS["cpy27"]="py27" #,py27-dj1.6.x,py27-dj1.7.x,py27-dj1.8.x";
+TOX_ENVS["cpy33"]="py33" #,py33-dj1.7.x,py33-dj1.8.x";
+TOX_ENVS["cpy34"]="py34" #,py34-dj1.7.x,py34-dj1.8.x";
+TOX_ENVS["cpy35"]="py35" #,py35-dj1.7.x,py35-dj1.8.x";
 
 # Initialization
 IRONPYTHON_URL_BASE=https://github.com/IronLanguages/main/archive;
