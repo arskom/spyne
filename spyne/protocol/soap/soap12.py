@@ -80,8 +80,6 @@ class Soap12(Soap11):
         return '.'.join(faultcode)
 
     def fault_to_parent(self, ctx, cls, inst, parent, ns, **_):
-        tag_name = "{%s}Fault" % self.ns_soap_env
-
         reason = E("{%s}Reason" % self.ns_soap_env)
         reason.append(E("{%s}Text" % self.ns_soap_env, inst.faultstring,
                         **{'{%s}lang' % NS_XML: inst.lang}))
@@ -90,6 +88,11 @@ class Soap12(Soap11):
             reason,
             E("{%s}Role" % self.ns_soap_env, inst.faultactor),
         ]
+
+        return self._fault_to_parent_impl(ctx, cls, inst, parent, ns, subelts)
+
+    def _fault_to_parent_impl(self, ctx, cls, inst, parent, ns, subelts, **_):
+        tag_name = "{%s}Fault" % self.ns_soap_env
 
         if isinstance(inst.faultcode, string_types):
             value, faultcodes  = self.gen_fault_codes(inst.faultcode)
@@ -112,6 +115,7 @@ class Soap12(Soap11):
 
         elif inst.detail is None:
             pass
+
         else:
             raise TypeError('Fault detail Must be dict, got', type(inst.detail))
 
@@ -119,33 +123,12 @@ class Soap12(Soap11):
                                                         subelts, add_type=False)
 
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns, **_):
-        tag_name = "{%s}Fault" % self.ns_soap_env
-
         subelts = [
             E("{%s}Reason" % self.soap_env, inst.faultstring),
             E("{%s}Role" % self.soap_env, inst.faultactor),
         ]
 
-        if isinstance(inst.faultcode, string_types):
-            value, faultcodes  = self.gen_fault_codes(inst.faultcode)
-
-            code = E("{%s}Code" % self.soap_env)
-            code.append(E("{%s}Value" % self.soap_env, value))
-
-            child_subcode = 0
-            for value in faultcodes:
-                if child_subcode:
-                    child_subcode = self.generate_subcode(value, child_subcode)
-                else:
-                    child_subcode = self.generate_subcode(value)
-            code.append(child_subcode)
-
-            _append(subelts, code)
-
-        _append(subelts, E('{%s}Detail' % self.soap_env, inst.detail))
-
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
-                                                        subelts, add_type=False)
+        return self._fault_to_parent_impl(ctx, cls, inst, parent, ns, subelts)
 
     def fault_from_element(self, ctx, cls, element):
         nsmap  = element.nsmap
