@@ -33,22 +33,17 @@ from lxml import etree
 from spyne.const import RESPONSE_SUFFIX
 from spyne.model.primitive import NATIVE_MAP
 
+from spyne.service import ServiceBase
+from spyne.decorator import rpc, srpc
 from spyne.application import Application
 from spyne.auxproc.sync import SyncAuxProc
 from spyne.auxproc.thread import ThreadAuxProc
-from spyne.decorator import rpc
-from spyne.decorator import srpc
-from spyne.model import Array
-from spyne.model import SelfReference
-from spyne.model import Iterable
-from spyne.model import ComplexModel
-from spyne.model import String
-from spyne.model import Unicode
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.null import NullServer
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
+from spyne.model import Array, SelfReference, Iterable, ComplexModel, String, \
+    Unicode
 
 
 Application.transport = 'test'
@@ -314,11 +309,12 @@ class TestBodyStyle(unittest.TestCase):
                 return 'abc'
 
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
-                                                out_protocol=Soap11(cleanup_namespaces=True))
+                                   out_protocol=Soap11(cleanup_namespaces=True))
 
         req = """
-        <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
-                        xmlns:tns="tns">
+        <soap11env:Envelope
+                    xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:tns="tns">
             <soap11env:Body>
                 <tns:some_call/>
             </soap11env:Body>
