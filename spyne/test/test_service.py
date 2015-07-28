@@ -127,7 +127,8 @@ class TestMultipleMethods(unittest.TestCase):
             def call(s):
                 data.append(s)
 
-        app = Application([Service, AuxService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
+        app = Application([Service, AuxService], 'tns', in_protocol=HttpRpc(),
+                                                         out_protocol=HttpRpc())
         server = WsgiApplication(app)
         server({
             'QUERY_STRING': 's=hey',
@@ -186,7 +187,8 @@ class TestMultipleMethods(unittest.TestCase):
                             "non-aux methods in a single service definition.'")
 
     def __run_service(self, service):
-        app = Application([service], 'tns', in_protocol=HttpRpc(), out_protocol=Soap11())
+        app = Application([service], 'tns', in_protocol=HttpRpc(),
+                                                          out_protocol=Soap11())
         server = WsgiApplication(app)
         return_string = ''.join(server({
             'QUERY_STRING': '',
