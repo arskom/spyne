@@ -26,8 +26,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from spyne.util import six
-from spyne.util.six import StringIO
+from spyne.util.six import BytesIO
 
 from lxml import etree
 
@@ -133,8 +132,10 @@ class TestMultipleMethods(unittest.TestCase):
         server({
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
+            'wsgi.input': BytesIO(),
         }, start_response, "http://null")
 
         assert data == ['hey', 'hey']
@@ -161,8 +162,10 @@ class TestMultipleMethods(unittest.TestCase):
         server({
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
+            'wsgi.input': BytesIO(),
         }, start_response, "http://null")
 
         import time
@@ -190,11 +193,14 @@ class TestMultipleMethods(unittest.TestCase):
         app = Application([service], 'tns', in_protocol=HttpRpc(),
                                                           out_protocol=Soap11())
         server = WsgiApplication(app)
+
         return_string = ''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
+            'wsgi.input': BytesIO(""),
         }, start_response, "http://null"))
 
         elt = etree.fromstring(''.join(return_string))
@@ -288,9 +294,10 @@ class TestBodyStyle(unittest.TestCase):
         resp = etree.fromstring(''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
-            'wsgi.input': StringIO(req)
+            'wsgi.input': BytesIO(req),
         }, start_response, "http://null")))
 
         print(etree.tostring(resp, pretty_print=True))
@@ -322,9 +329,10 @@ class TestBodyStyle(unittest.TestCase):
         resp = etree.fromstring(''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
-            'wsgi.input': StringIO(req)
+            'wsgi.input': BytesIO(req)
         }, start_response, "http://null")))
 
         print(etree.tostring(resp, pretty_print=True))
@@ -387,8 +395,9 @@ class TestBodyStyle(unittest.TestCase):
         resp = etree.fromstring(''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
-            'wsgi.input': StringIO(req)
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
+            'wsgi.input': BytesIO(req)
         }, start_response, "http://null")))
 
         print(etree.tostring(resp, pretty_print=True))
