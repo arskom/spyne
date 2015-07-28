@@ -151,6 +151,12 @@ class WsgiTransportContext(HttpTransportContext):
 
         return cookie.get(key, None).value
 
+    def get_request_method(self):
+        return self.req['REQUEST_METHOD'].upper()
+
+    def get_request_content_type(self):
+        return self.req.get("CONTENT_TYPE", None)
+
 
 class WsgiMethodContext(HttpMethodContext):
     """The WSGI-Specific method context. WSGI-Specific information is stored in

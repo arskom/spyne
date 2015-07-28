@@ -82,6 +82,12 @@ class HttpTransportContext(TransportContext):
     def get_path(self):
         raise NotImplementedError()
 
+    def get_request_method(self):
+        raise NotImplementedError()
+
+    def get_request_content_type(self):
+        raise NotImplementedError()
+
     def get_path_and_qs(self):
         raise NotImplementedError()
 
