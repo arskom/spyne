@@ -58,6 +58,7 @@ from spyne.model.primitive import Time
 from spyne.model.primitive import DateTime
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap.mime import collapse_swa
+from spyne.server.http import HttpTransportContext
 
 
 def _from_soap(in_envelope_xml, xmlids=None, **kwargs):
@@ -177,7 +178,7 @@ class Soap11(XmlDocument):
         self._from_unicode_handlers[DateTime] = self.datetime_from_string_iso
 
     def create_in_document(self, ctx, charset=None):
-        if ctx.transport.type == 'wsgi':
+        if isinstance(ctx.transport, HttpTransportContext):
             # according to the soap via http standard, soap requests must only
             # work with proper POST requests.
             content_type = ctx.transport.req_env.get("CONTENT_TYPE")
