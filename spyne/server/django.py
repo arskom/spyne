@@ -105,6 +105,27 @@ class StreamingDjangoApplication(DjangoApplication):
         retval.streaming_content = response
 
 
+class DjangoHttpTransportContext(HttpTransportContext):
+    def get_path(self):
+        return self.req.path
+
+    def get_request_method(self):
+        return self.req.method
+
+    def get_request_content_type(self):
+        return self.req.META['CONTENT_TYPE']
+
+    def get_path_and_qs(self):
+        return self.req.get_full_path()
+
+    def get_cookie(self, key):
+        return self.req.COOKIES[key]
+
+
+class DjangoHttpMethodContext(HttpMethodContext):
+    default_transport_context = DjangoHttpTransportContext
+
+
 class DjangoServer(HttpBase):
     """Server talking in Django request/response objects."""
 
@@ -210,8 +231,8 @@ class DjangoServer(HttpBase):
         :returns: generated contexts
         """
 
-        initial_ctx = HttpMethodContext(self, request,
-                                        self.app.out_protocol.mime_type)
+        initial_ctx = DjangoHttpMethodContext(self, request,
+                                                self.app.out_protocol.mime_type)
 
         initial_ctx.in_string = [request.body]
         return self.generate_contexts(initial_ctx)
