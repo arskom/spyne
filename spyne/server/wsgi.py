@@ -122,7 +122,8 @@ class WsgiTransportContext(HttpTransportContext):
     :class:`WsgiMethodContext` class."""
 
     def __init__(self, parent, transport, req_env, content_type):
-        super(WsgiTransportContext, self).__init__(parent, transport, req_env, content_type)
+        super(WsgiTransportContext, self).__init__(parent, transport,
+                                                          req_env, content_type)
 
         self.req_env = self.req
         """WSGI Request environment"""
