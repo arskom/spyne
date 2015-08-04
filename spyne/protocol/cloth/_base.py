@@ -33,7 +33,7 @@ from spyne.util import Break, coroutine
 
 from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
-from spyne.util.six import StringIO, string_types
+from spyne.util.six import StringIO
 
 
 class XmlClothProtocolContext(ProtocolContext):
@@ -59,41 +59,6 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                                         polymorphic=polymorphic)
 
         self._init_cloth(cloth, cloth_parser)
-
-    @staticmethod
-    def trc(cls, locale, default):
-        """Translate a class.
-
-        :param cls: class
-        :param locale: locale string
-        :param default: default string if no translation found
-        :returns: translated string
-        """
-
-        if locale is None:
-            locale = 'en_US'
-        if cls.Attributes.translations is not None:
-            return cls.Attributes.translations.get(locale, default)
-        return default
-
-    @staticmethod
-    def trd(trdict, locale, default):
-        """Translate from a translations dict.
-
-        :param trdict: translation dict
-        :param locale: locale string
-        :param default: default string if no translation found
-        :returns: translated string
-        """
-
-        if locale is None:
-            locale = 'en_US'
-        if trdict is None:
-            return default
-        if isinstance(trdict, string_types):
-            return trdict
-
-        return trdict.get(locale, default)
 
     def get_context(self, parent, transport):
         return XmlClothProtocolContext(parent, transport)
