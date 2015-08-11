@@ -150,7 +150,7 @@ class Application(object):
             # call user method
             ctx.out_object = self.call_wrapper(ctx)
 
-            # out object is always an iterable of return values. see
+            # out object is always a sequence of return values. see
             # MethodContext docstrings for more info
             if ctx.descriptor.body_style is not BODY_STYLE_WRAPPED or \
                                 len(ctx.descriptor.out_message._type_info) <= 1:
