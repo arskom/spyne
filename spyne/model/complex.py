@@ -834,7 +834,8 @@ class ComplexModelBase(ModelBase):
             setattr(self, key, value)
         except AttributeError as e:
             logger.exception(e)
-            raise AttributeError("can't set attribute %s to %r" % (key, value))
+            raise AttributeError("can't set %r attribute %s to %r" %
+                                                   (self.__class__, key, value))
 
     def as_dict(self):
         """Represent object as dict.
