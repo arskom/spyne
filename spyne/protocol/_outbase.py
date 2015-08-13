@@ -270,6 +270,7 @@ class OutProtocolBase(ProtocolMixin):
     def decimal_to_string(self, cls, value, **_):
         D(value)  # sanity check
         cls_attrs = self.get_cls_attrs(cls)
+
         if cls_attrs.str_format is not None:
             return cls_attrs.str_format.format(value)
         elif cls_attrs.format is not None:
@@ -281,7 +282,9 @@ class OutProtocolBase(ProtocolMixin):
         float(value) # sanity check
         cls_attrs = self.get_cls_attrs(cls)
 
-        if cls_attrs.format is None:
+        if cls_attrs.str_format is not None:
+            return cls_attrs.str_format.format(value)
+        elif cls_attrs.format is None:
             return repr(value)
         else:
             return cls_attrs.format % value
@@ -290,7 +293,9 @@ class OutProtocolBase(ProtocolMixin):
         int(value)  # sanity check
         cls_attrs = self.get_cls_attrs(cls)
 
-        if cls_attrs.format is None:
+        if cls_attrs.str_format is not None:
+            return cls_attrs.str_format.format(value)
+        elif cls_attrs.format is None:
             return str(value)
         else:
             return cls_attrs.format % value

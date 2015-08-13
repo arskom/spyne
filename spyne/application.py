@@ -140,10 +140,17 @@ class Application(object):
             if ctx.service_class is not None:
                 ctx.service_class.event_manager.fire_event('method_call', ctx)
 
+            # in object is always a sequence of incoming values. We need to fix
+            # that for bare mode.
+            if ctx.descriptor.body_style is BODY_STYLE_BARE:
+                ctx.in_object = [ctx.in_object]
+            elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
+                ctx.in_object = []
+
             # call user method
             ctx.out_object = self.call_wrapper(ctx)
 
-            # out object is always an iterable of return values. see
+            # out object is always a sequence of return values. see
             # MethodContext docstrings for more info
             if ctx.descriptor.body_style is not BODY_STYLE_WRAPPED or \
                                 len(ctx.descriptor.out_message._type_info) <= 1:
@@ -220,11 +227,6 @@ class Application(object):
         This can be overridden to make an application-wide custom exception
         management.
         """
-
-        if ctx.descriptor.body_style is BODY_STYLE_BARE:
-            ctx.in_object = [ctx.in_object]
-        elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
-            ctx.in_object = []
 
         retval = None
 

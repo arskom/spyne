@@ -2,9 +2,21 @@
 Changelog
 =========
 
+spyne-2.12.6-beta
+-----------------
+* Thanks to Issue #446 we noticed that in some cases, SOAP messages inside HTTP
+  requests got processed even when the request method != 'POST'. This got
+  resolved, but you should check whether this is the case in your setup and take
+  the necessary precautions before deploying Spyne
 
-spyne-2.12.0
-------------
+
+spyne-2.12.[12345]-beta
+-----------------------
+* Many bugs fixed.
+
+
+spyne-2.12.0-beta
+-----------------
 * XmlObject: Support for "attribute_of" is removed.
 * NullServer now supports async.
 * XmlCloth was rewritten while less sleep-deprived.

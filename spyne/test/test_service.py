@@ -26,30 +26,24 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from spyne.util import six
-from spyne.util.six import StringIO
+from spyne.util.six import BytesIO
 
 from lxml import etree
 
 from spyne.const import RESPONSE_SUFFIX
 from spyne.model.primitive import NATIVE_MAP
 
+from spyne.service import ServiceBase
+from spyne.decorator import rpc, srpc
 from spyne.application import Application
 from spyne.auxproc.sync import SyncAuxProc
 from spyne.auxproc.thread import ThreadAuxProc
-from spyne.decorator import rpc
-from spyne.decorator import srpc
-from spyne.model import Array
-from spyne.model import SelfReference
-from spyne.model import Iterable
-from spyne.model import ComplexModel
-from spyne.model import String
-from spyne.model import Unicode
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.null import NullServer
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
+from spyne.model import Array, SelfReference, Iterable, ComplexModel, String, \
+    Unicode
 
 
 Application.transport = 'test'
@@ -127,13 +121,16 @@ class TestMultipleMethods(unittest.TestCase):
             def call(s):
                 data.append(s)
 
-        app = Application([Service, AuxService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
+        app = Application([Service, AuxService], 'tns', in_protocol=HttpRpc(),
+                                                         out_protocol=HttpRpc())
         server = WsgiApplication(app)
         server({
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
+            'wsgi.input': BytesIO(),
         }, start_response, "http://null")
 
         assert data == ['hey', 'hey']
@@ -160,8 +157,10 @@ class TestMultipleMethods(unittest.TestCase):
         server({
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
+            'wsgi.input': BytesIO(),
         }, start_response, "http://null")
 
         import time
@@ -186,13 +185,17 @@ class TestMultipleMethods(unittest.TestCase):
                             "non-aux methods in a single service definition.'")
 
     def __run_service(self, service):
-        app = Application([service], 'tns', in_protocol=HttpRpc(), out_protocol=Soap11())
+        app = Application([service], 'tns', in_protocol=HttpRpc(),
+                                                          out_protocol=Soap11())
         server = WsgiApplication(app)
+
         return_string = ''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
+            'wsgi.input': BytesIO(""),
         }, start_response, "http://null"))
 
         elt = etree.fromstring(''.join(return_string))
@@ -286,9 +289,10 @@ class TestBodyStyle(unittest.TestCase):
         resp = etree.fromstring(''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
-            'wsgi.input': StringIO(req)
+            'wsgi.input': BytesIO(req),
         }, start_response, "http://null")))
 
         print(etree.tostring(resp, pretty_print=True))
@@ -305,11 +309,12 @@ class TestBodyStyle(unittest.TestCase):
                 return 'abc'
 
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
-                                                out_protocol=Soap11(cleanup_namespaces=True))
+                                   out_protocol=Soap11(cleanup_namespaces=True))
 
         req = """
-        <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
-                        xmlns:tns="tns">
+        <soap11env:Envelope
+                    xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:tns="tns">
             <soap11env:Body>
                 <tns:some_call/>
             </soap11env:Body>
@@ -320,9 +325,10 @@ class TestBodyStyle(unittest.TestCase):
         resp = etree.fromstring(''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
-            'wsgi.input': StringIO(req)
+            'wsgi.input': BytesIO(req)
         }, start_response, "http://null")))
 
         print(etree.tostring(resp, pretty_print=True))
@@ -385,8 +391,9 @@ class TestBodyStyle(unittest.TestCase):
         resp = etree.fromstring(''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
-            'wsgi.input': StringIO(req)
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
+            'wsgi.input': BytesIO(req)
         }, start_response, "http://null")))
 
         print(etree.tostring(resp, pretty_print=True))

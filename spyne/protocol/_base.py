@@ -27,10 +27,10 @@ from weakref import WeakKeyDictionary
 
 from spyne import ProtocolContext, EventManager
 from spyne.model import Array
-
 from spyne.error import ResourceNotFoundError
-
 from spyne.util import DefaultAttrDict
+from spyne.util.six import string_types
+
 
 
 class ProtocolMixin(object):
@@ -214,5 +214,39 @@ class ProtocolMixin(object):
 
         return cls, False
 
+    @staticmethod
+    def trc(cls, locale, default):
+        """Translate a class.
+
+        :param cls: class
+        :param locale: locale string
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
+        if locale is None:
+            locale = 'en_US'
+        if cls.Attributes.translations is not None:
+            return cls.Attributes.translations.get(locale, default)
+        return default
+
+    @staticmethod
+    def trd(trdict, locale, default):
+        """Translate from a translations dict.
+
+        :param trdict: translation dict
+        :param locale: locale string
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
+        if locale is None:
+            locale = 'en_US'
+        if trdict is None:
+            return default
+        if isinstance(trdict, string_types):
+            return trdict
+
+        return trdict.get(locale, default)
 
 META_ATTR = ['nullable', 'default_factory']

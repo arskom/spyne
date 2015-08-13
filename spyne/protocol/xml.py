@@ -809,23 +809,21 @@ class XmlDocument(SubXmlBase):
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [],
                                                                        add_type)
 
-    def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
+    def _fault_to_parent_impl(self, ctx, cls, inst, parent, ns, subelts, **_):
         tag_name = "{%s}Fault" % self.ns_soap_env
-
-        subelts = [
-            E("faultcode", '%s:%s' % (self.soap_env, inst.faultcode)),
-            E("faultstring", inst.faultstring),
-            E("faultactor", inst.faultactor),
-        ]
 
         # Accepting raw lxml objects as detail is deprecated. It's also not
         # documented. It's kept for backwards-compatibility purposes.
         if isinstance(inst.detail, string_types + (etree._Element,)):
             _append(subelts, E('detail', inst.detail))
+
         elif isinstance(inst.detail, dict):
-            _append(subelts, E('detail', root_dict_to_etree(inst.detail)))
+            if len(inst.detail) > 0:
+                _append(subelts, E('detail', root_dict_to_etree(inst.detail)))
+
         elif inst.detail is None:
             pass
+
         else:
             raise TypeError('Fault detail Must be dict, got', type(inst.detail))
 
@@ -833,9 +831,16 @@ class XmlDocument(SubXmlBase):
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
                                                         subelts, add_type=False)
 
-    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns,**_):
-        tag_name = "{%s}Fault" % self.ns_soap_env
+    def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
+        subelts = [
+            E("faultcode", '%s:%s' % (self.soap_env, inst.faultcode)),
+            E("faultstring", inst.faultstring),
+            E("faultactor", inst.faultactor),
+        ]
 
+        return self._fault_to_parent_impl(ctx, cls, inst, parent, ns, subelts)
+
+    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns,**_):
         subelts = [
             E("faultcode", '%s:%s' % (self.soap_env, inst.faultcode)),
             # HACK: Does anyone know a better way of injecting raw xml entities?
@@ -846,8 +851,7 @@ class XmlDocument(SubXmlBase):
             _append(subelts, E('detail', inst.detail))
 
         # add other nonstandard fault subelements with get_members_etree
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
-                                                        subelts, add_type=False)
+        return self._fault_to_parent_impl(ctx, cls, inst, parent, ns, subelts)
 
     def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval', **kwargs):
         self.modelbase_to_parent(ctx, cls, str(inst), parent, ns, name, **kwargs)

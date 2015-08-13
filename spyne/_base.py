@@ -535,7 +535,6 @@ class MethodDescriptor(object):
 
     def translate(self, locale, default):
         """
-        :param cls: class
         :param locale: locale string
         :param default: default string if no translation found
         :returns: translated string

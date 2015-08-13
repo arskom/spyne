@@ -89,7 +89,8 @@ class TestSoap12(unittest.TestCase):
         response = etree.fromstring(b''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'text/xml',
             'wsgi.input': BytesIO(req)
         }, start_response, "http://null")))
 

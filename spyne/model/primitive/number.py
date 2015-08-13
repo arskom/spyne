@@ -147,9 +147,15 @@ class Decimal(SimpleModel):
 
 class Double(Decimal):
     """This is serialized as the python ``float``. So this type comes with its
-     gotchas. Unless you really know what you're doing, you should use a
-     :class:`Decimal` with a pre-defined number of integer and decimal digits.
-     """
+    gotchas. Unless you really know what you're doing, you should use a
+    :class:`Decimal` with a pre-defined number of integer and decimal digits.
+
+    .. NOTE::
+        This class is not compatible with :class:`spyne.model.Decimal`. You can
+        get strange results if you're using a `decimal.Decimal` instance for a
+        field denoted as `Double` or `Float` and vice versa. Make sure you only
+        return instances of types compatible with designated types.
+    """
 
     __type_name__ = 'double'
     Value = float

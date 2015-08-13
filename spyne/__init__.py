@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.12.1'
+__version__ = '2.12.6'
 
 from pytz import utc as LOCAL_TZ
 from decimal import Decimal as D

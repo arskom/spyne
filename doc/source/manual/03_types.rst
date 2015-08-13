@@ -147,7 +147,7 @@ Numbers are organized in a hierarchy, with the
 :class:`spyne.model.primitive.Decimal` type  at the top.
 In its vanilla state, the ``Decimal`` class is the arbitrary-precision,
 arbitrary-size generic number type that will accept just *any* decimal
-number.
+number. The native type is :class:`decimal.Decimal`.
 
 It has two direct subclasses: The arbitrary-size
 :class:`spyne.model.primitive.Integer` type and the machine-dependent
@@ -160,8 +160,18 @@ should not use the arbitrary-size types in their vanilla form.
 
 You must also refrain from using :class:`spyne.model.primitive.Float` and
 :class:`spyne.model.primitive.Double` types unless you need your math to
-roll faster as their representation is machine-specific, thus not very
+roll faster as their representation is machine-specific, thus not really
 reliable nor portable.
+
+.. NOTE::
+    ``float`` and ``decimal.Decimal`` are known to not be getting along too
+    well. That's the case in Spyne as well.
+
+    The ``Float``/``Double`` and ``Decimal`` markers are NOT compatible. Using
+    ``float`` values in ``Decimal``-denoted fields and vice-versa will cause
+    weird issues because Python's ``float`` values are serialized using
+    ``repr()`` whereas ``Decimal`` is serialized using ``str()``. You have been
+    warned.
 
 For integers, we recommend you to use bounded types like
 :class:`spyne.model.primitive.UnsignedInteger32` which can only contain a

@@ -122,7 +122,8 @@ class WsgiTransportContext(HttpTransportContext):
     :class:`WsgiMethodContext` class."""
 
     def __init__(self, parent, transport, req_env, content_type):
-        super(WsgiTransportContext, self).__init__(parent, transport, req_env, content_type)
+        super(WsgiTransportContext, self).__init__(parent, transport,
+                                                          req_env, content_type)
 
         self.req_env = self.req
         """WSGI Request environment"""
@@ -149,6 +150,12 @@ class WsgiTransportContext(HttpTransportContext):
         cookie.load(cookie_string)
 
         return cookie.get(key, None).value
+
+    def get_request_method(self):
+        return self.req['REQUEST_METHOD'].upper()
+
+    def get_request_content_type(self):
+        return self.req.get("CONTENT_TYPE", None)
 
 
 class WsgiMethodContext(HttpMethodContext):

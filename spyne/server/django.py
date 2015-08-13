@@ -27,17 +27,9 @@ This module is EXPERIMENTAL. Tests and patches are welcome.
 from __future__ import absolute_import
 
 import logging
-from functools import update_wrapper
-from django.conf import settings
-from django.http import HttpResponse, HttpResponseNotAllowed, Http404
-from django.views.decorators.csrf import csrf_exempt
-from spyne.util import _bytes_join
+logger = logging.getLogger(__name__)
 
-try:
-    from django.http import StreamingHttpResponse
-except ImportError as e:
-    def StreamingHttpResponse(*args, **kwargs):
-        raise e
+from functools import update_wrapper
 
 from spyne.application import get_fault_string_from_exception, Application
 from spyne.auxproc import process_contexts
@@ -45,18 +37,27 @@ from spyne.interface import AllYourInterfaceDocuments
 from spyne.model.fault import Fault
 from spyne.protocol.soap import Soap11
 from spyne.protocol.http import HttpRpc
-from spyne.server.http import HttpBase, HttpMethodContext
+from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
 from spyne.server.wsgi import WsgiApplication
+from spyne.util import _bytes_join
 
+from django.http import HttpResponse, HttpResponseNotAllowed, Http404
+from django.views.decorators.csrf import csrf_exempt
 
-logger = logging.getLogger(__name__)
-
+try:
+    from django.http import StreamingHttpResponse
+except ImportError as e:
+    def StreamingHttpResponse(*args, **kwargs):
+        raise e
 
 class DjangoApplication(WsgiApplication):
     """You should use this for regular RPC."""
 
     HttpResponseObject = HttpResponse
 
+    # noinspection PyMethodOverriding
+    # because this is VERY similar to a Wsgi app
+    # but not that much.
     def __call__(self, request):
         retval = self.HttpResponseObject()
 
@@ -102,6 +103,27 @@ class StreamingDjangoApplication(DjangoApplication):
 
     def set_response(self, retval, response):
         retval.streaming_content = response
+
+
+class DjangoHttpTransportContext(HttpTransportContext):
+    def get_path(self):
+        return self.req.path
+
+    def get_request_method(self):
+        return self.req.method
+
+    def get_request_content_type(self):
+        return self.req.META['CONTENT_TYPE']
+
+    def get_path_and_qs(self):
+        return self.req.get_full_path()
+
+    def get_cookie(self, key):
+        return self.req.COOKIES[key]
+
+
+class DjangoHttpMethodContext(HttpMethodContext):
+    default_transport_context = DjangoHttpTransportContext
 
 
 class DjangoServer(HttpBase):
@@ -209,8 +231,8 @@ class DjangoServer(HttpBase):
         :returns: generated contexts
         """
 
-        initial_ctx = HttpMethodContext(self, request,
-                                        self.app.out_protocol.mime_type)
+        initial_ctx = DjangoHttpMethodContext(self, request,
+                                                self.app.out_protocol.mime_type)
 
         initial_ctx.in_string = [request.body]
         return self.generate_contexts(initial_ctx)
@@ -271,7 +293,6 @@ class DjangoView(object):
         """Register application, server and create new view.
 
         :returns: callable view function
-
         """
 
         # sanitize keyword arguments
@@ -335,7 +356,6 @@ class DjangoView(object):
 
     def post(self, request, *args, **kwargs):
         return self.server.handle_rpc(request, *args, **kwargs)
-
 
     def http_method_not_allowed(self, request, *args, **kwargs):
         logger.warning('Method Not Allowed (%s): %s', request.method,
