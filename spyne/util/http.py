@@ -51,7 +51,7 @@ def generate_cookie(k, v, max_age=None, domain=None, path=None,
         assert time.time() < sys.maxint
 
         expires = time.time() + max_age
-        expires = min(sys.maxint, expires)
+        expires = min(2<<30, expires) - 1  # FIXME
         retval.append("Expires=%s" % strftime("%a, %d %b %Y %H:%M:%S GMT",
                                                                gmtime(expires)))
     if domain is not None:

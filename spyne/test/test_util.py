@@ -34,6 +34,7 @@ from spyne.util.protocol import deserialize_request_string
 from spyne.util.dictdoc import get_dict_as_object, get_object_as_yaml, \
     get_object_as_json
 from spyne.util.dictdoc import get_object_as_dict
+from spyne.util.tdict import tdict
 
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
@@ -159,6 +160,45 @@ class TestCDict(unittest.TestCase):
             pass
         else:
             raise Exception("Must fail.")
+
+class TestTDict(unittest.TestCase):
+    def test_tdict_notype(self):
+        d = tdict()
+        d[0] = 1
+        assert d[0] == 1
+
+        d = tdict()
+        d.update({0:1})
+        assert d[0] == 1
+
+        d = tdict.fromkeys([0], 1)
+        assert d[0] == 1
+
+    def test_tdict_k(self):
+        d = tdict(str)
+        try:
+            d[0] = 1
+        except TypeError:
+            pass
+        else:
+            raise Exception("must fail")
+
+        d = tdict(str)
+        d['s'] = 1
+        assert d['s'] == 1
+
+    def test_tdict_v(self):
+        d = tdict(vt=str)
+        try:
+            d[0] = 1
+        except TypeError:
+            pass
+        else:
+            raise Exception("must fail")
+
+        d = tdict(vt=str)
+        d[0] = 's'
+        assert d[0] == 's'
 
 
 class TestLogRepr(unittest.TestCase):

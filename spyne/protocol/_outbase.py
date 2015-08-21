@@ -247,25 +247,38 @@ class OutProtocolBase(ProtocolMixin):
 
     def unicode_to_string(self, cls, value, **_):
         retval = value
+
         cls_attrs = self.get_cls_attrs(cls)
+
         if cls_attrs.encoding is not None and isinstance(value, six.text_type):
             retval = value.encode(cls_attrs.encoding)
-        if cls_attrs.format is None:
-            return retval
-        else:
+
+        if cls_attrs.str_format is not None:
+            return cls_attrs.str_format.format(value)
+        elif cls_attrs.format is not None:
             return cls_attrs.format % retval
 
-    def unicode_to_unicode(self, cls, value, **_):
+        return retval
+
+    def unicode_to_unicode(self, cls, value, **_):  # :)))
+        # value can be many things, but definetly not an int
+        if isinstance(value, six.integer_types):
+            value = str(value)
+
         retval = value
+
         cls_attrs = self.get_cls_attrs(cls)
+
         if cls_attrs.encoding is not None and \
                                              isinstance(value, six.binary_type):
             retval = value.decode(cls_attrs.encoding)
 
-        if cls_attrs.format is None:
-            return retval
-        else:
+        if cls_attrs.str_format is not None:
+            return cls_attrs.str_format.format(value)
+        elif cls_attrs.format is not None:
             return cls_attrs.format % retval
+
+        return retval
 
     def decimal_to_string(self, cls, value, **_):
         D(value)  # sanity check
@@ -275,8 +288,8 @@ class OutProtocolBase(ProtocolMixin):
             return cls_attrs.str_format.format(value)
         elif cls_attrs.format is not None:
             return cls_attrs.format % value
-        else:
-            return str(value)
+
+        return str(value)
 
     def double_to_string(self, cls, value, **_):
         float(value) # sanity check
@@ -284,10 +297,10 @@ class OutProtocolBase(ProtocolMixin):
 
         if cls_attrs.str_format is not None:
             return cls_attrs.str_format.format(value)
-        elif cls_attrs.format is None:
-            return repr(value)
-        else:
+        elif cls_attrs.format is not None:
             return cls_attrs.format % value
+
+        return repr(value)
 
     def integer_to_string(self, cls, value, **_):
         int(value)  # sanity check
@@ -295,10 +308,10 @@ class OutProtocolBase(ProtocolMixin):
 
         if cls_attrs.str_format is not None:
             return cls_attrs.str_format.format(value)
-        elif cls_attrs.format is None:
-            return str(value)
-        else:
+        elif cls_attrs.format is not None:
             return cls_attrs.format % value
+
+        return str(value)
 
     def time_to_string(self, cls, value, **_):
         """Returns ISO formatted dates."""
@@ -306,8 +319,10 @@ class OutProtocolBase(ProtocolMixin):
 
     def datetime_to_string(self, cls, val):
         sa = self.get_cls_attrs(cls).serialize_as
+
         if sa is None:
             return self._datetime_to_string(cls, val)
+
         return _datetime_smap[sa](cls, val)
 
     def duration_to_string(self, cls, value, **_):
@@ -401,8 +416,9 @@ class OutProtocolBase(ProtocolMixin):
 
                 return binary_encoding_handlers[encoding](data)
 
-        else:
-            return binary_encoding_handlers[encoding](value)
+            assert False
+
+        return binary_encoding_handlers[encoding](value)
 
     def file_to_unicode(self, cls, value, suggested_encoding=None):
         """
@@ -502,20 +518,32 @@ class OutProtocolBase(ProtocolMixin):
         if not cls_attrs.timezone:
             value = value.replace(tzinfo=None)
 
-        out_format = cls_attrs.out_format
+        # FIXME: this should be date_format, all other aliases are to be
+        # deprecated
+        out_format = cls_attrs.date_format
+        if out_format is None:
+            out_format = cls_attrs.out_format
         if out_format is None:
             out_format = cls_attrs.format
-
         if out_format is None:
-            ret_str = value.isoformat()
+            retval = value.isoformat()
         else:
-            ret_str = value.strftime(out_format)
+            retval = value.strftime(out_format)
 
+        # FIXME: must deprecate string_format, this should have been str_format
         string_format = cls_attrs.string_format
         if string_format is None:
-            return ret_str
-        else:
-            return string_format % ret_str
+            string_format = cls_attrs.str_format
+        if string_format is not None:
+            return string_format.format(value)
+
+        # FIXME: must deprecate interp_format, this should have been just format
+        format = cls_attrs.interp_format
+        if format is not None:
+            return format.format(value)
+
+        return retval
+
 
 _uuid_serialize = {
     None: str,
