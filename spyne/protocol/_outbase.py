@@ -262,7 +262,8 @@ class OutProtocolBase(ProtocolMixin):
 
     def unicode_to_unicode(self, cls, value, **_):  # :)))
         # value can be many things, but definetly not an int
-        assert not isinstance(value, six.integer_types)
+        if isinstance(value, six.integer_types):
+            value = str(value)
 
         retval = value
 
