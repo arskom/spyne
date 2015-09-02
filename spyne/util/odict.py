@@ -17,7 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains a sort of an ordered dictionary implementation."""
+"""
+This module contains an ordered dictionary implementation.
+
+We need this in Python 2.7 because collections.OrderedDict does not support
+reordering by assignment to keys().
+
+We need this in Python 3.x because keys() returns KeyView which which doesn't
+support `__getitem__` -- i.e. getting nth variable from the ordered dict.
+"""
 
 
 def _is_under_pydev_debugger():
