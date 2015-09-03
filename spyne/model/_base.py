@@ -174,6 +174,20 @@ class AttributesMeta(type(object)):
     xml_root_cloth = property(get_xml_root_cloth)
 
 
+class ModelBaseMeta(type(object)):
+    def __getitem__(self, item):
+        return self.customize(**item)
+
+    def customize(self, **kwargs):
+        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
+        ``**kwargs`` and returns the new class."""
+
+        cls_name, cls_bases, cls_dict = ModelBase._s_customize(self, **kwargs)
+
+        return type(cls_name, cls_bases, cls_dict)
+
+
+@six.add_metaclass(ModelBaseMeta)
 class ModelBase(object):
     """The base class for type markers. It defines the model interface for the
     interface generators to use and also manages class customizations that are
@@ -490,15 +504,6 @@ class ModelBase(object):
             return cls.__doc__
         else:
             return ''
-
-    @classmethod
-    def customize(cls, **kwargs):
-        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
-        ``**kwargs`` and returns the new class."""
-
-        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
-
-        return type(cls_name, cls_bases, cls_dict)
 
     @staticmethod
     def _s_customize(cls, **kwargs):

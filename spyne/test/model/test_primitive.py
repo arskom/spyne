@@ -53,6 +53,9 @@ ns_test = 'test_namespace'
 from spyne.model import ModelBase
 
 class TestPrimitive(unittest.TestCase):
+    def test_getitem_cust(self):
+        assert Unicode[dict(max_len=2)].Attributes.max_len
+
     def test_nillable_quirks(self):
         assert ModelBase.Attributes.nillable == True
         class Attributes(ModelBase.Attributes):
