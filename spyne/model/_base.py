@@ -34,7 +34,6 @@ from spyne import const
 from spyne.util import Break, six
 from spyne.util.cdict import cdict
 from spyne.util.odict import odict
-from spyne.util.six import add_metaclass
 
 from spyne.const.xml_ns import DEFAULT_NS
 
@@ -207,7 +206,7 @@ class ModelBase(object):
     #
     # Please note that min_occurs and max_occurs must be validated in the
     # ComplexModelBase deserializer.
-    @add_metaclass(AttributesMeta)
+    @six.add_metaclass(AttributesMeta)
     class Attributes(object):
         """The class that holds the constraints for the given type."""
 
@@ -647,7 +646,7 @@ class SimpleModel(ModelBase):
 
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
-    @add_metaclass(SimpleModelAttributesMeta)
+    @six.add_metaclass(SimpleModelAttributesMeta)
     class Attributes(ModelBase.Attributes):
         """The class that holds the constraints for the given type."""
 

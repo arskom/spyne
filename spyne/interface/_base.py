@@ -211,6 +211,7 @@ class Interface(object):
         if in_message_ns != self.get_tns() and \
                                             self.is_valid_import(in_message_ns):
             self.imports[self.get_tns()].add(method.in_message.get_namespace())
+
         if method.aux is None:
             yield method.in_message
 
