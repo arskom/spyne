@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
 
 import pytz
 import datetime
@@ -347,7 +348,7 @@ class TestXmlAttribute(unittest.TestCase):
         Soap11().to_parent(None, PacketAttribute, gg, element, gg.get_namespace())
 
         element = element[0]
-        print etree.tostring(element, pretty_print=True)
+        print(etree.tostring(element, pretty_print=True))
         self.assertEquals(element.attrib['Data'], b64string)
 
         s1 = Soap11().from_element(None, PacketAttribute, element)
@@ -962,6 +963,40 @@ class TestCustomize(unittest.TestCase):
 
         B3 = B2.customize(child_attrs=dict(d=dict(format="%y")))
         assert B3.get_flat_type_info(B3)['s'].Attributes.max_len == 10
+
+
+    def test_complex_type_name_clashes(self):
+        class TestComplexModel(ComplexModel):
+            attr1 = String
+
+        TestComplexModel1 = TestComplexModel
+
+        class TestComplexModel(ComplexModel):
+            attr2 = String
+
+        TestComplexModel2 = TestComplexModel
+
+        class TestService(ServiceBase):
+            @rpc(TestComplexModel1)
+            def test1(ctx, obj):
+                pass
+
+            @rpc(TestComplexModel2)
+            def test2(ctx, obj):
+                pass
+
+        Application([TestService], 'tns')
+        try:
+            Application([TestService], 'tns')
+        except Exception as e:
+            print(e)
+        else:
+            raise Exception("must fail with: "
+                "ValueError: classes "
+                    "<class 'spyne.test.model.test_complex.TestComplexModel'> "
+                    "and "
+                    "<class 'spyne.test.model.test_complex.TestComplexModel'> "
+                    "have conflicting names.")
 
 
 if __name__ == '__main__':
