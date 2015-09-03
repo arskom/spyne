@@ -24,8 +24,10 @@ This module contains the :class:`ServiceBase` class and its helper objects.
 import logging
 logger = logging.getLogger(__name__)
 
-from spyne.util.six import add_metaclass, string_types
+import collections
+
 from spyne import EventManager
+from spyne.util import six
 from spyne.util.oset import oset
 
 
@@ -86,7 +88,7 @@ class ServiceBaseMeta(type):
         return self.__has_aux_methods
 
 
-@add_metaclass(ServiceBaseMeta)
+@six.add_metaclass(ServiceBaseMeta)
 class ServiceBase(object):
     """The ``ServiceBase`` class is the base class for all service definitions.
 
@@ -208,10 +210,17 @@ class ServiceBase(object):
         """
 
         if ctx.function is not None:
+            args = ctx.in_object
+
+            # python3 wants a proper sequence as *args
+            assert not isinstance(args, six.string_types)
+            if not isinstance(args, collections.Sequence):
+                args = tuple(args)
+
             if ctx.descriptor.no_ctx:
-                return ctx.function(*ctx.in_object)
+                return ctx.function(*args)
             else:
-                return ctx.function(ctx, *ctx.in_object)
+                return ctx.function(ctx, *args)
 
     @classmethod
     def initialize(cls, app):
