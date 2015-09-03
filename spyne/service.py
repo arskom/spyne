@@ -97,6 +97,10 @@ class ServiceBase(object):
     auxiliary processors. The :func:`spyne.decorator.srpc` decorator or its
     wrappers should be used to flag public methods.
 
+    This class is designed to be subclassed just once. You're supposed to
+    combine ServiceBase subclasses in order to get the public method mix you
+    want.
+
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
 
@@ -132,11 +136,6 @@ class ServiceBase(object):
             the client.
     """
 
-    __tns__ = None
-    """For internal use only. You should use the ``tns`` argument to the
-    :class:`spyne.application.Application` constructor to define the target
-    namespace."""
-
     __in_header__ = None
     """The incoming header object that the methods under this service definition
     accept."""
@@ -162,8 +161,8 @@ class ServiceBase(object):
         return cls.__name__
 
     @classmethod
-    def get_service_key(cls):
-        return '{%s}%s' % (cls.get_tns(), cls.get_service_name())
+    def get_service_key(cls, app):
+        return '{%s}%s' % (app.tns, cls.get_service_name())
 
     @classmethod
     def get_service_name(cls):
@@ -175,19 +174,6 @@ class ServiceBase(object):
     @classmethod
     def get_port_types(cls):
         return cls.__port_types__
-
-    @classmethod
-    def get_tns(cls):
-        if not (cls.__tns__ is None):
-            return cls.__tns__
-
-        retval = cls.__module__
-
-        if cls.__module__ == '__main__':
-            service_name = cls.get_service_class_name().split('.')[-1]
-            retval = '.'.join((service_name, service_name))
-
-        return retval
 
     @classmethod
     def _has_callbacks(cls):

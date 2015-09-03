@@ -171,7 +171,7 @@ class TestMultiple(unittest.TestCase):
 
         sent_xml = etree.Element('test')
         self.app.out_protocol.to_parent(None, message_class, ('a', 'b', 'c'),
-                                      sent_xml, MultipleReturnService.get_tns())
+                                      sent_xml, self.app.tns)
         sent_xml = sent_xml[0]
 
         print((etree.tostring(sent_xml, pretty_print=True)))

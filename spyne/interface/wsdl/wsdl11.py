@@ -68,62 +68,6 @@ def check_method_port(service, method):
             """)
 
 
-# FIXME: I don't think this is working.
-def _add_callbacks(service, root, types, service_name, url):
-    ns_tns = service.get_tns()
-    pref_tns = 'tns'
-
-    cb_port_type = None
-
-    # add necessary async headers
-    # WS-Addressing -> RelatesTo ReplyTo MessageID
-    # callback porttype
-    if service._has_callbacks():
-        wsa_schema = SubElement(types, XSD("schema"))
-        wsa_schema.set("targetNamespace", '%sCallback'  % ns_tns)
-        wsa_schema.set("elementFormDefault", "qualified")
-
-        import_ = SubElement(wsa_schema, XSD("import"))
-        import_.set("namespace", NS_WSA)
-        import_.set("schemaLocation", NS_WSA)
-
-        relt_message = SubElement(root, WSDL11("message"))
-        relt_message.set('name', 'RelatesToHeader')
-        relt_part = SubElement(relt_message, WSDL11("part"))
-        relt_part.set('name', 'RelatesTo')
-        relt_part.set('element', '%s:RelatesTo' % PREF_WSA)
-
-        reply_message = SubElement(root, WSDL11("message"))
-        reply_message.set('name', 'ReplyToHeader')
-        reply_part = SubElement(reply_message, WSDL11("part"))
-        reply_part.set('name', 'ReplyTo')
-        reply_part.set('element', '%s:ReplyTo' % PREF_WSA)
-
-        id_header = SubElement(root, WSDL11("message"))
-        id_header.set('name', 'MessageIDHeader')
-        id_part = SubElement(id_header, WSDL11("part"))
-        id_part.set('name', 'MessageID')
-        id_part.set('element', '%s:MessageID' % PREF_WSA)
-
-        # make portTypes
-        cb_port_type = SubElement(root, WSDL11("portType"))
-        cb_port_type.set('name', '%sCallback' % service_name)
-
-        cb_service_name = '%sCallback' % service_name
-
-        cb_service = SubElement(root, WSDL11("service"))
-        cb_service.set('name', cb_service_name)
-
-        cb_wsdl_port = SubElement(cb_service, WSDL11("port"))
-        cb_wsdl_port.set('name', cb_service_name)
-        cb_wsdl_port.set('binding', '%s:%s' % (pref_tns, cb_service_name))
-
-        cb_address = SubElement(cb_wsdl_port, WSDL11_SOAP("address"))
-        cb_address.set('location', url)
-
-    return cb_port_type
-
-
 class Wsdl11(XmlSchema):
     """The implementation of the Wsdl 1.1 interface definition document
     standard which is avaible here: http://www.w3.org/TR/wsdl
@@ -306,7 +250,8 @@ class Wsdl11(XmlSchema):
 
     def add_port_type(self, service, root, service_name, types, url):
         # FIXME: I don't think this call is working.
-        cb_port_type = _add_callbacks(service, root, types, service_name, url)
+        cb_port_type = self._add_callbacks(service, root, types,
+                                                              service_name, url)
         applied_service_name = self._get_applied_service_name(service)
 
         port_binding_names = []
@@ -413,7 +358,7 @@ class Wsdl11(XmlSchema):
     def add_bindings_for_methods(self, service, root, service_name,
                                      cb_binding):
 
-        pref_tns = self.interface.get_namespace_prefix(service.get_tns())
+        pref_tns = self.interface.get_namespace_prefix(self.interface.get_tns())
 
         def inner(method, binding):
             operation = etree.Element(WSDL11("operation"))
@@ -550,3 +495,58 @@ class Wsdl11(XmlSchema):
                 inner(m, cb_binding)
 
         return cb_binding
+
+    # FIXME: I don't think this is working.
+    def _add_callbacks(self, service, root, types, service_name, url):
+        ns_tns = self.interface.get_tns()
+        pref_tns = 'tns'
+
+        cb_port_type = None
+
+        # add necessary async headers
+        # WS-Addressing -> RelatesTo ReplyTo MessageID
+        # callback porttype
+        if service._has_callbacks():
+            wsa_schema = SubElement(types, XSD("schema"))
+            wsa_schema.set("targetNamespace", '%sCallback'  % ns_tns)
+            wsa_schema.set("elementFormDefault", "qualified")
+
+            import_ = SubElement(wsa_schema, XSD("import"))
+            import_.set("namespace", NS_WSA)
+            import_.set("schemaLocation", NS_WSA)
+
+            relt_message = SubElement(root, WSDL11("message"))
+            relt_message.set('name', 'RelatesToHeader')
+            relt_part = SubElement(relt_message, WSDL11("part"))
+            relt_part.set('name', 'RelatesTo')
+            relt_part.set('element', '%s:RelatesTo' % PREF_WSA)
+
+            reply_message = SubElement(root, WSDL11("message"))
+            reply_message.set('name', 'ReplyToHeader')
+            reply_part = SubElement(reply_message, WSDL11("part"))
+            reply_part.set('name', 'ReplyTo')
+            reply_part.set('element', '%s:ReplyTo' % PREF_WSA)
+
+            id_header = SubElement(root, WSDL11("message"))
+            id_header.set('name', 'MessageIDHeader')
+            id_part = SubElement(id_header, WSDL11("part"))
+            id_part.set('name', 'MessageID')
+            id_part.set('element', '%s:MessageID' % PREF_WSA)
+
+            # make portTypes
+            cb_port_type = SubElement(root, WSDL11("portType"))
+            cb_port_type.set('name', '%sCallback' % service_name)
+
+            cb_service_name = '%sCallback' % service_name
+
+            cb_service = SubElement(root, WSDL11("service"))
+            cb_service.set('name', cb_service_name)
+
+            cb_wsdl_port = SubElement(cb_service, WSDL11("port"))
+            cb_wsdl_port.set('name', cb_service_name)
+            cb_wsdl_port.set('binding', '%s:%s' % (pref_tns, cb_service_name))
+
+            cb_address = SubElement(cb_wsdl_port, WSDL11_SOAP("address"))
+            cb_address.set('location', url)
+
+        return cb_port_type

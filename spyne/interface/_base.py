@@ -61,6 +61,7 @@ class Interface(object):
         self.prefmap = {}
         self.member_methods = deque()
         self.method_descriptor_id_to_key = {}
+        self.service_attrs = defaultdict(dict)
 
         self.import_base_namespaces = import_base_namespaces
         self.app = app
@@ -294,7 +295,7 @@ class Interface(object):
         # populate types
         for s in self.services:
             logger.debug("populating '%s.%s (%s)' types...", s.__module__,
-                                                s.__name__, s.get_service_key())
+                                        s.__name__, s.get_service_key(self.app))
 
             for method in s.public_methods.values():
                 if method.in_header is None:
@@ -318,7 +319,7 @@ class Interface(object):
 
         # populate call routes for service methods
         for s in self.services:
-            s.__tns__ = self.get_tns()
+            self.service_attrs[s]['tns'] = self.get_tns()
             logger.debug("populating '%s.%s' routes...", s.__module__,
                                                                      s.__name__)
             for method in s.public_methods.values():
