@@ -97,6 +97,10 @@ class ServiceBase(object):
     auxiliary processors. The :func:`spyne.decorator.srpc` decorator or its
     wrappers should be used to flag public methods.
 
+    This class is designed to be subclassed just once. You're supposed to
+    combine ServiceBase subclasses in order to get the public method mix you
+    want.
+
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
 
