@@ -136,11 +136,6 @@ class ServiceBase(object):
             the client.
     """
 
-    __tns__ = None
-    """For internal use only. You should use the ``tns`` argument to the
-    :class:`spyne.application.Application` constructor to define the target
-    namespace."""
-
     __in_header__ = None
     """The incoming header object that the methods under this service definition
     accept."""
@@ -166,8 +161,8 @@ class ServiceBase(object):
         return cls.__name__
 
     @classmethod
-    def get_service_key(cls):
-        return '{%s}%s' % (cls.get_tns(), cls.get_service_name())
+    def get_service_key(cls, app):
+        return '{%s}%s' % (app.tns, cls.get_service_name())
 
     @classmethod
     def get_service_name(cls):
@@ -179,19 +174,6 @@ class ServiceBase(object):
     @classmethod
     def get_port_types(cls):
         return cls.__port_types__
-
-    @classmethod
-    def get_tns(cls):
-        if not (cls.__tns__ is None):
-            return cls.__tns__
-
-        retval = cls.__module__
-
-        if cls.__module__ == '__main__':
-            service_name = cls.get_service_class_name().split('.')[-1]
-            retval = '.'.join((service_name, service_name))
-
-        return retval
 
     @classmethod
     def _has_callbacks(cls):

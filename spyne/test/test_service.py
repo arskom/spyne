@@ -425,7 +425,5 @@ class TestBodyStyle(unittest.TestCase):
         else:
             raise Exception("Must fail with: "
                         "'SelfReference can't be used inside @rpc and its ilk'")
-
-
 if __name__ == '__main__':
     unittest.main()
