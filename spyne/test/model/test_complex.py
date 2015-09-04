@@ -985,7 +985,6 @@ class TestCustomize(unittest.TestCase):
             def test2(ctx, obj):
                 pass
 
-        Application([TestService], 'tns')
         try:
             Application([TestService], 'tns')
         except Exception as e:
