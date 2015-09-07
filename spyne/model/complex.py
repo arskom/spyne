@@ -90,13 +90,14 @@ class TypeInfo(odict):
 
 
 class _SimpleTypeInfoElement(object):
-    __slots__ = ['path', 'parent', 'type', 'is_array']
+    __slots__ = ['path', 'parent', 'type', 'is_array', 'can_be_empty']
 
-    def __init__(self, path, parent, type_, is_array):
+    def __init__(self, path, parent, type_, is_array, can_be_empty):
         self.path = path
         self.parent = parent
         self.type = type_
         self.is_array = is_array
+        self.can_be_empty = can_be_empty
 
     def __repr__(self):
         return "SimpleTypeInfoElement(path=%r, parent=%r, type=%r, is_array=%r)" \
@@ -983,7 +984,12 @@ class ComplexModelBase(ModelBase):
             if issubclass(v, Array) and v.Attributes.max_occurs == 1:
                 v, = v._type_info.values()
 
+            key = hier_delim.join(prefix)
             if issubclass(v, ComplexModelBase):
+                retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
+                               parent=parent, type_=v, is_array=tuple(is_array),
+                                                              can_be_empty=True)
+
                 if not (v in tags):
                     tags.add(v)
                     queue.extend([
@@ -991,7 +997,6 @@ class ComplexModelBase(ModelBase):
                             is_array + (v.Attributes.max_occurs > 1,), v)
                                    for k2, v2 in v.get_flat_type_info(v).items()])
             else:
-                key = hier_delim.join(prefix)
                 value = retval.get(key, None)
 
                 if value is not None:
@@ -999,7 +1004,8 @@ class ComplexModelBase(ModelBase):
                                                        (cls, k, value.path))
 
                 retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
-                               parent=parent, type_=v, is_array=tuple(is_array))
+                               parent=parent, type_=v, is_array=tuple(is_array),
+                                                             can_be_empty=False)
 
         return retval
 

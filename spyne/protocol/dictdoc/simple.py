@@ -93,6 +93,54 @@ class SimpleDictDocument(DictDocument):
         self.hier_delim = hier_delim
         self.strict_arrays = strict_arrays
 
+    def _to_native_values(self, cls, member, orig_k, k, v, req_enc, validator):
+        value = []
+
+        for v2 in v:
+            # some wsgi implementations pass unicode strings, some pass str
+            # strings. we get unicode here when we can and should.
+            if v2 is not None and req_enc is not None \
+                                    and not issubclass(member.type, String) \
+                                    and issubclass(member.type, Unicode) \
+                                    and not isinstance(v2, six.text_type):
+                try:
+                    v2 = v2.decode(req_enc)
+                except UnicodeDecodeError as e:
+                    raise ValidationError(v2, "%r while decoding %%r" % e)
+
+            try:
+                if (validator is self.SOFT_VALIDATION and not
+                              member.type.validate_string(member.type, v2)):
+                    raise ValidationError((orig_k, v2))
+
+            except TypeError:
+                raise ValidationError((orig_k, v2))
+
+            if issubclass(member.type, File):
+                if isinstance(v2, File.Value):
+                    native_v2 = v2
+                else:
+                    native_v2 = self.from_unicode(member.type, v2,
+                                                       self.binary_encoding)
+
+            elif issubclass(member.type, ByteArray):
+                native_v2 = self.from_unicode(member.type, v2,
+                                                       self.binary_encoding)
+            else:
+                try:
+                    native_v2 = self.from_unicode(member.type, v2)
+                except ValidationError as e:
+                    raise ValidationError(str(e),
+                        "Validation failed for %r.%r: %%r" % (cls, k))
+
+            if (validator is self.SOFT_VALIDATION and not
+                       member.type.validate_native(member.type, native_v2)):
+                raise ValidationError((orig_k, v2))
+
+            value.append(native_v2)
+
+        return value
+
     def simple_dict_to_object(self, doc, cls, validator=None, req_enc=None):
         """Converts a flat dict to a native python object.
 
@@ -130,49 +178,8 @@ class SimpleDictDocument(DictDocument):
 
             # extract native values from the list of strings in the flat dict
             # entries.
-            value = []
-            for v2 in v:
-                # some wsgi implementations pass unicode strings, some pass str
-                # strings. we get unicode here when we can and should.
-                if v2 is not None and req_enc is not None \
-                                        and not issubclass(member.type, String) \
-                                        and issubclass(member.type, Unicode) \
-                                        and not isinstance(v2, six.text_type):
-                    try:
-                        v2 = v2.decode(req_enc)
-                    except UnicodeDecodeError as e:
-                        raise ValidationError(v2, "%r while decoding %%r" % e)
-
-                try:
-                    if (validator is self.SOFT_VALIDATION and not
-                                  member.type.validate_string(member.type, v2)):
-                        raise ValidationError((orig_k, v2))
-
-                except TypeError:
-                    raise ValidationError((orig_k, v2))
-
-                if issubclass(member.type, File):
-                    if isinstance(v2, File.Value):
-                        native_v2 = v2
-                    else:
-                        native_v2 = self.from_unicode(member.type, v2,
-                                                           self.binary_encoding)
-
-                elif issubclass(member.type, ByteArray):
-                    native_v2 = self.from_unicode(member.type, v2,
-                                                           self.binary_encoding)
-                else:
-                    try:
-                        native_v2 = self.from_unicode(member.type, v2)
-                    except ValidationError as e:
-                        raise ValidationError(str(e),
-                            "Validation failed for %r.%r: %%r" % (cls, k))
-
-                if (validator is self.SOFT_VALIDATION and not
-                           member.type.validate_native(member.type, native_v2)):
-                    raise ValidationError((orig_k, v2))
-
-                value.append(native_v2)
+            value = self._to_native_values(cls, member, orig_k, k, v,
+                                                             req_enc, validator)
 
             # assign the native value to the relevant class in the nested object
             # structure.
