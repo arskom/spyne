@@ -348,7 +348,7 @@ class InProtocolBase(ProtocolMixin):
         if microsec is None or microsec == 0:
             microsec = 0
         else:
-            microsec = int(round(float(microsec) * 1e6))
+            microsec = min(999999, int(round(float(microsec) * 1e6)))
 
         return time(int(fields['hr']), int(fields['min']),
                                                    int(fields['sec']), microsec)
@@ -539,7 +539,7 @@ def _parse_datetime_iso_match(date_match, tz=None):
     else:
         # we only get the most significant 6 digits because that's what
         # datetime can handle.
-        usecond = int(round(float(usecond) * 1e6))
+        usecond = min(999999, int(round(float(usecond) * 1e6)))
 
     return datetime(year, month, day, hour, minute, second, usecond, tz)
 
