@@ -53,8 +53,9 @@ def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
 
     return out_string
 
-from os import mkdir
-from os.path import join
+from os import mkdir, getcwd
+from os.path import join, basename
+
 
 def show(elt, tn=None, stdout=True):
     if tn is None:
@@ -74,10 +75,15 @@ def show(elt, tn=None, stdout=True):
     if stdout:
         print(out_string)
 
-    try:
-        mkdir('html')
-    except OSError:
-        pass
+    fn = '%s.html' % tn
+    if basename(getcwd()) != 'test_html':
+        try:
+            mkdir('test_html')
+        except OSError:
+            pass
 
-    open(join("html", '%s.html' % tn), 'w').write(html.tostring(elt,
-                                  pretty_print=True, doctype="<!DOCTYPE html>"))
+        f = open(join("test_html", fn), 'w')
+    else:
+        f = open(fn, 'w')
+
+    f.write(html.tostring(elt, pretty_print=True, doctype="<!DOCTYPE html>"))
