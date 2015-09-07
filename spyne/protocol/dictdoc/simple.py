@@ -308,6 +308,8 @@ class SimpleDictDocument(DictDocument):
                     else:
                         subtype = v
 
+                    # for simple types, the same key is repeated with multiple
+                    # values
                     if issubclass(subtype, SimpleModel):
                         key = self.hier_delim.join(new_prefix)
                         l = []
@@ -316,12 +318,18 @@ class SimpleDictDocument(DictDocument):
                         retval[key] = l
 
                     else:
+                        # for complex types, brackets are used for each value.
                         last_prefix = new_prefix[-1]
+                        i = -1
                         for i, ssv in enumerate(subvalue):
                             new_prefix[-1] = '%s[%d]' % (last_prefix, i)
                             self.object_to_simple_dict(subtype, ssv,
                                    retval, new_prefix,
                                    subvalue_eater=subvalue_eater, tags=tags)
+
+                        if i == -1:
+                            key = self.hier_delim.join(new_prefix)
+                            retval[key] = 'empty'
 
                 else:
                     self.object_to_simple_dict(v, subvalue, retval, new_prefix,

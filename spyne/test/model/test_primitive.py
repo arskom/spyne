@@ -203,15 +203,19 @@ class TestPrimitive(unittest.TestCase):
         # rounding 0.1 µsec down
         t = ProtocolBase().from_string(Time, "12:12:12.0000001")
         self.assertEquals(datetime.time(12, 12, 12), t)
+
         # rounding 0.5 µsec up
         t = ProtocolBase().from_string(Time, "12:12:12.0000005")
         self.assertEquals(datetime.time(12, 12, 12, 1), t)
+
         # rounding 999998.8 µsec up
         t = ProtocolBase().from_string(Time, "12:12:12.9999988")
         self.assertEquals(datetime.time(12, 12, 12, 999999), t)
+
         # rounding 999999.1 µsec down
         t = ProtocolBase().from_string(Time, "12:12:12.9999991")
         self.assertEquals(datetime.time(12, 12, 12, 999999), t)
+
         # rounding 999999.8 µsec down, not up.
         t = ProtocolBase().from_string(Time, "12:12:12.9999998")
         self.assertEquals(datetime.time(12, 12, 12, 999999), t)
@@ -544,7 +548,7 @@ class TestPrimitive(unittest.TestCase):
 
         assert ProtocolBase().from_string(
                     DateTime(serialize_as='msec'), i//1e3) == \
-                                     datetime.datetime.fromtimestamp(i/1e3//1000)
+                                    datetime.datetime.fromtimestamp(i/1e3//1000)
         assert ProtocolBase().from_string(
                     DateTime(serialize_as='msec_float'), i/1e3) == v
 
@@ -557,15 +561,19 @@ class TestPrimitive(unittest.TestCase):
         # rounding 0.1 µsec down
         dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.0000001")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
+
         # rounding 0.5 µsec up
         dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.0000005")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 1), dt)
+
         # rounding 999998.8 µsec up
         dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999988")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
+
         # rounding 999999.1 µsec down
         dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999991")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
+
         # rounding 999999.8 µsec down, not up.
         dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999998")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
