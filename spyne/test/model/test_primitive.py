@@ -19,10 +19,11 @@
 #
 
 import re
+import uuid
 import datetime
 import unittest
+
 import pytz
-import uuid
 
 from datetime import timedelta
 
@@ -30,27 +31,17 @@ from lxml import etree
 
 from spyne.util import total_seconds
 from spyne.const import xml_ns as ns
-from spyne.model import Null, AnyDict, Uuid
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.primitive import Date
-from spyne.model.primitive import Time
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Duration
-from spyne.model.primitive import Float
-from spyne.model.primitive import Integer
-from spyne.model.primitive import UnsignedInteger
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import String
-from spyne.model.primitive import Decimal
+
+from spyne import Null, AnyDict, Uuid, Array, ComplexModel, Date, Time, \
+    Boolean, DateTime, Duration, Float, Integer, UnsignedInteger, Unicode, \
+    String, Decimal
+from spyne.model import ModelBase
 
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import XmlDocument
 
 ns_test = 'test_namespace'
 
-from spyne.model import ModelBase
 
 class TestPrimitive(unittest.TestCase):
     def test_getitem_cust(self):
@@ -693,6 +684,7 @@ class TestDurationPrimitive(unittest.TestCase):
 
         self.assertEquals(dur, ProtocolBase().from_string(Duration,
                                ProtocolBase().to_string(Duration, dur)))
+
 
 if __name__ == '__main__':
     unittest.main()
