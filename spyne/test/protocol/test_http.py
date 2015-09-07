@@ -272,7 +272,6 @@ class TestValidation(unittest.TestCase):
         ret = _test([SomeService], 'p[2].i=2&p[0].i=0&', strict_arrays=False)
         assert ret.out_object[0] == '[C(i=0), C(i=2)]'
 
-
     def test_validation_nested_array(self):
         class CC(ComplexModel):
             d = DateTime
@@ -421,7 +420,7 @@ class Test(unittest.TestCase):
 
         assert ctx.out_string[0] == "CCM(i=1, c=CM(i=3, s='cs'), s='s')"
 
-    def test_multiple(self):
+    def test_simple_array(self):
         class SomeService(ServiceBase):
             @srpc(String(max_occurs='unbounded'), _returns=String)
             def some_call(s):
@@ -429,6 +428,61 @@ class Test(unittest.TestCase):
 
         ctx = _test([SomeService], '&s=1&s=2')
         assert ''.join(ctx.out_string) == '1\n2'
+
+    def test_complex_array(self):
+        class CM(ComplexModel):
+            _type_info = [
+                ("i", Integer),
+                ("s", String),
+            ]
+
+        class SomeService(ServiceBase):
+            @srpc(Array(CM), _returns=String)
+            def some_call(cs):
+                return '\n'.join([repr(c) for c in cs])
+
+        ctx = _test([SomeService],
+             'cs[0].i=1&cs[0].s=x'
+            '&cs[1].i=2&cs[1].s=y'
+            '&cs[2].i=3&cs[2].s=z')
+
+        assert ''.join(ctx.out_string) == \
+           "CM(i=1, s='x')\n" \
+           "CM(i=2, s='y')\n" \
+           "CM(i=3, s='z')"
+
+    def test_complex_array_empty(self):
+        class CM(ComplexModel):
+            _type_info = [
+                ("i", Integer),
+                ("s", String),
+            ]
+
+        class SomeService(ServiceBase):
+            @srpc(Array(CM), _returns=String)
+            def some_call(cs):
+                return repr(cs)
+
+        ctx = _test([SomeService], 'cs=empty')
+
+        assert ''.join(ctx.out_string) == '[]'
+
+    def test_complex_object_empty(self):
+        class CM(ComplexModel):
+            _type_info = [
+                ("i", Integer),
+                ("s", String),
+            ]
+
+        class SomeService(ServiceBase):
+            @srpc(CM, _returns=String)
+            def some_call(c):
+                return repr(c)
+
+        ctx = _test([SomeService], 'c=empty')
+
+        assert ''.join(ctx.out_string) == 'CM()'
+        assert False
 
     def test_nested_flatten(self):
         class CM(ComplexModel):

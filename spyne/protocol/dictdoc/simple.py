@@ -176,9 +176,25 @@ class SimpleDictDocument(DictDocument):
                 logger.debug("\tdiscarding field %r" % k)
                 continue
 
-            # extract native values from the list of strings in the flat dict
-            # entries.
-            value = self._to_native_values(cls, member, orig_k, k, v,
+            if member.can_be_empty:
+                if v != ['empty']:  # maybe raise a ValidationError instead?
+                    # 'empty' is the only valid value at this point after all
+                    continue
+
+                assert issubclass(member.type, ComplexModelBase)
+
+                if issubclass(member.type, Array):
+                    value = []
+                elif self.get_cls_attrs(member.type).max_occurs > 1:
+                    value = []
+                else:
+                    value = [member.type.get_deserialization_instance()]
+                    # do we have to ignore later assignments? they're illegal
+                    # but not harmful.
+            else:
+                # extract native values from the list of strings in the flat dict
+                # entries.
+                value = self._to_native_values(cls, member, orig_k, k, v,
                                                              req_enc, validator)
 
             # assign the native value to the relevant class in the nested object
