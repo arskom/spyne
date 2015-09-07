@@ -150,13 +150,20 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         # we assume xpath() returns elements in top to bottom (or outside to
         # inside) order.
         for elt in self._get_elts(tmpl, tag_id):
-            if elt is tmpl:
-                continue
-            if len(set((id(e) for e in elt.iterancestors())) & ids):
-                continue
-            if not id(elt) in ids:
-                ids.add(id(elt))
-                yield elt
+            if elt is tmpl:  # FIXME: kill this
+                logger_c.debug("Don't send myself")
+                continue  # don't send myself
+
+            if len(set((id(e) for e in elt.iterancestors())) & ids) > 0:
+                logger_c.debug("Don't send grandchildren")
+                continue  # don't send grandchildren
+
+            if id(elt) in ids:  # FIXME: this check should be safe to remove
+                logger_c.debug("Don't send what's already sent")
+                continue  # don't send what's already sent
+
+            ids.add(id(elt))
+            yield elt
 
     def _get_clean_elt(self, elt, what):
         query = '//*[@%s="%s"]' % (self.ID_ATTR_NAME, what)
