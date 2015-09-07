@@ -320,7 +320,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             ret = serializer.loads(''.join(ctx.out_string))
 
             assert ret == {"some_callResponse": {'some_callResult':
-                                                    {'SomeObject':{'s': None}}}}
+                                                   {'SomeObject': {'s': None}}}}
 
         def test_any_xml(self):
             d = lxml.etree.tostring(E('{ns1}x', E('{ns2}Y', "some data")))
