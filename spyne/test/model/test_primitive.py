@@ -19,10 +19,11 @@
 #
 
 import re
+import uuid
 import datetime
 import unittest
+
 import pytz
-import uuid
 
 from datetime import timedelta
 
@@ -30,27 +31,17 @@ from lxml import etree
 
 from spyne.util import total_seconds
 from spyne.const import xml_ns as ns
-from spyne.model import Null, AnyDict, Uuid
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.primitive import Date
-from spyne.model.primitive import Time
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Duration
-from spyne.model.primitive import Float
-from spyne.model.primitive import Integer
-from spyne.model.primitive import UnsignedInteger
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import String
-from spyne.model.primitive import Decimal
+
+from spyne import Null, AnyDict, Uuid, Array, ComplexModel, Date, Time, \
+    Boolean, DateTime, Duration, Float, Integer, UnsignedInteger, Unicode, \
+    String, Decimal
+from spyne.model import ModelBase
 
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import XmlDocument
 
 ns_test = 'test_namespace'
 
-from spyne.model import ModelBase
 
 class TestPrimitive(unittest.TestCase):
     def test_getitem_cust(self):
@@ -201,6 +192,29 @@ class TestPrimitive(unittest.TestCase):
 
         dt = ProtocolBase().from_string(Time, ret)
         self.assertEquals(n, dt)
+
+    def test_time_usec(self):
+        # python's datetime and time only accept ints between [0, 1e6[
+        # if the incoming data is 999999.8 microseconds, rounding it up means
+        # adding 1 second to time. For many reasons, we want to avoid that. (see
+        # http://bugs.python.org/issue1487389) That's why 999999.8 usec is
+        # rounded to 999999.
+
+        # rounding 0.1 µsec down
+        t = ProtocolBase().from_string(Time, "12:12:12.0000001")
+        self.assertEquals(datetime.time(12, 12, 12), t)
+        # rounding 0.5 µsec up
+        t = ProtocolBase().from_string(Time, "12:12:12.0000005")
+        self.assertEquals(datetime.time(12, 12, 12, 1), t)
+        # rounding 999998.8 µsec up
+        t = ProtocolBase().from_string(Time, "12:12:12.9999988")
+        self.assertEquals(datetime.time(12, 12, 12, 999999), t)
+        # rounding 999999.1 µsec down
+        t = ProtocolBase().from_string(Time, "12:12:12.9999991")
+        self.assertEquals(datetime.time(12, 12, 12, 999999), t)
+        # rounding 999999.8 µsec down, not up.
+        t = ProtocolBase().from_string(Time, "12:12:12.9999998")
+        self.assertEquals(datetime.time(12, 12, 12, 999999), t)
 
     def test_date(self):
         n = datetime.date(2011,12,13)
@@ -537,6 +551,24 @@ class TestPrimitive(unittest.TestCase):
         assert ProtocolBase().from_string(
                     DateTime(serialize_as='usec'), i) == v
 
+    def test_datetime_usec(self):
+        # see the comments on time test for why the rounding here is weird
+
+        # rounding 0.1 µsec down
+        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.0000001")
+        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
+        # rounding 0.5 µsec up
+        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.0000005")
+        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 1), dt)
+        # rounding 999998.8 µsec up
+        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999988")
+        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
+        # rounding 999999.1 µsec down
+        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999991")
+        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
+        # rounding 999999.8 µsec down, not up.
+        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999998")
+        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
 ### Duration Data Type
 ## http://www.w3schools.com/schema/schema_dtypes_date.asp
@@ -693,6 +725,7 @@ class TestDurationPrimitive(unittest.TestCase):
 
         self.assertEquals(dur, ProtocolBase().from_string(Duration,
                                ProtocolBase().to_string(Duration, dur)))
+
 
 if __name__ == '__main__':
     unittest.main()

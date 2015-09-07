@@ -28,14 +28,6 @@ support `__getitem__` -- i.e. getting nth variable from the ordered dict.
 """
 
 
-def _is_under_pydev_debugger():
-    import inspect
-    for frame in inspect.stack():
-        if frame[1].endswith("pydevd.py"):
-            return True
-    return False
-
-
 class odict(dict):
     """Sort of an ordered dictionary implementation."""
 
@@ -136,21 +128,3 @@ class odict(dict):
             del self.__list[self.__list.index(k)]
         self.__list.insert(index, k)
         super(odict, self).__setitem__(k, v)
-
-    #
-    #  pydev debugger seems to secretly manipulate class dictionaries without
-    # doing proper checks -- not always do a class with a metaclass with a
-    # __prepare__ has to have it. this code has a very specific workaround to
-    # make debugging under pydev for python 3.x work.
-    #
-    # see https://github.com/arskom/spyne/issues/432 for details
-    #
-    # this can be removed once pydev fixes secret calls to class dict's
-    # __delitem__
-    if _is_under_pydev_debugger():
-        _real_delitem = __delitem__
-        def __delitem__(self, key):
-            if key == '__class__' and len(self.__list) == 0:
-                return
-
-            return self._real_delitem(key)

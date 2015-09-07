@@ -27,7 +27,8 @@ import unittest
 from lxml import etree, html
 from lxml.builder import E
 
-from spyne import ComplexModel, XmlAttribute, Unicode, Array, Integer
+from spyne import ComplexModel, XmlAttribute, Unicode, Array, Integer, \
+    SelfReference
 from spyne.protocol.cloth import XmlCloth
 from spyne.test import FakeContext
 from spyne.util.six import BytesIO
@@ -83,6 +84,7 @@ class TestXmlCloth(unittest.TestCase):
 
         with etree.xmlfile(self.stream) as parent:
             XmlCloth.ID_ATTR_NAME = 'spyne_id'
+            XmlCloth.TAGBAG_ATTR_NAME = 'spyne_tagbag'
             XmlCloth(cloth=cloth).subserialize(self.ctx, cls, inst, parent)
         elt = etree.fromstring(self.stream.getvalue())
         print(etree.tostring(elt, pretty_print=True))
@@ -371,7 +373,46 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(v, cloth=cloth)
         print(etree.tostring(elt, pretty_print=True))
 
+        assert elt.xpath('/a/b1/c0')[0].tail == 'text 1'
         assert elt.xpath('/a/b1/c1')[0].tail == 'text 2'
+        assert elt.xpath('/a/b2/c1')[0].tail == 'text 4'
+
+    def test_nested_conflicts(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+            i = Integer
+            c = SelfReference
+
+        v = SomeObject(s='x', i=1, c=SomeObject(s='y', i=2))
+
+        cloth = E.a(
+            E.b0(),
+            "text 0",
+            E.b1(
+                E.c0(spyne_id="s"),
+                "text 1",
+                E.c1(
+                    E.d0(spyne_id="s"),
+                    E.d1(spyne_id="i"),
+                    spyne_id="c",
+                ),
+                "text 2",
+            ),
+            "text 3",
+            E.b2(
+                E.c2(spyne_id="i"),
+                "text 4",
+            )
+        )
+
+        print(etree.tostring(cloth, pretty_print=True))
+        elt = self._run(v, cloth=cloth)
+        print(etree.tostring(elt, pretty_print=True))
+
+        assert elt.xpath('/a/b1/c0')[0].text == str(v.s)
+        assert elt.xpath('/a/b1/c1/d0')[0].text == str(v.c.s)
+        assert elt.xpath('/a/b1/c1/d1')[0].text == str(v.c.i)
+        assert elt.xpath('/a/b2/c2')[0].text == str(v.i)
 
 
 if __name__ == '__main__':
