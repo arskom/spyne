@@ -193,6 +193,12 @@ class TestPrimitive(unittest.TestCase):
         dt = ProtocolBase().from_string(Time, ret)
         self.assertEquals(n, dt)
 
+    def test_time_usec(self):
+        t = ProtocolBase().from_string(Time, "12:12:12.0000001")
+        self.assertEquals(datetime.time(12, 12, 12), t)
+        t = ProtocolBase().from_string(Time, "12:12:12.9999991")
+        self.assertEquals(datetime.time(12, 12, 12, 999999), t)
+
     def test_date(self):
         n = datetime.date(2011,12,13)
 
@@ -527,6 +533,12 @@ class TestPrimitive(unittest.TestCase):
 
         assert ProtocolBase().from_string(
                     DateTime(serialize_as='usec'), i) == v
+
+    def test_datetime_usec(self):
+        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.0000001")
+        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
+        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999991")
+        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
 
 ### Duration Data Type
