@@ -62,12 +62,10 @@ def _gen_tagname(ns, name):
     return name
 
 
-# TODO: implement tagbag
 class ClothParserMixin(object):
     ID_ATTR_NAME = 'spyne-id'
     DATA_TAG_NAME = 'spyne-data'
     ROOT_ATTR_NAME = 'spyne-root'
-    TAGBAG_ATTR_NAME = 'spyne-tagbag'
 
     @classmethod
     def from_xml_cloth(cls, cloth):
