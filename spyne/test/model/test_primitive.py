@@ -539,6 +539,8 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
         dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999991")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
+        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999998")
+        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
 
 ### Duration Data Type
