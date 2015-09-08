@@ -30,7 +30,7 @@ from inspect import isclass
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
-from spyne import BODY_STYLE_WRAPPED, rpc, Any, AnyDict
+from spyne import BODY_STYLE_WRAPPED, rpc, Any, AnyDict, NATIVE_MAP
 from spyne.util import six
 from spyne.application import Application as AppBase
 from spyne.const import MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
@@ -96,6 +96,9 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
     if cls is dict:
         cls = AnyDict
+
+    if cls in NATIVE_MAP:
+        cls = NATIVE_MAP[cls]
 
     if hasattr(obj, '__class__') and issubclass(obj.__class__, cls):
         cls = obj.__class__
