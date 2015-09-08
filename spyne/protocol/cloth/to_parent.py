@@ -148,7 +148,7 @@ class ToParentMixin(OutProtocolBase):
         # finally, serialize the value. retval is the coroutine handle if any
         identifier = "%s.%s" % (prot_name, handler.__name__)
         logger.debug("Writing %s using %s for %s. Inst: %r", name,
-                                identifier, cls.get_type_name(), log_repr(inst))
+                           identifier, cls.get_type_name(), log_repr(inst, cls))
 
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 

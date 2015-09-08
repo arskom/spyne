@@ -473,7 +473,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
             identifier = "%s.%s" % (prot_name, handler.__name__)
             logger_s.debug("Writing %s using %s for %s. Inst: %r", name,
-                                identifier, cls.get_type_name(), log_repr(inst))
+                           identifier, cls.get_type_name(), log_repr(inst, cls))
 
             retval = handler(ctx, cls, inst, cloth, parent, name=name)
 
