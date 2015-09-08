@@ -35,6 +35,7 @@ from spyne.model.enum import EnumBase
 from spyne.protocol import OutProtocolBase
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
+from spyne.util.web import log_repr
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
 
@@ -147,7 +148,7 @@ class ToParentMixin(OutProtocolBase):
         # finally, serialize the value. retval is the coroutine handle if any
         identifier = "%s.%s" % (prot_name, handler.__name__)
         logger.debug("Writing %s using %s for %s. Inst: %r", name,
-                                          identifier, cls.get_type_name(), inst)
+                                identifier, cls.get_type_name(), log_repr(inst))
 
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 

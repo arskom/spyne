@@ -31,6 +31,7 @@ from copy import deepcopy
 from inspect import isgenerator
 
 from spyne.util import Break, coroutine
+from spyne.util.web import log_repr
 from spyne.util.oset import oset
 from spyne.util.six import string_types
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
@@ -472,7 +473,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
             identifier = "%s.%s" % (prot_name, handler.__name__)
             logger_s.debug("Writing %s using %s for %s. Inst: %r", name,
-                                          identifier, cls.get_type_name(), inst)
+                                identifier, cls.get_type_name(), log_repr(inst))
 
             retval = handler(ctx, cls, inst, cloth, parent, name=name)
 
