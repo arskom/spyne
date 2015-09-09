@@ -897,8 +897,11 @@ def _get_spyne_type(v):
     elif type(v.type) in _sq2sp_type_map:
         rpc_type = _sq2sp_type_map[type(v.type)]
 
-    elif isinstance(v.type, PGObjectJson):
+    elif isinstance(v.type, (PGObjectJson, PGObjectXml)):
         rpc_type = v.type.cls
+
+    elif isinstance(v.type, PGFileJson):
+        rpc_type = v.FileData
 
     else:
         raise Exception("Spyne type was not found. Probably _sq2sp_type_map "
