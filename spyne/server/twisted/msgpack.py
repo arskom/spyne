@@ -32,7 +32,7 @@ from itertools import chain
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import deferLater
-from twisted.internet.defer import Deferred
+from twisted.internet.defer import Deferred, CancelledError
 from twisted.internet.protocol import Protocol, Factory, connectionDone, \
     ClientFactory
 from twisted.python.failure import Failure
@@ -145,13 +145,20 @@ class TwistedMessagePackProtocol(Protocol):
 
         if self.IDLE_TIMEOUT_SEC > 0:
             self.idle_timer = deferLater(reactor, self.IDLE_TIMEOUT_SEC,
-                                              self.loseConnection, IDLE_TIMEOUT)
+                                          self.loseConnection, IDLE_TIMEOUT) \
+                .addErrback(self._err_idle_cancelled)
 
         for msg in self._buffer:
             self.process_incoming_message(msg)
 
+    def _err_idle_cancelled(self, err):
+        err.trap(CancelledError)
+
+        # do nothing.
+
     def loseConnection(self, reason=None):
         self.disconnecting = True
+        self.idle_timer = None
         logger.debug("Closing connection because %s", reason)
         self.transport.loseConnection()
 
