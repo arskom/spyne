@@ -104,6 +104,8 @@ class TwistedMessagePackProtocol(Protocol):
         self.out_chunk_delay_sec = out_chunk_delay_sec
         self._delaying = None
         self.idle_timer = None
+        self.disconnecting = False  # FIXME: should we use this to raise an
+                                    # invalid connection state exception ?
 
     @staticmethod
     def gen_chunks(l, n):
@@ -129,6 +131,7 @@ class TwistedMessagePackProtocol(Protocol):
             self.factory.event_manager.fire_event("connection_made", self)
 
     def connectionLost(self, reason=connectionDone):
+        self.disconnecting = False
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_lost", self)
 
@@ -147,6 +150,7 @@ class TwistedMessagePackProtocol(Protocol):
             self.process_incoming_message(msg)
 
     def loseConnection(self, reason=None):
+        self.disconnecting = True
         logger.debug("Closing connection because %s", reason)
         self.transport.loseConnection()
 
