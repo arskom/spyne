@@ -29,13 +29,13 @@ from hashlib import md5
 from collections import deque
 from itertools import chain
 
+from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, Factory, connectionDone, \
     ClientFactory
 from twisted.python.failure import Failure
-from twisted.python import log
 
 from spyne import EventManager, Address, ServerBase
 from spyne.auxproc import process_contexts
