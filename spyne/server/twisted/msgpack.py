@@ -90,7 +90,8 @@ class TwistedMessagePackProtocol(Protocol):
         :param factory: Twisted protocol factory
         """
 
-        assert isinstance(tpt, ServerBase)
+        from spyne.server.msgpack import MessagePackTransportBase
+        assert isinstance(tpt, MessagePackTransportBase)
 
         self.factory = factory
         self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
