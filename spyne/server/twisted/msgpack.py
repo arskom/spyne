@@ -135,6 +135,8 @@ class TwistedMessagePackProtocol(Protocol):
         self.disconnecting = False
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_lost", self)
+        if self.idle_timer is not None:
+            self.idle_timer.cancel()
 
     def dataReceived(self, data):
         self._buffer.feed(data)
