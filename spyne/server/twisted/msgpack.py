@@ -74,7 +74,12 @@ def _cha(*args):
     return args
 
 
+IDLE_TIMEOUT = 'idle timeout'
+
+
 class TwistedMessagePackProtocol(Protocol):
+    IDLE_TIMEOUT_SEC = 0
+
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, out_chunk_size=0,
                                            out_chunk_delay_sec=1, factory=None):
         """Twisted protocol implementation for Spyne's MessagePack transport.
@@ -98,6 +103,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.out_chunk_size = out_chunk_size
         self.out_chunk_delay_sec = out_chunk_delay_sec
         self._delaying = None
+        self.idle_timer = None
 
     @staticmethod
     def gen_chunks(l, n):
@@ -130,8 +136,19 @@ class TwistedMessagePackProtocol(Protocol):
         self._buffer.feed(data)
         self.recv_bytes += len(data)
 
+        if self.idle_timer is not None:
+            self.idle_timer.cancel()
+
+        if self.IDLE_TIMEOUT_SEC > 0:
+            self.idle_timer = deferLater(reactor, self.IDLE_TIMEOUT_SEC,
+                                              self.loseConnection, IDLE_TIMEOUT)
+
         for msg in self._buffer:
             self.process_incoming_message(msg)
+
+    def loseConnection(self, reason=None):
+        logger.debug("Closing connection because %s", reason)
+        self.transport.loseConnection()
 
     def process_incoming_message(self, msg):
         p_ctx, others = self.spyne_tpt.produce_contexts(msg)
