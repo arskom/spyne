@@ -67,20 +67,16 @@ class MessagePackMethodContext(MethodContext):
         self.transport = MessagePackTransportContext(self, transport)
 
 
-class MessagePackServerBase(ServerBase):
-    """Contains the transport protocol logic but not the transport itself.
+class MessagePackTransportBase(ServerBase):
+    # These are all placeholders that need to be overridden in subclasses
+    OUT_RESPONSE_NO_ERROR = None
+    OUT_RESPONSE_CLIENT_ERROR = None
+    OUT_RESPONSE_SERVER_ERROR = None
 
-    Subclasses should implement logic to move bitstreams in and out of this
-    class."""
-
-    OUT_RESPONSE_NO_ERROR = 0
-    OUT_RESPONSE_CLIENT_ERROR = 1
-    OUT_RESPONSE_SERVER_ERROR = 2
-
-    IN_REQUEST = 1
+    IN_REQUEST = None
 
     def __init__(self, app):
-        super(MessagePackServerBase, self).__init__(app)
+        super(MessagePackTransportBase, self).__init__(app)
 
         self._version_map = {
             self.IN_REQUEST: _process_v1_msg
@@ -149,3 +145,15 @@ class MessagePackServerBase(ServerBase):
     def pack(self, ctx):
         ctx.out_string = msgpack.packb([self.OUT_RESPONSE_NO_ERROR,
                                                       ''.join(ctx.out_string)]),
+
+class MessagePackServerBase(MessagePackTransportBase):
+    """Contains the transport protocol logic but not the transport itself.
+
+    Subclasses should implement logic to move bitstreams in and out of this
+    class."""
+
+    OUT_RESPONSE_NO_ERROR = 0
+    OUT_RESPONSE_CLIENT_ERROR = 1
+    OUT_RESPONSE_SERVER_ERROR = 2
+
+    IN_REQUEST = 1
