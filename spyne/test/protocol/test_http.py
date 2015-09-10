@@ -482,7 +482,6 @@ class Test(unittest.TestCase):
         ctx = _test([SomeService], 'c=empty')
 
         assert ''.join(ctx.out_string) == 'CM()'
-        assert False
 
     def test_nested_flatten(self):
         class CM(ComplexModel):
