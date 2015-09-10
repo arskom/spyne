@@ -142,7 +142,7 @@ class ToParentMixin(OutProtocolBase):
             raise
 
         # push the instance at hand to instance stack. this makes it easier for
-        # protocols do make decisions based on parents of instances at hand.
+        # protocols to make decisions based on parents of instances at hand.
         ctx.outprot_ctx.inst_stack.append( (cls, inst) )
 
         # finally, serialize the value. retval is the coroutine handle if any
