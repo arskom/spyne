@@ -128,6 +128,7 @@ class TwistedMessagePackProtocol(Protocol):
     def connectionMade(self):
         self.sent_bytes = 0
         self.recv_bytes = 0
+        self._reset_idle_timer()
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_made", self)
 
@@ -142,6 +143,12 @@ class TwistedMessagePackProtocol(Protocol):
         self._buffer.feed(data)
         self.recv_bytes += len(data)
 
+        self._reset_idle_timer()
+
+        for msg in self._buffer:
+            self.process_incoming_message(msg)
+
+    def _reset_idle_timer(self):
         if self.idle_timer is not None:
             self.idle_timer.cancel()
 
@@ -149,9 +156,6 @@ class TwistedMessagePackProtocol(Protocol):
             self.idle_timer = deferLater(reactor, self.IDLE_TIMEOUT_SEC,
                                           self.loseConnection, IDLE_TIMEOUT) \
                 .addErrback(self._err_idle_cancelled)
-
-        for msg in self._buffer:
-            self.process_incoming_message(msg)
 
     def _err_idle_cancelled(self, err):
         err.trap(CancelledError)
