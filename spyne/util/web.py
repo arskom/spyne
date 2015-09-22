@@ -122,8 +122,10 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
         return "<len=%s>" % l
 
-    if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
-                                                                     from_array:
+    if issubclass(cls, Array):
+        cls, = cls._type_info.values()
+
+    if (cls.Attributes.max_occurs > 1) and not from_array:
         if id(obj) in tags:
             return "%s(...)" % obj.__class__.__name__
         tags.add(id(obj))
