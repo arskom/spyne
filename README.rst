@@ -8,7 +8,7 @@
 **WARNING:** This is from spyne's development branch. This version is not
 released yet! Latest stable release can be found in the ``2_11`` branch.
 
-If you like and use Spyne, star it on `Github <http://github.com/arskom/spyne>`_!
+If you like and use Spyne, star it on `Github <https://github.com/arskom/spyne>`_!
 
 About
 =====
@@ -35,7 +35,7 @@ The following are the primary sources of information about spyne:
   either via http://lists.spyne.io/listinfo/people or by sending an empty
   message to: people-subscribe at spyne dot io.
 * You can download Spyne releases from
-  `Github <http://github.com/arskom/spyne/downloads>`_ or
+  `Github <https://github.com/arskom/spyne/downloads>`_ or
   `PyPi <http://pypi.python.org/pypi/spyne>`_.
 
 Requirements
