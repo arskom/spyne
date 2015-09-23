@@ -2,6 +2,34 @@
 Changelog
 =========
 
+spyne-2.12.8
+------------
+* Make `DateTime` handle unicode date format strings for Python 2.
+* Fix idle timer not starting on connectionMade for `MessagePackTransportBase`
+
+spyne-2.12.7
+------------
+* Not beta anymore. Woo!
+* Made ServiceBase subclasses reusable
+* Implemented class customization via ``__getitem__``
+* Fixed an ``ImportError`` running Python 3.4 under Pydev using PyCharm.
+  (Eclipse still has issues, see https://github.com/arskom/spyne/issues/432)
+* Fixed DateTime corner case with μs values between 999995 and 999999.
+* Help misguided user code that returns an int for a string type by implicitly
+  yet not-so-silently converting the `int`/`long` to `str`.
+* Fixed *Cloth sometimes getting stuck `repr()` 'ing  passed instance.
+* Fixed `SimpleDictDocument` confusing a missing value and an empty value for
+  array types. When the client wants to denote an empty array, it should pass
+  `array_field=empty`. Normally it passes something along the lines of:
+  `array_field[0]=Something&array_field[1]=SomethingElse`.
+* Split `MessagePackServerBase` to `MessagePackTransportBase` and
+  `MessagePackServerBase`. No API was harmed during this commit.
+* Implement optional idle timeout for `MessagePackTransportBase`.
+* Add support for PGObjectJson, PGObjectXml and PGFileJson to sql table
+  reflection.
+* `log_repr` now consults `NATIVE_MAP` as a last resort before freaking out.
+* Removed some dead code.
+
 spyne-2.12.6-beta
 -----------------
 * Thanks to Issue #446 we noticed that in some cases, SOAP messages inside HTTP
@@ -9,11 +37,9 @@ spyne-2.12.6-beta
   resolved, but you should check whether this is the case in your setup and take
   the necessary precautions before deploying Spyne
 
-
 spyne-2.12.[12345]-beta
 -----------------------
-* Many bugs fixed.
-
+* Many bugs fixed very quick.
 
 spyne-2.12.0-beta
 -----------------
