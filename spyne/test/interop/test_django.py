@@ -290,3 +290,17 @@ class DjangoServiceTestCase(TestCase):
         client = DjangoTestClient('/api/', app)
         with self.assertRaisesRegexp(Fault, 'Client.ValidationError'):
             client.service.raise_validation_error()
+
+
+class FromUnicodeAssertionTestCase(TestCase):
+
+    def test_from_unicode_does_not_assert(self):
+        client = Client()
+        url = '/synchro/1/'
+        msg = b"""<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/
+            soap/envelope/"xmlns:ns1="tns" xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="
+            http://www.w3.org/2001/XMLSchema-instance"><SOAP-ENV:Header/><ns0:Body><ns1:sync><ns1:model_id>TestModel
+            </ns1:model_id><ns1:timestamp>2015-09-23T13:54:51.796366+00:00</ns1:timestamp><ns1:payload>
+            </ns1:payload><ns1:partial/></ns1:sync></ns0:Body></SOAP-ENV:Envelope>"""
+        hdrs = {'SOAPAction': b'"sync"', 'Content-Type': 'text/xml; charset=utf-8'}
+        client.post(url, msg, 'text/xml', True, **hdrs)

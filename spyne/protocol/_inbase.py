@@ -217,11 +217,11 @@ class InProtocolBase(ProtocolMixin):
         self.validator = None
 
     def from_string(self, class_, string, *args, **kwargs):
-        if six.PY3:
-            assert isinstance(string, bytes)
-
         if string is None:
             return None
+
+        if six.PY3:
+            assert isinstance(string, bytes)
 
         if isinstance(string, six.string_types) and \
                            len(string) == 0 and class_.Attributes.empty_is_none:
@@ -231,11 +231,11 @@ class InProtocolBase(ProtocolMixin):
         return handler(class_, string, *args, **kwargs)
 
     def from_unicode(self, class_, string, *args, **kwargs):
-        if six.PY3:
-            assert isinstance(string, str)
-
         if string is None:
             return None
+
+        if six.PY3:
+            assert isinstance(string, str)
 
         if isinstance(string, six.string_types) and len(string) == 0 and \
                                                 class_.Attributes.empty_is_none:
