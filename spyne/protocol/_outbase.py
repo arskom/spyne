@@ -522,15 +522,18 @@ class OutProtocolBase(ProtocolMixin):
 
         # FIXME: this should be date_format, all other aliases are to be
         # deprecated
-        out_format = cls_attrs.date_format
-        if out_format is None:
-            out_format = cls_attrs.out_format
-        if out_format is None:
-            out_format = cls_attrs.format
-        if out_format is None:
+        date_format = cls_attrs.date_format
+        if date_format is None:
+            date_format = cls_attrs.out_format
+        if date_format is None:
+            date_format = cls_attrs.format
+
+        if date_format is None:
             retval = value.isoformat()
+        elif six.PY2 and isinstance(date_format, unicode):
+            retval = value.strftime(date_format.encode('utf8')).decode('utf8')
         else:
-            retval = value.strftime(out_format)
+            retval = value.strftime(date_format)
 
         # FIXME: must deprecate string_format, this should have been str_format
         string_format = cls_attrs.string_format

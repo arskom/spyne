@@ -149,6 +149,18 @@ class TestPrimitive(unittest.TestCase):
         dt = XmlDocument().from_element(None, DateTime(format=format), element)
         assert n == dt
 
+    def test_datetime_unicode_format(self):
+        n = datetime.datetime.now().replace(microsecond=0)
+        format = u"%Y %m %d\u00a0%H %M %S"
+
+        element = etree.Element('test')
+        XmlDocument().to_parent(None, DateTime(format=format), n, element, ns_test)
+        element = element[0]
+
+        assert element.text == n.strftime(format.encode('utf8')).decode('utf8')
+        dt = XmlDocument().from_element(None, DateTime(format=format), element)
+        assert n == dt
+
     def test_date_format(self):
         t = datetime.date.today()
         format = "%Y %m %d"
