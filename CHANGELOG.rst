@@ -2,7 +2,7 @@
 Changelog
 =========
 
-spyne-2.12.8
+spyne-2.12.9
 ------------
 * Make `DateTime` handle unicode date format strings for Python 2.
 * Fix idle timer not starting on connectionMade for `MessagePackTransportBase`
