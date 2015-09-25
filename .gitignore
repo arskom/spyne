@@ -1,5 +1,6 @@
 # All files to globally ignore
 .data
+.cache
 
 # test cruft
 jython-installer-*
