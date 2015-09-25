@@ -1,5 +1,5 @@
 ordereddict
-pytest
+pytest<2.8
 coverage
 junitxml
 werkzeug
