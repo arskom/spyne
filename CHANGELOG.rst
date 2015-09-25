@@ -46,7 +46,7 @@ spyne-2.12.[12345]-beta
 
 spyne-2.12.0-beta
 -----------------
-* XmlObject: Support for "attribute_of" is removed.
+* XmlObject: Support for ``attribute_of`` is removed.
 * NullServer now supports async.
 * XmlCloth was rewritten while less sleep-deprived.
 * ProtocolBase now also implements serializing primitives to unicode.
@@ -60,9 +60,9 @@ spyne-2.12.0-beta
 * HierDictDocument's broken wrapped dict support was fixed. Even though this is
   supposed to break compatibility with 2.11, virtually no one seems to use this
   feature. Only now it's mature enough to be set on stone. Let us know!
-* We now validate kwargs passed to ``@rpc``. Be sure to test your daemons before
-  deploying for production, because if you got leftovers, the server will refuse
-  to boot!
+* We now validate kwargs passed to ``@rpc``\. Be sure to test your daemons
+  before deploying for production, because if you got leftovers, the server will
+  refuse to boot!
 * It's now forbidden (by assert) to inherit from a customized class.
 * It's also forbidden (by convention) to instantiate a customized class. Don't
   do it! The warning will be converted to an assert in the future.
