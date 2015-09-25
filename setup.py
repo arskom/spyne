@@ -8,9 +8,9 @@ import re
 import sys
 import inspect
 
-from os.path import join, dirname, abspath
 from glob import glob
 from itertools import chain
+from os.path import join, dirname, abspath
 
 from setuptools import setup
 from setuptools import find_packages
@@ -38,7 +38,9 @@ VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 SHORT_DESC="""A transport and architecture agnostic rpc library that focuses on
 exposing public services with a well-defined API."""
 
-LONG_DESC = """Spyne aims to save the protocol implementers the hassle of
+LONG_DESC = """Homepage: http://spyne.io
+
+Spyne aims to save the protocol implementers the hassle of
 implementing their own remote procedure call api and the application programmers
 the hassle of jumping through hoops just to expose their services using multiple
 protocols and transports.
