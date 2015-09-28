@@ -83,6 +83,7 @@ from spyne.model.primitive.number import NonNegativeInteger # Xml Schema calls i
 from spyne.model.primitive.number import UnsignedInteger
 
 from spyne.model.primitive.network import MacAddress
+from spyne.model.primitive.network import IpAddress
 from spyne.model.primitive.network import Ipv4Address
 from spyne.model.primitive.network import Ipv6Address
 
