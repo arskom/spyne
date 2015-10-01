@@ -42,7 +42,7 @@ from sqlalchemy.orm import _mapper_registry
 
 from sqlalchemy.dialects.postgresql import FLOAT
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
-from sqlalchemy.dialects.postgresql.base import PGUuid
+from sqlalchemy.dialects.postgresql.base import PGUuid, PGInet
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import mapper
@@ -72,7 +72,8 @@ from spyne.model import SimpleModel, AnyDict, Enum, ByteArray, Array, \
     Double, Decimal, String, Unicode, Boolean, Integer, Integer8, Integer16, \
     Integer32, Integer64, Point, Line, Polygon, MultiPoint, MultiLine, \
     MultiPolygon, UnsignedInteger, UnsignedInteger8, UnsignedInteger16, \
-    UnsignedInteger32, UnsignedInteger64, File, Ltree
+    UnsignedInteger32, UnsignedInteger64, File, Ltree, Ipv6Address, Ipv4Address, \
+    IpAddress
 
 from spyne.util import sanitize_args
 
@@ -124,9 +125,13 @@ def _get_sqlalchemy_type(cls):
     if db_type is not None:
         return db_type
 
-    # must be above Unicode, because Uuid is Unicode's subclass
+    # must be above Unicode, because Ltree is Unicode's subclass
     elif issubclass(cls, Ltree):
         return PGLTree
+
+    # must be above Unicode, because Ip*Address is Unicode's subclass
+    elif issubclass(cls, (IpAddress, Ipv4Address, Ipv6Address)):
+        return PGInet
 
     # must be above Unicode, because Uuid is Unicode's subclass
     if issubclass(cls, Uuid):

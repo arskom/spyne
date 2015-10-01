@@ -127,3 +127,32 @@ class Ipv6Address(_Ipv6Base):
     @staticmethod
     def validate_native(cls, value):
         return SimpleModel.validate_native(cls, value)
+
+
+_PATT_IPV4V6 = "(%s|%s)" % (_PATT_IPV4, _PATT_IPV6)
+
+
+_ip_validate = {
+    None: _validate_string,
+    # TODO: add int serialization
+}
+
+
+_IpAddressBase = Unicode(45, pattern=_PATT_IPV4V6)
+class IpAddress(_IpAddressBase):
+    """Unicode subclass for Universially-Unique Identifiers."""
+
+    __namespace__ = 'http://spyne.io/schema'
+    __type_name__ = 'addr_ip'
+
+    class Attributes(_Ipv6Base.Attributes):
+        serialize_as = None
+
+    @staticmethod
+    def validate_string(cls, value):
+        return _ip_validate[cls.Attributes.serialize_as](cls, value)
+
+    @staticmethod
+    def validate_native(cls, value):
+        return SimpleModel.validate_native(cls, value)
+
