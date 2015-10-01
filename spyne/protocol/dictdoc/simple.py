@@ -267,17 +267,22 @@ class SimpleDictDocument(DictDocument):
 
             if member.type.Attributes.max_occurs > 1:
                 _v = getattr(cinst, member.path[-1], None)
+                is_set = True
                 if _v is None:
-                    cinst._safe_set(member.path[-1], value, member.type)
+                    is_set = cinst._safe_set(member.path[-1], value, member.type)
                 else:
                     _v.extend(value)
 
-                logger.debug("\tset arr %r(%r) = %r" %
-                                                  (member.path, pkey, value))
+                set_skip = 'set ' if is_set else 'SKIP'
+                logger.debug("\t%s arr %r(%r) = %r" %
+                                           (set_skip, member.path, pkey, value))
+
             else:
-                cinst._safe_set(member.path[-1], value[0], member.type)
-                logger.debug("\tset val %r(%r) = %r" %
-                                                  (member.path, pkey, value[0]))
+                is_set =cinst._safe_set(member.path[-1], value[0], member.type)
+
+                set_skip = 'set ' if is_set else 'SKIP'
+                logger.debug("\t%s val %r(%r) = %r" %
+                                        (set_skip, member.path, pkey, value[0]))
 
         if validator is self.SOFT_VALIDATION:
             logger.debug("\tvalidate_freq: \n%r", frequencies)

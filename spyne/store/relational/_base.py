@@ -669,6 +669,7 @@ def _add_complex_type(cls, props, table, k, v):
                     col.nullable = False
             else:
                 table.append_column(col)
+
             rel = relationship(real_v, uselist=False, cascade=p.cascade,
                             foreign_keys=[col], back_populates=p.back_populates,
                             backref=p.backref, lazy=p.lazy)
