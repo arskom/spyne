@@ -161,7 +161,7 @@ class memoize_id(memoize):
 
 class memoize_id_method(memoize_id):
     """A memoization decorator that keeps caching until reset for unhashable
-    types. It works on id()'s of objects instead."""
+    types on instance methods. It works on id()'s of objects instead."""
 
     def __get__(self, obj, objtype):
         """Support instance methods."""
