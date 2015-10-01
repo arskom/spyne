@@ -1202,7 +1202,7 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def init_from(cls, other, **kwargs):
-        retval = cls()
+        retval = (cls if cls.__orig__ is None else cls.__orig__)()
 
         for k, v in cls._type_info.items():
             if v.Attributes.read_only:
