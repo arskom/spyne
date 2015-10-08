@@ -99,7 +99,7 @@ def run_tests_and_create_report(report_name, *tests, **kwargs):
 
     tests_dir = os.path.dirname(spyne.test.__file__)
 
-    args = ['--tb=short', '--junitxml=%s' % report_name]
+    args = ['--twisted', '--tb=short', '--junitxml=%s' % report_name]
     args.extend('--{0}={1}'.format(k, v) for k, v in kwargs.items())
     args.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
 
@@ -128,79 +128,6 @@ def call_pytest_subprocess(*tests, **kwargs):
     args = ['--tb=line', '--junitxml=%s' % file_name]
     args.extend('--{0}={1}'.format(k, v) for k, v in kwargs.items())
     return call_test(pytest.main, args, tests)
-
-
-def call_trial(*tests, **kwargs):
-    import spyne.test
-    try:
-        import twisted.scripts.trial
-    except ImportError:
-        return 1
-
-    global _ctr
-    _ctr += 1
-    file_name = 'test_result.%d.subunit' % _ctr
-    with SubUnitTee(file_name):
-        tests_dir = os.path.dirname(spyne.test.__file__)
-        sys.argv = ['trial', '--reporter=subunit']
-        sys.argv.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
-
-        from twisted.scripts.trial import Options
-        from twisted.scripts.trial import _makeRunner
-        from twisted.scripts.trial import _getSuite
-
-        config = Options()
-        config.parseOptions()
-
-        trialRunner = _makeRunner(config)
-        suite = _getSuite(config)
-        test_result = trialRunner.run(suite)
-
-    try:
-        subunit2junitxml(_ctr)
-    except Exception as e:
-        # this is not super important.
-        print(e)
-
-    return int(not test_result.wasSuccessful())
-
-
-def subunit2junitxml(ctr):
-    from testtools import ExtendedToStreamDecorator
-    from testtools import StreamToExtendedDecorator
-
-    from subunit import StreamResultToBytes
-    from subunit.filters import filter_by_result
-    from subunit.filters import run_tests_from_stream
-
-    from spyne.util.six import BytesIO
-
-    from junitxml import JUnitXmlResult
-
-    sys.argv = ['subunit-1to2']
-    subunit1_file_name = 'test_result.%d.subunit' % ctr
-
-    subunit2 = BytesIO()
-    run_tests_from_stream(open(subunit1_file_name, 'rb'),
-                          ExtendedToStreamDecorator(
-                              StreamResultToBytes(subunit2)))
-    subunit2.seek(0)
-
-    sys.argv = ['subunit2junitxml']
-    sys.stdin = subunit2
-
-    def f(output):
-        return StreamToExtendedDecorator(JUnitXmlResult(output))
-
-    junit_file_name = 'test_result.%d.xml' % ctr
-
-    filter_by_result(f, junit_file_name, True, False, protocol_version=2,
-                     passthrough_subunit=True, input_stream=subunit2)
-
-
-def configure_django():
-    sys.path.append(join(EXAMPLES_DIR, 'django'))
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
 
 
 class SubUnitTee(object):
@@ -273,11 +200,9 @@ class RunTests(ExtendedTestCommand):
                           'test_soft_validation.py', 'test_util.py',
                           'test_sqlalchemy.py',
                           'test_sqlalchemy_deprecated.py',
-                          'interop/test_pyramid.py']
-
-        if not IS_PYPY:
-            tests.append('interop/test_django.py')
-            configure_django() # this is only because of interop/test_django.py
+                          'interop/test_pyramid.py',
+                          'interop/test_soap_client_http_twisted.py',
+                          'transport/test_msgpack.py']
 
         ret = call_pytest(*tests,capture=self.capture) or ret
 
@@ -291,10 +216,6 @@ class RunTests(ExtendedTestCommand):
         if not IS_PYPY:
             ret = call_pytest_subprocess('interop/test_suds.py',
                                      capture=self.capture) or ret
-
-        ret = call_trial('interop/test_soap_client_http_twisted.py',
-                         'transport/test_msgpack.py',
-                         capture=self.capture) or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)

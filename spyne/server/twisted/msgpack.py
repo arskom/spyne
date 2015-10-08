@@ -165,8 +165,8 @@ class TwistedMessagePackProtocol(Protocol):
     def loseConnection(self, reason=None):
         self.disconnecting = True
         self.idle_timer = None
-        logger.debug("Closing connection because %s", reason)
-        self.transport.loseConnection()
+        logger.debug("Aborting connection because %s", reason)
+        self.transport.abortConnection()
 
     def process_incoming_message(self, msg):
         p_ctx, others = self.spyne_tpt.produce_contexts(msg)

@@ -496,8 +496,12 @@ class XmlDocument(SubXmlBase):
         if logger.level == logging.DEBUG and message is self.REQUEST:
             line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
 
-            logger.debug("%s %s" % (line_header, etree.tostring(ctx.out_document,
-                    xml_declaration=self.xml_declaration, pretty_print=True)))
+            outdoc_str = None
+            if ctx.out_document is not None:
+                outdoc_str = etree.tostring(ctx.out_document,
+                        xml_declaration=self.xml_declaration, pretty_print=True)
+
+            logger.debug("%s %s" % (line_header, outdoc_str))
 
         self.event_manager.fire_event('after_deserialize', ctx)
 

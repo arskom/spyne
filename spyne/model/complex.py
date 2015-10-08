@@ -854,7 +854,7 @@ class ComplexModelBase(ModelBase):
 
     def _safe_set(self, key, value, t):
         if t.Attributes.read_only:
-            return
+            return False
 
         try:
             setattr(self, key, value)
@@ -862,6 +862,8 @@ class ComplexModelBase(ModelBase):
             logger.exception(e)
             raise AttributeError("can't set %r attribute %s to %r" %
                                                    (self.__class__, key, value))
+
+        return True
 
     def as_dict(self):
         """Represent object as dict.
@@ -1202,7 +1204,7 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def init_from(cls, other, **kwargs):
-        retval = cls()
+        retval = (cls if cls.__orig__ is None else cls.__orig__)()
 
         for k, v in cls._type_info.items():
             if v.Attributes.read_only:

@@ -1,5 +1,6 @@
 ordereddict
 pytest<2.8
+pytest-twisted
 coverage
 junitxml
 werkzeug
