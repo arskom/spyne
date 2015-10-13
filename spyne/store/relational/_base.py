@@ -492,10 +492,12 @@ def _gen_array_m2m(cls, props, k, child, p):
         props[k] = relationship(child, secondary=rel_t, backref=p.backref,
                 back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy,
                 primaryjoin=(col_pk == rel_t.c[col_own.key]),
-                secondaryjoin=(col_pk == rel_t.c[col_child.key]))
+                secondaryjoin=(col_pk == rel_t.c[col_child.key]),
+                order_by=p.order_by)
     else:
         props[k] = relationship(child, secondary=rel_t, backref=p.backref,
-                back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
+                            back_populates=p.back_populates, cascade=p.cascade,
+                                               lazy=p.lazy, order_by=p.order_by)
 
 
 def _gen_array_simple(cls, props, k, child_cust, p):
@@ -609,7 +611,8 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
         child.__mapper__.add_property(col.name, col)
 
     props[k] = relationship(child, foreign_keys=[col], backref=p.backref,
-                back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
+                             back_populates=p.back_populates, cascade=p.cascade,
+                                               lazy=p.lazy, order_by=p.order_by)
 
 
 def _is_array(v):
@@ -672,7 +675,7 @@ def _add_complex_type(cls, props, table, k, v):
 
             rel = relationship(real_v, uselist=False, cascade=p.cascade,
                             foreign_keys=[col], back_populates=p.back_populates,
-                            backref=p.backref, lazy=p.lazy)
+                            backref=p.backref, lazy=p.lazy, order_by=p.order_by)
 
             _gen_index_info(table, col, k, v)
 
