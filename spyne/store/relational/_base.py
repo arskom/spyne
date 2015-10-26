@@ -670,9 +670,19 @@ def _add_complex_type_as_table(cls, props, table, k, v, p, col_args, col_kwargs)
         else:
             table.append_column(col)
 
-        rel = relationship(real_v, uselist=False, cascade=p.cascade,
-                        foreign_keys=[col], back_populates=p.back_populates,
-                        backref=p.backref, lazy=p.lazy, order_by=p.order_by)
+        rel_kwargs = dict(
+            lazy=p.lazy,
+            backref=p.backref,
+            order_by=p.order_by,
+            back_populates=p.back_populates,
+        )
+
+        if real_v is (cls.__orig__ or cls):
+            (pk_col_name, pk_col_type), = get_pk_columns(cls)
+            rel_kwargs['remote_side'] = [table.c[pk_col_name]]
+
+        rel = relationship(real_v, uselist=False, foreign_keys=[col],
+                                                                   **rel_kwargs)
 
         _gen_index_info(table, col, k, v)
 
