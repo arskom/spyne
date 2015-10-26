@@ -259,7 +259,9 @@ def _get_col_o2o(parent, k, v, fk_col_name, deferrable=None, initially=None):
     if fk_col_name is None:
         fk_col_name = k + "_" + pk_key
 
-    assert fk_col_name != k
+    assert fk_col_name != k, "The column name for the foreign key must be " \
+                             "different from the column name for the object " \
+                             "itself."
 
     fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key), use_alter=True,
           name='%s_%s_fkey' % (v.Attributes.table_name, fk_col_name),
