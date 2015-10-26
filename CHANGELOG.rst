@@ -2,6 +2,10 @@
 Changelog
 =========
 
+spyne-2.12.11
+-------------
+* Fix self-referential relationships pointing the wrong way
+
 spyne-2.12.10
 -------------
 * IpAddress types now support PostgreSQL's PGInet.
