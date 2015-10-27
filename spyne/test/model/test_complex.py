@@ -104,6 +104,29 @@ Level1.resolve_namespace(Level1, __name__)
 
 
 class TestComplexModel(unittest.TestCase):
+    def test_validate_on_assignment_fail(self):
+        class C(ComplexModel):
+            i = Integer(voa=True)
+
+        try:
+            C().i = 'a'
+        except ValueError:
+            pass
+        else:
+            raise Exception('must fail with ValueError')
+
+    def test_validate_on_assignment_success(self):
+        class C(ComplexModel):
+            i = Integer(voa=True)
+
+        c = C()
+
+        c.i = None
+        assert c.i is None
+
+        c.i = 5
+        assert c.i == 5
+
     def test_simple_class(self):
         a = Address()
         a.street = '123 happy way'

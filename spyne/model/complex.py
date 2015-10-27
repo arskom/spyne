@@ -52,6 +52,7 @@ from spyne.util import six
 from spyne.util import memoize
 from spyne.util import memoize_id
 from spyne.util import sanitize_args
+from spyne.util.color import YEL
 from spyne.util.meta import Prepareable
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass, with_metaclass, string_types
@@ -335,10 +336,20 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
 
         class_fields = []
         for k, v in cls_dict.items():
-            if not k.startswith('_'):
-                v = _get_spyne_type(cls_name, k, v)
-                if v is not None:
-                    class_fields.append((k, v))
+            if k.startswith('_'):
+                continue
+
+            if isinstance(v, tuple) and len(v) == 1 and \
+                                 _get_spyne_type(cls_name, k, v[0]) is not None:
+                logger.warning(YEL("There seems to be a stray comma in the"
+                                   "definition of '%s.%s'.", cls_name, k))
+
+            v = _get_spyne_type(cls_name, k, v)
+
+            if v is None:
+                continue
+
+            class_fields.append((k, v))
 
         _type_info.update(class_fields)
 
@@ -462,7 +473,8 @@ def _sanitize_sqlalchemy_parameters(cls_dict, attrs):
 
 
 def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
-    # make sure _type_info contents are sane
+    """Make sure _type_info contents are sane"""
+
     for k, v in _type_info.items():
         if not isinstance(k, six.string_types):
             raise ValueError("Invalid class key", k)
@@ -628,9 +640,21 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         assert len(self._type_info) == len(new_type_info)
         self._type_info.keys()[:] = new_type_info
 
-        tn = self.Attributes.table_name
-        meta = self.Attributes.sqla_metadata
-        t = self.Attributes.sqla_table
+        for k, v in self._type_info.items():
+            if not v.Attributes.validate_on_assignment:
+                continue
+
+            def _get_prop(self):
+                return self.__dict__[k]
+
+            def _set_prop(self, val):
+                if not (val is None or isinstance(val, v.Value)):
+                    raise ValueError("Invalid value %r, "
+                                 "should be an instance of %r" % (val, v.Value))
+
+                self.__dict__[k] = val
+
+            setattr(self, k, property(_get_prop, _set_prop))
 
         methods = _gen_methods(self, cls_dict)
         if len(methods) > 0:
@@ -640,6 +664,10 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         if methods is not None:
             assert isinstance(methods, _MethodsDict)
             methods.sanitize(self)
+
+        tn = self.Attributes.table_name
+        meta = self.Attributes.sqla_metadata
+        t = self.Attributes.sqla_table
 
         # For spyne objects reflecting an existing db table
         if tn is None:
@@ -781,7 +809,7 @@ class ComplexModelBase(ModelBase):
         fti = cls.get_flat_type_info(cls)
 
         if cls.__orig__ is not None:
-            logger.warning("%r seems to be a customized class. They are not "
+            logger.warning("%r seems to be a customized class. It is not "
                       "supposed to be instantiated. You have been warned.", cls)
 
         if cls.Attributes._xml_tag_body_as is not None:

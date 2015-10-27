@@ -345,6 +345,10 @@ class ModelBase(object):
         """An integer that's passed to ``_type_info.insert()`` as first argument
          when not None. ``.append()`` is used otherwise."""
 
+        validate_on_assignment = False
+        """Perform validation on assignment (i.e. all the time) instead of on
+        just serialization"""
+
         polymap = {}
         """A dict of classes that override polymorphic substitions for classes
         given as keys to classes given as values."""
@@ -562,6 +566,9 @@ class ModelBase(object):
 
             if k in ('protocol', 'prot', 'p'):
                 setattr(Attributes, 'prot', v)
+
+            if k in ('voa', 'validate_on_assignment'):
+                setattr(Attributes, 'validate_on_assignment', v)
 
             if k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
