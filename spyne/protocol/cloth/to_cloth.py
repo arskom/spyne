@@ -286,6 +286,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     logger_c.debug("\tskip  anc prevsibl %s %r",
                                                             elt.tag, elt.attrib)
                     continue
+
                 logger_c.debug("\twrite anc prevsibl %s %r %d",
                                                    elt.tag, elt.attrib, id(elt))
                 parent.write(elt)
@@ -313,9 +314,11 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         for elt in prevsibls:
             if elt is last_elt:
                 continue
+
             if id(elt) in tags:
                 logger_c.debug("\tskip  cloth prevsibl %s %r",elt.tag, elt.attrib)
                 continue
+
             logger_c.debug("\twrite cloth prevsibl %s %r", elt.tag, elt.attrib)
             parent.write(elt)
 
