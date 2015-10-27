@@ -2,6 +2,20 @@
 Changelog
 =========
 
+spyne-2.12.11
+-------------
+* Fix self-referential relationships pointing the wrong way
+
+spyne-2.12.10
+-------------
+* IpAddress types now support PostgreSQL's PGInet.
+* Drop trial for twisted tests and switch to pytest-twisted.
+* ``_safe_set`` now returns True on success so that protocols can react
+  accordingly.
+* \*DictDoc now logs properly whether a value is discarded or passed to the
+  deserialized instance.
+* Minor bug fixes here and there.
+
 spyne-2.12.9
 ------------
 * Make ``DateTime`` handle unicode date format strings for Python 2.

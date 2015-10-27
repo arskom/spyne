@@ -909,7 +909,10 @@ class ComplexModelBase(ModelBase):
                 setattr(inst, keys[i], value[i])
 
         elif isinstance(value, dict):
-            inst = cls()
+            cls_orig = cls
+            if cls.__orig__ is not None:
+                cls_orig = cls.__orig__
+            inst = cls_orig()
 
             for k in cls._type_info:
                 setattr(inst, k, value.get(k, None))

@@ -793,7 +793,7 @@ class table:
             id_backref=None, cascade=False, lazy='select', back_populates=None,
                             fk_left_deferrable=None, fk_left_initially=None,
                             fk_right_deferrable=None, fk_right_initially=None,
-                            explicit_join=False):
+                            explicit_join=False, order_by=False):
         self.multi = multi
         self.left = left
         self.right = right
@@ -807,6 +807,7 @@ class table:
         self.fk_right_deferrable = fk_right_deferrable
         self.fk_right_initially = fk_right_initially
         self.explicit_join = explicit_join
+        self.order_by = order_by
 
 
 class json:
