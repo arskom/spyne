@@ -212,7 +212,7 @@ class Application(object):
         # "system-exiting" exceptions. See:
         # https://docs.python.org/2/library/exceptions.html#exceptions.Exception
         except Exception as e:
-            logger_server.exception(e)
+            logger_server.critical(e, **{'exc_info': 1})
 
             ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
 
