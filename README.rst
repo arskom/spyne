@@ -138,7 +138,7 @@ http://lists.spyne.io/listinfo/people.
 You can also use the 'spyne' tag to ask questions on
 `Stack Overflow <http://stackoverflow.com>`_.
 
-Please don't use the issue tracker for asking questions. It's the database that
+Please don't use the issue tracker for asking questions. It's a database that
 holds the most important information for the project, so we must avoid
 cluttering it as much as possible.
 
