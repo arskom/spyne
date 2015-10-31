@@ -208,7 +208,7 @@ class Application(object):
                 ctx.service_class.event_manager.fire_event(
                                                'method_exception_object', ctx)
 
-        # we don't catch BaseException because we're not interested in
+        # we don't catch BaseException because we actually don't want to catch
         # "system-exiting" exceptions. See:
         # https://docs.python.org/2/library/exceptions.html#exceptions.Exception
         except Exception as e:

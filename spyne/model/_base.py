@@ -533,7 +533,7 @@ class ModelBase(object):
             Attributes.sqla_column_args = (), {}
         cls_dict['Attributes'] = Attributes
 
-        # properties get reset everytime a new class is defined. So we need
+        # properties get reset every time a new class is defined. So we need
         # to reinitialize them explicitly.
         for k in ('nillable', '_xml_cloth', '_xml_root_cloth', '_html_cloth',
                                                             '_html_root_cloth'):
@@ -567,10 +567,10 @@ class ModelBase(object):
             if k in ('protocol', 'prot', 'p'):
                 setattr(Attributes, 'prot', v)
 
-            if k in ('voa', 'validate_on_assignment'):
+            elif k in ('voa', 'validate_on_assignment'):
                 setattr(Attributes, 'validate_on_assignment', v)
 
-            if k in ("doc", "appinfo"):
+            elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
 
             elif k in ('primary_key', 'pk'):
