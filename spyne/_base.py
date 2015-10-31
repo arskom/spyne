@@ -37,6 +37,7 @@ class BODY_STYLE_OUT_BARE: pass
 # `from_twisted_address`. Dark magic.
 Address = namedtuple("Address", ["type", "host", "port"])
 
+
 class _add_address_types():
     Address.TCP4 = 'TCP4'
     Address.TCP6 = 'TCP6'

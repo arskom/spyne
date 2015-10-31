@@ -186,8 +186,8 @@ class MessagePackRpc(MessagePackDocument):
         else:
             ctx.in_body_doc = msgparams
 
-        logger.debug('\theader : %r' % (ctx.in_header_doc))
-        logger.debug('\tbody   : %r' % (ctx.in_body_doc))
+        logger.debug('\theader : %r', ctx.in_header_doc)
+        logger.debug('\tbody   : %r', ctx.in_body_doc)
 
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)

@@ -259,6 +259,10 @@ def _get_col_o2o(parent, k, v, fk_col_name, deferrable=None, initially=None):
     if fk_col_name is None:
         fk_col_name = k + "_" + pk_key
 
+    assert fk_col_name != k, "The column name for the foreign key must be " \
+                             "different from the column name for the object " \
+                             "itself."
+
     fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key), use_alter=True,
           name='%s_%s_fkey' % (v.Attributes.table_name, fk_col_name),
           deferrable=deferrable, initially=initially)
@@ -492,10 +496,12 @@ def _gen_array_m2m(cls, props, k, child, p):
         props[k] = relationship(child, secondary=rel_t, backref=p.backref,
                 back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy,
                 primaryjoin=(col_pk == rel_t.c[col_own.key]),
-                secondaryjoin=(col_pk == rel_t.c[col_child.key]))
+                secondaryjoin=(col_pk == rel_t.c[col_child.key]),
+                order_by=p.order_by)
     else:
         props[k] = relationship(child, secondary=rel_t, backref=p.backref,
-                back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
+                            back_populates=p.back_populates, cascade=p.cascade,
+                                               lazy=p.lazy, order_by=p.order_by)
 
 
 def _gen_array_simple(cls, props, k, child_cust, p):
@@ -588,8 +594,8 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
     if p.right in child_t.c:
         # FIXME: This branch MUST be tested.
         new_col_type = child_t.c[p.right].type.__class__
-        assert col_type is child_t.c[p.right].type.__class__, "Existing column " \
-            "type %r disagrees with new column type %r" % \
+        assert col_type is child_t.c[p.right].type.__class__, \
+                "Existing column type %r disagrees with new column type %r" % \
                                                         (col_type, new_col_type)
 
         # if the column is already there, the decision about whether
@@ -609,11 +615,104 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
         child.__mapper__.add_property(col.name, col)
 
     props[k] = relationship(child, foreign_keys=[col], backref=p.backref,
-                back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
+                             back_populates=p.back_populates, cascade=p.cascade,
+                                               lazy=p.lazy, order_by=p.order_by)
 
 
 def _is_array(v):
     return (v.Attributes.max_occurs > 1 or issubclass(v, Array))
+
+
+def _add_complex_type_as_table(cls, props, table, k, v, p, col_args, col_kwargs):
+    # add one to many relation
+    if _is_array(v):
+        child_cust = v
+        if issubclass(v, Array):
+            child_cust, = v._type_info.values()
+
+        child = child_cust
+        if child_cust.__orig__ is not None:
+            child = child_cust.__orig__
+
+        if p.multi != False: # many to many
+            _gen_array_m2m(cls, props, k, child, p)
+
+        elif issubclass(child, SimpleModel): # one to many simple type
+            _gen_array_simple(cls, props, k, child_cust, p)
+
+        else: # one to many complex type
+            _gen_array_o2m(cls, props, k, child, child_cust, p)
+
+    # add one to one relation
+    else:
+        # v has the Attribute values we need whereas real_v is what the
+        # user instantiates (thus what sqlalchemy needs)
+        if v.__orig__ is None:  # vanilla class
+            real_v = v
+        else: # customized class
+            real_v = v.__orig__
+
+        assert not getattr(p, 'multi', False), ('Storing a single element-type '
+                                                'using a relation table is '
+                                                'pointless.')
+
+        assert p.right is None, "'right' is ignored in a one-to-one " \
+                                "relationship"
+
+        col = _get_col_o2o(cls, k, v, p.left, deferrable=p.fk_left_deferrable,
+                                              initially=p.fk_left_initially)
+        p.left = col.name
+
+        if col.name in table.c:
+            col = table.c[col.name]
+            if col_kwargs.get('nullable') is False:
+                col.nullable = False
+        else:
+            table.append_column(col)
+
+        rel_kwargs = dict(
+            lazy=p.lazy,
+            backref=p.backref,
+            order_by=p.order_by,
+            back_populates=p.back_populates,
+        )
+
+        if real_v is (cls.__orig__ or cls):
+            (pk_col_name, pk_col_type), = get_pk_columns(cls)
+            rel_kwargs['remote_side'] = [table.c[pk_col_name]]
+
+        rel = relationship(real_v, uselist=False, foreign_keys=[col],
+                                                                   **rel_kwargs)
+
+        _gen_index_info(table, col, k, v)
+
+        props[k] = rel
+        props[col.name] = col
+
+
+def _add_complex_type_as_xml(cls, props, table, k, v, p, col_args, col_kwargs):
+    if k in table.c:
+        col = table.c[k]
+    else:
+        t = PGObjectXml(v, p.root_tag, p.no_ns, p.pretty_print)
+        col = Column(k, t, *col_args, **col_kwargs)
+
+    props[k] = col
+    if not k in table.c:
+        table.append_column(col)
+
+
+def _add_complex_type_as_json(cls, props, table, k, v, p, col_args, col_kwargs):
+    if k in table.c:
+        col = table.c[k]
+    else:
+        t = PGObjectJson(v, ignore_wrappers=p.ignore_wrappers,
+                                                        complex_as=p.complex_as)
+        col = Column(k, t, *col_args, **col_kwargs)
+
+    props[k] = col
+    if not k in table.c:
+        table.append_column(col)
 
 
 def _add_complex_type(cls, props, table, k, v):
@@ -625,91 +724,23 @@ def _add_complex_type(cls, props, table, k, v):
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
     if isinstance(p, c_table):
-        if _is_array(v):
-            child_cust = v
-            if issubclass(v, Array):
-                child_cust, = v._type_info.values()
-
-            child = child_cust
-            if child_cust.__orig__ is not None:
-                child = child_cust.__orig__
-
-            if p.multi != False: # many to many
-                _gen_array_m2m(cls, props, k, child, p)
-
-            elif issubclass(child, SimpleModel): # one to many simple type
-                _gen_array_simple(cls, props, k, child_cust, p)
-
-            else: # one to many complex type
-                _gen_array_o2m(cls, props, k, child, child_cust, p)
-
-        else:
-            # v has the Attribute values we need whereas real_v is what the
-            # user instantiates (thus what sqlalchemy needs)
-            if v.__orig__ is None:  # vanilla class
-                real_v = v
-            else: # customized class
-                real_v = v.__orig__
-
-            assert not getattr(p, 'multi', False), (
-                                'Storing a single element-type using a '
-                                'relation table is pointless.')
-
-            assert p.right is None, "'right' is ignored in a one-to-one " \
-                                    "relationship"
-
-            col = _get_col_o2o(cls, k, v, p.left,
-                                               deferrable=p.fk_left_deferrable,
-                                               initially=p.fk_left_initially)
-            p.left = col.name
-
-            if col.name in table.c:
-                col = table.c[col.name]
-                if col_kwargs.get('nullable') is False:
-                    col.nullable = False
-            else:
-                table.append_column(col)
-
-            rel = relationship(real_v, uselist=False, cascade=p.cascade,
-                            foreign_keys=[col], back_populates=p.back_populates,
-                            backref=p.backref, lazy=p.lazy)
-
-            _gen_index_info(table, col, k, v)
-
-            props[k] = rel
-            props[col.name] = col
+        return _add_complex_type_as_table(cls, props, table, k, v,
+                                                        p, col_args, col_kwargs)
 
     elif isinstance(p, c_xml):
-        if k in table.c:
-            col = table.c[k]
-        else:
-            t = PGObjectXml(v, p.root_tag, p.no_ns, p.pretty_print)
-            col = Column(k, t, *col_args, **col_kwargs)
-
-        props[k] = col
-        if not k in table.c:
-            table.append_column(col)
-
+        return _add_complex_type_as_xml(cls, props, table, k, v,
+                                                        p, col_args, col_kwargs)
     elif isinstance(p, c_json):
-        if k in table.c:
-            col = table.c[k]
-        else:
-            t = PGObjectJson(v, ignore_wrappers=p.ignore_wrappers,
-                                                    complex_as=p.complex_as)
-            col = Column(k, t, *col_args, **col_kwargs)
-
-        props[k] = col
-        if not k in table.c:
-            table.append_column(col)
+        return _add_complex_type_as_json(cls, props, table, k, v,
+                                                        p, col_args, col_kwargs)
 
     elif isinstance(p, c_msgpack):
         raise NotImplementedError(c_msgpack)
 
     elif p is None:
-        pass
+        return
 
-    else:
-        raise ValueError(p)
+    raise ValueError(p)
 
 
 def _convert_fake_table(cls, table):
