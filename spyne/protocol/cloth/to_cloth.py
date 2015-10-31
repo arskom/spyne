@@ -322,7 +322,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 continue
 
             if id(elt) in tags:
-                logger_c.debug("\tskip  cloth prevsibl %s %r",elt.tag, elt.attrib)
+                logger_c.debug("\tskip  cloth prevsibl %s %r",
+                                                            elt.tag, elt.attrib)
                 continue
 
             logger_c.debug("\twrite cloth prevsibl %s %r", elt.tag, elt.attrib)
