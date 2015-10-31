@@ -286,7 +286,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     logger_c.debug("\tskip  anc prevsibl %s %r",
                                                             elt.tag, elt.attrib)
                     continue
-                logger_c.debug("\twrite anc prevsibl %s %r %d",
+                logger_c.debug("\twrite anc prevsibl %s %r 0x%x",
                                                    elt.tag, elt.attrib, id(elt))
                 parent.write(elt)
 
@@ -297,7 +297,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             else:
                 anc_ctx = parent.element(anc.tag, anc.attrib)
             anc_ctx.__enter__()
-            logger_c.debug("\tenter norm %s %r %d", anc.tag, anc.attrib, id(anc))
+            logger_c.debug("\tenter norm %s %r 0x%x", anc.tag,
+                                                            anc.attrib, id(anc))
             if anc.text is not None:
                 parent.write(anc.text)
 
