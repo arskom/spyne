@@ -506,7 +506,7 @@ class InProtocolBase(ProtocolMixin):
             astz = cls_attrs.as_timezone
             if six.PY2:
                 # FIXME: perhaps it should encode to string's encoding instead
-                # of utf8 all the time:
+                # of utf8 all the time
                 if isinstance(date_format, unicode):
                     date_format = date_format.encode('utf8')
                 if isinstance(string, unicode):
