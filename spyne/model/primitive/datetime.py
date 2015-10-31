@@ -168,6 +168,15 @@ class DateTime(SimpleModel):
         serialize_as = None
         """One of (None, 'sec', 'sec_float', 'msec', 'msec_float', 'usec')"""
 
+        # TODO: Move this to ModelBase and make it work with all types in all
+        # protocols.
+        parser = None
+        """Callable for string parser. It must accept exactly four arguments:
+        `protocol, cls, string` and must return a `datetime.datetime` object.
+        If this is not None, all other parsing configurations (e.g.
+        `date_format`) are ignored.
+        """
+
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)

@@ -494,16 +494,22 @@ class InProtocolBase(ProtocolMixin):
 
     def _datetime_from_string(self, cls, string):
         cls_attrs = self.get_cls_attrs(cls)
+
+        # get parser
+        parser = cls_attrs.parser
+
+        # get date_format
         date_format = cls_attrs.date_format
         if date_format is None:
             date_format = cls_attrs.out_format
         if date_format is None:
             date_format = cls_attrs.format
 
-        if date_format is None:
-            retval = self.datetime_from_string_iso(cls, string)
-        else:
-            astz = cls_attrs.as_timezone
+        # parse the string
+        if parser is not None:
+            retval = parser(self, cls, string)
+
+        elif date_format is not None:
             if six.PY2:
                 # FIXME: perhaps it should encode to string's encoding instead
                 # of utf8 all the time
@@ -514,8 +520,12 @@ class InProtocolBase(ProtocolMixin):
 
             retval = datetime.strptime(string, date_format)
 
+            astz = cls_attrs.as_timezone
             if astz:
                 retval = retval.astimezone(cls_attrs.as_time_zone)
+
+        else:
+            retval = self.datetime_from_string_iso(cls, string)
 
         return retval
 
