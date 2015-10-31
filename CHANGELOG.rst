@@ -5,6 +5,11 @@ Changelog
 spyne-2.12.11
 -------------
 * Fix self-referential relationships pointing the wrong way
+* Fix wrong use of string interpolation operator in logging call slowing Spyne
+  down for no visible reason
+* Detect and prevent name clashes between the foreign key column name and the
+  object itself.
+* Silence a lot of (wrong) customized class instantiation warnings.
 
 spyne-2.12.10
 -------------
