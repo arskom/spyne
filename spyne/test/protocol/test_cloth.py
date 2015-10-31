@@ -138,6 +138,32 @@ class TestXmlCloth(unittest.TestCase):
 
         assert elt.attrib['s'] == v
 
+    def test_non_tagbag(self):
+        cloth = E.a(
+            E.b(
+                E.c(
+                    E.d(
+                        spyne_id="i",
+                    ),
+                    spyne_id="c",
+                ),
+                spyne_id="i",
+            ),
+            spyne_tagbag='',
+        )
+
+        class C2(ComplexModel):
+            i = Integer
+
+        class C1(ComplexModel):
+            i = Integer
+            c = C2
+
+        elt = self._run(C1(i=1, c=C2(i=2)), cloth=cloth)
+        assert elt.xpath('//b/text()') == ['1']
+        # no order guarantee is given
+        assert set(elt.xpath('//d/text()')) == set(['1', '2'])
+
     def test_array(self):
         v = range(3)
 

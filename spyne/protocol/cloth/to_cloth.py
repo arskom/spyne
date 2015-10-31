@@ -67,6 +67,7 @@ class ClothParserMixin(object):
     ID_ATTR_NAME = 'spyne-id'
     DATA_TAG_NAME = 'spyne-data'
     ROOT_ATTR_NAME = 'spyne-root'
+    TAGBAG_ATTR_NAME = 'spyne-tagbag'
 
     @classmethod
     def from_xml_cloth(cls, cloth):
@@ -158,8 +159,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 continue  # don't send grandchildren
 
             if id(elt) in ids:  # FIXME: this check should be safe to remove
-                logger_c.debug("Don't send what's already sent")
-                continue  # don't send what's already sent
+                logger_c.debug("Don't send what's already been sent")
+                continue  # don't send what's already been sent
 
             ids.add(id(elt))
             yield elt
@@ -179,6 +180,10 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         retval = elt.xpath('//*[@id="%s"]' % what)
         logger_c.debug("id=%r got %r", what, retval)
         return retval
+
+    @classmethod
+    def _is_tagbag(cls, elt):
+        return cls.TAGBAG_ATTR_NAME in elt.attrib
 
     @staticmethod
     def _methods(cls, inst):
@@ -535,7 +540,14 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         for elt in self._get_elts(cloth, "mrpc"):
             self._actions_to_cloth(ctx, cls, inst, elt)
 
-        for i, elt in enumerate(self._get_outmost_elts(cloth)):
+        if self._is_tagbag(cloth):
+            logger_c.debug("%r(%r) IS a tagbag", cloth, cloth.attrib)
+            elts = self._get_elts(cloth)
+        else:
+            logger_c.debug("%r(%r) is NOT a tagbag", cloth, cloth.attrib)
+            elts = self._get_outmost_elts(cloth)
+
+        for i, elt in enumerate(elts):
             k = elt.attrib[self.ID_ATTR_NAME]
             v = fti.get(k, None)
 
