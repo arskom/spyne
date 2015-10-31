@@ -570,6 +570,9 @@ class ModelBase(object):
             elif k in ('voa', 'validate_on_assignment'):
                 setattr(Attributes, 'validate_on_assignment', v)
 
+            elif k == 'parser':
+                setattr(Attributes, 'parser', staticmethod(v))
+
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
 
