@@ -563,7 +563,7 @@ class ModelBase(object):
             if k in ('protocol', 'prot', 'p'):
                 setattr(Attributes, 'prot', v)
 
-            if k in ("doc", "appinfo"):
+            elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
 
             elif k in ('primary_key', 'pk'):
