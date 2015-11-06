@@ -503,6 +503,10 @@ def _gen_array_m2m(cls, props, k, child, p):
             secondaryjoin=(col_pk == rel_t.c[col_child.key]),
             back_populates=p.back_populates,
         )
+
+        if p.single_parent is not None:
+            rel_kwargs['single_parent'] = p.single_parent
+
         props[k] = relationship(child, **rel_kwargs)
 
     else:
@@ -514,6 +518,9 @@ def _gen_array_m2m(cls, props, k, child, p):
             lazy=p.lazy,
             order_by=p.order_by
         )
+
+        if p.single_parent is not None:
+            rel_kwargs['single_parent'] = p.single_parent
 
         props[k] = relationship(child, **rel_kwargs)
 
@@ -638,6 +645,9 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
         back_populates=p.back_populates,
     )
 
+    if p.single_parent is not None:
+        rel_kwargs['single_parent'] = p.single_parent
+
     props[k] = relationship(child, **rel_kwargs)
 
 
@@ -698,6 +708,8 @@ def _add_complex_type_as_table(cls, props, table, k, v, p, col_args, col_kwargs)
             order_by=p.order_by,
             back_populates=p.back_populates,
         )
+        if p.single_parent is not None:
+            rel_kwargs['single_parent'] = p.single_parent
 
         if real_v is (cls.__orig__ or cls):
             (pk_col_name, pk_col_type), = get_pk_columns(cls)
