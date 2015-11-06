@@ -320,7 +320,11 @@ class ModelBase(object):
           with default options.
 
         * If the value is a string, the value will denote the indexing method
-          used by the database. See: http://www.postgresql.org/docs/9.2/static/indexes-types.html
+          used by the database. Should be one of:
+
+            ('btree', 'gin', 'gist', 'hash', 'spgist')
+
+          See: http://www.postgresql.org/docs/9.2/static/indexes-types.html
 
         * If the value is a tuple of two strings, the first value will denote
           the index name and the second value will denote the indexing method as
