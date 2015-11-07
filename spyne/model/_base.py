@@ -809,6 +809,8 @@ class table:
             id_backref=None, cascade=False, lazy='select', back_populates=None,
                        fk_left_deferrable=None, fk_left_initially=None,
                        fk_right_deferrable=None, fk_right_initially=None,
+                       fk_left_ondelete=None, fk_left_onupdate=None,
+                       fk_right_ondelete=None, fk_right_onupdate=None,
                        explicit_join=False, order_by=False, single_parent=None):
         self.multi = multi
         self.left = left
@@ -822,6 +824,10 @@ class table:
         self.fk_left_initially = fk_left_initially
         self.fk_right_deferrable = fk_right_deferrable
         self.fk_right_initially = fk_right_initially
+        self.fk_left_ondelete = fk_left_ondelete
+        self.fk_left_onupdate = fk_left_onupdate
+        self.fk_right_ondelete = fk_right_ondelete
+        self.fk_right_onupdate = fk_right_onupdate
         self.explicit_join = explicit_join
         self.order_by = order_by
         self.single_parent = single_parent
