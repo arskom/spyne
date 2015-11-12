@@ -127,7 +127,7 @@ class DateTime(SimpleModel):
         """A regular expression that matches the whole datetime. See here for
         more info: http://www.regular-expressions.info/xml.html"""
 
-        format = None
+        dt_format = None
         """DateTime format fed to the ``strftime`` function. See:
         http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior
         Ignored by protocols like SOAP which have their own ideas about how

@@ -513,6 +513,17 @@ class OutProtocolBase(ProtocolMixin):
     def model_base_to_unicode(self, cls, value, **kwargs):
         return cls.to_unicode(value, **kwargs)
 
+    def _get_datetime_format(self, cls_attrs):
+        dt_format = cls_attrs.dt_format
+        if dt_format is None:
+            dt_format = cls_attrs.date_format
+        if dt_format is None:
+            dt_format = cls_attrs.out_format
+        if dt_format is None:
+            dt_format = cls_attrs.format
+
+        return dt_format
+
     def _datetime_to_string(self, cls, value, **_):
         cls_attrs = self.get_cls_attrs(cls)
         if cls_attrs.as_timezone is not None and value.tzinfo is not None:
@@ -520,32 +531,28 @@ class OutProtocolBase(ProtocolMixin):
         if not cls_attrs.timezone:
             value = value.replace(tzinfo=None)
 
-        # FIXME: this should be date_format, all other aliases are to be
+        # FIXME: this should be dt_format, all other aliases are to be
         # deprecated
-        date_format = cls_attrs.date_format
-        if date_format is None:
-            date_format = cls_attrs.out_format
-        if date_format is None:
-            date_format = cls_attrs.format
+        dt_format = self._get_datetime_format(cls_attrs)
 
-        if date_format is None:
+        if dt_format is None:
             retval = value.isoformat()
-        elif six.PY2 and isinstance(date_format, unicode):
-            retval = value.strftime(date_format.encode('utf8')).decode('utf8')
+        elif six.PY2 and isinstance(dt_format, unicode):
+            retval = value.strftime(dt_format.encode('utf8')).decode('utf8')
         else:
-            retval = value.strftime(date_format)
+            retval = value.strftime(dt_format)
 
         # FIXME: must deprecate string_format, this should have been str_format
-        string_format = cls_attrs.string_format
-        if string_format is None:
-            string_format = cls_attrs.str_format
-        if string_format is not None:
-            return string_format.format(value)
+        str_format = cls_attrs.string_format
+        if str_format is None:
+            str_format = cls_attrs.str_format
+        if str_format is not None:
+            return str_format.format(value)
 
         # FIXME: must deprecate interp_format, this should have been just format
-        format = cls_attrs.interp_format
-        if format is not None:
-            return format.format(value)
+        interp_format = cls_attrs.interp_format
+        if interp_format is not None:
+            return interp_format.format(value)
 
         return retval
 
