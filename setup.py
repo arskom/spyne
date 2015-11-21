@@ -175,7 +175,8 @@ class RunTests(ExtendedTestCommand):
                                      capture=self.capture) or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py',
                                      capture=self.capture) or ret
-        # excluding PyPy as it brokes here on LXML
+
+        # excluding PyPy as it chokes here on LXML
         if not IS_PYPY:
             ret = call_pytest_subprocess('interop/test_suds.py',
                                      capture=self.capture) or ret
