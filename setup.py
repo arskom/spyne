@@ -158,14 +158,21 @@ class RunTests(ExtendedTestCommand):
     def run_tests(self):
         print("Running tests")
         ret = 0
-        tests = ['interface', 'model', 'multipython', 'protocol',
-                          'test_null_server.py', 'test_service.py',
-                          'test_soft_validation.py', 'test_util.py',
-                          'test_sqlalchemy.py',
-                          'test_sqlalchemy_deprecated.py',
-                          'interop/test_pyramid.py',
-                          'interop/test_soap_client_http_twisted.py',
-                          'transport/test_msgpack.py']
+        tests = [
+            'interface', 'model', 'multipython', 'protocol',
+
+            'interop/test_pyramid.py',
+            'interop/test_soap_client_http_twisted.py',
+
+            'transport/test_msgpack.py'
+
+            'test_null_server.py',
+            'test_service.py',
+            'test_soft_validation.py',
+            'test_util.py',
+            'test_sqlalchemy.py',
+            'test_sqlalchemy_deprecated.py',
+        ]
 
         ret = call_pytest(*tests,capture=self.capture) or ret
 
