@@ -182,7 +182,7 @@ set
 
 if [ "$JENKINS_UR" == "https://spyne.ci.cloudbees.com/" ]; then
 
-    export POSTGRESQL_VERSION=9.2.4
+    export POSTGRESQL_VERSION=9.4.5
     curl -s -o use-postgresql https://repository-cloudbees.forge.cloudbees.com/distributions/ci-addons/postgresql/use-postgresql
     source ./use-postgresql
 
