@@ -99,7 +99,12 @@ def run_tests_and_create_report(report_name, *tests, **kwargs):
 
     tests_dir = os.path.dirname(spyne.test.__file__)
 
-    args = ['--twisted', '--tb=short', '--junitxml=%s' % report_name]
+    args = [
+        '--twisted',
+        '--cov-report', 'html', '--cov-report', 'xml', '--cov', '.',
+        '--tb=short',
+        '--junitxml=%s' % report_name,
+    ]
     args.extend('--{0}={1}'.format(k, v) for k, v in kwargs.items())
     args.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
 
