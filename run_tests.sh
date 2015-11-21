@@ -59,11 +59,9 @@ PYNAME=python$PYVER;
 
 if [ -z "$FN" ]; then
     declare -A URLS;
-    URLS["cpy26"]="2.6.9/Python-2.6.9.tgz";
     URLS["cpy27"]="2.7.10/Python-2.7.10.tar.xz";
-    URLS["cpy33"]="3.3.6/Python-3.3.6.tar.xz";
     URLS["cpy34"]="3.4.3/Python-3.4.3.tar.xz";
-    URLS["cpy35"]="3.5.0/Python-3.5.0b3.tar.xz";
+    URLS["cpy35"]="3.5.0/Python-3.5.0.tar.xz";
     URLS["jyt27"]="2.7-b2/jython-installer-2.7-b2.jar";
     URLS["ipy27"]="ipy-2.7.4.zip";
 
@@ -106,7 +104,7 @@ fi;
 
 # Set common variables
 PYTHON="$WORKSPACE/$PREFIX/bin/$PYNAME";
-EASY="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
+PIP="$WORKSPACE/$PREFIX/bin/pip$PYVER";
 TOX="$WORKSPACE/$PREFIX/bin/tox";
 TOX2="$HOME/.local/bin/tox"
 
@@ -173,30 +171,29 @@ elif [ $PYIMPL == 'ipy' ]; then
 
 fi;
 
-# Set up distribute
-if [ ! -x "$EASY" ]; then
-  (
-    mkdir -p .data; cd .data;
-    $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
-  )
-fi;
-
 # Set up tox
 if [ ! -x "$TOX" ]; then
-   $EASY tox;
+   $PIP install tox;
 fi;
 
-#while read line; do $EASY $line; done < requirements/test_requirements.txt
-if [ $PYIMPL == 'cpy' ]; then
-    # Sometimes, easy_install works in mysterious ways...
-    if [ ! -x "$TOX" ]; then
-      TOX="$TOX2"
-    fi;
 
+set
+
+
+if [ "$JENKINS_UR" == "https://spyne.ci.cloudbees.com/" ]; then
+
+    export POSTGRESQL_VERSION=9.2.4
+    curl -s -o use-postgresql https://repository-cloudbees.forge.cloudbees.com/distributions/ci-addons/postgresql/use-postgresql
+    source ./use-postgresql
+
+fi
+
+
+if [ $PYIMPL == 'cpy' ]; then
     # Run tests. Tox runs coverage.
     TENV=${TOX_ENVS[$PYFLAV]};
-    BASEPYTHON="$PYTHON" "$TOX" --version
-    BASEPYTHON="$PYTHON" "$TOX" -e "$TENV" || true;
+    PATH="$WORKSPACE/$PREFIX/bin":"$PATH" BASEPYTHON="$PYTHON" "$TOX" --version
+    PATH="$WORKSPACE/$PREFIX/bin":"$PATH" BASEPYTHON="$PYTHON" "$TOX" -e "$TENV" || true;
 
 else
     # Run tests. No coverage in jython.
