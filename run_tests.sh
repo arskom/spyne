@@ -118,7 +118,7 @@ if [ $PYIMPL == 'cpy' ]; then
         wget -ct0 $CPYTHON_URL_BASE/$FN;
         tar xf $(basename $FN);
         cd "$PREFIX";
-        ./configure --prefix="$WORKSPACE/$PREFIX" --with-pydebug;
+        ./configure --prefix="$WORKSPACE/$PREFIX" --with-pydebug --with-ensurepip;
         $MAKE && make install;
       );
     fi;
@@ -170,6 +170,10 @@ elif [ $PYIMPL == 'ipy' ]; then
     fi;
 
 fi;
+
+
+# Set up pip
+$PYTHON -m ensurepip --upgrade
 
 # Set up tox
 if [ ! -x "$TOX" ]; then
