@@ -173,11 +173,11 @@ fi;
 
 
 # Set up pip
-$PYTHON -m ensurepip --upgrade
+$PYTHON -m ensurepip --upgrade || exit 1;
 
 # Set up tox
 if [ ! -x "$TOX" ]; then
-   $PIP install tox;
+   $PIP install tox || exit 1;
 fi;
 
 
