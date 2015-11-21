@@ -31,6 +31,7 @@ except ImportError:
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 OWN_PATH = abspath(inspect.getfile(inspect.currentframe()))
 EXAMPLES_DIR = join(dirname(OWN_PATH), 'examples')
+PYVER = ''.join([str(i) for i in sys.version_info[:2]])
 
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
@@ -61,7 +62,8 @@ def call_test(f, a, tests):
     from multiprocessing import Process, Queue
 
     tests_dir = os.path.dirname(spyne.test.__file__)
-    a.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
+    if len(tests) > 0:
+        a.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
 
     queue = Queue()
     p = Process(target=_wrapper(f), args=[a, queue])
@@ -135,6 +137,16 @@ def call_pytest_subprocess(*tests, **kwargs):
     return call_test(pytest.main, args, tests)
 
 
+def call_tox_subprocess(env):
+    import tox.session
+
+    file_name = 'test_result.%d.xml' % _ctr
+    if os.path.isfile(file_name):
+        os.unlink(file_name)
+    args = ['-e', env]
+    return call_test(tox.session.main, args, [])
+
+
 class ExtendedTestCommand(TestCommand):
     """TestCommand customized to project needs."""
 
@@ -174,6 +186,7 @@ class RunTests(ExtendedTestCommand):
             'test_sqlalchemy_deprecated.py',
         ]
 
+
         ret = call_pytest(*tests,capture=self.capture) or ret
 
         ret = call_pytest_subprocess('interop/test_httprpc.py',
@@ -182,6 +195,8 @@ class RunTests(ExtendedTestCommand):
                                      capture=self.capture) or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py',
                                      capture=self.capture) or ret
+
+        ret = call_tox_subprocess('py%s-dj1{6,7,8}' % PYVER) or ret
 
         # excluding PyPy as it chokes here on LXML
         if not IS_PYPY:
@@ -208,11 +223,12 @@ class RunPython3Tests(TestCommand):
     def run_tests(self):
         file_name = 'test_result_py3.xml'
         ret = run_tests_and_create_report(file_name,
-                                          'multipython',
-                                          'model/test_enum.py',
-                                          'model/test_exception.py',
-                                          'model/test_include.py',
-                                          )
+            'multipython',
+            'model/test_enum.py',
+            'model/test_exception.py',
+            'model/test_include.py',
+        )
+        ret = call_tox_subprocess('py%s-dj1{7,8}' % PYVER) or ret
 
         if ret == 0:
             print(GREEN + "All Python 3 tests passed." + RESET)

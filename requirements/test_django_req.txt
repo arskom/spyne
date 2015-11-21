@@ -1,4 +1,6 @@
 pytest
 pytest_django
+pytest_cov
+pytest_twisted
 junitxml
 lxml
