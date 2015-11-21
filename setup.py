@@ -242,7 +242,7 @@ setup(
     ],
     keywords=('soap', 'wsdl', 'wsgi', 'zeromq', 'rest', 'rpc', 'json', 'http',
               'msgpack', 'xml', 'django', 'pyramid', 'postgresql', 'sqlalchemy',
-              'werkzeug', 'twisted', 'yaml'),
+              'twisted', 'yaml'),
     author='Burak Arslan',
     author_email='burak+spyne@arskom.com.tr',
     maintainer='Burak Arslan',
