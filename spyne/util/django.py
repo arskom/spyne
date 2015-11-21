@@ -34,8 +34,13 @@ logger = logging.getLogger(__name__)
 import re
 from django.core.exceptions import (ImproperlyConfigured, ObjectDoesNotExist,
                                     ValidationError as DjValidationError)
-from django.core.validators import (slug_re, comma_separated_int_list_re,
+from django.core.validators import (slug_re,
                                     MinLengthValidator, MaxLengthValidator)
+try:
+    from django.core.validators import comma_separated_int_list_re
+except ImportError:
+    comma_separated_int_list_re = re.compile('^[\d,]+$')
+
 from spyne.error import (ResourceNotFoundError, ValidationError as
                          BaseValidationError, Fault)
 from spyne.model import primitive
