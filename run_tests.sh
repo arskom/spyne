@@ -179,12 +179,7 @@ fi;
 set
 
 
-if [ $PYIMPL == 'cpy' ]; then
-    "$PIP" install -rrequirements/test_requirements.txt
-    "$PYTHON" setup.py test
+"$PIP" install -rrequirements/test_requirements.txt || exit 1;
 
-else
-    # Run tests. No coverage in jython.
-    $PYTHON setup.py test || true;
-
-fi;
+# ignore return value -- result information is in the produced xml files
+"$PYTHON" setup.py test || true;
