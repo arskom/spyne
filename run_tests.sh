@@ -180,6 +180,7 @@ set
 
 
 if [ $PYIMPL == 'cpy' ]; then
+    "$PIP" install -rrequirements/test_requirements.txt
     "$PYTHON" setup.py test
 
 else
