@@ -10,6 +10,7 @@ before_install:
 install:
   - pip install tox
 script:
+  - pip install -r requirements/test_requirements.txt
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python setup.py test; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python setup.py test_python3; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then python setup.py test_python3; fi
