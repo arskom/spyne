@@ -10,10 +10,9 @@ before_install:
 install:
   - pip install tox
 script:
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then tox -e py27,py27-dj1.6.x,py27-dj1.7.x,py27-dj1.8.x; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.3' ]]; then tox -e py33-travis,py33-dj1.7.x,py33-dj1.8.x; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then tox -e py34-travis,py34-dj1.7.x,py34-dj1.8.x; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then tox -e py35-travis,py35-dj1.7.x,py35-dj1.8.x; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python setup.py test; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python setup.py test_python3; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then python setup.py test_python3; fi
 
   # disable pypy -- travis' pypy deployment seems broken
   # - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then tox -e pypy; fi
