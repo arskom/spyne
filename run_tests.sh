@@ -116,6 +116,8 @@ if [ $PYIMPL == 'cpy' ]; then
       );
     fi;
 
+    export PATH="$WORKSPACE/$PREFIX/bin":"$PATH";
+
 elif [ $PYIMPL == 'jyt' ]; then
     if [ ! -x "$PYTHON" ]; then
       (
