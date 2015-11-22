@@ -255,9 +255,15 @@ class RunPython3Tests(TestCommand):
         file_name = 'test_result_py3.xml'
         ret = run_tests_and_create_report(file_name,
             'multipython',
+            'test_sqlalchemy.py',
+            'interface/test_interface.py',
+            'interface/wsdl/test_wsdl_ports_services.py',
             'model/test_enum.py',
             'model/test_exception.py',
             'model/test_include.py',
+            'protocol/test_xml.py',
+            'protocol/test_soap11.py',
+            'protocol/test_soap12.py',
         )
         ret = call_tox_subprocess('py%s-dj1{7,8}' % PYVER) or ret
 
