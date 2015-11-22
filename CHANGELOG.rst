@@ -2,6 +2,10 @@
 Changelog
 =========
 
+spyne-2.13.0
+------------
+* Modernized test infrastructure.
+
 spyne-2.12.11
 -------------
 * Fix self-referential relationships pointing the wrong way
