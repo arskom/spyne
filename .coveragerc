@@ -1,0 +1,4 @@
+[run]
+include = spyne
+omit = spyne/test
+
