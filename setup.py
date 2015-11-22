@@ -82,6 +82,7 @@ def call_test(f, a, tests, env={}):
 
 
 def _wrapper(f):
+    import traceback
     def _(args, queue, env):
         print("env:", env)
         for k, v in env.items():
@@ -90,6 +91,10 @@ def _wrapper(f):
             retval = f(args)
         except SystemExit as e:
             retval = e.code
+        except BaseException as e:
+            print(traceback.format_exc())
+            retval = 1
+
         queue.put(retval)
 
     return _
