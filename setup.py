@@ -167,7 +167,7 @@ def call_coverage():
 
     coverage.cmdline.main(['combine'])
     call_test(coverage.cmdline.main, ['combine'], [])
-    call_test(coverage.cmdline.main, ['xml'], [])
+    call_test(coverage.cmdline.main, ['xml', '-i'], [])
 
     return 0
 
