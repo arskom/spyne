@@ -237,7 +237,7 @@ class RunTests(ExtendedTestCommand):
             print(RED + "Something is rotten in the state of Denmark." + RESET)
 
         print ("Generating coverage.xml")
-        ret = call_coverage()
+        call_coverage()
 
         raise SystemExit(ret)
 
@@ -255,7 +255,6 @@ class RunPython3Tests(TestCommand):
         file_name = 'test_result_py3.xml'
         ret = run_tests_and_create_report(file_name,
             'multipython',
-            'test_sqlalchemy.py',
             'interface/test_interface.py',
             'interface/wsdl/test_wsdl_ports_services.py',
             'model/test_enum.py',
@@ -273,7 +272,7 @@ class RunPython3Tests(TestCommand):
             print(RED + "Something is rotten in the state of Denmark." + RESET)
 
         print ("Generating coverage.xml")
-        ret = call_coverage()
+        call_coverage()
 
         raise SystemExit(ret)
 
