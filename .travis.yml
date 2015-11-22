@@ -3,8 +3,6 @@ python:
   - "2.7"
   - "3.4"
   - "3.5"
-  # seems no 3.5 yet on travis
-  # - "3.5"
   # disable pypy -- travis' pypy deployment seems broken
   # - "pypy"
 before_install:
