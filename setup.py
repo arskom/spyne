@@ -57,7 +57,7 @@ except OSError:
 ###############################
 # Testing stuff
 
-def call_test(f, a, tests):
+def call_test(f, a, tests, env={}):
     import spyne.test
     from multiprocessing import Process, Queue
 
@@ -66,27 +66,30 @@ def call_test(f, a, tests):
         a.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
 
     queue = Queue()
-    p = Process(target=_wrapper(f), args=[a, queue])
+    p = Process(target=_wrapper(f), args=[a, queue, env])
     p.start()
     p.join()
 
     ret = queue.get()
     if ret == 0:
-        print(tests, "OK")
+        print(tests or a, "OK")
     else:
-        print(tests, "FAIL")
+        print(tests or a, "FAIL")
+
+    print()
 
     return ret
 
 
 def _wrapper(f):
-    def _(args, queue):
+    def _(args, queue, env):
+        print("env:", env)
+        for k, v in env.items():
+            os.environ[k] = v
         try:
             retval = f(args)
-        except TypeError:  # it's a pain to call trial.
-            sys.argv = ['trial']
-            sys.argv.extend(args)
-            retval = f()
+        except SystemExit as e:
+            retval = e.code
         queue.put(retval)
 
     return _
@@ -103,7 +106,7 @@ def run_tests_and_create_report(report_name, *tests, **kwargs):
 
     args = [
         '--twisted',
-        '--cov-report', 'html', '--cov-report', 'xml', '--cov', '.',
+        '--cov-report=', '--cov', 'spyne',
         '--tb=short',
         '--junitxml=%s' % report_name,
     ]
@@ -121,6 +124,8 @@ def call_pytest(*tests, **kwargs):
 
     _ctr += 1
     file_name = 'test_result.%d.xml' % _ctr
+    os.environ['COVERAGE_FILE'] = '.coverage.%d' % _ctr
+
     return run_tests_and_create_report(file_name, *tests, **kwargs)
 
 
@@ -132,19 +137,34 @@ def call_pytest_subprocess(*tests, **kwargs):
     file_name = 'test_result.%d.xml' % _ctr
     if os.path.isfile(file_name):
         os.unlink(file_name)
-    args = ['--tb=line', '--junitxml=%s' % file_name]
+
+    env = {'COVERAGE_FILE': '.coverage.%d' % _ctr}
+
+    args = [
+        '--twisted',
+        '--cov-report=', '--cov', 'spyne',
+        '--tb=line',
+        '--junitxml=%s' % file_name
+    ]
     args.extend('--{0}={1}'.format(k, v) for k, v in kwargs.items())
-    return call_test(pytest.main, args, tests)
+    return call_test(pytest.main, args, tests, env)
 
 
 def call_tox_subprocess(env):
     import tox.session
 
-    file_name = 'test_result.%d.xml' % _ctr
-    if os.path.isfile(file_name):
-        os.unlink(file_name)
     args = ['-e', env]
+
     return call_test(tox.session.main, args, [])
+
+def call_coverage():
+    import coverage.cmdline
+
+    coverage.cmdline.main(['combine'])
+    call_test(coverage.cmdline.main, ['combine'], [])
+    call_test(coverage.cmdline.main, ['xml'], [])
+
+    return 0
 
 
 class ExtendedTestCommand(TestCommand):
@@ -170,6 +190,7 @@ class RunTests(ExtendedTestCommand):
     def run_tests(self):
         print("Running tests")
         ret = 0
+
         tests = [
             'interface', 'model', 'multipython', 'protocol',
 
@@ -186,9 +207,8 @@ class RunTests(ExtendedTestCommand):
             'test_sqlalchemy_deprecated.py',
         ]
 
-
-        ret = call_pytest(*tests,capture=self.capture) or ret
-
+        ret = call_pytest_subprocess(*tests,
+                                     capture=self.capture) or ret
         ret = call_pytest_subprocess('interop/test_httprpc.py',
                                      capture=self.capture) or ret
         ret = call_pytest_subprocess('interop/test_soap_client_http.py',
@@ -196,17 +216,23 @@ class RunTests(ExtendedTestCommand):
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py',
                                      capture=self.capture) or ret
 
-        ret = call_tox_subprocess('py%s-dj1{6,7,8}' % PYVER) or ret
-
         # excluding PyPy as it chokes here on LXML
         if not IS_PYPY:
             ret = call_pytest_subprocess('interop/test_suds.py',
                                      capture=self.capture) or ret
 
+        if PYVER.startswith('2'):
+            ret = call_tox_subprocess('py%s-dj16' % PYVER) or ret
+        ret = call_tox_subprocess('py%s-dj17' % PYVER) or ret
+        ret = call_tox_subprocess('py%s-dj18' % PYVER) or ret
+
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)
         else:
             print(RED + "Something is rotten in the state of Denmark." + RESET)
+
+        print ("Generating coverage.xml")
+        ret = call_coverage()
 
         raise SystemExit(ret)
 
@@ -231,9 +257,12 @@ class RunPython3Tests(TestCommand):
         ret = call_tox_subprocess('py%s-dj1{7,8}' % PYVER) or ret
 
         if ret == 0:
-            print(GREEN + "All Python 3 tests passed." + RESET)
+            print(GREEN + "All that glisters is not gold." + RESET)
         else:
-            print(RED + "At one Python 3 test failed." + RESET)
+            print(RED + "Something is rotten in the state of Denmark." + RESET)
+
+        print ("Generating coverage.xml")
+        ret = call_coverage()
 
         raise SystemExit(ret)
 
