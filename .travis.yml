@@ -3,17 +3,17 @@ python:
   - "2.7"
   - "3.4"
   - "3.5"
+  # seems no 3.5 yet on travis
   # - "3.5"
-  - "pypy"
+  # disable pypy -- travis' pypy deployment seems broken
+  # - "pypy"
 before_install:
   - sudo apt-get install -qq libzmq3-dev
 install:
   - pip install tox
 script:
   - pip install -r requirements/test_requirements.txt
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python setup.py test; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then python setup.py test_python3; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then python setup.py test_python3; fi
-
-  # disable pypy -- travis' pypy deployment seems broken
-  # - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then tox -e pypy; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then  python setup.py test; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then  python setup.py test_python3; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then  python setup.py test_python3; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then pypi setup.py test; fi
