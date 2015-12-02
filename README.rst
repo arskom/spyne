@@ -120,7 +120,7 @@ so that you can painlessly test your patches.
 
 Finally, to run the tests use: ::
 
-    pyhon setup.py test
+    python setup.py test
 
 The test script should first install every single library that Spyne integrates
 with to the current directory, along with additional packages like pytest or tox
