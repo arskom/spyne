@@ -106,6 +106,10 @@ class Soap12(Soap11):
                     child_subcode = self.generate_subcode(value, child_subcode)
                 else:
                     child_subcode = self.generate_subcode(value)
+
+            if child_subcode == 0:
+                child_subcode = self.generate_subcode(value)
+
             code.append(child_subcode)
 
             _append(subelts, code)
