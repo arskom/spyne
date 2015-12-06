@@ -96,6 +96,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.factory = factory
         self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self.spyne_tpt = tpt
+        self.spyne_tpt.out_write = self._transport_write
 
         self.sessid = ''
         self.sent_bytes = 0
@@ -177,7 +178,7 @@ class TwistedMessagePackProtocol(Protocol):
 
         self.process_contexts(p_ctx, others)
 
-    def transport_write(self, data):
+    def _transport_write(self, data):
         if self.out_chunk_size == 0:
             self.transport.write(data)
             self.sent_bytes += len(data)
@@ -225,7 +226,7 @@ class TwistedMessagePackProtocol(Protocol):
         out_string = msgpack.packb([
             error, msgpack.packb(data),
         ])
-        self.transport_write(out_string)
+        self.spyne_tpt.write(id(p_ctx), out_string)
         p_ctx.transport.resp_length = len(out_string)
         p_ctx.close()
 
@@ -279,7 +280,7 @@ def _eb_deferred(fail, prot, p_ctx, others):
 
     data_len = 0
     for data in p_ctx.out_string:
-        prot.transport_write(data)
+        prot.spyne_tpt.write(data)
         data_len += len(data)
 
     p_ctx.transport.resp_length = data_len
@@ -298,8 +299,9 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
         prot.spyne_tpt.pack(p_ctx)
 
         out_string = ''.join(p_ctx.out_string)
-        prot.transport_write(out_string)
         p_ctx.transport.resp_length = len(out_string)
+
+        prot.spyne_tpt.write(id(p_ctx), out_string)
 
     except Exception as e:
         logger.exception(e)

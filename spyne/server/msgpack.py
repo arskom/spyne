@@ -22,6 +22,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+from collections import OrderedDict
+
 import msgpack
 
 from spyne import MethodContext, TransportContext
@@ -78,9 +80,15 @@ class MessagePackTransportBase(ServerBase):
     def __init__(self, app):
         super(MessagePackTransportBase, self).__init__(app)
 
+        self.inreq_queue = OrderedDict()
+
         self._version_map = {
             self.IN_REQUEST: _process_v1_msg
         }
+
+        self.out_write = None
+        """The file-like object for the outgoing byte stream. This has to be set
+        by the implementation."""
 
     def produce_contexts(self, msg):
         """msg = [IN_REQUEST, body, header]"""
@@ -105,7 +113,22 @@ class MessagePackTransportBase(ServerBase):
         initial_ctx = processor(self, msg)
         contexts = self.generate_contexts(initial_ctx)
 
+        self.inreq_queue[id(contexts[0])] = None
+
         return contexts[0], contexts[1:]
+
+    def write(self, ctxid, data):
+        assert self.inreq_queue[ctxid] is None
+
+        self.inreq_queue[ctxid] = data
+
+        for k, v in self.inreq_queue.items():
+            if v is None:
+                break
+
+            self.out_write(v)
+
+            del self.inreq_queue[k]
 
     def process_contexts(self, contexts):
         p_ctx, others = contexts[0], contexts[1:]
