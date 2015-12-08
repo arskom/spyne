@@ -6,6 +6,7 @@ python:
   # disable pypy -- travis' pypy deployment seems broken
   # - "pypy"
 before_install:
+  - sudo apt-get update
   - sudo apt-get install -qq libzmq-dev
 install:
   - pip install tox
