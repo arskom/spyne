@@ -499,26 +499,28 @@ class InProtocolBase(ProtocolMixin):
         parser = cls_attrs.parser
 
         # get date_format
-        date_format = cls_attrs.date_format
-        if date_format is None:
-            date_format = cls_attrs.out_format
-        if date_format is None:
-            date_format = cls_attrs.format
+        dt_format = cls_attrs.dt_format
+        if dt_format is None:
+            dt_format = cls_attrs.date_format
+        if dt_format is None:
+            dt_format = cls_attrs.out_format
+        if dt_format is None:
+            dt_format = cls_attrs.format
 
         # parse the string
         if parser is not None:
             retval = parser(self, cls, string)
 
-        elif date_format is not None:
+        elif dt_format is not None:
             if six.PY2:
                 # FIXME: perhaps it should encode to string's encoding instead
                 # of utf8 all the time
-                if isinstance(date_format, unicode):
-                    date_format = date_format.encode('utf8')
+                if isinstance(dt_format, unicode):
+                    dt_format = dt_format.encode('utf8')
                 if isinstance(string, unicode):
                     string = string.encode('utf8')
 
-            retval = datetime.strptime(string, date_format)
+            retval = datetime.strptime(string, dt_format)
 
             astz = cls_attrs.as_timezone
             if astz:
