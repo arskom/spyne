@@ -851,7 +851,7 @@ class ComplexModelBase(ModelBase):
                     if v.Attributes.exc_table:
                         try:
                             setattr(self, k, None)
-                        except AttributeError: # it could be a read-only property
+                        except AttributeError:  # it could be a read-only property
                             pass
 
                     elif issubclass(v, ComplexModelBase) and \
