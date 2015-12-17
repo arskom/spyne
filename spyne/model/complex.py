@@ -856,7 +856,10 @@ class ComplexModelBase(ModelBase):
 
                     elif issubclass(v, ComplexModelBase) and \
                                                   v.Attributes.store_as is None:
-                        setattr(self, k, None)
+                        try:
+                            setattr(self, k, None)
+                        except AttributeError:  # it could be a read-only property
+                            pass
                 else:
                     setattr(self, k, None)
 
