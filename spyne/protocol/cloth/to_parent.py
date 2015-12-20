@@ -122,7 +122,7 @@ class ToParentMixin(OutProtocolBase):
         if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
             cls, inst = self.strip_wrappers(cls, inst)
 
-        # if cls is an iterable of values and it's not been iterated on, do it
+        # if cls is an iterable of values and it's not being iterated on, do it
         from_arr = kwargs.get('from_arr', False)
         if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
