@@ -286,7 +286,7 @@ def _eb_deferred(fail, prot, p_ctx, others):
 
     data_len = 0
     for data in p_ctx.out_string:
-        prot.spyne_tpt.write(data)
+        prot.spyne_tpt.write(id(p_ctx), data)
         data_len += len(data)
 
     p_ctx.transport.resp_length = data_len
