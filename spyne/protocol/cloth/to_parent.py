@@ -143,7 +143,7 @@ class ToParentMixin(OutProtocolBase):
 
         # push the instance at hand to instance stack. this makes it easier for
         # protocols to make decisions based on parents of instances at hand.
-        ctx.outprot_ctx.inst_stack.append( (cls, inst) )
+        ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
 
         # finally, serialize the value. retval is the coroutine handle if any
         identifier = "%s.%s" % (prot_name, handler.__name__)
