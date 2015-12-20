@@ -93,17 +93,16 @@ class TwistedMessagePackProtocol(Protocol):
         from spyne.server.msgpack import MessagePackTransportBase
         assert isinstance(tpt, MessagePackTransportBase)
 
-        self.factory = factory
-        self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self.spyne_tpt = tpt
-        self.spyne_tpt.out_write = self._transport_write
+        self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
+        self.out_chunk_size = out_chunk_size
+        self.out_chunk_delay_sec = out_chunk_delay_sec
+        self.factory = factory
 
         self.sessid = ''
         self.sent_bytes = 0
         self.recv_bytes = 0
         self.out_chunks = deque()
-        self.out_chunk_size = out_chunk_size
-        self.out_chunk_delay_sec = out_chunk_delay_sec
         self._delaying = None
         self.idle_timer = None
         self.disconnecting = False  # FIXME: should we use this to raise an
@@ -127,8 +126,15 @@ class TwistedMessagePackProtocol(Protocol):
         return md5(repr(retval)).hexdigest()
 
     def connectionMade(self):
+        self.spyne_tpt.out_write = self._transport_write
+        self.sessid = ''
         self.sent_bytes = 0
         self.recv_bytes = 0
+        self.out_chunks = deque()
+        self._delaying = None
+        self.idle_timer = None
+        self.disconnecting = False  # FIXME: should we use this to raise an
+                                    # invalid connection state exception ?
         self._reset_idle_timer()
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_made", self)

@@ -122,7 +122,7 @@ class MessagePackTransportBase(ServerBase):
 
         self.inreq_queue[ctxid] = data
 
-        for k, v in self.inreq_queue.items():
+        for k, v in list(self.inreq_queue.items()):
             if v is None:
                 break
 
@@ -168,6 +168,7 @@ class MessagePackTransportBase(ServerBase):
     def pack(self, ctx):
         ctx.out_string = msgpack.packb([self.OUT_RESPONSE_NO_ERROR,
                                                       ''.join(ctx.out_string)]),
+
 
 class MessagePackServerBase(MessagePackTransportBase):
     """Contains the transport protocol logic but not the transport itself.
