@@ -60,6 +60,7 @@ class MessagePackTransportContext(TransportContext):
 
         self.in_header = None
         self.protocol = None
+        self.inreq_queue = OrderedDict()
 
 
 class MessagePackMethodContext(MethodContext):
@@ -80,18 +81,15 @@ class MessagePackTransportBase(ServerBase):
     def __init__(self, app):
         super(MessagePackTransportBase, self).__init__(app)
 
-        self.inreq_queue = OrderedDict()
-
         self._version_map = {
             self.IN_REQUEST: _process_v1_msg
         }
 
-        self.out_write = None
-        """The file-like object for the outgoing byte stream. This has to be set
-        by the implementation."""
-
     def produce_contexts(self, msg):
-        """msg = [IN_REQUEST, body, header]"""
+        """Produce contexts based on incoming message.
+
+        :param msg: Parsed request in this format: `[IN_REQUEST, body, header]`
+        """
 
         if not isinstance(msg, list):
             logger.debug("Incoming request: %r", msg)
@@ -99,36 +97,25 @@ class MessagePackTransportBase(ServerBase):
 
         if not len(msg) >= 2:
             logger.debug("Incoming request: %r", msg)
-            raise ValidationError(msg, "Request must have at least two elements.")
+            raise ValidationError(len(msg), "Request must have at least two "
+                                                          "elements. It has %r")
 
         if not isinstance(msg[0], int):
             logger.debug("Incoming request: %r", msg)
-            raise ValidationError(msg[0], "Request version must be an integer.")
+            raise ValidationError(msg[0], "Request version must be an integer. "
+                                                                    "It was %r")
 
         processor = self._version_map.get(msg[0], None)
         if processor is None:
             logger.debug("Incoming request: %r", msg)
-            raise ValidationError(msg[0], "Unknown request type")
+            raise ValidationError(msg[0], "Unknown request type %r")
 
         initial_ctx = processor(self, msg)
         contexts = self.generate_contexts(initial_ctx)
 
-        self.inreq_queue[id(contexts[0])] = None
+        p_ctx, others = contexts[0], contexts[1:]
 
-        return contexts[0], contexts[1:]
-
-    def write(self, ctxid, data):
-        assert self.inreq_queue[ctxid] is None
-
-        self.inreq_queue[ctxid] = data
-
-        for k, v in list(self.inreq_queue.items()):
-            if v is None:
-                break
-
-            self.out_write(v)
-
-            del self.inreq_queue[k]
+        return p_ctx, others
 
     def process_contexts(self, contexts):
         p_ctx, others = contexts[0], contexts[1:]
