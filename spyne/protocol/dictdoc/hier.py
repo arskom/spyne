@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
-from collections import defaultdict
+from collections import defaultdict, Iterable as AbcIterable
 
 from spyne.util import six
 from spyne.error import ValidationError
@@ -154,6 +154,9 @@ class HierDictDocument(DictDocument):
         if issubclass(cls, Array):
             retval = []
             (serializer,) = cls._type_info.values()
+
+            if not isinstance(doc, AbcIterable):
+                raise ValidationError(doc)
 
             for i, child in enumerate(doc):
                 retval.append(self._from_dict_value(i, serializer, child,

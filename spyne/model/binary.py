@@ -126,7 +126,16 @@ class ByteArray(SimpleModel):
         #FIXME: Find out why we need to do this.
         if isinstance(value, six.text_type):
             value = value.encode('utf8')
-        return [urlsafe_b64decode(_bytes_join(value))]
+        try:
+            return [urlsafe_b64decode(_bytes_join(value))]
+
+        except TypeError as e:
+            logger.exception(e)
+
+            if len(value) > 100:
+                raise ValidationError(value)
+            else:
+                raise ValidationError(value[:100] + "(...)")
 
     @classmethod
     def to_hex(cls, value):

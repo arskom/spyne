@@ -145,8 +145,8 @@ cluttering it as much as possible.
 Contributing
 ============
 
-Please see the CONTRIBUTING.rst file in the Spyne source distribution for
-information about how you can help Spyne get more awesome.
+If you feel like helping out, see the CONTRIBUTING.rst file in the Spyne source
+distribution for starting points and general guidelines.
 
 Acknowledgments
 ===============

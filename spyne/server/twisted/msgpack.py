@@ -26,7 +26,7 @@ import msgpack
 
 from time import time
 from hashlib import md5
-from collections import deque
+from collections import deque, OrderedDict
 from itertools import chain
 
 from twisted.python import log
@@ -84,7 +84,7 @@ class TwistedMessagePackProtocol(Protocol):
                                            out_chunk_delay_sec=1, factory=None):
         """Twisted protocol implementation for Spyne's MessagePack transport.
 
-        :param tpt: Spyne transport.
+        :param tpt: Spyne transport. It's an app-wide instance.
         :param max_buffer_size: Max. encoded message size.
         :param out_chunk_size: Split
         :param factory: Twisted protocol factory
@@ -93,19 +93,19 @@ class TwistedMessagePackProtocol(Protocol):
         from spyne.server.msgpack import MessagePackTransportBase
         assert isinstance(tpt, MessagePackTransportBase)
 
-        self.factory = factory
-        self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self.spyne_tpt = tpt
-        self.spyne_tpt.out_write = self._transport_write
-
-        self.sessid = ''
-        self.sent_bytes = 0
-        self.recv_bytes = 0
-        self.out_chunks = deque()
+        self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self.out_chunk_size = out_chunk_size
         self.out_chunk_delay_sec = out_chunk_delay_sec
+        self.factory = factory
+
+        self.sessid = ''
         self._delaying = None
+        self.sent_bytes = 0
+        self.recv_bytes = 0
         self.idle_timer = None
+        self.out_chunks = deque()
+        self.inreq_queue = OrderedDict()
         self.disconnecting = False  # FIXME: should we use this to raise an
                                     # invalid connection state exception ?
 
@@ -127,13 +127,23 @@ class TwistedMessagePackProtocol(Protocol):
         return md5(repr(retval)).hexdigest()
 
     def connectionMade(self):
+        logger.debug("%08x connection made", id(self))
+        self.sessid = ''
+        self._delaying = None
         self.sent_bytes = 0
         self.recv_bytes = 0
+        self.idle_timer = None
+        self.out_chunks = deque()
+        self.inreq_queue = OrderedDict()
+        self.disconnecting = False  # FIXME: should we use this to raise an
+                                    # invalid connection state exception ?
+
         self._reset_idle_timer()
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_made", self)
 
     def connectionLost(self, reason=connectionDone):
+        logger.debug("%08x connection lost: %s", id(self), reason)
         self.disconnecting = False
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_lost", self)
@@ -176,9 +186,23 @@ class TwistedMessagePackProtocol(Protocol):
         p_ctx.transport.protocol = self
         p_ctx.transport.sessid = self.sessid
 
+        self.inreq_queue[id(p_ctx)] = None
         self.process_contexts(p_ctx, others)
 
-    def _transport_write(self, data):
+    def enqueue_outresp_data(self, ctxid, data):
+        assert self.inreq_queue[ctxid] is None
+        self.inreq_queue[ctxid] = data
+
+        for k, v in list(self.inreq_queue.items()):
+            if v is None:
+                break
+
+            self.out_write(v)
+
+            del self.inreq_queue[k]
+
+    def out_write(self, data):
+        print "#" * 10, self.inreq_queue
         if self.out_chunk_size == 0:
             self.transport.write(data)
             self.sent_bytes += len(data)
@@ -223,10 +247,13 @@ class TwistedMessagePackProtocol(Protocol):
         data = p_ctx.out_document[0]
         if isinstance(data, dict):
             data = data.values()
+
         out_string = msgpack.packb([
             error, msgpack.packb(data),
         ])
-        self.spyne_tpt.write(id(p_ctx), out_string)
+
+        self.enqueue_outresp_data(id(p_ctx), out_string)
+
         p_ctx.transport.resp_length = len(out_string)
         p_ctx.close()
 
@@ -280,7 +307,7 @@ def _eb_deferred(fail, prot, p_ctx, others):
 
     data_len = 0
     for data in p_ctx.out_string:
-        prot.spyne_tpt.write(data)
+        prot.enqueue_outresp_data(id(p_ctx), data)
         data_len += len(data)
 
     p_ctx.transport.resp_length = data_len
@@ -301,7 +328,7 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
         out_string = ''.join(p_ctx.out_string)
         p_ctx.transport.resp_length = len(out_string)
 
-        prot.spyne_tpt.write(id(p_ctx), out_string)
+        prot.enqueue_outresp_data(id(p_ctx), out_string)
 
     except Exception as e:
         logger.exception(e)

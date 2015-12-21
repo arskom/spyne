@@ -122,7 +122,7 @@ class ToParentMixin(OutProtocolBase):
         if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
             cls, inst = self.strip_wrappers(cls, inst)
 
-        # if cls is an iterable of values and it's not been iterated on, do it
+        # if cls is an iterable of values and it's not being iterated on, do it
         from_arr = kwargs.get('from_arr', False)
         if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
@@ -143,7 +143,7 @@ class ToParentMixin(OutProtocolBase):
 
         # push the instance at hand to instance stack. this makes it easier for
         # protocols to make decisions based on parents of instances at hand.
-        ctx.outprot_ctx.inst_stack.append( (cls, inst) )
+        ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
 
         # finally, serialize the value. retval is the coroutine handle if any
         identifier = "%s.%s" % (prot_name, handler.__name__)
