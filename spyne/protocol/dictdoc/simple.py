@@ -121,20 +121,20 @@ class SimpleDictDocument(DictDocument):
                     native_v2 = v2
                 else:
                     native_v2 = self.from_unicode(member.type, v2,
-                                                       self.binary_encoding)
+                                                           self.binary_encoding)
 
             elif issubclass(member.type, ByteArray):
                 native_v2 = self.from_unicode(member.type, v2,
-                                                       self.binary_encoding)
+                                                           self.binary_encoding)
             else:
                 try:
                     native_v2 = self.from_unicode(member.type, v2)
                 except ValidationError as e:
                     raise ValidationError(e.faultstring,
-                        "Validation failed for %r.%r: %%s" % (cls, k))
+                                  "Validation failed for %r.%r: %%s" % (cls, k))
 
             if (validator is self.SOFT_VALIDATION and not
-                       member.type.validate_native(member.type, native_v2)):
+                           member.type.validate_native(member.type, native_v2)):
                 raise ValidationError((orig_k, v2))
 
             value.append(native_v2)
