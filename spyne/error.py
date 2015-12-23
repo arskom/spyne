@@ -72,8 +72,6 @@ class ValidationError(Fault):
     def __init__(self, obj, custom_msg='The value %r could not be validated.'):
         s = repr(obj)
 
-        if len(s) > MAX_STRING_FIELD_LENGTH:
-            s = s[:MAX_STRING_FIELD_LENGTH] + "(...)"
         try:
             msg = custom_msg % s
         except TypeError:
