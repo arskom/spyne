@@ -241,14 +241,14 @@ class _Value(ComplexModel):
                 self.handle.write(d)
 
         elif self.handle is not None:
-            self.data = mmap(self.handle.fileno(), 0)  # 0 = whole file
+            self.data = [mmap(self.handle.fileno(), 0)]  # 0 = whole file
 
         elif self.path is not None:
             if not isfile(self.path):
                 logger.error("File path in %r not found", self)
 
             self.handle = open(self.path, 'rb')
-            self.data = mmap(self.handle.fileno(), 0, access=ACCESS_READ)
+            self.data = [mmap(self.handle.fileno(), 0, access=ACCESS_READ)]
             self.abspath = abspath(self.path)
             self.name = self.path = basename(self.path)
 
