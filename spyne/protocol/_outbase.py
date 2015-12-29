@@ -380,7 +380,10 @@ class OutProtocolBase(ProtocolMixin):
     def byte_array_to_string(self, cls, value, suggested_encoding=None, **_):
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
-            encoding = suggested_encoding
+            if suggested_encoding is None:
+                encoding = self.binary_encoding
+            else:
+                encoding = suggested_encoding
         return binary_encoding_handlers[encoding](value)
 
     def byte_array_to_unicode(self, cls, value, suggested_encoding=None, **_):
@@ -404,21 +407,32 @@ class OutProtocolBase(ProtocolMixin):
 
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
-            encoding = suggested_encoding
+            if suggested_encoding is None:
+                encoding = self.binary_encoding
+            else:
+                encoding = suggested_encoding
 
         if isinstance(value, File.Value):
             if value.data is not None:
                 return binary_encoding_handlers[encoding](value.data)
 
             if value.handle is not None:
-                assert isinstance(value.handle, file)
+                if hasattr(value.handle, 'fileno'):
+                    fileno = value.handle.fileno()
+                    data = mmap(fileno, 0, access=ACCESS_READ)
+                else:
+                    data = value.handle.read()
 
-                fileno = value.handle.fileno()
+                return binary_encoding_handlers[encoding](data)
+
+            if value.path is not None:
+                handle = open(value.path, 'rb')
+                fileno = handle.fileno()
                 data = mmap(fileno, 0, access=ACCESS_READ)
 
                 return binary_encoding_handlers[encoding](data)
 
-            assert False
+            assert False, "Unhandled file type"
 
         return binary_encoding_handlers[encoding](value)
 
