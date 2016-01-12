@@ -95,6 +95,7 @@ class JsonDocument(HierDictDocument):
     """
 
     mime_type = 'application/json'
+    text_based = True
 
     type = set(HierDictDocument.type)
     type.add('json')

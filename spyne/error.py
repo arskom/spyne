@@ -24,7 +24,6 @@ code can throw.
 
 
 from spyne.model.fault import Fault
-from spyne.const import MAX_STRING_FIELD_LENGTH
 
 
 class InvalidCredentialsError(Fault):
@@ -62,9 +61,12 @@ class InvalidInputError(Fault):
     """Raised when there is a general problem with input data."""
 
     def __init__(self, faultstring="", data=""):
-        super(InvalidInputError, self).__init__('Client.InvalidInput', repr((faultstring, data)))
+        super(InvalidInputError, self).__init__('Client.InvalidInput',
+                                                      repr((faultstring, data)))
+
 
 InvalidRequestError = InvalidInputError
+
 
 class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
@@ -72,8 +74,6 @@ class ValidationError(Fault):
     def __init__(self, obj, custom_msg='The value %r could not be validated.'):
         s = repr(obj)
 
-        if len(s) > MAX_STRING_FIELD_LENGTH:
-            s = s[:MAX_STRING_FIELD_LENGTH] + "(...)"
         try:
             msg = custom_msg % s
         except TypeError:

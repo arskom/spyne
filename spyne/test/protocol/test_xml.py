@@ -23,17 +23,16 @@ from __future__ import print_function
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-
 import unittest
 import decimal
 import datetime
 
 from pprint import pprint
+from base64 import b64encode
 
 from lxml import etree
 
-
-from spyne import MethodContext, rpc
+from spyne import MethodContext, rpc, ByteArray, File
 from spyne._base import FakeContext
 from spyne.const import RESULT_SUFFIX
 from spyne.service import ServiceBase
@@ -478,6 +477,21 @@ class TestIncremental(unittest.TestCase):
         eltstr = etree.tostring(elt)
         print(eltstr)
         assert eltstr == b'<Action/>'
+
+    def test_bytearray(self):
+        v = b'aaaa'
+        elt = get_object_as_xml([v], ByteArray, 'B')
+        eltstr = etree.tostring(elt)
+        print(eltstr)
+        assert elt.text == b64encode(v).decode('ascii')
+
+    def test_file(self):
+        v = b'aaaa'
+        f = BytesIO(v)
+        elt = get_object_as_xml(File.Value(handle=f), File, 'B')
+        eltstr = etree.tostring(elt)
+        print(eltstr)
+        assert elt.text == b64encode(v).decode('ascii')
 
     def test_fault_detail_as_dict(self):
         elt = get_object_as_xml(Fault(detail={"this": "that"}), Fault)

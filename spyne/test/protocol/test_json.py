@@ -41,8 +41,13 @@ from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 from spyne.test.protocol._test_dictdoc import TDry
 
 
-TestDictDocument = TDictDocumentTest(json, JsonDocument,
-                                            dumps_kwargs=dict(cls=JsonEncoder))
+class TestDictDocument(TDictDocumentTest(json, JsonDocument,
+                                           dumps_kwargs=dict(cls=JsonEncoder))):
+    def dumps(self, o):
+        return super(TestDictDocument, self).dumps(o).encode('utf8')
+
+    def loads(self, o):
+        return super(TestDictDocument, self).loads(o.decode('utf8'))
 
 _dry_sjrpc1 = TDry(json, _SpyneJsonRpc1)
 

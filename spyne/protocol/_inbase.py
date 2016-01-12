@@ -26,11 +26,12 @@ import re
 import pytz
 import uuid
 
-from datetime import timedelta, time, datetime, date
 from math import modf
-from decimal import Decimal as D, InvalidOperation
-from pytz import FixedOffset
 from time import strptime, mktime
+from datetime import timedelta, time, datetime, date
+from decimal import Decimal as D, InvalidOperation
+
+from pytz import FixedOffset
 
 try:
     from lxml import etree
@@ -234,8 +235,10 @@ class InProtocolBase(ProtocolMixin):
         if string is None:
             return None
 
-        if six.PY3:
-            assert isinstance(string, str)
+        #if six.PY3:
+        #    assert isinstance(string, str), \
+        #        "Invalid type passed to `from_unicode`: {}".format(
+        #                                         (class_, type(string), string))
 
         if isinstance(string, six.string_types) and len(string) == 0 and \
                                                 class_.Attributes.empty_is_none:

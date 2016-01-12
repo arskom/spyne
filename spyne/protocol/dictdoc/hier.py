@@ -321,7 +321,10 @@ class HierDictDocument(DictDocument):
             return retval
 
         if issubclass(cls, (ByteArray, File, Uuid)):
-            return self.to_string(cls, inst, self.binary_encoding)
+            if self.text_based:
+                return self.to_unicode(cls, inst, self.binary_encoding)
+            else:
+                return self.to_string(cls, inst, self.binary_encoding)
 
         return self.to_unicode(cls, inst)
 

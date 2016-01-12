@@ -42,6 +42,7 @@ class DictDocument(ProtocolBase):
     # flags to be used in tests
     _decimal_as_string = False
     _huge_numbers_as_string = False
+    text_based = False
 
     def __init__(self, app=None, validator=None, mime_type=None,
             ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
@@ -96,9 +97,16 @@ class DictDocument(ProtocolBase):
             if len(doc) == 0:
                 raise Fault("Client", "Empty request")
 
-            mrs, = doc.keys()
-            ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                                            mrs)
+            ctx.method_request_string = self.gen_method_request_string(ctx)
+
+    def gen_method_request_string(self, ctx):
+        """Uses information in context object to return a method_request_string.
+
+        Returns a string in the form of "{namespaces}method name".
+        """
+
+        mrs, = ctx.in_body_doc.keys()
+        return '{%s}%s' % (self.app.interface.get_tns(), mrs)
 
     def deserialize(self, ctx, message):
         raise NotImplementedError()

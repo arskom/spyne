@@ -49,6 +49,7 @@ class MessagePackDocument(HierDictDocument):
     """An integration class for the msgpack protocol."""
 
     mime_type = 'application/x-msgpack'
+    text_based = False
 
     type = set(HierDictDocument.type)
     type.add('msgpack')
@@ -63,10 +64,14 @@ class MessagePackDocument(HierDictDocument):
                                         ignore_wrappers=True,
                                         complex_as=dict,
                                         ordered=False,
-                                        polymorphic=False):
+                                        polymorphic=False,
+                                        # MessagePackDocument specific
+                                        use_list=False):
 
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
                 ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
+
+        self.use_list = use_list
 
         self._from_unicode_handlers[Double] = self._ret
         self._from_unicode_handlers[Boolean] = self._ret
@@ -99,6 +104,18 @@ class MessagePackDocument(HierDictDocument):
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
+    def gen_method_request_string(self, ctx):
+        """Uses information in context object to return a method_request_string.
+
+        Returns a string in the form of "{namespaces}method name".
+        """
+
+        mrs, = ctx.in_body_doc.keys()
+        if six.PY3:
+            mrs = mrs.decode('utf8')
+
+        return '{%s}%s' % (self.app.interface.get_tns(), mrs)
+
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
@@ -108,7 +125,7 @@ class MessagePackDocument(HierDictDocument):
         else:
             return value
 
-    def integer_to_string(self, cls, value):
+    def integer_to_string(self, cls, value, **_):
         # if it's inside the range msgpack can deal with
         if -1<<63 <= value < 1<<64:
             return value
@@ -138,7 +155,8 @@ class MessagePackRpc(MessagePackDocument):
 
         # TODO: Use feed api
         try:
-            ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string))
+            ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string),
+                                                         use_list=self.use_list)
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 

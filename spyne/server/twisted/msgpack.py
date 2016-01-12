@@ -29,7 +29,6 @@ from hashlib import md5
 from collections import deque, OrderedDict
 from itertools import chain
 
-from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred, CancelledError
@@ -285,10 +284,8 @@ class TwistedMessagePackProtocol(Protocol):
             ret = p_ctx.out_object[0]
 
         if isinstance(ret, Deferred):
-            ret.addCallbacks(_cb_deferred, _eb_deferred,
-                             [self, p_ctx, others], {},
-                             [self, p_ctx, others], {})
-            ret.addErrback(log.err)
+            ret.addCallback(_cb_deferred, self, p_ctx, others)
+            ret.addErrback(_eb_deferred, self, p_ctx, others)
 
         else:
             _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)

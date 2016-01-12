@@ -198,10 +198,7 @@ class OutProtocolBase(ProtocolMixin):
             return None
 
         handler = self._to_string_handlers[class_]
-        retval = handler(class_, value, *args, **kwargs)
-        if six.PY3 and isinstance(retval, six.text_type):
-            retval = retval.encode('ascii')
-        return retval
+        return handler(class_, value, *args, **kwargs)
 
     def to_unicode(self, class_, value, *args, **kwargs):
         if value is None:
@@ -380,17 +377,34 @@ class OutProtocolBase(ProtocolMixin):
     def byte_array_to_string(self, cls, value, suggested_encoding=None, **_):
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
-            encoding = suggested_encoding
-        return binary_encoding_handlers[encoding](value)
+            if suggested_encoding is None:
+                encoding = self.binary_encoding
+            else:
+                encoding = suggested_encoding
+
+        retval = binary_encoding_handlers[encoding](value)
+        if encoding is not None and isinstance(retval, six.text_type):
+            retval = retval.encode('ascii')
+
+        return retval
 
     def byte_array_to_unicode(self, cls, value, suggested_encoding=None, **_):
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
-            encoding = suggested_encoding
+            if suggested_encoding is None:
+                encoding = self.binary_encoding
+            else:
+                encoding = suggested_encoding
+
         if encoding is None:
             raise ValueError("Arbitrary binary data can't be serialized to "
-                             "unicode")
-        return binary_encoding_handlers[encoding](value)
+                                                                      "unicode")
+
+        retval = binary_encoding_handlers[encoding](value)
+        if not isinstance(retval, six.text_type):
+            retval = retval.decode('ascii')
+
+        return retval
 
     def byte_array_to_string_iterable(self, cls, value, **_):
         return value
@@ -404,21 +418,40 @@ class OutProtocolBase(ProtocolMixin):
 
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
-            encoding = suggested_encoding
+            if suggested_encoding is None:
+                encoding = self.binary_encoding
+            else:
+                encoding = suggested_encoding
 
         if isinstance(value, File.Value):
             if value.data is not None:
                 return binary_encoding_handlers[encoding](value.data)
 
             if value.handle is not None:
-                assert isinstance(value.handle, file)
+                if hasattr(value.handle, 'fileno'):
+                    if six.PY2:
+                        fileno = value.handle.fileno()
+                        data = (mmap(fileno, 0, access=ACCESS_READ),)
+                    else:
+                        import io
+                        try:
+                            fileno = value.handle.fileno()
+                            data = mmap(fileno, 0, access=ACCESS_READ)
+                        except io.UnsupportedOperation:
+                            data = (value.handle.read(),)
+                else:
+                    data = (value.handle.read(),)
 
-                fileno = value.handle.fileno()
+                return binary_encoding_handlers[encoding](data)
+
+            if value.path is not None:
+                handle = open(value.path, 'rb')
+                fileno = handle.fileno()
                 data = mmap(fileno, 0, access=ACCESS_READ)
 
                 return binary_encoding_handlers[encoding](data)
 
-            assert False
+            assert False, "Unhandled file type"
 
         return binary_encoding_handlers[encoding](value)
 
@@ -438,7 +471,10 @@ class OutProtocolBase(ProtocolMixin):
             raise ValueError("Arbitrary binary data can't be serialized to "
                              "unicode.")
 
-        return self.file_to_string(cls, value, suggested_encoding)
+        retval = self.file_to_string(cls, value, suggested_encoding)
+        if not isinstance(retval, six.text_type):
+            retval = retval.decode('ascii')
+        return retval
 
     def file_to_string_iterable(self, cls, value, **_):
         if value.data is not None:
