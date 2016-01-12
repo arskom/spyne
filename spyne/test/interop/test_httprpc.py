@@ -123,5 +123,6 @@ class TestHttpRpc(unittest.TestCase):
 
         assert dt == data
 
+
 if __name__ == '__main__':
     unittest.main()
