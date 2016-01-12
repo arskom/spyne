@@ -124,7 +124,7 @@ class MessagePackDocument(HierDictDocument):
         else:
             return value
 
-    def integer_to_string(self, cls, value):
+    def integer_to_string(self, cls, value, **_):
         # if it's inside the range msgpack can deal with
         if -1<<63 <= value < 1<<64:
             return value
