@@ -97,6 +97,8 @@ def TDry(serializer, _DictDocumentChild, dumps_kwargs=None):
         server = ServerBase(app)
         initial_ctx = MethodContext(server, MethodContext.SERVER)
         in_string = serializer.dumps(d, **dumps_kwargs)
+        if not isinstance(in_string, bytes):
+            in_string = in_string.encode('utf8')
         initial_ctx.in_string = [in_string]
 
         ctx, = server.generate_contexts(initial_ctx, in_string_charset='utf8')
@@ -959,6 +961,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             data = bytes(bytearray(range(0xff)))
             encoded_data = beh([data])
+            if dbe is not None:
+                encoded_data = encoded_data.decode('ascii')
 
             class SomeService(ServiceBase):
                 @srpc(ByteArray, _returns=ByteArray)
