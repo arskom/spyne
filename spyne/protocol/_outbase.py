@@ -198,10 +198,7 @@ class OutProtocolBase(ProtocolMixin):
             return None
 
         handler = self._to_string_handlers[class_]
-        retval = handler(class_, value, *args, **kwargs)
-        if six.PY3 and isinstance(retval, six.text_type):
-            retval = retval.encode('ascii')
-        return retval
+        return handler(class_, value, *args, **kwargs)
 
     def to_unicode(self, class_, value, *args, **kwargs):
         if value is None:
@@ -384,16 +381,30 @@ class OutProtocolBase(ProtocolMixin):
                 encoding = self.binary_encoding
             else:
                 encoding = suggested_encoding
-        return binary_encoding_handlers[encoding](value)
+
+        retval = binary_encoding_handlers[encoding](value)
+        if encoding is not None and isinstance(retval, six.text_type):
+            retval = retval.encode('ascii')
+
+        return retval
 
     def byte_array_to_unicode(self, cls, value, suggested_encoding=None, **_):
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
-            encoding = suggested_encoding
+            if suggested_encoding is None:
+                encoding = self.binary_encoding
+            else:
+                encoding = suggested_encoding
+
         if encoding is None:
             raise ValueError("Arbitrary binary data can't be serialized to "
-                             "unicode")
-        return binary_encoding_handlers[encoding](value)
+                                                                      "unicode")
+
+        retval = binary_encoding_handlers[encoding](value)
+        if not isinstance(retval, six.text_type):
+            retval = retval.decode('ascii')
+
+        return retval
 
     def byte_array_to_string_iterable(self, cls, value, **_):
         return value
