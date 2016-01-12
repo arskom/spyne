@@ -17,11 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-from spyne.util.six import BytesIO
+import unittest
 
 import msgpack
 
@@ -36,6 +35,7 @@ from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Unicode
 from spyne.protocol.msgpack import MessagePackDocument
 from spyne.protocol.msgpack import MessagePackRpc
+from spyne.util.six import BytesIO
 from spyne.server import ServerBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.test.protocol._test_dictdoc import TDictDocumentTest
@@ -43,7 +43,10 @@ from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 from spyne.test.test_service import start_response
 
 
-TestMessagePackDocument  = TDictDocumentTest(msgpack, MessagePackDocument)
+# apply spyne defaults to test unpacker
+TestMessagePackDocument  = TDictDocumentTest(msgpack, MessagePackDocument,
+                                          loads_kwargs=dict(use_list=False))
+
 
 class TestMessagePackRpc(unittest.TestCase):
     def test_invalid_input(self):
