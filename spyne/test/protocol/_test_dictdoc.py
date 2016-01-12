@@ -962,12 +962,12 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             class SomeService(ServiceBase):
                 @srpc(ByteArray, _returns=ByteArray)
-                def some_call(p):
-                    print(p)
-                    print(type(p))
-                    assert isinstance(p, list)
-                    assert p == [data]
-                    return p
+                def some_call(ba):
+                    print(ba)
+                    print(type(ba))
+                    assert isinstance(ba, list)
+                    assert ba == [data]
+                    return ba
 
             ctx = _dry_me([SomeService], {"some_call": [encoded_data]})
 
