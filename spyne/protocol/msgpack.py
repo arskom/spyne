@@ -63,10 +63,14 @@ class MessagePackDocument(HierDictDocument):
                                         ignore_wrappers=True,
                                         complex_as=dict,
                                         ordered=False,
-                                        polymorphic=False):
+                                        polymorphic=False,
+                                        # MessagePackDocument specific
+                                        use_list=False):
 
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
                 ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
+
+        self.use_list = use_list
 
         self._from_unicode_handlers[Double] = self._ret
         self._from_unicode_handlers[Boolean] = self._ret
@@ -150,7 +154,8 @@ class MessagePackRpc(MessagePackDocument):
 
         # TODO: Use feed api
         try:
-            ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string))
+            ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string),
+                                                         use_list=self.use_list)
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
