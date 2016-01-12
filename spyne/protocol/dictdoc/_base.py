@@ -42,6 +42,7 @@ class DictDocument(ProtocolBase):
     # flags to be used in tests
     _decimal_as_string = False
     _huge_numbers_as_string = False
+    text_based = False
 
     def __init__(self, app=None, validator=None, mime_type=None,
             ignore_uncap=False, ignore_wrappers=True, complex_as=dict,

@@ -49,6 +49,7 @@ class MessagePackDocument(HierDictDocument):
     """An integration class for the msgpack protocol."""
 
     mime_type = 'application/x-msgpack'
+    text_based = False
 
     type = set(HierDictDocument.type)
     type.add('msgpack')

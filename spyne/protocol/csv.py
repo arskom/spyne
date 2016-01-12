@@ -84,6 +84,7 @@ def _complex_to_csv(prot, ctx):
 
 class Csv(HierDictDocument):
     mime_type = 'text/csv'
+    text_based = True
 
     type = set(HierDictDocument.type)
     type.add('csv')
