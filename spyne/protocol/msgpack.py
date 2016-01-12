@@ -99,6 +99,18 @@ class MessagePackDocument(HierDictDocument):
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
+    def gen_method_request_string(self, ctx):
+        """Uses information in context object to return a method_request_string.
+
+        Returns a string in the form of "{namespaces}method name".
+        """
+
+        mrs, = ctx.in_body_doc.keys()
+        if six.PY3:
+            mrs = mrs.decode('utf8')
+
+        return '{%s}%s' % (self.app.interface.get_tns(), mrs)
+
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
