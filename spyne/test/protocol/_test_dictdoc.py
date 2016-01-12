@@ -400,7 +400,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert type(p) == unicode
+                    assert type(p) == six.text_type
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
