@@ -480,10 +480,10 @@ class TestIncremental(unittest.TestCase):
 
     def test_bytearray(self):
         v = b'aaaa'
-        elt = get_object_as_xml(v, ByteArray, 'B')
+        elt = get_object_as_xml([v], ByteArray, 'B')
         eltstr = etree.tostring(elt)
         print(eltstr)
-        assert elt.text == b64encode(v)
+        assert elt.text == b64encode(v).decode('ascii')
 
     def test_file(self):
         v = b'aaaa'
@@ -491,7 +491,7 @@ class TestIncremental(unittest.TestCase):
         elt = get_object_as_xml(File.Value(handle=f), File, 'B')
         eltstr = etree.tostring(elt)
         print(eltstr)
-        assert elt.text == b64encode(v)
+        assert elt.text == b64encode(v).decode('ascii')
 
     def test_fault_detail_as_dict(self):
         elt = get_object_as_xml(Fault(detail={"this": "that"}), Fault)

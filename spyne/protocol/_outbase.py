@@ -429,10 +429,18 @@ class OutProtocolBase(ProtocolMixin):
 
             if value.handle is not None:
                 if hasattr(value.handle, 'fileno'):
-                    fileno = value.handle.fileno()
-                    data = mmap(fileno, 0, access=ACCESS_READ)
+                    if six.PY2:
+                        fileno = value.handle.fileno()
+                        data = (mmap(fileno, 0, access=ACCESS_READ),)
+                    else:
+                        import io
+                        try:
+                            fileno = value.handle.fileno()
+                            data = mmap(fileno, 0, access=ACCESS_READ)
+                        except io.UnsupportedOperation:
+                            data = (value.handle.read(),)
                 else:
-                    data = value.handle.read()
+                    data = (value.handle.read(),)
 
                 return binary_encoding_handlers[encoding](data)
 
@@ -463,7 +471,10 @@ class OutProtocolBase(ProtocolMixin):
             raise ValueError("Arbitrary binary data can't be serialized to "
                              "unicode.")
 
-        return self.file_to_string(cls, value, suggested_encoding)
+        retval = self.file_to_string(cls, value, suggested_encoding)
+        if not isinstance(retval, six.text_type):
+            retval = retval.decode('ascii')
+        return retval
 
     def file_to_string_iterable(self, cls, value, **_):
         if value.data is not None:
