@@ -26,11 +26,12 @@ import re
 import pytz
 import uuid
 
-from datetime import timedelta, time, datetime, date
 from math import modf
-from decimal import Decimal as D, InvalidOperation
-from pytz import FixedOffset
 from time import strptime, mktime
+from datetime import timedelta, time, datetime, date
+from decimal import Decimal as D, InvalidOperation
+
+from pytz import FixedOffset
 
 try:
     from lxml import etree
