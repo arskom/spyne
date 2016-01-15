@@ -21,6 +21,7 @@ MANIFEST
 coverage.xml
 htmlcov
 test_html
+
 ## test output
 spyne/test/*.html
 spyne/test/store

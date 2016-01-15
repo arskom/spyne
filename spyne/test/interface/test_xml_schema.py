@@ -26,6 +26,7 @@ from lxml import etree
 from spyne import Application
 from spyne import rpc
 from spyne.const import xml_ns as ns
+from spyne.const.xml import NS_XSD
 from spyne.model import ByteArray
 from spyne.model import ComplexModel
 from spyne.model import XmlAttribute
@@ -336,6 +337,19 @@ class TestXmlSchema(unittest.TestCase):
         foo, = xpath(elt, 'xs:complexType/xs:attribute[@name="foo"]')
         attrs = foo.attrib
         assert 'use' in attrs and attrs['use'] == 'required'
+
+    def test_annotation(self):
+        tns = 'some_ns'
+        doc = "Some Doc"
+
+        class SomeClass(ComplexModel):
+            __namespace__ = tns
+            some_attr = Unicode(doc=doc)
+
+        schema = get_schema_documents([SomeClass], tns)['tns']
+        print(etree.tostring(schema, pretty_print=True))
+        assert schema.xpath("//xs:documentation/text()",
+                                             namespaces={'xs': NS_XSD}) == [doc]
 
 
 class TestParseOwnXmlSchema(unittest.TestCase):
