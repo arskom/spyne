@@ -1,11 +1,6 @@
-# All files to globally ignore
 .data
 .cache
-
-# test cruft
-jython-installer-*
-Python-2.[67].*
-Python-3.[3456789].*
+.eggs
 
 # python cruft
 *.pyc
@@ -13,49 +8,35 @@ Python-3.[3456789].*
 *$py.class
 *.egg
 *.egg-info
+dist
+build
+pip-log.txt
+MANIFEST
+
+# test cruft
+.tox
 .noseids
 .coverage
 .coverage.*
 coverage.xml
 htmlcov
-pip-log.txt
-MANIFEST
-dist
-build
-doc/docs
+test_html
+## test output
+spyne/test/*.html
+spyne/test/store
+test_result*
+Test*.html
 
-# 2to3 cruft
-*.bak
+## run_tests.sh
+jython-installer-*
+Python-2.[67].*
+Python-3.[3456789].*
 
-# Mac cruft
-.DS_Store
-
-# wingware cruft
-*.wpu
-
-# emacs cruft
-*~
-*#*
-*flymake.py
-.ropeproject
-
-# wing cruft
-*.wpr
-
-# netbeans cruft
-nbproject
-
-# pycharm cruft
-.idea/
-
-# wsi-test
+## wsi-test
 wsi-test-tools
 WSI_Test_Java_Final_1.1.zip
 spyne/test/interop/config.xml
 spyne/test/config.xml
-
-# kate cruft
-*.kate-swp
 
 # sphinx cruft
 .buildinfo
@@ -73,30 +54,14 @@ pres.pdf
 *.vrb
 *.backup
 
-# trial cruft
-_trial_temp
+# 2to3 cruft
+*.bak
 
-# output from examples/stream scripts
+# output from examples
 examples/file_manager/files/
-*.ogg
-
-# kate cruft
-.kateproject.d
-
-# tox envs
-.tox
-
-# test output
-coverage.xml
-spyne/test/*.html
-spyne/test/store
-test_result*
-/html
-/store
-Test*.html
-
-# vim cruft
-*.swp
 
 # nuitka cruft
 *.build
+
+# cruft produced by non-spyne code need to go to your global ignores file. see
+# https://help.github.com/articles/ignoring-files/#create-a-global-gitignore
