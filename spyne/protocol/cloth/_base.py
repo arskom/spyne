@@ -33,7 +33,7 @@ from spyne.util import Break, coroutine
 
 from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
-from spyne.util.six import StringIO
+from spyne.util.six import BytesIO
 
 
 class XmlClothProtocolContext(ProtocolContext):
@@ -76,7 +76,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_stream is None:
-            ctx.out_stream = StringIO()
+            ctx.out_stream = BytesIO()
             logger.debug("%r %d", ctx.out_stream, id(ctx.out_stream))
 
         if ctx.out_error is not None:
@@ -128,7 +128,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         out_string should not be used.
         """
 
-        if isinstance(ctx.out_stream, StringIO):
+        if isinstance(ctx.out_stream, BytesIO):
             ctx.out_string = [ctx.out_stream.getvalue()]
 
     @coroutine
@@ -141,6 +141,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                 ctx.protocol.doctype_written = False
                 ctx.protocol.prot_stack = []
                 ret = self.subserialize(ctx, cls, inst, xf, name)
+
                 if isgenerator(ret):  # Poor man's yield from
                     try:
                         while True:
