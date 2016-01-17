@@ -88,7 +88,8 @@ def _header_to_string(prot, val, cls):
                             _weekday[val.weekday()], val.day, _month[val.month],
                             val.year, val.hour, val.minute, val.second)
     else:
-        return prot.to_string(cls, val)
+        # because wsgi_ref wants header values in unicode.
+        return prot.to_unicode(cls, val)
 
 
 class HttpRpc(SimpleDictDocument):
