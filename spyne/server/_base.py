@@ -151,7 +151,7 @@ class ServerBase(object):
                                             'method_exception_string', ctx)
 
         if ctx.out_string is None:
-            ctx.out_string = [""]
+            ctx.out_string = (b'',)
 
 
     # for backwards compatibility
