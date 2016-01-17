@@ -261,10 +261,14 @@ class OutProtocolBase(ProtocolMixin):
 
         cls_attrs = self.get_cls_attrs(cls)
 
-        if cls_attrs.encoding is not None and isinstance(value, six.text_type):
-            retval = value.encode(cls_attrs.encoding)
-        else:
-            logger.warning("You need to set an encoding for %r", cls)
+        if isinstance(value, six.text_type):
+            if cls_attrs.encoding is not None:
+                retval = value.encode(cls_attrs.encoding)
+            elif self.default_string_encoding is not None:
+                retval = value.encode(self.default_string_encoding)
+            else:
+                logger.warning("You need to set either an encoding for %r "
+                               "or a default_string_encoding for %r", cls, self)
 
         if cls_attrs.str_format is not None:
             return cls_attrs.str_format.format(value)
@@ -277,16 +281,20 @@ class OutProtocolBase(ProtocolMixin):
         # value can be many things, but definetly not an int
         if isinstance(value, six.integer_types):
             logger.warning("Returning an int where a str is expected! "
-                                                       "Silenty fixing this...")
+                                                "Not-so-silenty fixing this...")
             value = str(value)
 
         retval = value
 
         cls_attrs = self.get_cls_attrs(cls)
-
-        if cls_attrs.encoding is not None and \
-                                             isinstance(value, six.binary_type):
-            retval = value.decode(cls_attrs.encoding)
+        if isinstance(value, six.binary_type):
+            if cls_attrs.encoding is not None:
+                retval = value.decode(cls_attrs.encoding)
+            if self.default_binary_encoding is not None:
+                retval = value.decode(self.default_binary_encoding)
+            else:
+                logger.warning("You need to set either an encoding for %r "
+                               "or a default_binary_encoding for %r", cls, self)
 
         if cls_attrs.str_format is not None:
             return cls_attrs.str_format.format(value)
@@ -524,7 +532,7 @@ class OutProtocolBase(ProtocolMixin):
     def simple_model_to_string_iterable(self, cls, value, **kwargs):
         retval = self.to_string(cls, value, **kwargs)
         if retval is None:
-            return ('',)
+            return (b'',)
         return (retval,)
 
     def complex_model_to_string_iterable(self, cls, value, **_):
