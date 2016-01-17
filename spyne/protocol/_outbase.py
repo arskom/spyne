@@ -205,14 +205,18 @@ class OutProtocolBase(ProtocolMixin):
             return None
 
         handler = self._to_unicode_handlers[class_]
-        return handler(class_, value, *args, **kwargs)
+        retval = handler(class_, value, *args, **kwargs)
+        assert isinstance(retval, six.text_type)
+        return retval
 
     def to_string_iterable(self, class_, value):
         if value is None:
             return []
 
         handler = self._to_string_iterable_handlers[class_]
-        return handler(class_, value)
+        retval = handler(class_, value)
+        assert isinstance(retval, six.binary_type)
+        return retval
 
     def null_to_string(self, cls, value, **_):
         return ""
@@ -428,6 +432,7 @@ class OutProtocolBase(ProtocolMixin):
                 return binary_encoding_handlers[encoding](value.data)
 
             if value.handle is not None:
+                # maybe we should have used the sweeping except: here.
                 if hasattr(value.handle, 'fileno'):
                     if six.PY2:
                         fileno = value.handle.fileno()
