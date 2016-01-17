@@ -111,7 +111,7 @@ class Unicode(SimpleModel):
 class String(Unicode):
     pass
 
-if sys.version > '3':
+if not six.PY2:
     String = Unicode
 
 
