@@ -49,7 +49,7 @@ def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
     }
     print(headers)
     request.update(headers)
-    out_string = ''.join(app(request, _start_response))
+    out_string = b''.join(app(request, _start_response))
 
     return out_string
 
@@ -82,8 +82,8 @@ def show(elt, tn=None, stdout=True):
         except OSError:
             pass
 
-        f = open(join("test_html", fn), 'w')
+        f = open(join("test_html", fn), 'wb')
     else:
-        f = open(fn, 'w')
+        f = open(fn, 'wb')
 
     f.write(html.tostring(elt, pretty_print=True, doctype="<!DOCTYPE html>"))

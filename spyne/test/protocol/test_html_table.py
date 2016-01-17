@@ -39,14 +39,18 @@ from spyne.util.test import show, call_wsgi_app_kwargs, call_wsgi_app
 
 
 class CM(ComplexModel):
-    i = Integer
-    s = String
+    _type_info = [
+        ('i', Integer),
+        ('s', String),
+    ]
 
 
 class CCM(ComplexModel):
-    c = CM
-    i = Integer
-    s = String
+    _type_info = [
+        ('c', CM),
+        ('i', Integer),
+        ('s', String),
+    ]
 
 
 class TestHtmlColumnTable(unittest.TestCase):
@@ -111,7 +115,7 @@ class TestHtmlColumnTable(unittest.TestCase):
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')))
         elt = etree.fromstring(out_string)
         show(elt, "TestHtmlColumnTable.test_string_array")
-        assert out_string == \
+        assert out_string.decode('utf8') == \
             '<table class="string">' \
                 '<thead><tr><th class="some_callResponse">some_callResponse</th></tr></thead>' \
                 '<tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody>' \
@@ -289,7 +293,7 @@ class TestHtmlRowTable(unittest.TestCase):
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
         show(html.fromstring(out_string), 'TestHtmlRowTable.test_string_array')
-        assert out_string == \
+        assert out_string.decode('utf8') == \
             '<div>' \
               '<table class="some_callResponse">' \
                 '<tr>' \
@@ -321,7 +325,7 @@ class TestHtmlRowTable(unittest.TestCase):
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
         #FIXME: Needs a proper test with xpaths and all.
         show(html.fromstring(out_string), 'TestHtmlRowTable.test_string_array_no_header')
-        assert out_string == \
+        assert out_string.decode('utf8') == \
             '<div>' \
               '<table class="some_callResponse">' \
                 '<tr>' \
@@ -359,7 +363,7 @@ class TestHtmlRowTable(unittest.TestCase):
         out_string = call_wsgi_app_kwargs(server)
         show(html.fromstring(out_string), 'TestHtmlRowTable.test_complex_array')
         #FIXME: Needs a proper test with xpaths and all.
-        assert out_string == \
+        assert out_string.decode('utf8') == \
             '<div>' \
               '<table class="CM">' \
                 '<tbody>' \
