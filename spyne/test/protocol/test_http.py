@@ -683,23 +683,35 @@ class Test(unittest.TestCase):
         c = SimpleCookie()
         c['some_field'] = string
 
-        ''.join(wsgiref_validator(WsgiApplication(Application([SomeService], 'tns',
-            in_protocol=HttpRpc(parse_cookie=True), out_protocol=HttpRpc())))({
-                'SCRIPT_NAME': '',
-                'QUERY_STRING': '',
-                'PATH_INFO': '/some_call',
-                'REQUEST_METHOD': 'GET',
-                'SERVER_NAME': 'localhost',
-                'SERVER_PORT': "9999",
-                'HTTP_COOKIE': str(c),
-                'wsgi.url_scheme': 'http',
-                'wsgi.version': (1,0),
-                'wsgi.input': StringIO(),
-                'wsgi.errors': StringIO(),
-                'wsgi.multithread': False,
-                'wsgi.multiprocess': False,
-                'wsgi.run_once': True,
-            }, start_response))
+        app = Application([SomeService], 'tns',
+            in_protocol=HttpRpc(parse_cookie=True), out_protocol=HttpRpc())
+
+        wsgi_app = WsgiApplication(app)
+
+        req_dict = {
+            'SCRIPT_NAME': '',
+            'QUERY_STRING': '',
+            'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': "9999",
+            'HTTP_COOKIE': str(c),
+            'wsgi.url_scheme': 'http',
+            'wsgi.version': (1,0),
+            'wsgi.input': StringIO(),
+            'wsgi.errors': StringIO(),
+            'wsgi.multithread': False,
+            'wsgi.multiprocess': False,
+            'wsgi.run_once': True,
+        }
+
+        ret = wsgi_app(req_dict, start_response)
+        print(ret)
+
+        wsgi_app = wsgiref_validator(wsgi_app)
+
+        ret = wsgi_app(req_dict, start_response)
+        print(ret)
 
     def test_http_headers(self):
         d = datetime(year=2013, month=1, day=1)
@@ -724,24 +736,34 @@ class Test(unittest.TestCase):
             assert len([s for s in string if ('Set-Cookie', s) in headers]) == len(string)
             assert dict(headers)['Expires'] == 'Tue, 01 Jan 2013 00:00:00 GMT'
 
-        ret = ''.join(wsgiref_validator(WsgiApplication(Application([SomeService], 'tns',
-            in_protocol=HttpRpc(), out_protocol=HttpRpc())))({
-                'SCRIPT_NAME': '',
-                'QUERY_STRING': '&s=foo',
-                'PATH_INFO': '/some_call',
-                'REQUEST_METHOD': 'GET',
-                'SERVER_NAME': 'localhost',
-                'SERVER_PORT': "9999",
-                'wsgi.url_scheme': 'http',
-                'wsgi.version': (1,0),
-                'wsgi.input': StringIO(),
-                'wsgi.errors': StringIO(),
-                'wsgi.multithread': False,
-                'wsgi.multiprocess': False,
-                'wsgi.run_once': True,
-            }, start_response))
+        app = Application([SomeService], 'tns',
+                                  in_protocol=HttpRpc(), out_protocol=HttpRpc())
+        wsgi_app = WsgiApplication(app)
 
-        assert ret == ''
+        req_dict = {
+            'SCRIPT_NAME': '',
+            'QUERY_STRING': '&s=foo',
+            'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': "9999",
+            'wsgi.url_scheme': 'http',
+            'wsgi.version': (1,0),
+            'wsgi.input': StringIO(),
+            'wsgi.errors': StringIO(),
+            'wsgi.multithread': False,
+            'wsgi.multiprocess': False,
+            'wsgi.run_once': True,
+        }
+
+        ret = wsgi_app(req_dict, start_response)
+        print(list(ret))
+
+        wsgi_app = wsgiref_validator(wsgi_app)
+
+        ret = wsgi_app(req_dict, start_response)
+
+        assert list(ret) == [b'']
 
 
 class TestHttpPatterns(unittest.TestCase):
