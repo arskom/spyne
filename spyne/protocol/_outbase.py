@@ -198,7 +198,14 @@ class OutProtocolBase(ProtocolMixin):
             return None
 
         handler = self._to_string_handlers[class_]
-        return handler(class_, value, *args, **kwargs)
+        retval = handler(class_, value, *args, **kwargs)
+
+        # enable this only for testing. we're not as strict for performance
+        # reasons
+        # assert isinstance(retval, six.binary_type), \
+        #                 "AssertionError: %r %r %r handler: %r" % \
+        #                       (type(retval), six.binary_type, retval, handler)
+        return retval
 
     def to_unicode(self, class_, value, *args, **kwargs):
         if value is None:
@@ -206,7 +213,12 @@ class OutProtocolBase(ProtocolMixin):
 
         handler = self._to_unicode_handlers[class_]
         retval = handler(class_, value, *args, **kwargs)
-        assert isinstance(retval, six.text_type)
+
+        # enable this only for testing. we're not as strict for performance
+        # reasons
+        # assert isinstance(retval, six.text_type), \
+        #                 "AssertionError: %r %r %r handler: %r" % \
+        #                       (type(retval), six.binary_type, retval, handler)
         return retval
 
     def to_string_iterable(self, class_, value):
@@ -214,9 +226,7 @@ class OutProtocolBase(ProtocolMixin):
             return []
 
         handler = self._to_string_iterable_handlers[class_]
-        retval = handler(class_, value)
-        assert isinstance(retval, six.binary_type)
-        return retval
+        return handler(class_, value)
 
     def null_to_string(self, cls, value, **_):
         return ""
@@ -253,6 +263,8 @@ class OutProtocolBase(ProtocolMixin):
 
         if cls_attrs.encoding is not None and isinstance(value, six.text_type):
             retval = value.encode(cls_attrs.encoding)
+        else:
+            logger.warning("You need to set an encoding for %r", cls)
 
         if cls_attrs.str_format is not None:
             return cls_attrs.str_format.format(value)
