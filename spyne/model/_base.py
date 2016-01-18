@@ -27,10 +27,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 import re
+import decimal
 
 import spyne.const.xml_ns
-
-from decimal import Decimal
 
 from spyne import const
 from spyne.util import Break, six
@@ -606,7 +605,7 @@ class ModelBase(object):
                 Attributes.values_dict = v
 
             elif k == 'max_occurs' and v in ('unbounded', 'inf', float('inf')):
-                setattr(Attributes, k, Decimal('inf'))
+                setattr(Attributes, k, decimal.Decimal('inf'))
 
             else:
                 setattr(Attributes, k, v)
