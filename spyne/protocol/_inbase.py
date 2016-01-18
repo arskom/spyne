@@ -117,7 +117,6 @@ class InProtocolBase(ProtocolMixin):
 
         fsh = {
             Null: self.null_from_string,
-            Uuid: self.uuid_from_string,
             File: self.file_from_string,
             Array: self.array_from_string,
             Double: self.double_from_string,
@@ -140,11 +139,13 @@ class InProtocolBase(ProtocolMixin):
 
         self._from_string_handlers[Date] = self.date_from_string
         self._from_string_handlers[Time] = self.time_from_string
+        self._from_string_handlers[Uuid] = self.uuid_from_string
         self._from_string_handlers[Decimal] = self.decimal_from_string
         self._from_string_handlers[DateTime] = self.datetime_from_string
         self._from_string_handlers[Duration] = self.duration_from_string
 
         self._from_unicode_handlers[Date] = self.date_from_unicode
+        self._from_unicode_handlers[Uuid] = self.uuid_from_unicode
         self._from_unicode_handlers[Time] = self.time_from_unicode
         self._from_unicode_handlers[Decimal] = self.decimal_from_unicode
         self._from_unicode_handlers[DateTime] = self.datetime_from_unicode
@@ -270,7 +271,7 @@ class InProtocolBase(ProtocolMixin):
             else:
                 raise
 
-    def uuid_from_string(self, cls, string, suggested_encoding=None):
+    def uuid_from_unicode(self, cls, string, suggested_encoding=None):
         attr = self.get_cls_attrs(cls)
         ser_as = attr.serialize_as
         encoding = attr.encoding
@@ -280,12 +281,18 @@ class InProtocolBase(ProtocolMixin):
 
         retval = string
 
+        print(retval)
         if ser_as in ('bytes', 'bytes_le'):
             retval, = binary_decoding_handlers[encoding](string)
 
+        print(retval)
         retval = _uuid_deserialize[ser_as](retval)
 
         return retval
+
+    def uuid_from_string(self, cls, string):
+        return self.uuid_from_unicode(cls,
+                                    string.decode(self.default_string_encoding))
 
     def unicode_from_string(self, cls, value):
         retval = value
