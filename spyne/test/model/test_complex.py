@@ -363,16 +363,17 @@ class TestXmlAttribute(unittest.TestCase):
             __namespace__ = 'myns'
             Data = XmlAttribute(ByteArray, use='required')
 
-        test_string = 'yo test data'
+        test_string = b'yo test data'
         b64string = b64encode(test_string)
-        gg = PacketAttribute(Data=test_string)
+        gg = PacketAttribute(Data=[test_string])
 
         element = etree.Element('test')
         Soap11().to_parent(None, PacketAttribute, gg, element, gg.get_namespace())
 
         element = element[0]
         print(etree.tostring(element, pretty_print=True))
-        self.assertEquals(element.attrib['Data'], b64string)
+        print(element.attrib)
+        self.assertEquals(element.attrib['Data'], b64string.decode('ascii'))
 
         s1 = Soap11().from_element(None, PacketAttribute, element)
         assert s1.Data[0] == test_string
