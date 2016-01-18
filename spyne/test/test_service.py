@@ -189,16 +189,16 @@ class TestMultipleMethods(unittest.TestCase):
                                                           out_protocol=Soap11())
         server = WsgiApplication(app)
 
-        return_string = ''.join(server({
+        return_string = b''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'POST',
             'CONTENT_TYPE': 'text/xml',
             'SERVER_NAME': 'localhost',
-            'wsgi.input': BytesIO(""),
+            'wsgi.input': BytesIO(b""),
         }, start_response, "http://null"))
 
-        elt = etree.fromstring(''.join(return_string))
+        elt = etree.fromstring(return_string)
         print(etree.tostring(elt, pretty_print=True))
 
         return elt, app.interface.nsmap
@@ -276,7 +276,7 @@ class TestBodyStyle(unittest.TestCase):
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
                                    out_protocol=Soap11(cleanup_namespaces=True))
 
-        req = """
+        req = b"""
         <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
                         xmlns:tns="tns">
             <soap11env:Body>
@@ -286,7 +286,7 @@ class TestBodyStyle(unittest.TestCase):
         """
 
         server = WsgiApplication(app)
-        resp = etree.fromstring(''.join(server({
+        resp = etree.fromstring(b''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'POST',
@@ -311,7 +311,7 @@ class TestBodyStyle(unittest.TestCase):
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
                                    out_protocol=Soap11(cleanup_namespaces=True))
 
-        req = """
+        req = b"""
         <soap11env:Envelope
                     xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
                     xmlns:tns="tns">
@@ -322,7 +322,7 @@ class TestBodyStyle(unittest.TestCase):
         """
 
         server = WsgiApplication(app)
-        resp = etree.fromstring(''.join(server({
+        resp = etree.fromstring(b''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'POST',
@@ -378,7 +378,7 @@ class TestBodyStyle(unittest.TestCase):
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
                                 out_protocol=Soap11(cleanup_namespaces=True))
 
-        req = """
+        req = b"""
         <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
                         xmlns:tns="tns">
             <soap11env:Body>
@@ -388,7 +388,7 @@ class TestBodyStyle(unittest.TestCase):
         """
 
         server = WsgiApplication(app)
-        resp = etree.fromstring(''.join(server({
+        resp = etree.fromstring(b''.join(server({
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'POST',
