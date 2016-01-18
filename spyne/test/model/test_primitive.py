@@ -501,9 +501,9 @@ class TestPrimitive(unittest.TestCase):
         assert ProtocolBase().to_string(Uuid(serialize_as='urn'), value) == \
                                 'urn:uuid:12345678-1234-5678-1234-567812345678'
         assert ProtocolBase().to_string(Uuid(serialize_as='bytes'), value) == \
-                                '\x124Vx\x124Vx\x124Vx\x124Vx'
+                                b'\x124Vx\x124Vx\x124Vx\x124Vx'
         assert ProtocolBase().to_string(Uuid(serialize_as='bytes_le'), value) == \
-                                'xV4\x124\x12xV\x124Vx\x124Vx'
+                                b'xV4\x124\x12xV\x124Vx\x124Vx'
         assert ProtocolBase().to_string(Uuid(serialize_as='fields'), value) == \
                                 (305419896, 4660, 22136, 18, 52, 95073701484152)
         assert ProtocolBase().to_string(Uuid(serialize_as='int'), value) == \

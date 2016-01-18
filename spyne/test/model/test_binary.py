@@ -31,16 +31,16 @@ ns_test = 'test_namespace'
 
 class TestBinary(unittest.TestCase):
     def setUp(self):
-        self.data = map(chr, range(256))
+        self.data = bytes(bytearray(range(0xff)))
 
     def test_data(self):
         element = etree.Element('test')
-        Soap11().to_parent(None, ByteArray, self.data, element, ns_test)
+        Soap11().to_parent(None, ByteArray, [self.data], element, ns_test)
         print(etree.tostring(element, pretty_print=True))
         element = element[0]
 
         a2 = Soap11().from_element(None, ByteArray, element)
-        self.assertEquals(_bytes_join(self.data), _bytes_join(a2))
+        self.assertEquals(self.data, _bytes_join(a2))
 
 if __name__ == '__main__':
     unittest.main()
