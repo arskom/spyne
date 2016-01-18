@@ -183,7 +183,13 @@ class JsonDocument(HierDictDocument):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
-        ctx.out_string = (json.dumps(o, **self.kwargs).encode(out_string_encoding) for o in ctx.out_document)
+        if out_string_encoding is None:
+            ctx.out_string = (json.dumps(o, **self.kwargs)
+                                                      for o in ctx.out_document)
+        else:
+            ctx.out_string = (
+                json.dumps(o, **self.kwargs).encode(out_string_encoding)
+                                                      for o in ctx.out_document)
 
 
 class JsonP(JsonDocument):
@@ -204,14 +210,22 @@ class JsonP(JsonDocument):
         super(JsonP, self).__init__(*args, **kwargs)
         self.callback_name = callback_name
 
-    def create_out_string(self, ctx):
-        super(JsonP, self).create_out_string(ctx)
+    def create_out_string(self, ctx, out_string_encoding='utf8'):
+        super(JsonP, self).create_out_string(ctx,
+                                        out_string_encoding=out_string_encoding)
 
-        ctx.out_string = chain(
-                [self.callback_name, '('],
-                    ctx.out_string,
-                [');'],
-            )
+        if out_string_encoding is None:
+            ctx.out_string = chain(
+                    [self.callback_name, '('],
+                        ctx.out_string,
+                    [');'],
+                )
+        else:
+            ctx.out_string = chain(
+                    [self.callback_name.encode(out_string_encoding), b'('],
+                        ctx.out_string,
+                    [b');'],
+                )
 
 class _SpyneJsonRpc1(JsonDocument):
     version = 1
