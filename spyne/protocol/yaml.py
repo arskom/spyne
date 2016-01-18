@@ -91,7 +91,7 @@ class YamlDocument(HierDictDocument):
                                         polymorphic=False,
                                         # YamlDocument specific
                                         safe=True,
-                                        out_string_encoding = 'UTF-8',
+                                        out_string_encoding='UTF-8',
                                         **kwargs):
 
         super(YamlDocument, self).__init__(app, validator, mime_type,
@@ -152,6 +152,7 @@ class YamlDocument(HierDictDocument):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
+
         if self.out_string_encoding is None:
             ctx.out_string = (yaml.dump(o, **self.out_kwargs)
                                                       for o in ctx.out_document)
