@@ -155,7 +155,11 @@ class TestJsonP(unittest.TestCase):
                                 out_protocol=JsonP(callback_name))
 
         server = NullServer(app, ostr=True)
-        assert b''.join(server.service.yay()) == '%s(%d);' % (callback_name, retval)
+        ret = server.service.yay()
+        ret = list(ret)
+        print(ret)
+        assert b''.join(ret) == b''.join((callback_name.encode('utf8'), b'(',
+                                             str(retval).encode('utf8'), b');'))
 
     def illustrate_wrappers(self):
         from spyne.model.complex import ComplexModel, Array
