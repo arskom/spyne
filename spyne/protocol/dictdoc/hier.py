@@ -186,7 +186,7 @@ class HierDictDocument(DictDocument):
                         break
                 else:
                     raise ValidationError(class_name,
-                         "Class name %%r is not registered as a subclass of %r" %
+                        "Class name %%r is not registered as a subclass of %r" %
                                                             cls.get_type_name())
 
                 if not self.issubclass(subcls, cls):
