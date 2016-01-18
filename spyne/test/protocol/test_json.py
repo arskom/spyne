@@ -135,8 +135,8 @@ class TestJsonDocument(unittest.TestCase):
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server, MethodContext.SERVER)
-        initial_ctx.in_string = ['{']
-        ctx, = server.generate_contexts(initial_ctx)
+        initial_ctx.in_string = [b'{']
+        ctx, = server.generate_contexts(initial_ctx, in_string_charset='utf8')
         assert ctx.in_error.faultcode == 'Client.JsonDecodeError'
 
 
@@ -155,7 +155,7 @@ class TestJsonP(unittest.TestCase):
                                 out_protocol=JsonP(callback_name))
 
         server = NullServer(app, ostr=True)
-        assert ''.join(server.service.yay()) == '%s(%d);' % (callback_name, retval);
+        assert b''.join(server.service.yay()) == '%s(%d);' % (callback_name, retval)
 
     def illustrate_wrappers(self):
         from spyne.model.complex import ComplexModel, Array
