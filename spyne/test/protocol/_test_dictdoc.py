@@ -969,8 +969,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 def some_call(ba):
                     print(ba)
                     print(type(ba))
-                    assert isinstance(ba, list)
-                    assert ba == [data]
+                    assert isinstance(ba, tuple)
+                    assert ba == (data,)
                     return ba
 
             ctx = _dry_me([SomeService], {"some_call": [encoded_data]})
@@ -999,7 +999,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     print(p)
                     print(type(p))
                     assert isinstance(p, File.Value)
-                    assert p.data == [data]
+                    assert p.data == (data,)
                     return p.data
 
             # encoded data is inside a list because that's the native value of
@@ -1032,7 +1032,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     print(p)
                     print(type(p))
                     assert isinstance(p, File.Value)
-                    assert p.data == [file_data]
+                    assert p.data == (file_data,)
                     assert p.type == v.type
                     assert p.name == v.name
                     return p

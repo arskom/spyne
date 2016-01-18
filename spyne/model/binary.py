@@ -113,7 +113,7 @@ class ByteArray(SimpleModel):
     def from_base64(cls, value):
         joiner = type(value)()
         try:
-            return [b64decode(joiner.join(value))]
+            return (b64decode(joiner.join(value)),)
         except TypeError:
             raise ValidationError(value)
 
@@ -127,7 +127,7 @@ class ByteArray(SimpleModel):
         if isinstance(value, six.text_type):
             value = value.encode('utf8')
         try:
-            return [urlsafe_b64decode(_bytes_join(value))]
+            return (urlsafe_b64decode(_bytes_join(value)),)
 
         except TypeError as e:
             logger.exception(e)
@@ -143,7 +143,7 @@ class ByteArray(SimpleModel):
 
     @classmethod
     def from_hex(cls, value):
-        return [unhexlify(_bytes_join(value))]
+        return (unhexlify(_bytes_join(value)),)
 
 
 binary_encoding_handlers = {
