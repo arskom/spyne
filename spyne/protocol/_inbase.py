@@ -287,7 +287,10 @@ class InProtocolBase(ProtocolMixin):
             retval, = binary_decoding_handlers[encoding](string)
 
         print(retval)
-        retval = _uuid_deserialize[ser_as](retval)
+        try:
+            retval = _uuid_deserialize[ser_as](retval)
+        except ValueError as e:
+            raise ValidationError(e)
 
         return retval
 
