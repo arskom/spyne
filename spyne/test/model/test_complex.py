@@ -343,10 +343,10 @@ class TestXmlAttribute(unittest.TestCase):
             __namespace__ = 'myns'
             Data = ByteArray
 
-        test_string = 'yo test data'
+        test_string = b'yo test data'
         b64string = b64encode(test_string)
 
-        gg = PacketNonAttribute(Data=test_string)
+        gg = PacketNonAttribute(Data=[test_string])
 
         element = etree.Element('test')
         Soap11().to_parent(None, PacketNonAttribute, gg, element, gg.get_namespace())
@@ -354,7 +354,7 @@ class TestXmlAttribute(unittest.TestCase):
         element = element[0]
         #print etree.tostring(element, pretty_print=True)
         data = element.find('{%s}Data' % gg.get_namespace()).text
-        self.assertEquals(data, b64string)
+        self.assertEquals(data, b64string.decode('ascii'))
         s1 = Soap11().from_element(None, PacketNonAttribute, element)
         assert s1.Data[0] == test_string
 

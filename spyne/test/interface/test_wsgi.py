@@ -73,7 +73,7 @@ class Test(unittest.TestCase):
         assert etree.fromstring(d).tag == 'ehe'
 
     def test_wsgi(self):
-        retval = ''.join(self.wsgi_app({
+        retval = b''.join(self.wsgi_app({
             'PATH_INFO': '/',
             'QUERY_STRING': 'wsdl',
             'SERVER_NAME': 'localhost',

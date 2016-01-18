@@ -222,7 +222,7 @@ class TestOperationRequestSuffix(unittest.TestCase):
                                                 '"times": 2}}'
 
         # check json operation succeeded
-        resp = app.post('/', json_input_body)
+        resp = app.post('/', json_input_body, content_type='application/json; charset=utf8')
         self.assert_response_ok(resp)
 
     def test_json_with_suffix(self):

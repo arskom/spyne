@@ -157,7 +157,7 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent(None, DateTime(format=format), n, element, ns_test)
         element = element[0]
 
-        assert element.text == n.strftime(format.encode('utf8')).decode('utf8')
+        assert element.text == n.strftime(format)
         dt = XmlDocument().from_element(None, DateTime(format=format), element)
         assert n == dt
 
@@ -216,9 +216,10 @@ class TestPrimitive(unittest.TestCase):
         t = ProtocolBase().from_unicode(Time, "12:12:12.0000001")
         self.assertEquals(datetime.time(12, 12, 12), t)
 
-        # rounding 0.5 µsec up
-        t = ProtocolBase().from_unicode(Time, "12:12:12.0000005")
-        self.assertEquals(datetime.time(12, 12, 12, 1), t)
+        # rounding 1.5 µsec up. 0.5 is rounded down by python 3 and up by
+        # python 2. frikkin' nonsense.
+        t = ProtocolBase().from_unicode(Time, "12:12:12.0000015")
+        self.assertEquals(datetime.time(12, 12, 12, 2), t)
 
         # rounding 999998.8 µsec up
         t = ProtocolBase().from_unicode(Time, "12:12:12.9999988")
@@ -518,10 +519,10 @@ class TestPrimitive(unittest.TestCase):
                 '12345678123456781234567812345678') == value
         assert ProtocolBase().from_unicode(Uuid(serialize_as='urn'),
                 'urn:uuid:12345678-1234-5678-1234-567812345678') == value
-        assert ProtocolBase().from_unicode(Uuid(serialize_as='bytes'),
-                '\x124Vx\x124Vx\x124Vx\x124Vx') == value
-        assert ProtocolBase().from_unicode(Uuid(serialize_as='bytes_le'),
-                'xV4\x124\x12xV\x124Vx\x124Vx') == value
+        assert ProtocolBase().from_string(Uuid(serialize_as='bytes'),
+                b'\x124Vx\x124Vx\x124Vx\x124Vx') == value
+        assert ProtocolBase().from_string(Uuid(serialize_as='bytes_le'),
+                b'xV4\x124\x12xV\x124Vx\x124Vx') == value
         assert ProtocolBase().from_unicode(Uuid(serialize_as='fields'),
                 (305419896, 4660, 22136, 18, 52, 95073701484152)) == value
         assert ProtocolBase().from_unicode(Uuid(serialize_as='int'),
@@ -574,9 +575,10 @@ class TestPrimitive(unittest.TestCase):
         dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.0000001")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
 
-        # rounding 0.5 µsec up
-        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.0000005")
-        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 1), dt)
+        # rounding 1.5 µsec up. 0.5 µsec is rounded down by python 3
+        # and rounded up by python 2. 1.5 µsec is always rounded up. sigh.
+        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.0000015")
+        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 2), dt)
 
         # rounding 999998.8 µsec up
         dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.9999988")
