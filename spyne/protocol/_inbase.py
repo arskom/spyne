@@ -234,6 +234,7 @@ class InProtocolBase(ProtocolMixin):
                            len(string) == 0 and class_.Attributes.empty_is_none:
             return None
 
+        print(args, kwargs)
         handler = self._from_string_handlers[class_]
         return handler(class_, string, *args, **kwargs)
 
@@ -290,9 +291,11 @@ class InProtocolBase(ProtocolMixin):
 
         return retval
 
-    def uuid_from_string(self, cls, string):
+    def uuid_from_string(self, cls, string, suggested_encoding=None, **kwargs):
         return self.uuid_from_unicode(cls,
-                                    string.decode(self.default_string_encoding))
+                          string.decode(self.default_string_encoding),
+                                        suggested_encoding=suggested_encoding,
+                                                                       **kwargs)
 
     def unicode_from_string(self, cls, value):
         retval = value
