@@ -147,14 +147,14 @@ class ByteArray(SimpleModel):
 
 
 binary_encoding_handlers = {
-    None: ''.join,
+    None: b''.join,
     BINARY_ENCODING_HEX: ByteArray.to_hex,
     BINARY_ENCODING_BASE64: ByteArray.to_base64,
     BINARY_ENCODING_URLSAFE_BASE64: ByteArray.to_urlsafe_base64,
 }
 
 binary_decoding_handlers = {
-    None: lambda x: [x],
+    None: lambda x: (x,),
     BINARY_ENCODING_HEX: ByteArray.from_hex,
     BINARY_ENCODING_BASE64: ByteArray.from_base64,
     BINARY_ENCODING_URLSAFE_BASE64: ByteArray.from_urlsafe_base64,
