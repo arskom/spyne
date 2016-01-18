@@ -326,12 +326,13 @@ class InProtocolBase(ProtocolMixin):
 
     def integer_from_string(self, cls, string):
         cls_attrs = self.get_cls_attrs(cls)
-        if isinstance(string, six.string_types) and \
+
+        if isinstance(string, (six.text_type, six.binary_type)) and \
                                     cls_attrs.max_str_len is not None and \
                                     len(string) > cls_attrs.max_str_len:
             raise ValidationError(string,
-                                    "Integer %%r longer than %d characters"
-                                                   % cls_attrs.max_str_len)
+                                         "Integer %%r longer than %d characters"
+                                                        % cls_attrs.max_str_len)
 
         try:
             return int(string)
