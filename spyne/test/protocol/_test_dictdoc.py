@@ -949,7 +949,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult":
-                                                                  range(1000)}})
+                                                            list(range(1000))}})
             print(s)
             print(d)
             assert s == d
