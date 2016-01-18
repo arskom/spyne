@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 import unittest
 
 import uuid
@@ -1129,8 +1132,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             try:
                 _dry_me([SomeService], {"some_call": ["duduk"]},
-                                                            validator='soft')
-            except ValidationError:
+                                                               validator='soft')
+            except ValidationError as e:
+                print(e)
                 pass
 
             else:
@@ -1195,6 +1199,11 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 # must raise validation error for missing i
                 _dry_me([SomeService], {"some_call": {'p':{'s':'a'}}},
                                                                validator='soft')
+            except ValidationError as e:
+                logger.exception(e)
+                pass
+            except BaseException as e:
+                logger.exception(e)
                 pass
             else:
                 raise Exception("must raise ValidationError")
