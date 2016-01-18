@@ -214,6 +214,8 @@ class HierDictDocument(DictDocument):
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
+            if not six.PY2 and isinstance(k, bytes):
+                k = k.decode('utf8')
             member = flat_type_info.get(k, None)
             if member is None:
                 member, k = flat_type_info.alt.get(k, (None, k))
