@@ -29,11 +29,10 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
-from spyne.util import six
-
 import msgpack
 
 from spyne import ValidationError
+from spyne.util import six
 from spyne.model.fault import Fault
 from spyne.model.primitive import Double
 from spyne.model.primitive import Boolean
