@@ -165,7 +165,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     {"ccm": {"CCM":{"c":{"CM":{"i":3, "s": "3x"}}, "i":4, "s": "4x"}}}
                 })
 
-            ret = self.loads(''.join(ctx.out_string))
+            ret = self.loads(b''.join(ctx.out_string))
 
             print(ret)
 
@@ -177,26 +177,26 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
         def test_multiple_list(self):
             class SomeService(ServiceBase):
-                @srpc(Unicode(max_occurs=Decimal('inf')),
-                                    _returns=Unicode(max_occurs=Decimal('inf')))
+                @srpc(Unicode(max_occurs=decimal.Decimal('inf')),
+                            _returns=Unicode(max_occurs=decimal.Decimal('inf')))
                 def some_call(s):
                     return s
 
             ctx = _dry_me([SomeService], {"some_call":[["a","b"]]})
 
-            assert ''.join(ctx.out_string) == self.dumps(
+            assert b''.join(ctx.out_string) == self.dumps(
                     {"some_callResponse": {"some_callResult": ["a", "b"]}})
 
         def test_multiple_dict(self):
             class SomeService(ServiceBase):
-                @srpc(Unicode(max_occurs=Decimal('inf')),
-                                    _returns=Unicode(max_occurs=Decimal('inf')))
+                @srpc(Unicode(max_occurs=decimal.Decimal('inf')),
+                            _returns=Unicode(max_occurs=decimal.Decimal('inf')))
                 def some_call(s):
                     return s
 
             ctx = _dry_me([SomeService], {"some_call":{"s":["a","b"]}})
 
-            assert ''.join(ctx.out_string) == self.dumps(
+            assert b''.join(ctx.out_string) == self.dumps(
                     {"some_callResponse": {"some_callResult": ["a", "b"]}})
 
         def test_multiple_dict_array(self):
@@ -239,7 +239,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             print(ctx.in_object)
 
-            ret = self.loads(''.join(ctx.out_string))
+            ret = self.loads(b''.join(ctx.out_string))
             print(ret)
             assert ret["some_callResponse"]['some_callResult']
             assert ret["some_callResponse"]['some_callResult'][0]
@@ -328,7 +328,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[]})
 
-            ret = self.loads(''.join(ctx.out_string))
+            ret = self.loads(b''.join(ctx.out_string))
 
             assert ret == {"some_callResponse": {'some_callResult':
                                                    {'SomeObject': {'s': None}}}}
@@ -407,7 +407,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -426,7 +426,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -462,9 +462,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     assert isinstance(p, six.string_types)
                     return p
 
-            ctx = _dry_me([SomeService], {"some_call":[d]})
+            ctx = _dry_me([SomeService], {"some_call": [d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -485,9 +485,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call": [d]})
 
-            s = ''.join(ctx.out_string)
-            d = self.dumps({"some_callResponse":
-                                        {"some_callResult": d}})
+            s = b''.join(ctx.out_string)
+            d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
             assert s == d
@@ -505,7 +504,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -524,7 +523,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -545,7 +544,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
 
             print(s)
@@ -567,7 +566,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -587,7 +586,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -607,7 +606,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -627,7 +626,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]}, validator='soft')
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -666,7 +665,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -704,8 +703,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
-            d = self.dumps({"some_callResponse": {"some_callResult": d}})
+            s = self.loads(b''.join(ctx.out_string))
+            d = {"some_callResponse": {"some_callResult": d}}
             print(s)
             print(d)
             assert s == d
@@ -723,7 +722,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -742,7 +741,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -761,7 +760,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -780,7 +779,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -799,7 +798,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -818,7 +817,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult": d}})
             print(s)
             print(d)
@@ -950,7 +949,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             s = b''.join(ctx.out_string)
             d = self.dumps({"some_callResponse": {"some_callResult":
-                                                  range(1000)}})
+                                                                  range(1000)}})
             print(s)
             print(d)
             assert s == d
@@ -961,8 +960,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             data = bytes(bytearray(range(0xff)))
             encoded_data = beh([data])
-            if dbe is not None:
-                encoded_data = encoded_data.decode('ascii')
+            if _DictDocumentChild.text_based:
+                encoded_data = encoded_data.decode('latin1')
 
             class SomeService(ServiceBase):
                 @srpc(ByteArray, _returns=ByteArray)
@@ -990,8 +989,10 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             dbe = _DictDocumentChild.default_binary_encoding
             beh = binary_encoding_handlers[dbe]
 
-            data = b''.join([chr(x) for x in range(0xff)])
-            encoded_data = beh(data)
+            data = bytes(bytearray(range(0xff)))
+            encoded_data = beh([data])
+            if _DictDocumentChild.text_based:
+                encoded_data = encoded_data.decode('latin1')
 
             class SomeService(ServiceBase):
                 @srpc(File, _returns=File)
@@ -1002,12 +1003,12 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     assert p.data == (data,)
                     return p.data
 
-            # encoded data is inside a list because that's the native value of
-            # byte array -- a sequence of byte chunks.
+            # we put the encoded data in the list of arguments.
             ctx = _dry_me([SomeService], {"some_call": [encoded_data]})
 
             s = b''.join(ctx.out_string)
-            d = self.dumps({"some_callResponse": {"some_callResult": encoded_data}})
+            d = self.dumps({"some_callResponse": {"some_callResult":
+                                                                 encoded_data}})
 
             print(self.loads(s))
             print(self.loads(d))
@@ -1023,8 +1024,10 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 name='some_file.bin',
                 type='application/octet-stream',
             )
-            file_data = ''.join([chr(x) for x in range(0xff)])
-            v.data = beh(file_data)
+            file_data = bytes(bytearray(range(0xff)))
+            v.data = beh([file_data])
+            if _DictDocumentChild.text_based:
+                v.data = v.data.decode('latin1')
 
             class SomeService(ServiceBase):
                 @srpc(File, _returns=File)
@@ -1217,7 +1220,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                             {"typeof": [{'C':{'sig':'a', 'foo': 'f'}}]},
                                                                polymorphic=True)
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"typeofResponse": {"typeofResult":
                 'C'
             }})
@@ -1230,7 +1233,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                                   {"typeof": [{'D':{'sig':'b', 'bar': 5}}]},
                                                                polymorphic=True)
 
-            s = ''.join(ctx.out_string)
+            s = b''.join(ctx.out_string)
             d = self.dumps({"typeofResponse": {"typeofResult":
                 'D'
             }})
