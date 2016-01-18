@@ -316,7 +316,7 @@ class HierDictDocument(DictDocument):
         if issubclass(cls, File) and isinstance(inst, cls.Attributes.type):
             retval = self._complex_to_doc(cls.Attributes.type, inst)
             if self.complex_as is dict and not self.ignore_wrappers:
-                retval = iter(retval.values()).next()
+                retval = next(iter(retval.values()))
 
             return retval
 
