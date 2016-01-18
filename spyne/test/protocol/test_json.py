@@ -126,9 +126,7 @@ class TestJsonDocument(unittest.TestCase):
 
     def test_invalid_input(self):
         class SomeService(ServiceBase):
-            @srpc()
-            def yay():
-                pass
+            pass
 
         app = Application([SomeService], 'tns',
                                 in_protocol=JsonDocument(),
