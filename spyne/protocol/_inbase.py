@@ -117,7 +117,6 @@ class InProtocolBase(ProtocolMixin):
 
         fsh = {
             Null: self.null_from_string,
-            Time: self.time_from_string,
             Uuid: self.uuid_from_string,
             File: self.file_from_string,
             Array: self.array_from_string,
@@ -140,11 +139,13 @@ class InProtocolBase(ProtocolMixin):
         self._from_unicode_handlers = cdict(fsh)
 
         self._from_string_handlers[Date] = self.date_from_string
+        self._from_string_handlers[Time] = self.time_from_string
         self._from_string_handlers[Decimal] = self.decimal_from_string
         self._from_string_handlers[DateTime] = self.datetime_from_string
         self._from_string_handlers[Duration] = self.duration_from_string
 
         self._from_unicode_handlers[Date] = self.date_from_unicode
+        self._from_unicode_handlers[Time] = self.time_from_unicode
         self._from_unicode_handlers[Decimal] = self.decimal_from_unicode
         self._from_unicode_handlers[DateTime] = self.datetime_from_unicode
         self._from_unicode_handlers[Duration] = self.duration_from_unicode
@@ -347,7 +348,7 @@ class InProtocolBase(ProtocolMixin):
         except ValueError:
             raise ValidationError(string, "Could not cast %r to integer")
 
-    def time_from_string(self, cls, string):
+    def time_from_unicode(self, cls, string):
         """Expects ISO formatted times."""
 
         match = _time_re.match(string)
@@ -364,6 +365,10 @@ class InProtocolBase(ProtocolMixin):
 
         return time(int(fields['hr']), int(fields['min']),
                                                    int(fields['sec']), microsec)
+
+    def time_from_string(self, cls, string):
+        return self.time_from_unicode(cls,
+                                    string.decode(self.default_string_encoding))
 
     def date_from_unicode_iso(self, cls, string):
         """This is used by protocols like SOAP who need ISO8601-formatted dates
