@@ -42,6 +42,9 @@ class HierDictDocument(DictDocument):
     Implement ``create_in_document()`` and ``create_out_string()`` to use this.
     """
 
+    from_serstr = DictDocument.from_unicode
+    to_serstr = DictDocument.to_unicode
+
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
@@ -133,9 +136,9 @@ class HierDictDocument(DictDocument):
                 raise ValidationError((key, inst))
 
             if issubclass(cls, (ByteArray, File, Uuid)):
-                retval = self.from_unicode(cls, inst, self.binary_encoding)
+                retval = self.from_serstr(cls, inst, self.binary_encoding)
             else:
-                retval = self.from_unicode(cls, inst)
+                retval = self.from_serstr(cls, inst)
 
         # validate native type
         if validator is self.SOFT_VALIDATION and \
@@ -323,12 +326,9 @@ class HierDictDocument(DictDocument):
             return retval
 
         if issubclass(cls, (ByteArray, File, Uuid)):
-            if self.text_based:
-                return self.to_unicode(cls, inst, self.binary_encoding)
-            else:
-                return self.to_string(cls, inst, self.binary_encoding)
+            return self.to_serstr(cls, inst, self.binary_encoding)
 
-        return self.to_unicode(cls, inst)
+        return self.to_serstr(cls, inst)
 
     def _complex_to_doc(self, cls, inst):
         if self.complex_as is list or \

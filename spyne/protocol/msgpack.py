@@ -57,6 +57,10 @@ class MessagePackDocument(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('msgpack')
 
+    default_string_encoding = 'UTF-8'
+    from_serstr = HierDictDocument.from_string
+    to_serstr = HierDictDocument.to_string
+
     # flags to be used in tests
     _decimal_as_string = True
     _huge_numbers_as_string = True
@@ -76,13 +80,13 @@ class MessagePackDocument(HierDictDocument):
 
         self.use_list = use_list
 
-        self._from_unicode_handlers[Double] = self._ret_number
-        self._from_unicode_handlers[Boolean] = self._ret_bool
-        self._from_unicode_handlers[Integer] = self.integer_from_string
+        self._from_string_handlers[Double] = self._ret_number
+        self._from_string_handlers[Boolean] = self._ret_bool
+        self._from_string_handlers[Integer] = self.integer_from_string
 
-        self._to_unicode_handlers[Double] = self._ret_number
-        self._to_unicode_handlers[Boolean] = self._ret_bool
-        self._to_unicode_handlers[Integer] = self.integer_to_string
+        self._to_string_handlers[Double] = self._ret_number
+        self._to_string_handlers[Boolean] = self._ret_bool
+        self._to_string_handlers[Integer] = self.integer_to_string
 
     def _ret(self, _, value):
         return value

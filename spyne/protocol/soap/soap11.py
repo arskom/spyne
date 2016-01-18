@@ -174,8 +174,8 @@ class Soap11(XmlDocument):
         self._to_unicode_handlers[Time] = lambda cls, value: value.isoformat()
         self._to_unicode_handlers[DateTime] = lambda cls, value: value.isoformat()
 
-        self._from_unicode_handlers[Date] = self.date_from_string_iso
-        self._from_unicode_handlers[DateTime] = self.datetime_from_string_iso
+        self._from_unicode_handlers[Date] = self.date_from_unicode_iso
+        self._from_unicode_handlers[DateTime] = self.datetime_from_unicode_iso
 
     def create_in_document(self, ctx, charset=None):
         if isinstance(ctx.transport, HttpTransportContext):
