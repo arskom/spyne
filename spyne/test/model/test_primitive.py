@@ -202,7 +202,7 @@ class TestPrimitive(unittest.TestCase):
         ret = ProtocolBase().to_string(Time, n)
         self.assertEquals(ret, n.isoformat())
 
-        dt = ProtocolBase().from_string(Time, ret)
+        dt = ProtocolBase().from_unicode(Time, ret)
         self.assertEquals(n, dt)
 
     def test_time_usec(self):
@@ -213,32 +213,32 @@ class TestPrimitive(unittest.TestCase):
         # rounded to 999999.
 
         # rounding 0.1 µsec down
-        t = ProtocolBase().from_string(Time, "12:12:12.0000001")
+        t = ProtocolBase().from_unicode(Time, "12:12:12.0000001")
         self.assertEquals(datetime.time(12, 12, 12), t)
 
         # rounding 0.5 µsec up
-        t = ProtocolBase().from_string(Time, "12:12:12.0000005")
+        t = ProtocolBase().from_unicode(Time, "12:12:12.0000005")
         self.assertEquals(datetime.time(12, 12, 12, 1), t)
 
         # rounding 999998.8 µsec up
-        t = ProtocolBase().from_string(Time, "12:12:12.9999988")
+        t = ProtocolBase().from_unicode(Time, "12:12:12.9999988")
         self.assertEquals(datetime.time(12, 12, 12, 999999), t)
 
         # rounding 999999.1 µsec down
-        t = ProtocolBase().from_string(Time, "12:12:12.9999991")
+        t = ProtocolBase().from_unicode(Time, "12:12:12.9999991")
         self.assertEquals(datetime.time(12, 12, 12, 999999), t)
 
         # rounding 999999.8 µsec down, not up.
-        t = ProtocolBase().from_string(Time, "12:12:12.9999998")
+        t = ProtocolBase().from_unicode(Time, "12:12:12.9999998")
         self.assertEquals(datetime.time(12, 12, 12, 999999), t)
 
     def test_date(self):
         n = datetime.date(2011,12,13)
 
-        ret = ProtocolBase().to_string(Date, n)
+        ret = ProtocolBase().to_unicode(Date, n)
         self.assertEquals(ret, n.isoformat())
 
-        dt = ProtocolBase().from_string(Date, ret)
+        dt = ProtocolBase().from_unicode(Date, ret)
         self.assertEquals(n, dt)
 
     def test_utcdatetime(self):
@@ -512,19 +512,19 @@ class TestPrimitive(unittest.TestCase):
     def test_uuid_deserialize(self):
         value = uuid.UUID('12345678123456781234567812345678')
 
-        assert ProtocolBase().from_string(Uuid,
+        assert ProtocolBase().from_unicode(Uuid,
                 '12345678-1234-5678-1234-567812345678') == value
-        assert ProtocolBase().from_string(Uuid(serialize_as='hex'),
+        assert ProtocolBase().from_unicode(Uuid(serialize_as='hex'),
                 '12345678123456781234567812345678') == value
-        assert ProtocolBase().from_string(Uuid(serialize_as='urn'),
+        assert ProtocolBase().from_unicode(Uuid(serialize_as='urn'),
                 'urn:uuid:12345678-1234-5678-1234-567812345678') == value
-        assert ProtocolBase().from_string(Uuid(serialize_as='bytes'),
+        assert ProtocolBase().from_unicode(Uuid(serialize_as='bytes'),
                 '\x124Vx\x124Vx\x124Vx\x124Vx') == value
-        assert ProtocolBase().from_string(Uuid(serialize_as='bytes_le'),
+        assert ProtocolBase().from_unicode(Uuid(serialize_as='bytes_le'),
                 'xV4\x124\x12xV\x124Vx\x124Vx') == value
-        assert ProtocolBase().from_string(Uuid(serialize_as='fields'),
+        assert ProtocolBase().from_unicode(Uuid(serialize_as='fields'),
                 (305419896, 4660, 22136, 18, 52, 95073701484152)) == value
-        assert ProtocolBase().from_string(Uuid(serialize_as='int'),
+        assert ProtocolBase().from_unicode(Uuid(serialize_as='int'),
                 24197857161011715162171839636988778104) == value
 
     def test_uuid_validate(self):
@@ -552,42 +552,42 @@ class TestPrimitive(unittest.TestCase):
         i = 1234567890123456
         v = datetime.datetime.fromtimestamp(i / 1e6)
 
-        assert ProtocolBase().from_string(
+        assert ProtocolBase().from_unicode(
                     DateTime(serialize_as='sec'), i//1e6) == \
                                      datetime.datetime.fromtimestamp(i//1e6)
-        assert ProtocolBase().from_string(
+        assert ProtocolBase().from_unicode(
                     DateTime(serialize_as='sec_float'), i/1e6) == v
 
-        assert ProtocolBase().from_string(
+        assert ProtocolBase().from_unicode(
                     DateTime(serialize_as='msec'), i//1e3) == \
                                     datetime.datetime.fromtimestamp(i/1e3//1000)
-        assert ProtocolBase().from_string(
+        assert ProtocolBase().from_unicode(
                     DateTime(serialize_as='msec_float'), i/1e3) == v
 
-        assert ProtocolBase().from_string(
+        assert ProtocolBase().from_unicode(
                     DateTime(serialize_as='usec'), i) == v
 
     def test_datetime_usec(self):
         # see the comments on time test for why the rounding here is weird
 
         # rounding 0.1 µsec down
-        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.0000001")
+        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.0000001")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
 
         # rounding 0.5 µsec up
-        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.0000005")
+        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.0000005")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 1), dt)
 
         # rounding 999998.8 µsec up
-        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999988")
+        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.9999988")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
         # rounding 999999.1 µsec down
-        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999991")
+        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.9999991")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
         # rounding 999999.8 µsec down, not up.
-        dt = ProtocolBase().from_string(DateTime, "2015-01-01 12:12:12.9999998")
+        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.9999998")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
 ### Duration Data Type
@@ -740,11 +740,11 @@ class TestDurationPrimitive(unittest.TestCase):
         str1 = 'P400DT3672.8S'
         str2 = 'P1Y1M5DT1H1M12.8S'
 
-        self.assertEquals(dur, ProtocolBase().from_string(Duration, str1))
-        self.assertEquals(dur, ProtocolBase().from_string(Duration, str2))
+        self.assertEquals(dur, ProtocolBase().from_unicode(Duration, str1))
+        self.assertEquals(dur, ProtocolBase().from_unicode(Duration, str2))
 
-        self.assertEquals(dur, ProtocolBase().from_string(Duration,
-                               ProtocolBase().to_string(Duration, dur)))
+        self.assertEquals(dur, ProtocolBase().from_unicode(Duration,
+                               ProtocolBase().to_unicode(Duration, dur)))
 
 
 if __name__ == '__main__':
