@@ -295,10 +295,10 @@ class InProtocolBase(ProtocolMixin):
         return retval
 
     def uuid_from_string(self, cls, string, suggested_encoding=None, **kwargs):
-        return self.uuid_from_unicode(cls,
-                          string.decode(self.default_string_encoding),
-                                        suggested_encoding=suggested_encoding,
-                                                                       **kwargs)
+        if self.default_string_encoding is not None:
+            string = string.decode(self.default_string_encoding)
+        return self.uuid_from_unicode(cls, string,
+                                suggested_encoding=suggested_encoding, **kwargs)
 
     def unicode_from_string(self, cls, value):
         retval = value
