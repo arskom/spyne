@@ -77,6 +77,8 @@ class YamlDocument(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('yaml')
 
+    text_based = True
+
     default_binary_encoding = BINARY_ENCODING_BASE64
 
     # for test classes
