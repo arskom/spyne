@@ -85,6 +85,9 @@ class JsonEncoder(json.JSONEncoder):
             return list(o)
 
 
+NON_NUMBER_TYPES = tuple({list, dict, six.text_type, six.binary_type})
+
+
 class JsonDocument(HierDictDocument):
     """An implementation of the json protocol that uses simplejson package when
     available, json package otherwise.
@@ -119,9 +122,9 @@ class JsonDocument(HierDictDocument):
         # with a property.
         self.__message = HierDictDocument.__getattribute__(self, 'message')
 
-        self._from_unicode_handlers[Double] = self._ret
-        self._from_unicode_handlers[Boolean] = self._ret
-        self._from_unicode_handlers[Integer] = self._ret
+        self._from_unicode_handlers[Double] = self._ret_number
+        self._from_unicode_handlers[Boolean] = self._ret_bool
+        self._from_unicode_handlers[Integer] = self._ret_number
 
         self._to_unicode_handlers[Double] = self._ret
         self._to_unicode_handlers[Boolean] = self._ret
@@ -132,6 +135,18 @@ class JsonDocument(HierDictDocument):
 
     def _ret(self, cls, value):
         return value
+
+    def _ret_number(self, cls, value):
+        if isinstance(value, NON_NUMBER_TYPES):
+            raise ValidationError(value)
+        if value in (True, False):
+            return int(value)
+        return value
+
+    def _ret_bool(self, cls, value):
+        if value is None or value in (True, False):
+            return value
+        raise ValidationError(value)
 
     def validate(self, key, cls, val):
         super(JsonDocument, self).validate(key, cls, val)

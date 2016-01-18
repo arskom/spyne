@@ -33,16 +33,20 @@ from spyne.util import six
 
 import msgpack
 
+from spyne import ValidationError
 from spyne.model.fault import Fault
-from spyne.protocol.dictdoc import HierDictDocument
 from spyne.model.primitive import Double
 from spyne.model.primitive import Boolean
 from spyne.model.primitive import Integer
+from spyne.protocol.dictdoc import HierDictDocument
 
 
 class MessagePackDecodeError(Fault):
     def __init__(self, data=None):
         super(MessagePackDecodeError, self).__init__("Client.MessagePackDecodeError", data)
+
+
+NON_NUMBER_TYPES = tuple({list, dict, six.text_type, six.binary_type})
 
 
 class MessagePackDocument(HierDictDocument):
@@ -73,16 +77,28 @@ class MessagePackDocument(HierDictDocument):
 
         self.use_list = use_list
 
-        self._from_unicode_handlers[Double] = self._ret
-        self._from_unicode_handlers[Boolean] = self._ret
+        self._from_unicode_handlers[Double] = self._ret_number
+        self._from_unicode_handlers[Boolean] = self._ret_bool
         self._from_unicode_handlers[Integer] = self.integer_from_string
 
-        self._to_unicode_handlers[Double] = self._ret
-        self._to_unicode_handlers[Boolean] = self._ret
+        self._to_unicode_handlers[Double] = self._ret_number
+        self._to_unicode_handlers[Boolean] = self._ret_bool
         self._to_unicode_handlers[Integer] = self.integer_to_string
 
-    def _ret(self, cls, value):
+    def _ret(self, _, value):
         return value
+
+    def _ret_number(self, _, value):
+        if isinstance(value, NON_NUMBER_TYPES):
+            raise ValidationError(value)
+        if value in (True, False):
+            return int(value)
+        return value
+
+    def _ret_bool(self, _, value):
+        if value is None or value in (True, False):
+            return value
+        raise ValidationError(value)
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.
@@ -120,7 +136,7 @@ class MessagePackDocument(HierDictDocument):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
     def integer_from_string(self, cls, value):
-        if isinstance(value, six.string_types):
+        if isinstance(value, (six.text_type, six.binary_type)):
             return super(MessagePackDocument, self).integer_from_string(cls, value)
         else:
             return value
