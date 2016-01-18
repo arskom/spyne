@@ -355,10 +355,10 @@ class OutProtocolBase(ProtocolMixin):
         else:
             negative = False
 
-        tot_sec = _total_seconds(value)
+        tot_sec = int(_total_seconds(value))
         seconds = value.seconds % 60
-        minutes = value.seconds / 60
-        hours = minutes / 60
+        minutes = value.seconds // 60
+        hours = minutes // 60
         minutes %= 60
         seconds = float(seconds)
         useconds = value.microseconds
