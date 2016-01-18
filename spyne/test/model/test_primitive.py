@@ -29,7 +29,7 @@ from datetime import timedelta
 
 from lxml import etree
 
-from spyne.util import total_seconds
+from spyne.util import six, total_seconds
 from spyne.const import xml_ns as ns
 
 from spyne import Null, AnyDict, Uuid, Array, ComplexModel, Date, Time, \
@@ -154,10 +154,16 @@ class TestPrimitive(unittest.TestCase):
         format = u"%Y %m %d\u00a0%H %M %S"
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, DateTime(format=format), n, element, ns_test)
+        XmlDocument().to_parent(None, DateTime(format=format), n,
+                                                               element, ns_test)
         element = element[0]
 
-        assert element.text == n.strftime(format)
+        if six.PY2:
+            assert element.text == n.strftime(format.encode('utf8')) \
+                                                                 .decode('utf8')
+        else:
+            assert element.text == n.strftime(format)
+
         dt = XmlDocument().from_element(None, DateTime(format=format), element)
         assert n == dt
 
