@@ -87,18 +87,23 @@ def _unbyte(d):
         if isinstance(k, bytes):
             del d[k]
             d[k.decode('utf8')] = v
+
         if isinstance(v, dict):
             _unbyte(v)
 
-
     for k, v in d.items():
-        if isinstance(v, tuple):
+        if isinstance(v, (list, tuple)):
             l = []
             for sub in v:
                 if isinstance(sub, dict):
                     l.append(_unbyte(sub))
+
+                elif isinstance(sub, bytes):
+                    l.append(sub.decode("utf8"))
+
                 else:
                     l.append(sub)
+
             d[k] = tuple(l)
 
         elif isinstance(v, bytes):
@@ -220,8 +225,11 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[["a","b"]]})
 
-            assert self.loads(b''.join(ctx.out_string)) == \
-                    {"some_callResponse": {"some_callResult": ["a", "b"]}}
+            data = b''.join(ctx.out_string)
+            print(data)
+
+            assert self.loads(data) == \
+                          {"some_callResponse": {"some_callResult": ("a", "b")}}
 
         def test_multiple_dict(self):
             class SomeService(ServiceBase):
@@ -233,7 +241,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             ctx = _dry_me([SomeService], {"some_call":{"s":["a","b"]}})
 
             assert self.loads(b''.join(ctx.out_string)) == \
-                    {"some_callResponse": {"some_callResult": ["a", "b"]}}
+                    {"some_callResponse": {"some_callResult": ("a", "b")}}
 
         def test_multiple_dict_array(self):
             class SomeService(ServiceBase):
@@ -243,8 +251,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":{"s":["a","b"]}})
 
-            assert list(ctx.out_string) == [self.dumps(
-                 {"some_callResponse": {"some_callResult": ["a", "b"]}})]
+            assert self.loads(b''.join(ctx.out_string)) == \
+                 {"some_callResponse": {"some_callResult": ("a", "b")}}
 
         def test_multiple_dict_complex_array(self):
             class CM(ComplexModel):
@@ -983,9 +991,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[]})
 
-            s = b''.join(ctx.out_string)
-            d = self.dumps({"some_callResponse": {"some_callResult":
-                                                            list(range(1000))}})
+            s = self.loads(b''.join(ctx.out_string))
+            d = {"some_callResponse": {"some_callResult": tuple(range(1000))}}
             print(s)
             print(d)
             assert s == d
@@ -1044,8 +1051,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             s = self.loads(b''.join(ctx.out_string))
             d = {"some_callResponse": {"some_callResult": encoded_data}}
 
-            print(self.loads(s))
-            print(self.loads(d))
+            print(s)
+            print(d)
             print(repr(encoded_data))
             assert s == d
 
