@@ -79,6 +79,7 @@ from spyne.model.primitive import MultiPolygon
 def _unbyte(d):
     if d is None:
         return
+
     for k, v in list(d.items()):
         if isinstance(k, bytes):
             del d[k]
@@ -86,8 +87,18 @@ def _unbyte(d):
         if isinstance(v, dict):
             _unbyte(v)
 
+
     for k, v in d.items():
-       if isinstance(v, bytes):
+        if isinstance(v, tuple):
+            l = []
+            for sub in v:
+                if isinstance(sub, dict):
+                    l.append(_unbyte(sub))
+                else:
+                    l.append(sub)
+            d[k] = tuple(l)
+
+        elif isinstance(v, bytes):
             try:
                 d[k] = v.decode('utf8')
             except UnicodeDecodeError:
