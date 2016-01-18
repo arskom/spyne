@@ -19,6 +19,7 @@
 
 import unittest
 
+from spyne.util import six
 from suds.sax.parser import Parser
 from suds.client import Client
 from suds.plugin import MessagePlugin
@@ -193,7 +194,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEquals('T'.join((out_header.dt.date().isoformat(),
                                     out_header.dt.time().isoformat())),
                           soap_out_header.getChild('dt').getText())
-        self.assertEquals(unicode(out_header.f), soap_out_header.getChild('f').getText())
+        self.assertEquals(six.text_type(out_header.f), soap_out_header.getChild('f').getText())
         soap_out_trace_header = soapheaders.getChild('OutTraceHeader')
         self.assertEquals('T'.join((out_trace_header.receiptDate.date().isoformat(),
                                     out_trace_header.receiptDate.time().isoformat())),

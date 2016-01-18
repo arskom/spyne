@@ -40,7 +40,7 @@ class _RemoteProcedure(RemoteProcedureBase):
         # sets ctx.out_string
         self.get_out_string(self.ctx)
 
-        out_string = ''.join(self.ctx.out_string) # FIXME: just send the iterable to the http stream.
+        out_string = b''.join(self.ctx.out_string) # FIXME: just send the iterable to the http stream.
         request = Request(self.url, out_string)
         code = 200
         try:

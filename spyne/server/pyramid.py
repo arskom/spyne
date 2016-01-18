@@ -43,12 +43,12 @@ class PyramidApplication(WsgiApplication):
 
         response = WsgiApplication.__call__(self, request.environ,
                                             start_response)
-        retval.body = "".join(response)
+        retval.body = b"".join(response)
 
         return retval
 
     def set_response(self, retval, response):
-        retval.body = "".join(response)
+        retval.body = b"".join(response)
 
 
 class StreamingPyramidApplication(WsgiApplication):
