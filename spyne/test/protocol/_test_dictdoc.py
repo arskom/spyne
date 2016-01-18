@@ -139,9 +139,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call":[]})
 
-            s = b''.join(ctx.out_string)
-            d = self.dumps({"some_callResponse": {"some_callResult":
-                    {"SomeComplexModel": {"i": 5, "s": "5x"}}}})
+            s = self.loads(b''.join(ctx.out_string))
+            d = {"some_callResponse": {"some_callResult":
+                                     {"SomeComplexModel": {"i": 5, "s": "5x"}}}}
             print(s)
             print(d)
             assert s == d
@@ -1185,17 +1185,17 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             ctx = _dry_me([SomeService], {"some_call": []})
 
-            s = ''.join(ctx.out_string)
-            d = self.dumps({"some_callResponse": {"some_callResult": {
+            s = self.loads(b''.join(ctx.out_string))
+            d = {"some_callResponse": {"some_callResult": {
                 "C": {
                     'identifier': '00000000-0000-0000-0000-000000000000',
                     'bar': '00000000-0000-0000-0000-000000000001',
                     'foo': 'zzzzzz',
                     'signature': 'yyyyyyyyyyy'
-                }}}})
+                }}}}
 
-            print(self.loads(s))
-            print(self.loads(d))
+            print(s)
+            print(d)
             assert s == d
 
         def test_polymorphic_deserialization(self):
