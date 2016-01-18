@@ -1183,8 +1183,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
         def test_validation_freq_parent(self):
             class C(ComplexModel):
-                i=Integer(min_occurs=1)
-                s=Unicode
+                i = Integer(min_occurs=1)
+                s = Unicode
 
             class SomeService(ServiceBase):
                 @srpc(C)
@@ -1193,8 +1193,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             try:
                 # must raise validation error for missing i
-                _dry_me([SomeService], {"some_call": {'p':{'s':'a'}}}, validator='soft')
-            except ValidationError:
+                _dry_me([SomeService], {"some_call": {'p':{'s':'a'}}},
+                                                               validator='soft')
                 pass
             else:
                 raise Exception("must raise ValidationError")
