@@ -179,6 +179,10 @@ class HierDictDocument(DictDocument):
 
             subclasses = cls.get_subclasses()
             (class_name, doc), = doc.items()
+            if not six.PY2:
+                if isinstance(class_name, bytes):
+                    class_name = class_name.decode('utf8')
+
             if cls.get_type_name() != class_name and subclasses is not None \
                                                         and len(subclasses) > 0:
                 for subcls in subclasses:
