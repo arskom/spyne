@@ -200,6 +200,11 @@ class MessagePackRpc(MessagePackDocument):
         else:
             msgtype, msgid, msgname_or_error, msgparams = ctx.in_document
 
+        if not six.PY2:
+            if isinstance(msgname_or_error, bytes):
+                msgname_or_error = msgname_or_error.decode(
+                                                   self.default_string_encoding)
+
         if msgtype == MessagePackRpc.MSGPACK_REQUEST:
             assert message == MessagePackRpc.REQUEST
 
@@ -213,7 +218,7 @@ class MessagePackRpc(MessagePackDocument):
             raise MessagePackDecodeError("Unknown message type %r" % msgtype)
 
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                                        msgname_or_error)
+                                                               msgname_or_error)
 
         ctx.in_header_doc = None # MessagePackRpc does not seem to have Header support
 
