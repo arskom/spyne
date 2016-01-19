@@ -6,6 +6,10 @@ spyne-2.13.0
 ------------
 * Modernized test infrastructure.
 * EXPERIMENTAL library-wide Python 3 Support! Yay!
+ * MessagePack uses backwards-compatible raws with a hard-coded utf8 encoding.
+   Open an issue if not happy.
+ * It's the transports' job to decide on a codec. Use UTF-8 when in doubt, as
+   that's what we're doing.
  * Float rounding behaviour seems to have changed in Python 3. In Python 2,
    ``round(2.5) = 3`` and ``round(3.5) = 4`` whereas in Python 3,
    ``round(2.5) = 2`` and ``round(3.5) = 4``. This is called half-to-even
@@ -160,128 +164,6 @@ spyne-2.11.0
   over ``TwistedWebResource``. This lets twisted handle Http 1.1-specific
   functionality like range requests.
 * Many, many, many bugs fixed.
-
-spyne-2.10.10
--------------
-* Fix wsdl rendering in TwistedWebResource.
-* Fix http response header propagation in TwistedWebResource.
-* Fix handling of fractions in microsecond values.
-* Fix spyne.util.get_validation_schema()
-
-spyne-2.10.9
-------------
-* Fix total_seconds quirk for Python 2.6.
-* Turn off Xml features like entity resolution by default. This mitigates
-  an information disclosure attack risk in services whose response contain
-  some fragments or all of the request. Also prevents DoS attacks that make use
-  of entity expansion. See https://bitbucket.org/tiran/defusedxml for more info.
-* Drop Python 2.5 support (It wasn't working anyway).
-
-spyne-2.10.8
-------------
-* Fix Unicode losing pattern on re-customization
-* Fix Duration serialization, add a ton of test cases.
-* Fix binary urlsafe_base64 encoding.
-* Fix arbitrary exception serialization.
-* Fix some doc errors.
-
-spyne-2.10.7
-------------
-* Fix logic error in wsdl caching that prevented the url in Wsdl document from
-  being customized.
-* Fix dictdoc not playing well with functions with empty return values.
-
-spyne-2.10.6
-------------
-* Fix exception serialization regression in DictDocument family.
-* Fix xml utils (and its example).
-
-spyne-2.10.5
-------------
-* Fix default value handling in ``HttpRpc``.
-* Fix invalid document type raising ``InternalError`` in DictDocument family.
-  It now raises ``ValidationError``.
-* HttpRpc: Fix ``ByteArray`` deserialization.
-* HttpRpc: Fix many corner cases with ``Array``\s.
-* Fix Csv serializer.
-* Fix Mandatory variants of ``Double`` and ``Float`` inheriting from decimal.
-
-spyne-2.10.4
-------------
-* Fix handling of ``spyne.model.binary.File.Value`` with just path name.
-* Fix decimal restrictions (some more).
-* Make user code that doesn't return anything work with twisted server
-  transport.
-
-spyne-2.10.3
-------------
-* Add validation tests for HierDictDocument and fix seen issues.
-* Add validation tests for FlatDictDocument and fix seen issues.
-* Clarify Json and Http behavior in relevant docstrings.
-* Fix Python2.6 generating max_occurs="inf" instead of "unbounded" sometimes.
-
-spyne-2.10.2
-------------
-* Fix ByteArray support accross all protocols.
-* Fix namespaces of customized simple types inside ``XmlAttribute`` not being
-  imported.
-
-spyne-2.10.1
-------------
-* Fix confusion in Decimal restriction assignment.
-* Fix classmethod calls to ProtocolBase.
-* Fix schema generation error in namespaced xml attribute case.
-
-spyne-2.10.0
-------------
-* Returning twisted's Deferred from user code is now supported.
-* You can now set Http response headers via ctx.out_header when
-  out_protocol is HttpRpc. https://github.com/arskom/spyne/pull/201
-* lxml is not a hard requirement anymore.
-* XmlDocument and friends: cleanup_namespaces is now True by default.
-* XmlDocument and friends: Added ``encoding`` and ``pretty_print`` flags that
-  are directly passed to ``lxml.etree.tostring()``.
-* XmlDocument and friends:'attribute_of' added to ModelBase to add attribute
-  support for primitives. This is currently ignored by (and mostly irrelevant
-  to) other protocols.
-* XmlDocument and friends: Attribute serialization is working for arrays.
-* Add support for exposing existing whose source code via the _args argument
-  to the srpc decorator. See the existing_api example for usage examples.
-* Add Streaming versions of Pyramid and Django bridge objects.
-* Remove destructor from ``MethodContext``. Now transports need to call
-  ``.close()`` explicitly to close object and fire relevant events.
-* Application event 'method_context_constructed' was renamed to
-  ``'method_context_created'``.
-* Application event 'method_context_destroyed' was removed. The
-  ``'method_context_closed'`` event can be used instead.
-* SQLAlchemy integration now supports advanced features like specifying
-  indexing methods.
-* The object composition graph can now be cyclic.
-* Integers were overhauled. Now boundary values of limited-size types are
-  accessible via ``Attributes._{min,max}_bounds``.
-* We now have six spatial types, ``Point``, ``LineString`` and ``Polygon``
-  along with their ``Multi*`` variants.
-* The deprecated ``ProtocolBase.set_method_descriptor`` function was removed.
-* It's now possible to override serialization in service implementations.
-  You can set ``ctx.out_document`` to have the return value from user funtion
-  ignored. You can also set ``ctx.out_string`` to have the ``ctx.out_document``
-  ignored as well.
-* Added as_timezone support to DateTime. It calls
-  ``.astimezone(as_time_zone).replace(tzinfo=None)`` on native values.
-* Added YAML support via PyYaml.
-* Split dict logic in DictDocument as ``HierDictDocument`` and
-  ``FlatDictDocument``.
-* Complete revamp of how DictDocument family work. skip_depth is replaced by
-  richer functionalty that is enabled by two flags: ``ignore_wrappers`` and
-  ``complex_as``.
-* Added cookie parsing support to HttpRpc via ``Cookie.SimpleCookie``.
-* Moved ``{to,from}_string`` logic from data models to ProtocolBase.
-  This gives us the ability to have more complex fault messages
-  with other fault subelements that are namespace-qualified without
-  circular dependency problems - Stefan Andersson <norox81@gmail.com>
-* DictDocument and friends: ``ignore_wrappers`` and ``complex_as`` options
-  added as a way to customize protocol output without hindering other parts
-  of the interface.
 
 Check the documentation at http://spyne.io/docs for changelogs of the older
 versions
