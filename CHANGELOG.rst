@@ -5,6 +5,20 @@ Changelog
 spyne-2.13.0
 ------------
 * Modernized test infrastructure.
+* EXPERIMENTAL library-wide Python 3 Support! Yay!
+ * Float rounding behaviour seems to have changed in Python 3. In Python 2,
+   ``round(2.5) = 3`` and ``round(3.5) = 4`` whereas in Python 3,
+   ``round(2.5) = 2`` and ``round(3.5) = 4``. This is called half-to-even
+   rounding and while being counterintuitive, it seems to make better sense from
+   a statistical standpoint.
+
+   You will have to live with this or use ``decimal.Decimal``.
+
+   This changes the way datetime and time microseconds are rounded. See
+   ``test_datetime_usec`` and ``test_time_usec`` in
+   ``spyne.test.model.test_primitive``.
+
+* Many bugs fixed.
 
 spyne-2.12.11
 -------------

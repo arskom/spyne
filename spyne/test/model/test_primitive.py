@@ -223,7 +223,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(datetime.time(12, 12, 12), t)
 
         # rounding 1.5 µsec up. 0.5 is rounded down by python 3 and up by
-        # python 2. frikkin' nonsense.
+        # python 2 so we test with 1.5 µsec instead. frikkin' nonsense.
         t = ProtocolBase().from_unicode(Time, "12:12:12.0000015")
         self.assertEquals(datetime.time(12, 12, 12, 2), t)
 
@@ -581,8 +581,8 @@ class TestPrimitive(unittest.TestCase):
         dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.0000001")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
 
-        # rounding 1.5 µsec up. 0.5 µsec is rounded down by python 3
-        # and rounded up by python 2. 1.5 µsec is always rounded up. sigh.
+        # rounding 1.5 µsec up. 0.5 is rounded down by python 3 and up by
+        # python 2 so we test with 1.5 µsec instead. frikkin' nonsense.
         dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.0000015")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 2), dt)
 
