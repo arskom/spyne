@@ -104,7 +104,7 @@ def get_object_as_json(o, cls=None, ignore_wrappers=True, complex_as=list,
                                                         polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls, o)])
     prot.create_out_string(ctx, encoding)
-    return ''.join(ctx.out_string)
+    return b''.join(ctx.out_string)
 
 
 def get_object_as_yaml(o, cls=None, ignore_wrappers=False, complex_as=dict,
@@ -116,7 +116,7 @@ def get_object_as_yaml(o, cls=None, ignore_wrappers=False, complex_as=dict,
                                                         polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
     prot.create_out_string(ctx, encoding)
-    return ''.join(ctx.out_string)
+    return b''.join(ctx.out_string)
 
 
 def get_object_as_msgpack(o, cls=None, ignore_wrappers=False, complex_as=dict,
@@ -128,7 +128,7 @@ def get_object_as_msgpack(o, cls=None, ignore_wrappers=False, complex_as=dict,
                                  complex_as=complex_as, polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
     prot.create_out_string(ctx, encoding)
-    return ''.join(ctx.out_string)
+    return b''.join(ctx.out_string)
 
 
 def json_loads(s, cls, protocol=JsonDocument, **kwargs):
