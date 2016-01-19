@@ -406,7 +406,7 @@ rpclib-2.3.0-beta
 * Many fixes.
 
 rpclib-2.2.3-beta
-------------------
+-----------------
 * Documentation improvements.
 * rpclib.client.http.Client -> rpclib.client.http.HttpClient
 * rpclib.client.zeromq.Client -> rpclib.client.zeromq.ZeroMQClient

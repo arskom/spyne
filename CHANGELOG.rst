@@ -4,7 +4,6 @@ Changelog
 
 spyne-2.13.0
 ------------
-* Modernized test infrastructure.
 * EXPERIMENTAL library-wide Python 3 Support! Yay!
  * MessagePack uses backwards-compatible raws with a hard-coded utf8 encoding.
    Open an issue if not happy.
@@ -22,6 +21,8 @@ spyne-2.13.0
    ``test_datetime_usec`` and ``test_time_usec`` in
    ``spyne.test.model.test_primitive``.
 
+* No major changes otherwise but we paid a lot of technical debt. e.g. We
+  modernized the test infrastructure.
 * Many bugs fixed.
 
 spyne-2.12.11
