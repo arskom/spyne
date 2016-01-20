@@ -132,6 +132,10 @@ def get_object_as_msgpack(o, cls=None, ignore_wrappers=False, complex_as=dict,
 
 
 def json_loads(s, cls, protocol=JsonDocument, **kwargs):
+    if s is None:
+        return None
+    if s == '':
+        return None
     prot = protocol(**kwargs)
     ctx = FakeContext(in_string=[s])
     prot.create_in_document(ctx)
@@ -142,6 +146,10 @@ get_json_as_object = json_loads
 
 
 def yaml_loads(s, cls, protocol=YamlDocument, ignore_wrappers=False, **kwargs):
+    if s is None:
+        return None
+    if s == '':
+        return None
     prot = protocol(ignore_wrappers=ignore_wrappers, **kwargs)
     ctx = FakeContext(in_string=[s])
     prot.create_in_document(ctx)
