@@ -234,7 +234,6 @@ class InProtocolBase(ProtocolMixin):
                            len(string) == 0 and class_.Attributes.empty_is_none:
             return None
 
-        print(args, kwargs)
         handler = self._from_string_handlers[class_]
         return handler(class_, string, *args, **kwargs)
 
