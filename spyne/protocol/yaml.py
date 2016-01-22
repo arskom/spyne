@@ -165,7 +165,7 @@ class YamlDocument(HierDictDocument):
 
 
 
-def _decimal_to_string():
+def _decimal_to_bytes():
     pass
 
 def _decimal_from_string():

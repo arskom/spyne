@@ -59,7 +59,7 @@ class MessagePackDocument(HierDictDocument):
 
     default_string_encoding = 'UTF-8'
     from_serstr = HierDictDocument.from_string
-    to_serstr = HierDictDocument.to_string
+    to_serstr = HierDictDocument.to_bytes
 
     # flags to be used in tests
     _decimal_as_string = True
@@ -84,9 +84,9 @@ class MessagePackDocument(HierDictDocument):
         self._from_string_handlers[Boolean] = self._ret_bool
         self._from_string_handlers[Integer] = self.integer_from_string
 
-        self._to_string_handlers[Double] = self._ret_number
-        self._to_string_handlers[Boolean] = self._ret_bool
-        self._to_string_handlers[Integer] = self.integer_to_string
+        self._to_bytes_handlers[Double] = self._ret_number
+        self._to_bytes_handlers[Boolean] = self._ret_bool
+        self._to_bytes_handlers[Integer] = self.integer_to_bytes
 
     def _ret(self, _, value):
         return value
@@ -144,12 +144,12 @@ class MessagePackDocument(HierDictDocument):
         else:
             return value
 
-    def integer_to_string(self, cls, value, **_):
+    def integer_to_bytes(self, cls, value, **_):
         # if it's inside the range msgpack can deal with
         if -1<<63 <= value < 1<<64:
             return value
         else:
-            return super(MessagePackDocument, self).integer_to_string(cls, value)
+            return super(MessagePackDocument, self).integer_to_bytes(cls, value)
 
 
 class MessagePackRpc(MessagePackDocument):

@@ -77,7 +77,7 @@ _weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 _month = ['w00t', "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
              "Oct", "Nov", "Dec"]
 
-def _header_to_string(prot, val, cls):
+def _header_to_bytes(prot, val, cls):
     if issubclass(cls, DateTime):
         if val.tzinfo is not None:
             val = val.astimezone(pytz.utc)
@@ -237,7 +237,7 @@ class HttpRpc(SimpleDictDocument):
                     out_object, = ctx.out_object
 
                 if out_class is not None:
-                    ctx.out_document = self.to_string_iterable(out_class,
+                    ctx.out_document = self.to_bytes_iterable(out_class,
                                                                     out_object)
                     if issubclass(out_class, File) and not \
                            isinstance(out_object, (list, tuple, string_types)) \
@@ -251,11 +251,11 @@ class HttpRpc(SimpleDictDocument):
                     out_header = ctx.out_header[0]
 
                 ctx.out_header_doc = self.object_to_simple_dict(header_class,
-                                   out_header, subvalue_eater=_header_to_string)
+                                   out_header, subvalue_eater=_header_to_bytes)
 
         else:
             ctx.transport.mime_type = 'text/plain'
-            ctx.out_document = ctx.out_error.to_string_iterable(ctx.out_error)
+            ctx.out_document = ctx.out_error.to_bytes_iterable(ctx.out_error)
 
         self.event_manager.fire_event('serialize', ctx)
 

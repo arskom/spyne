@@ -492,7 +492,7 @@ class ModelBase(object):
             return "%s:%s" % (pref, cls.get_element_name())
 
     @classmethod
-    def to_string(cls, value):
+    def to_bytes(cls, value):
         """
         Returns str(value). This should be overridden if this is not enough.
         """
