@@ -666,7 +666,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             __tablename__ = "c"
 
             id = Integer32(pk=True)
-            f = File(store_as=HybridFileStore('store', 'json'))
+            f = File(store_as=HybridFileStore('test_file_storage', 'json'))
 
         self.metadata.create_all()
         c = C(f=File.Value(name=u"name", type=u"type", data=[b"data"]))
