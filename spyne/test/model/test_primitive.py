@@ -292,7 +292,7 @@ class TestPrimitive(unittest.TestCase):
         ProtocolBase().from_string(UnsignedInteger, "-1") # This is not supposed to fail.
 
         try:
-            UnsignedInteger.validate_native(-1)  # This is supposed to fail.
+            UnsignedInteger.validate_native(UnsignedInteger, -1)  # This is supposed to fail.
         except:
             pass
         else:
