@@ -137,7 +137,6 @@ class Token(NormalizedString):
         white_space = "collapse"
 
 # https://www.w3.org/TR/2000/WD-xml-2e-20000814#NT-Name
-
 class Name(Token):
     __type_name__ = 'Name'
 
@@ -155,6 +154,27 @@ class NCName(Name):
     class Attributes(Unicode.Attributes):
         pattern = "(%s|_)%s*" % (RE_Letter.pattern, RE_NCNameChar.pattern)
 
+
+# https://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-QName
+class QName(Token):
+    __type_name__ = "QName"
+
+    class Attributes(Unicode.Attributes):
+        """
+        QName = (PrefixedName | UnprefixedName)
+        PrefixedName 	::= 	Prefix ':' LocalPart
+        UnprefixedName 	::= 	LocalPart
+        Prefix 	::= 	NCName
+        LocalPart 	::= 	NCName
+
+        i.e.
+
+        QName = (NCName:)?NCName
+        """
+        pattern = "(%s:)?(%s)" % (
+            NCName.Attributes.pattern,
+            NCName.Attributes.pattern,
+        )
 
 
 class NMToken(Unicode):

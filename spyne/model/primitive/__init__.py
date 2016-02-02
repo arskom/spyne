@@ -38,6 +38,7 @@ from spyne.model.primitive.xml import Token
 from spyne.model.primitive.xml import NMToken
 from spyne.model.primitive.xml import Name
 from spyne.model.primitive.xml import NCName
+from spyne.model.primitive.xml import QName
 from spyne.model.primitive.xml import Language
 from spyne.model.primitive.xml import NormalizedString
 
