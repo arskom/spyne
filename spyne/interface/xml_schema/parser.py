@@ -114,17 +114,20 @@ def Thier_repr(with_ns=False):
 
         xtba = cls.Attributes._xml_tag_body_as
         if xtba is not None:
+            xtba = iter(xtba)
             xtba_key, xtba_type = next(xtba)
             if xtba_key is not None:
                 value = getattr(inst, xtba_key, None)
                 retval.append("%s,\n" % hier_repr(value, i1, I, tags))
             else:
                 retval.append('\n')
+        else:
+            retval.append('\n')
 
         for k, v in inst.get_flat_type_info(cls).items():
             value = getattr(inst, k, None)
             if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
-                                                            value is not None:
+                                                              value is not None:
                 retval.append("%s%s=[\n" % (I * i1, k))
                 for subval in value:
                     retval.append("%s%s,\n" % (I * i2,
