@@ -136,18 +136,25 @@ class Token(NormalizedString):
     class Attributes(Unicode.Attributes):
         white_space = "collapse"
 
+# https://www.w3.org/TR/2000/WD-xml-2e-20000814#NT-Name
 
 class Name(Token):
     __type_name__ = 'Name'
 
     class Attributes(Unicode.Attributes):
-        # Original: '[\i-[:]][\c-[:]]*'
-        # See: http://www.regular-expressions.info/xmlcharclass.html
-        pattern = '[[_:A-Za-z]-[:]][[-._:A-Za-z0-9]-[:]]*'
+        # https://www.w3.org/TR/2000/WD-xml-2e-20000814#NT-Name
+        pattern = '(%s)(%s)*' % (
+            u'|'.join((RE_Letter.pattern, '_', ':')),
+            RE_NameChar.pattern
+        )
 
 
+# https://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-NCName
 class NCName(Name):
     __type_name__ = 'NCName'
+    class Attributes(Unicode.Attributes):
+        pattern = "(%s|_)%s*" % (RE_Letter.pattern, RE_NCNameChar.pattern)
+
 
 
 class NMToken(Unicode):
