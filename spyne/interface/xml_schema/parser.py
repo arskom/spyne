@@ -312,7 +312,7 @@ class XmlSchemaParser(object):
         return retval
 
     def process_simple_type_union(self, s, name=None):
-        self.debug1("skipping simple type: %s because its union is not "
+        self.debug1("skipping simple type: %s because <union> is not "
                     "implemented", name)
 
     def process_simple_type(self, s, name=None):

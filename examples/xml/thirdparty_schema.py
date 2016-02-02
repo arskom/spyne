@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
+# this doesn't work yet because <union> is not implemented
+
 from __future__ import print_function
+
+from spyne import ServiceBase
 
 EXAMPLE_DOCUMENT = """
 <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" soapenv:mustUnderstand="1">
@@ -48,19 +52,21 @@ class NS:
     WSU = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
     DS = "http://www.w3.org/2000/09/xmldsig#"
     XSD = "http://www.w3.org/2001/XMLSchema"
+    XML = "http://www.w3.org/XML/1998/namespace"
 
 files = {
     NS.WSSE: "wsse.xsd",
     NS.WSU: "wsu.xsd",
     NS.DS: "ds.xsd",
     NS.XSD: "xsd.xsd",
+    NS.XML: "xml.xsd",
 }
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-parse_schema_file(files[NS.WSSE], files=files)
-
+wsse = parse_schema_file(files[NS.WSSE], files=files)
+wsu = parse_schema_file(files[NS.WSU], files=files)
 
 class InteropServiceWithHeader(ServiceBase):
     __out_header__ = OutHeader
