@@ -61,6 +61,7 @@ pres.pdf
 
 # output from examples
 examples/file_manager/files/
+examples/xml/*.xsd
 
 # nuitka cruft
 *.build
