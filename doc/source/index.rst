@@ -51,4 +51,4 @@ Other Goodies
    faq
    history
    migration
-   ../../CONTRIBUTING.rst
+   contributing
