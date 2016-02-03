@@ -79,8 +79,8 @@ class TestNullServer(unittest.TestCase):
         class MessageService(ServiceBase):
             @srpc(String, String, _returns=Array(String))
             def send_message(s, k):
-                queue.add((s,k))
-                return [s,k]
+                queue.add((s, k))
+                return [s, k]
 
         application = Application([MessageService], 'some_tns',
                         in_protocol=XmlDocument(), out_protocol=XmlDocument())
