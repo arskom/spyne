@@ -40,12 +40,14 @@ class ServiceBaseMeta(type):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
         self.__has_aux_methods = self.__aux__ is not None
+        has_nonaux_methods = None
+
         self.public_methods = {}
         self.event_manager = EventManager(self,
                                       self.__get_base_event_handlers(cls_bases))
 
         for k, v in cls_dict.items():
-            print(k, v)
+            print(k, v, self.__has_aux_methods, self.__aux__)
             if not hasattr(v, '_is_rpc'):
                 continue
 
@@ -64,12 +66,14 @@ class ServiceBaseMeta(type):
             descriptor.service_class = self
 
             self.public_methods[k] = descriptor
-            if descriptor.aux is None:
-                if self.__has_aux_methods and self.__aux__ is None:
-                    raise Exception("You can't mix primary and "
-                            "auxiliary methods in a single service definition.")
+            if descriptor.aux is None and self.__aux__ is None:
+                has_nonaux_methods = True
             else:
                 self.__has_aux_methods = True
+
+            if self.__has_aux_methods and has_nonaux_methods:
+                raise Exception("You can't mix primary and "
+                        "auxiliary methods in a single service definition.")
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}

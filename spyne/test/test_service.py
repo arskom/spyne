@@ -178,7 +178,6 @@ class TestMultipleMethods(unittest.TestCase):
                 @srpc(String, _returns=String)
                 def mall(s):
                     pass
-                #import ipdb; ipdb.set_trace()
         except Exception:
             pass
         else:
