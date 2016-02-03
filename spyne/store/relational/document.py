@@ -192,12 +192,16 @@ class PGObjectJson(UserDefinedType):
         from spyne.util.dictdoc import JsonDocument
 
         def process(value):
-            if isinstance(value, string_types):
+            if isinstance(value, six.binary_type):
+                value = value.decode('utf8')
+
+            if isinstance(value, six.text_type):
                 return self.get_dict_as_object(json.loads(value), self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
                         protocol=JsonDocument,
                     )
+
             if value is not None:
                 return self.get_dict_as_object(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
