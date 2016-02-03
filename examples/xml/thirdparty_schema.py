@@ -65,6 +65,12 @@ from spyne import ServiceBase
 from spyne.util.xml import parse_schema_file
 
 
+for fn in files:
+    if not isfile(fn):
+        raise Exception("Please run 'make' in this script's directory to fetch"
+                        "schema files before running this example")
+
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
