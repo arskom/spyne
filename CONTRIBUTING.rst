@@ -42,6 +42,8 @@ by Spyne code. They are not by all means mandatory for your pull request to go
 in but a consistent code style *does* make the lives of the future generations
 much easier.
 
+They are, in no particular order:
+
 -   Use stair-style indentation for long lines. E.g.
 
     ::
