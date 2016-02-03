@@ -93,9 +93,11 @@ def _from_soap(in_envelope_xml, xmlids=None, **kwargs):
 
 
 def _parse_xml_string(xml_string, parser, charset=None):
-    string = b''.join(xml_string)
     if charset:
+        string = b''.join(xml_string)
         string = string.decode(charset)
+    else:
+        string = ''.join(xml_string)
 
     try:
         try:
