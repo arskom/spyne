@@ -145,17 +145,13 @@ class TestCDict(unittest.TestCase):
         class C(object):
             pass
 
-        class D:
-            pass
-
-        d = cdict({A: "fun", object: "base", F: 'zan'})
+        d = cdict({A: "fun", F: 'zan'})
 
         assert d[A] == 'fun'
         assert d[B] == 'fun'
-        assert d[C] == 'base'
         assert d[F] == 'zan'
         try:
-            d[D]
+            d[C]
         except KeyError:
             pass
         else:
