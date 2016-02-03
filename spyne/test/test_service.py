@@ -128,7 +128,7 @@ class TestMultipleMethods(unittest.TestCase):
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': 'text/xml',
+            'CONTENT_TYPE': 'text/xml; charset=utf8',
             'SERVER_NAME': 'localhost',
             'wsgi.input': BytesIO(),
         }, start_response, "http://null")
@@ -158,7 +158,7 @@ class TestMultipleMethods(unittest.TestCase):
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': 'text/xml',
+            'CONTENT_TYPE': 'text/xml; charset=utf8',
             'SERVER_NAME': 'localhost',
             'wsgi.input': BytesIO(),
         }, start_response, "http://null")
@@ -178,6 +178,7 @@ class TestMultipleMethods(unittest.TestCase):
                 @srpc(String, _returns=String)
                 def mall(s):
                     pass
+                #import ipdb; ipdb.set_trace()
         except Exception:
             pass
         else:
@@ -193,7 +194,7 @@ class TestMultipleMethods(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': 'text/xml',
+            'CONTENT_TYPE': 'text/xml; charset=utf8',
             'SERVER_NAME': 'localhost',
             'wsgi.input': BytesIO(b""),
         }, start_response, "http://null"))
@@ -290,7 +291,7 @@ class TestBodyStyle(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': 'text/xml',
+            'CONTENT_TYPE': 'text/xml; charset=utf8',
             'SERVER_NAME': 'localhost',
             'wsgi.input': BytesIO(req),
         }, start_response, "http://null")))
@@ -326,7 +327,7 @@ class TestBodyStyle(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': 'text/xml',
+            'CONTENT_TYPE': 'text/xml; charset=utf8',
             'SERVER_NAME': 'localhost',
             'wsgi.input': BytesIO(req)
         }, start_response, "http://null")))
@@ -392,7 +393,7 @@ class TestBodyStyle(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': 'text/xml',
+            'CONTENT_TYPE': 'text/xml; charset=utf8',
             'wsgi.input': BytesIO(req)
         }, start_response, "http://null")))
 
