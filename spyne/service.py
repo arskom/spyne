@@ -45,28 +45,30 @@ class ServiceBaseMeta(type):
                                       self.__get_base_event_handlers(cls_bases))
 
         for k, v in cls_dict.items():
-            if hasattr(v, '_is_rpc'):
-                descriptor = v(_default_function_name=k)
+            if not hasattr(v, '_is_rpc'):
+                continue
 
-                # these two lines are needed for staticmethod wrapping to work
-                setattr(self, k, staticmethod(descriptor.function))
-                descriptor.reset_function(getattr(self, k))
+            descriptor = v(_default_function_name=k)
 
-                try:
-                    getattr(self, k).descriptor = descriptor
-                except AttributeError as e:
-                    pass
-                    # FIXME: this fails with builtins. Temporary hack while we
-                    # investigate whether we really need this or not
-                descriptor.service_class = self
+            # these two lines are needed for staticmethod wrapping to work
+            setattr(self, k, staticmethod(descriptor.function))
+            descriptor.reset_function(getattr(self, k))
 
-                self.public_methods[k] = descriptor
-                if descriptor.aux is None:
-                    if self.__has_aux_methods and self.__aux__ is None:
-                        raise Exception("You can't mix primary and "
+            try:
+                getattr(self, k).descriptor = descriptor
+            except AttributeError:
+                pass
+                # FIXME: this fails with builtins. Temporary hack while we
+                # investigate whether we really need this or not
+            descriptor.service_class = self
+
+            self.public_methods[k] = descriptor
+            if descriptor.aux is None:
+                if self.__has_aux_methods and self.__aux__ is None:
+                    raise Exception("You can't mix primary and "
                             "auxiliary methods in a single service definition.")
-                else:
-                    self.__has_aux_methods = True
+            else:
+                self.__has_aux_methods = True
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
