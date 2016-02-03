@@ -22,34 +22,26 @@
 
 # This module is EXPERIMENTAL. Only a subset of Xml schema standard is
 # implemented.
-
-
-from collections import defaultdict
+#
 
 import logging
 logger = logging.getLogger(__name__)
 
 import os
 
-from itertools import chain
-from pprint import pformat
 from copy import copy
-
-from os.path import dirname
-from os.path import abspath
-from os.path import join
+from pprint import pformat
+from itertools import chain
+from collections import defaultdict
+from os.path import dirname, abspath, join
 
 from lxml import etree
 
 from spyne.util import memoize
 from spyne.util.odict import odict
 
-from spyne.model import Null
-from spyne.model import XmlData
-from spyne.model import XmlAttribute
-from spyne.model import Array
-from spyne.model import ComplexModelBase
-from spyne.model import ComplexModelMeta
+from spyne.model import Null, XmlData, XmlAttribute, Array, ComplexModelBase, \
+    ComplexModelMeta
 from spyne.model.complex import XmlModifier
 
 from spyne.protocol.xml import XmlDocument

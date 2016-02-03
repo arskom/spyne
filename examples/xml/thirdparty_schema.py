@@ -4,7 +4,6 @@
 
 from __future__ import print_function
 
-from spyne import ServiceBase
 
 EXAMPLE_DOCUMENT = """
 <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" soapenv:mustUnderstand="1">
@@ -43,10 +42,6 @@ EXAMPLE_DOCUMENT = """
 </wsse:Security>
 """
 
-
-from spyne.util.xml import parse_schema_file
-
-
 class NS:
     WSSE = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
     WSU = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
@@ -62,8 +57,17 @@ files = {
     NS.XML: "xml.xsd",
 }
 
+
+from os.path import isfile
+from datetime import datetime, timedelta
+
+from spyne import ServiceBase
+from spyne.util.xml import parse_schema_file
+
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
+
 
 wsse = parse_schema_file(files[NS.WSSE], files=files)
 wsu = parse_schema_file(files[NS.WSU], files=files)
