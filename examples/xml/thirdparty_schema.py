@@ -78,16 +78,18 @@ logging.basicConfig(level=logging.DEBUG)
 wsse = parse_schema_file(files[NS.WSSE], files=files)
 wsu = parse_schema_file(files[NS.WSU], files=files)
 
+
 class InteropServiceWithHeader(ServiceBase):
-    __out_header__ = OutHeader
+    __out_header__ = Security
 
-    @rpc(_returns=InHeader)
-    def echo_in_header(ctx):
-        return ctx.in_header
-
-    @rpc(_returns=OutHeader)
+    @rpc(_returns=Security)
     def send_out_header(ctx):
-        ctx.out_header = OutHeader()
+        ctx.out_header = Security(
+            timestamp=TimeStamp(
+                created=datetime.now(),
+                expired=datetime.now() + timedelta(days=365),
+            )
+        )
         ctx.out_header.dt = datetime(year=2000, month=1, day=1)
         ctx.out_header.f = 3.141592653
 
