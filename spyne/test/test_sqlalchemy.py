@@ -74,7 +74,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert t.c.id.primary_key == True
         assert t.c.id.autoincrement == False
         indexes = list(t.indexes)
-        indexes.sort(key=lambda idx: idx.columns)
+        indexes.sort(key=lambda idx: idx.name)
         for idx in indexes:
             assert 'i' in idx.columns or 's' in idx.columns
             if 's' in idx.columns:
@@ -666,10 +666,10 @@ class TestSqlAlchemySchema(unittest.TestCase):
             __tablename__ = "c"
 
             id = Integer32(pk=True)
-            f = File(store_as=HybridFileStore('store', 'json'))
+            f = File(store_as=HybridFileStore('test_file_storage', 'json'))
 
         self.metadata.create_all()
-        c = C(f=File.Value(name="name", type="type", data=["data"]))
+        c = C(f=File.Value(name=u"name", type=u"type", data=[b"data"]))
         self.session.add(c)
         self.session.flush()
         self.session.commit()
@@ -678,7 +678,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         print(c)
         assert c.f.name == "name"
         assert c.f.type == "type"
-        assert str(c.f.data[0][:]) == "data"
+        assert c.f.data[0][:] == b"data"
 
     def test_append_field_complex_existing_column(self):
         class C(TableModel):

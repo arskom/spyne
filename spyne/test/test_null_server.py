@@ -79,8 +79,8 @@ class TestNullServer(unittest.TestCase):
         class MessageService(ServiceBase):
             @srpc(String, String, _returns=Array(String))
             def send_message(s, k):
-                queue.add((s,k))
-                return [s,k]
+                queue.add((s, k))
+                return [s, k]
 
         application = Application([MessageService], 'some_tns',
                         in_protocol=XmlDocument(), out_protocol=XmlDocument())
@@ -90,7 +90,7 @@ class TestNullServer(unittest.TestCase):
         queue.clear()
         ret = ostr_server.service.send_message("zabaaa", k="hobaa")
         assert set([("zabaaa","hobaa")]) == queue
-        assert etree.fromstring(''.join(ret)).xpath('//tns:string/text()',
+        assert etree.fromstring(b''.join(ret)).xpath('//tns:string/text()',
                  namespaces=application.interface.nsmap) == ['zabaaa', 'hobaa']
 
         queue.clear()

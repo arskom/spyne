@@ -153,9 +153,9 @@ class XmlData(XmlModifier):
     def marshall(cls, prot, name, value, parent_elt):
         if value is not None:
             if len(parent_elt) == 0:
-                parent_elt.text = prot.to_string(cls.type, value)
+                parent_elt.text = prot.to_bytes(cls.type, value)
             else:
-                parent_elt[-1].tail = prot.to_string(cls.type, value)
+                parent_elt[-1].tail = prot.to_bytes(cls.type, value)
 
     @classmethod
     def get_type_name(cls):

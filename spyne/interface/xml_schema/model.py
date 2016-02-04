@@ -64,7 +64,7 @@ def xml_attribute_add(cls, name, element, document):
     d = cls.type.Attributes.default
 
     if d is not None:
-        element.set('default', _prot.to_string(cls.type, d))
+        element.set('default', _prot.to_unicode(cls.type, d))
 
 
 def _check_extension_attrs(cls):
@@ -243,7 +243,7 @@ def complex_add(document, cls, tags):
             member.set('maxOccurs', val)
 
         if a.default is not None:
-            member.set('default', _prot.to_string(v, a.default))
+            member.set('default', _prot.to_unicode(v, a.default))
 
         if bool(a.nillable) != False: # False is the xml schema default
             member.set('nillable', 'true')
@@ -372,13 +372,13 @@ def Tget_range_restriction_tag(T):
         def _get_float_restrictions(prot, restriction, cls):
             if cls.Attributes.fraction_digits != T.Attributes.fraction_digits:
                 elt = etree.SubElement(restriction, XSD('fractionDigits'))
-                elt.set('value', prot.to_string(cls,
+                elt.set('value', prot.to_unicode(cls,
                                                 cls.Attributes.fraction_digits))
 
         def _get_integer_restrictions(prot, restriction, cls):
             if cls.Attributes.total_digits != T.Attributes.total_digits:
                 elt = etree.SubElement(restriction, XSD('totalDigits'))
-                elt.set('value', prot.to_string(cls,
+                elt.set('value', prot.to_unicode(cls,
                                                    cls.Attributes.total_digits))
 
         if issubclass(T, Integer):
@@ -401,19 +401,19 @@ def Tget_range_restriction_tag(T):
 
         if cls.Attributes.gt != T.Attributes.gt:
             elt = etree.SubElement(restriction, XSD('minExclusive'))
-            elt.set('value', prot.to_string(cls, cls.Attributes.gt))
+            elt.set('value', prot.to_unicode(cls, cls.Attributes.gt))
 
         if cls.Attributes.ge != T.Attributes.ge:
             elt = etree.SubElement(restriction, XSD('minInclusive'))
-            elt.set('value', prot.to_string(cls, cls.Attributes.ge))
+            elt.set('value', prot.to_unicode(cls, cls.Attributes.ge))
 
         if cls.Attributes.lt != T.Attributes.lt:
             elt = etree.SubElement(restriction, XSD('maxExclusive'))
-            elt.set('value', prot.to_string(cls, cls.Attributes.lt))
+            elt.set('value', prot.to_unicode(cls, cls.Attributes.lt))
 
         if cls.Attributes.le != T.Attributes.le:
             elt = etree.SubElement(restriction, XSD('maxInclusive'))
-            elt.set('value', prot.to_string(cls, cls.Attributes.le))
+            elt.set('value', prot.to_unicode(cls, cls.Attributes.le))
 
         if cls.Attributes.pattern != T.Attributes.pattern:
             elt = etree.SubElement(restriction, XSD('pattern'))

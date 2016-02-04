@@ -92,5 +92,5 @@ class Fault(ComplexModelBase, Exception):
             }
 
     @classmethod
-    def to_string_iterable(cls, value):
+    def to_bytes_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]

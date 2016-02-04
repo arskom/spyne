@@ -425,7 +425,7 @@ class TestSoapHeader(unittest.TestCase):
             </senv:Envelope>'''
         ]
 
-        ctx, = server.generate_contexts(initial_ctx)
+        ctx, = server.generate_contexts(initial_ctx, in_string_charset='utf8')
         server.get_in_object(ctx)
 
         self.assertEquals(ctx.in_header[0], '/SomeAction')
@@ -456,7 +456,7 @@ class TestSoapHeader(unittest.TestCase):
             </senv:Envelope>'''
         ]
 
-        ctx, = server.generate_contexts(initial_ctx)
+        ctx, = server.generate_contexts(initial_ctx, in_string_charset='utf8')
         server.get_in_object(ctx)
 
         self.assertEquals(ctx.in_header[0], '/SomeAction')
@@ -488,7 +488,7 @@ class TestSoapHeader(unittest.TestCase):
                 </senv:Envelope>'''
         ]
 
-        ctx, = server.generate_contexts(initial_ctx)
+        ctx, = server.generate_contexts(initial_ctx, in_string_charset='utf8')
         server.get_in_object(ctx)
 
         self.assertEquals(ctx.in_header[0], '/SomeAction')

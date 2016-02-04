@@ -20,7 +20,8 @@
 """cdict (ClassDict) is a funny kind of dict that tries to return the values for
 the base classes of a key when the entry for the key is not found. It is not a
 generalized dictionary that can handle any type of key -- it relies on
-spyne.model api to look for classes.
+spyne.model api to look for classes. It also assumes cdict never changes after
+the first lookup.
 
 >>> from spyne.util.cdict import cdict
 >>> class A(object):

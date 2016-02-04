@@ -1,16 +1,86 @@
+
+Hey there! Thanks a lot for considering to contribute to Spyne! Here are some
+things you might want to know.
+
+Do you actually need your code in Spyne?
+========================================
+
+Spyne code is highly modular. If you are adding a new transport, protocol, or
+model type, you might want to keep the code in a separate package. This will
+make it possible to work at your own pace, use your own code style, your own
+licensing terms, etc.
+
+However, if:
+
+- You are fixing a bug in Spyne
+- Your code is tightly coupled with Spyne (i.e. it's using private APIs,
+  needs monkey-patching to work outside of Spyne, etc.)
+- You are adding a new feature to a partly-finished part of spyne (E.g. the Xml
+  Schema support)
+- You are not sure
+
+just send a pull request and we will talk.
+
 Spyne development guidelines
 ============================
 
-If you wish to contribute to Spyne's development, create a personal fork
-on GitHub. When you are ready to push to the upstream repository,
+If you wish to contribute to Spyne's development, start by creating a personal
+fork on GitHub. When you are ready to push to the upstream repository,
 submit a pull request to bring your work to the attention of the core
 committers. They will respond to review your patch and act accordingly.
 
 Code format
 -----------
 
-Please follow the `PEP 8 <http://www.python.org/dev/peps/pep-0008/>`_
-style guidelines for both source code and docstrings.
+The only hard rule we have is to avoid tests in code (you are supposed to put
+all tests in the ``spyne.tests`` package). Spyne's test infrastructure is too
+complex already and we won't complicate it any further for your hippie testing
+tool-du-jour.
+
+That said, there are also a bunch of other guidelines that are mostly followed
+by Spyne code. They are not by all means mandatory for your pull request to go
+in but a consistent code style *does* make the lives of the future generations
+much easier.
+
+They are, in no particular order:
+
+-   Use stair-style indentation for long lines. E.g.
+
+    ::
+
+        this_is_the_result_of = a_function_with_a_very_long_name(
+                   that_takes, a_lot_of, arguments.that_have,
+                        long_yet_informative_names, which_makes_the_code,
+                              a_pleasure_to_read, yet_sometimes_a_pain_to_write)
+
+    where the rightmost character is ALWAYS on the 80th column.
+
+-   Every module starts with:
+
+     1. Hashbang line (if executable)
+     2. ``# encoding: utf8`` line or empty line.
+     3. Spyne license header. Leading and trailing lines with just ``#`` in them
+        look nice.
+     4. Future imports (if needed)
+     5. Logger set up, i.e.:
+
+        ::
+
+            import logging
+            logger = logging.getLogger(__name__)
+
+        This is needed to catch any import-level logging.
+
+     6. Preferred order for import statements is as follows:
+
+        - stdlib absolute imports
+        - stdlib relative imports
+        - other absolute imports (grouped by package)
+        - other relative imports (grouped by package)
+
+-   When in doubt, follow `PEP 8 <http://www.python.org/dev/peps/pep-0008/>`_
+
+Have fun!
 
 Branching
 ---------
@@ -55,9 +125,10 @@ Miscellanous Remarks
 --------------------
 
 * When overriding a method in a class use the ``super()`` to call the parent
-  implementation instead of explicitly specifying the parent class. This is
-  needed to correctly call all implementations of the overridden method
-  according to MRO in cases of multiple inheritance.
+  implementation instead of explicitly specifying the parent class. Not only
+  this is mandatory for Python 3 compatibility, but also it's needed to
+  correctly call all implementations of the overridden method according to MRO
+  in cases of multiple inheritance.
 
 * Unit tests should test the root functionality as closely as possible.
   This way, instead of getting a less useful "something broke" alert, we'd get

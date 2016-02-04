@@ -56,7 +56,7 @@ def _complex_to_csv(prot, ctx):
         writer = csv.writer(queue, dialect=csv.excel)
         writer.writerow(['Error in generating the document'])
         if ctx.out_error is not None:
-            for r in ctx.out_error.to_string_iterable(ctx.out_error):
+            for r in ctx.out_error.to_bytes_iterable(ctx.out_error):
                 writer.writerow([r])
 
         yield queue.getvalue()

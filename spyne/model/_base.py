@@ -449,8 +449,7 @@ class ModelBase(object):
         if cls.__namespace__ is None or len(cls.__namespace__) == 0:
             raise ValueError("You need to explicitly set %r.__namespace__" % cls)
 
-        # too slow
-        # logger.debug("    resolve ns for %r to %r", cls, cls.__namespace__)
+        # print("    resolve ns for %r to %r" % (cls, cls.__namespace__))
 
         if getattr(cls, '__extends__', None) != None:
             cls.__extends__.resolve_namespace(cls.__extends__, default_ns, tags)
@@ -492,7 +491,7 @@ class ModelBase(object):
             return "%s:%s" % (pref, cls.get_element_name())
 
     @classmethod
-    def to_string(cls, value):
+    def to_bytes(cls, value):
         """
         Returns str(value). This should be overridden if this is not enough.
         """

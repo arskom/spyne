@@ -22,34 +22,26 @@
 
 # This module is EXPERIMENTAL. Only a subset of Xml schema standard is
 # implemented.
-
-
-from collections import defaultdict
+#
 
 import logging
 logger = logging.getLogger(__name__)
 
 import os
 
-from itertools import chain
-from pprint import pformat
 from copy import copy
-
-from os.path import dirname
-from os.path import abspath
-from os.path import join
+from pprint import pformat
+from itertools import chain
+from collections import defaultdict
+from os.path import dirname, abspath, join
 
 from lxml import etree
 
 from spyne.util import memoize
 from spyne.util.odict import odict
 
-from spyne.model import Null
-from spyne.model import XmlData
-from spyne.model import XmlAttribute
-from spyne.model import Array
-from spyne.model import ComplexModelBase
-from spyne.model import ComplexModelMeta
+from spyne.model import Null, XmlData, XmlAttribute, Array, ComplexModelBase, \
+    ComplexModelMeta
 from spyne.model.complex import XmlModifier
 
 from spyne.protocol.xml import XmlDocument
@@ -114,17 +106,20 @@ def Thier_repr(with_ns=False):
 
         xtba = cls.Attributes._xml_tag_body_as
         if xtba is not None:
+            xtba = iter(xtba)
             xtba_key, xtba_type = next(xtba)
             if xtba_key is not None:
                 value = getattr(inst, xtba_key, None)
                 retval.append("%s,\n" % hier_repr(value, i1, I, tags))
             else:
                 retval.append('\n')
+        else:
+            retval.append('\n')
 
         for k, v in inst.get_flat_type_info(cls).items():
             value = getattr(inst, k, None)
             if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
-                                                            value is not None:
+                                                              value is not None:
                 retval.append("%s%s=[\n" % (I * i1, k))
                 for subval in value:
                     retval.append("%s%s,\n" % (I * i2,
@@ -309,7 +304,7 @@ class XmlSchemaParser(object):
         return retval
 
     def process_simple_type_union(self, s, name=None):
-        self.debug1("skipping simple type: %s because its union is not "
+        self.debug1("skipping simple type: %s because <union> is not "
                     "implemented", name)
 
     def process_simple_type(self, s, name=None):

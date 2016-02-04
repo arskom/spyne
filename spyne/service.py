@@ -40,33 +40,40 @@ class ServiceBaseMeta(type):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
         self.__has_aux_methods = self.__aux__ is not None
+        has_nonaux_methods = None
+
         self.public_methods = {}
         self.event_manager = EventManager(self,
                                       self.__get_base_event_handlers(cls_bases))
 
         for k, v in cls_dict.items():
-            if hasattr(v, '_is_rpc'):
-                descriptor = v(_default_function_name=k)
+            print(k, v, self.__has_aux_methods, self.__aux__)
+            if not hasattr(v, '_is_rpc'):
+                continue
 
-                # these two lines are needed for staticmethod wrapping to work
-                setattr(self, k, staticmethod(descriptor.function))
-                descriptor.reset_function(getattr(self, k))
+            descriptor = v(_default_function_name=k)
 
-                try:
-                    getattr(self, k).descriptor = descriptor
-                except AttributeError as e:
-                    pass
-                    # FIXME: this fails with builtins. Temporary hack while we
-                    # investigate whether we really need this or not
-                descriptor.service_class = self
+            # these two lines are needed for staticmethod wrapping to work
+            setattr(self, k, staticmethod(descriptor.function))
+            descriptor.reset_function(getattr(self, k))
 
-                self.public_methods[k] = descriptor
-                if descriptor.aux is None:
-                    if self.__has_aux_methods and self.__aux__ is None:
-                        raise Exception("You can't mix primary and "
-                            "auxiliary methods in a single service definition.")
-                else:
-                    self.__has_aux_methods = True
+            try:
+                getattr(self, k).descriptor = descriptor
+            except AttributeError:
+                pass
+                # FIXME: this fails with builtins. Temporary hack while we
+                # investigate whether we really need this or not
+            descriptor.service_class = self
+
+            self.public_methods[k] = descriptor
+            if descriptor.aux is None and self.__aux__ is None:
+                has_nonaux_methods = True
+            else:
+                self.__has_aux_methods = True
+
+            if self.__has_aux_methods and has_nonaux_methods:
+                raise Exception("You can't mix primary and "
+                        "auxiliary methods in a single service definition.")
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}

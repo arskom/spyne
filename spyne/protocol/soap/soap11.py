@@ -40,6 +40,8 @@ logger_invalid = logging.getLogger(__name__ + ".invalid")
 
 import cgi
 
+from itertools import chain
+
 import spyne.const.xml_ns as ns
 
 from lxml import etree
@@ -47,15 +49,12 @@ from lxml.etree import XMLSyntaxError
 from lxml.etree import XMLParser
 
 from spyne import BODY_STYLE_WRAPPED
-
+from spyne.util import six
 from spyne.const.xml_ns import DEFAULT_NS
-from spyne.const.http import HTTP_405
-from spyne.const.http import HTTP_500
+from spyne.const.http import HTTP_405, HTTP_500
 from spyne.error import RequestNotAllowed
 from spyne.model.fault import Fault
-from spyne.model.primitive import Date
-from spyne.model.primitive import Time
-from spyne.model.primitive import DateTime
+from spyne.model.primitive import Date, Time, DateTime
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap.mime import collapse_swa
 from spyne.server.http import HttpTransportContext
@@ -93,7 +92,13 @@ def _from_soap(in_envelope_xml, xmlids=None, **kwargs):
 
 
 def _parse_xml_string(xml_string, parser, charset=None):
-    string = b''.join(xml_string)
+    xml_string = iter(xml_string)
+    chunk = next(xml_string)
+    if isinstance(chunk, six.binary_type):
+        string = b''.join(chain( (chunk,), xml_string ))
+    else:
+        string = ''.join(chain( (chunk,), xml_string ))
+
     if charset:
         string = string.decode(charset)
 

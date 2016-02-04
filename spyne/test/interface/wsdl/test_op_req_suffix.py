@@ -183,7 +183,8 @@ class TestOperationRequestSuffix(unittest.TestCase):
                             output_name))
 
         # check soap operation succeeded
-        resp = app.post('/', soap_input_body)
+        resp = app.post('/', soap_input_body,
+                                    content_type='applicaion/xml; charset=utf8')
         self.assert_response_ok(resp)
 
     def test_soap_with_suffix(self):

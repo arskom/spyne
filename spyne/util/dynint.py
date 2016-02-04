@@ -6,7 +6,7 @@ from spyne.util.cdict import cdict
 MAP = cdict({
     ModelBase: cdict({object: lambda _:_, basestring: lambda _:_}),
     Integer: cdict({
-        int: lambda _:_,
+        int: lambda _: _,
         basestring: lambda s: None if s == '' else int(s),
     })
 })

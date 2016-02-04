@@ -4,7 +4,7 @@
 Xml
 ---
 
-.. automodule:: spyne.protocol.xml._base
+.. automodule:: spyne.protocol.xml
     :members:
     :show-inheritance:
     :undoc-members:
