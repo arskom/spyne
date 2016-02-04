@@ -1202,7 +1202,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             try:
                 # must raise validation error for missing i
-                _dry_me([SomeService], {"some_call": {'p':{'s':'a'}}},
+                _dry_me([SomeService], {"some_call": {'p': {'C': {'s': 'a'}}}},
                                                                validator='soft')
             except ValidationError as e:
                 logger.exception(e)
