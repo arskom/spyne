@@ -291,12 +291,7 @@ class TestPrimitive(unittest.TestCase):
 
         ProtocolBase().from_string(UnsignedInteger, "-1") # This is not supposed to fail.
 
-        try:
-            UnsignedInteger.validate_native(UnsignedInteger, -1)  # This is supposed to fail.
-        except:
-            pass
-        else:
-            raise Exception("must fail.")
+        assert not UnsignedInteger.validate_native(UnsignedInteger, -1)
 
     def test_large_integer(self):
         i = 128375873458473
