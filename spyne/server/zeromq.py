@@ -61,6 +61,11 @@ class ZeroMQServer(ServerBase):
     def __handle_wsdl_request(self):
         return self.app.get_interface_document(self.url)
 
+    # FIXME: Add suport for binary-only transports
+    def generate_contexts(self, ctx, in_string_charset='utf8'):
+        return super(ZeroMQServer, self).generate_contexts(ctx,
+                                            in_string_charset=in_string_charset)
+
     def serve_forever(self):
         """Runs the ZeroMQ server."""
 
