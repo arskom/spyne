@@ -569,6 +569,17 @@ class TestPrimitive(unittest.TestCase):
         assert ProtocolBase().from_unicode(
                     DateTime(serialize_as='usec'), i) == v
 
+    def test_datetime_ancient(self):
+        t = DateTime(dt_format="%Y-%m-%d %H:%M:%S")  # to trigger strftime
+        v = datetime.datetime(1881, 1, 1)
+        vs = '1881-01-01 00:00:00'
+
+        dt = ProtocolBase().from_unicode(t, vs)
+        self.assertEquals(v, dt)
+
+        dt = ProtocolBase().to_unicode(t, v)
+        self.assertEquals(vs, dt)
+
     def test_datetime_usec(self):
         # see the comments on time test for why the rounding here is weird
 
