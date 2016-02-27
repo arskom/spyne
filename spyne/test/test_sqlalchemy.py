@@ -18,6 +18,8 @@
 #
 
 import logging
+from pprint import pprint
+
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
@@ -612,23 +614,27 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert     sum([scc.i for scc in sc.children]) ==  619
 
     def test_reflection(self):
-        class SomeChildClass(TableModel):
-            __tablename__ = 'some_child_class'
-
-            id = Integer32(primary_key=True)
-            s = Unicode(64)
-            i = Integer32
-
         class SomeClass(TableModel):
             __tablename__ = 'some_class'
 
             id = Integer32(primary_key=True)
-            children = Array(SomeChildClass).store_as('xml')
-            mirror = SomeChildClass.store_as('json')
+            s = Unicode(32)
 
-        metadata2 = MetaData()
-        metadata2.bind = self.engine
-        metadata2.reflect()
+        # create a new table model with empty metadata
+        TM2 = TTableModel()
+        TM2.bind = self.engine
+
+        # fill it with information from the db
+        TM2.Attributes.sqla_metadata.reflect()
+
+        # convert sqla info to spyne info
+        class Reflected(TM2):
+            __table__ = TM2.Attributes.sqla_metadata.tables['some_class']
+
+        pprint(dict(Reflected._type_info).items())
+        assert issubclass(Reflected._type_info['id'], Integer)
+        assert issubclass(Reflected._type_info['s'], Unicode)
+        assert Reflected._type_info['s'].Attributes.max_len == 32
 
     def _test_sqlalchemy_remapping(self):
         class SomeTable(TableModel):
