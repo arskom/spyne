@@ -292,10 +292,24 @@ class InProtocolBase(ProtocolMixin):
         return retval
 
     def uuid_from_string(self, cls, string, suggested_encoding=None, **kwargs):
-        if self.default_string_encoding is not None:
-            string = string.decode(self.default_string_encoding)
-        return self.uuid_from_unicode(cls, string,
-                                suggested_encoding=suggested_encoding, **kwargs)
+        attr = self.get_cls_attrs(cls)
+        ser_as = attr.serialize_as
+        encoding = attr.encoding
+
+        if encoding is None:
+            encoding = suggested_encoding
+
+        retval = string
+
+        if ser_as in ('bytes', 'bytes_le'):
+            retval, = binary_decoding_handlers[encoding](string)
+
+        try:
+            retval = _uuid_deserialize[ser_as](retval)
+        except ValueError as e:
+            raise ValidationError(e)
+
+        return retval
 
     def unicode_from_string(self, cls, value):
         retval = value
