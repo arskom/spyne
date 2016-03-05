@@ -18,6 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 import re
 import uuid
 import datetime
@@ -586,7 +588,7 @@ class TestPrimitive(unittest.TestCase):
         if s != "1800 has the same days as 1980 and 2008":
             raise AssertionError(s)
 
-        print "Testing all day names from 0001/01/01 until 2000/08/01"
+        print("Testing all day names from 0001/01/01 until 2000/08/01")
         # Get the weekdays.  Can't hard code them; they could be
         # localized.
         days = []
@@ -605,7 +607,7 @@ class TestPrimitive(unittest.TestCase):
         while testdate < enddate:
             if (testdate.day == 1 and testdate.month == 1 and
                 (testdate.year % 100 == 0)):
-                print "Testing century", testdate.year
+                print("Testing century", testdate.year)
             day = ProtocolBase.strftime(testdate, "%A")
             if nextday[prevday] != day:
                 raise AssertionError(str(testdate))
