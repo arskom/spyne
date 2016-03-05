@@ -197,22 +197,33 @@ class ProtocolMixin(object):
         code.
         """
 
+        if not self.polymorphic:
+            logger.debug("%r Protocol is NOT polymorphic", self)
+            return cls, False
+
         orig_cls = cls.__orig__ or cls
-        if self.polymorphic and inst.__class__ is not orig_cls and \
-                                                     isinstance(inst, orig_cls):
-            cls_attr = self.get_cls_attrs(cls)
-            polymap_cls = cls_attr.polymap.get(inst.__class__, None)
 
-            if polymap_cls is not None:
-                logger.debug("Polymap hit cls switch: %r => %r", cls,
-                                                                 polymap_cls)
-                return polymap_cls, True
-            else:
-                logger.debug("Polymap miss cls switch: %r => %r", cls,
+        if inst.__class__ is orig_cls:
+            logger.debug("Instance class is the same as "
+                                                        "designated base class")
+            return cls, False
+
+        if not isinstance(inst, orig_cls):
+            logger.debug("Instance class is not a subclass of "
+                                                        "designated base class")
+            return cls, False
+
+        cls_attr = self.get_cls_attrs(cls)
+        polymap_cls = cls_attr.polymap.get(inst.__class__, None)
+
+        if polymap_cls is not None:
+            logger.debug("Polymap hit cls switch: %r => %r", cls, polymap_cls)
+            return polymap_cls, True
+
+        else:
+            logger.debug("Polymap miss cls switch: %r => %r", cls,
                                                                  inst.__class__)
-                return inst.__class__, True
-
-        return cls, False
+            return inst.__class__, True
 
     @staticmethod
     def trc(cls, locale, default):
