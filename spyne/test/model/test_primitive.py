@@ -580,6 +580,38 @@ class TestPrimitive(unittest.TestCase):
         dt = ProtocolBase().to_unicode(t, v)
         self.assertEquals(vs, dt)
 
+    def test_custom_strftime(self):
+        s = ProtocolBase.strftime(datetime.date(1800, 9, 23),
+                     "%Y has the same days as 1980 and 2008")
+        if s != "1800 has the same days as 1980 and 2008":
+            raise AssertionError(s)
+
+        print "Testing all day names from 0001/01/01 until 2000/08/01"
+        # Get the weekdays.  Can't hard code them; they could be
+        # localized.
+        days = []
+        for i in range(1, 10):
+            days.append(datetime.date(2000, 1, i).strftime("%A"))
+        nextday = {}
+        for i in range(8):
+            nextday[days[i]] = days[i+1]
+
+        startdate = datetime.date(1, 1, 1)
+        enddate = datetime.date(2000, 8, 1)
+        prevday = ProtocolBase.strftime(startdate, "%A")
+        one_day = datetime.timedelta(1)
+
+        testdate = startdate + one_day
+        while testdate < enddate:
+            if (testdate.day == 1 and testdate.month == 1 and
+                (testdate.year % 100 == 0)):
+                print "Testing century", testdate.year
+            day = ProtocolBase.strftime(testdate, "%A")
+            if nextday[prevday] != day:
+                raise AssertionError(str(testdate))
+            prevday = day
+            testdate = testdate + one_day
+
     def test_datetime_usec(self):
         # see the comments on time test for why the rounding here is weird
 

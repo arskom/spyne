@@ -22,6 +22,7 @@ from __future__ import print_function
 import logging
 logger = logging.getLogger(__name__)
 
+import re
 import uuid
 import errno
 
@@ -30,7 +31,7 @@ from collections import deque
 from datetime import timedelta, datetime
 from decimal import Decimal as D
 from mmap import mmap, ACCESS_READ
-from time import mktime
+from time import mktime, strftime
 
 try:
     from lxml import etree
@@ -599,9 +600,9 @@ class OutProtocolBase(ProtocolMixin):
         if dt_format is None:
             retval = value.isoformat()
         elif six.PY2 and isinstance(dt_format, unicode):
-            retval = value.strftime(dt_format.encode('utf8')).decode('utf8')
+            retval = self.strftime(value, dt_format.encode('utf8')).decode('utf8')
         else:
-            retval = value.strftime(dt_format)
+            retval = self.strftime(value, dt_format)
 
         # FIXME: must deprecate string_format, this should have been str_format
         str_format = cls_attrs.string_format
@@ -616,6 +617,76 @@ class OutProtocolBase(ProtocolMixin):
             return interp_format.format(value)
 
         return retval
+
+
+    # Format a datetime through its full proleptic Gregorian date range.
+    # http://code.activestate.com/recipes/306860-proleptic-gregorian-dates-and-strftime-before-1900/
+    # http://stackoverflow.com/a/32206673
+    #
+    # >>> strftime(datetime.date(1850, 8, 2), "%Y/%M/%d was a %A")
+    # '1850/00/02 was a Friday'
+    # >>>
+
+
+    # remove the unsupposed "%s" command.  But don't
+    # do it if there's an even number of %s before the s
+    # because those are all escaped.  Can't simply
+    # remove the s because the result of
+    #  %sY
+    # should be %Y if %s isn't supported, not the
+    # 4 digit year.
+    _illegal_s = re.compile(r"((^|[^%])(%%)*%s)")
+
+    @staticmethod
+    def _findall_datetime(text, substr):
+         # Also finds overlaps
+         sites = []
+         i = 0
+         while 1:
+             j = text.find(substr, i)
+             if j == -1:
+                 break
+             sites.append(j)
+             i=j+1
+         return sites
+
+    # Every 28 years the calendar repeats, except through century leap
+    # years where it's 6 years.  But only if you're using the Gregorian
+    # calendar.  ;)
+
+    @classmethod
+    def strftime(cls, dt, fmt):
+        if cls._illegal_s.search(fmt):
+            raise TypeError("This strftime implementation does not handle %s")
+        if dt.year > 1900:
+            return dt.strftime(fmt)
+
+        year = dt.year
+        # For every non-leap year century, advance by
+        # 6 years to get into the 28-year repeat cycle
+        delta = 2000 - year
+        off = 6*(delta // 100 + delta // 400)
+        year += off
+
+        # Move to around the year 2000
+        year += ((2000 - year) // 28) * 28
+        timetuple = dt.timetuple()
+        s1 = strftime(fmt, (year,) + timetuple[1:])
+        sites1 = cls._findall_datetime(s1, str(year))
+
+        s2 = strftime(fmt, (year+28,) + timetuple[1:])
+        sites2 = cls._findall_datetime(s2, str(year+28))
+
+        sites = []
+        for site in sites1:
+            if site in sites2:
+                sites.append(site)
+
+        s = s1
+        syear = "%4d" % (dt.year,)
+        for site in sites:
+            s = s[:site] + syear + s[site+4:]
+        return s
 
 
 _uuid_serialize = {
