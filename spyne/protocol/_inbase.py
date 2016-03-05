@@ -281,11 +281,9 @@ class InProtocolBase(ProtocolMixin):
 
         retval = string
 
-        print(retval)
         if ser_as in ('bytes', 'bytes_le'):
             retval, = binary_decoding_handlers[encoding](string)
 
-        print(retval)
         try:
             retval = _uuid_deserialize[ser_as](retval)
         except ValueError as e:
