@@ -27,7 +27,7 @@ logger_c = logging.getLogger("%s.cloth" % __name__)
 logger_s = logging.getLogger("%s.serializer" % __name__)
 
 from lxml import html, etree
-from copy import deepcopy
+from copy import copy, deepcopy
 from inspect import isgenerator
 
 from spyne.util import Break, coroutine
@@ -93,11 +93,16 @@ class ClothParserMixin(object):
         self._root_cloth = None
 
         self._mrpc_cloth = self._root_cloth = None
-        if isinstance(cloth, string_types):
-            cloth = self._parse_file(cloth, cloth_parser)
 
         if cloth is None:
             return
+
+        elif isinstance(cloth, string_types):
+            cloth = self._parse_file(cloth, cloth_parser)
+
+        else:
+            # because if we deepcopy just the cloth doctype is lost
+            pass#cloth = deepcopy(cloth.getroottree()).getroot()
 
         q = "//*[@%s]" % self.ROOT_ATTR_NAME
         elts = cloth.xpath(q)
