@@ -459,13 +459,22 @@ class InProtocolBase(ProtocolMixin):
         serialize_as = self.get_cls_attrs(cls).serialize_as
         return self._datetime_dsmap[serialize_as](cls, string)
 
-    def date_from_string(self, cls, string):
-        return self.date_from_unicode(cls,
-                                    string.decode(self.default_string_encoding))
-
     def datetime_from_string(self, cls, string):
-        return self.datetime_from_unicode(cls,
-                                    string.decode(self.default_string_encoding))
+        serialize_as = self.get_cls_attrs(cls).serialize_as
+        return self._datetime_dsmap[serialize_as](cls, string)
+
+    def date_from_string(self, cls, string):
+        try:
+            d = datetime.strptime(string, self.get_cls_attrs(cls).format)
+            return date(d.year, d.month, d.day)
+        except ValueError as e:
+            match = cls._offset_re.match(string)
+            if match:
+                return date(int(match.group('year')),
+                            int(match.group('month')), int(match.group('day')))
+            else:
+                raise ValidationError(string,
+                                         "%%r: %s" % repr(e).replace("%", "%%"))
 
     def date_from_unicode(self, cls, string):
         try:
