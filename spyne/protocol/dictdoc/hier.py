@@ -45,6 +45,14 @@ class HierDictDocument(DictDocument):
     from_serstr = DictDocument.from_unicode
     to_serstr = DictDocument.to_unicode
 
+    def get_class_name(self, cls):
+        class_name = cls.get_type_name()
+        if not six.PY2:
+            if isinstance(class_name, bytes):
+                class_name = class_name.decode('utf8')
+
+        return class_name
+
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
@@ -62,8 +70,10 @@ class HierDictDocument(DictDocument):
         if body_class:
             # assign raw result to its wrapper, result_message
             doc = ctx.in_body_doc
+
+            class_name = self.get_class_name(body_class)
             if self.ignore_wrappers:
-                doc = doc.get(body_class.get_type_name(), None)
+                doc = doc.get(class_name, None)
             result_message = self._doc_to_object(body_class, doc,
                                                                  self.validator)
             ctx.in_object = result_message
