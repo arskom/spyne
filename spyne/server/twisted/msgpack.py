@@ -201,7 +201,6 @@ class TwistedMessagePackProtocol(Protocol):
             del self.inreq_queue[k]
 
     def out_write(self, data):
-        print "#" * 10, self.inreq_queue
         if self.out_chunk_size == 0:
             self.transport.write(data)
             self.sent_bytes += len(data)
