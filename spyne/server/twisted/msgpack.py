@@ -123,7 +123,7 @@ class TwistedMessagePackProtocol(Protocol):
             *args
         )
 
-        return md5(repr(retval)).hexdigest()
+        return md5(repr(retval).encode('utf8')).hexdigest()
 
     def connectionMade(self):
         logger.debug("%08x connection made", id(self))
@@ -216,7 +216,7 @@ class TwistedMessagePackProtocol(Protocol):
 
     def _write_single_chunk(self):
         try:
-            chunk = chain(*self.out_chunks).next()
+            chunk = next(chain(*self.out_chunks))
         except StopIteration:
             chunk = None
             self.out_chunks.clear()
@@ -245,7 +245,7 @@ class TwistedMessagePackProtocol(Protocol):
 
         data = p_ctx.out_document[0]
         if isinstance(data, dict):
-            data = data.values()
+            data = list(data.values())
 
         out_string = msgpack.packb([
             error, msgpack.packb(data),
@@ -322,7 +322,7 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
         prot.spyne_tpt.get_out_string(p_ctx)
         prot.spyne_tpt.pack(p_ctx)
 
-        out_string = ''.join(p_ctx.out_string)
+        out_string = b''.join(p_ctx.out_string)
         p_ctx.transport.resp_length = len(out_string)
 
         prot.enqueue_outresp_data(id(p_ctx), out_string)

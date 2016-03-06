@@ -148,12 +148,13 @@ get_json_as_object = json_loads
 def yaml_loads(s, cls, protocol=YamlDocument, ignore_wrappers=False, **kwargs):
     if s is None:
         return None
-    if s == '':
+    if s == '' or s == b'':
         return None
     prot = protocol(ignore_wrappers=ignore_wrappers, **kwargs)
     ctx = FakeContext(in_string=[s])
     prot.create_in_document(ctx)
-    return prot._doc_to_object(cls, ctx.in_document, validator=prot.validator)
+    retval = prot._doc_to_object(cls, ctx.in_document, validator=prot.validator)
+    return retval
 
 
 get_yaml_as_object = yaml_loads
