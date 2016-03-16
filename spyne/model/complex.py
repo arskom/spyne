@@ -1334,6 +1334,8 @@ class Array(ComplexModelBase):
 
         del kwargs['serializer_attrs']
 
+        logger.debug('Pass serializer attrs %r', serializer_attrs)
+
         serializer, = cls._type_info.values()
         return cls(serializer.customize(**serializer_attrs)).customize(**kwargs)
 
