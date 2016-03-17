@@ -162,6 +162,7 @@ class MethodContext(object):
         Useful for benchmarking purposes."""
 
         self.is_closed = False
+        """`True` means response is fully sent and request finalized."""
 
         self.app = transport.app
         """The parent application."""
