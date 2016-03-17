@@ -125,12 +125,18 @@ class ServerBase(object):
                 if oobj is None:
                     ret.throw(Break())
 
-                else:
-                    assert isinstance(oobj, PushBase), \
-                                          "%r is not a PushBase instance" % oobj
+                elif isinstance(oobj, PushBase):
+                    pass
 
-                    self.run_push(oobj, ctx, [], ret)
-                    oobj.close()
+                elif ctx.cur_pusher is not None:
+                    assert isinstance(ctx.cur_pusher, PushBase)
+                    oobj = ctx.cur_pusher
+
+                else:
+                    raise ValueError("%r is not a PushBase instance" % oobj)
+
+                self.run_push(oobj, ctx, [], ret)
+                oobj.close()
 
         if ctx.service_class != None:
             if ctx.out_error is None:
@@ -200,11 +206,18 @@ class ServerBase(object):
     def init_push(self, ret, p_ctx, others):
         assert isinstance(ret, PushBase)
 
+        if p_ctx.cur_pusher is ret:
+            logger.warning('PushBase reinit avoided.')
+            return
+
+        p_ctx.cur_pusher = ret
+
         # fire events
         p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
         if p_ctx.service_class is not None:
             p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
 
+        # start push serialization
         gen = self.get_out_string_push(p_ctx)
 
         assert isgenerator(gen), "It looks like this protocol is not " \
