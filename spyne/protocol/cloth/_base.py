@@ -194,6 +194,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                                                        **kwargs)
         return False, None
 
+    @coroutine
     def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
         pstack = ctx.protocol.prot_stack
         pstack.append(self)
@@ -201,22 +202,31 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         if self._root_cloth is not None:
             logger.debug("to root cloth")
-            retval = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
+            ret = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
                                                                    parent, name)
 
         elif self._cloth is not None:
             logger.debug("to parent cloth")
-            retval = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
+            ret = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                            name)
         else:
             logger.debug("to parent")
-            retval = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
+            ret = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        # FIXME: if retval is a coroutine handle, this will be inconsistent
+        if isgenerator(ret):  # Poor man's yield from
+            try:
+                while True:
+                    sv2 = (yield)
+                    ret.send(sv2)
+
+            except Break as b:
+                try:
+                    ret.throw(b)
+                except StopIteration:
+                    pass
+
         pstack.pop()
         logger.debug("pop prot  %r. newlen: %d", self, len(pstack))
-
-        return retval
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")
