@@ -514,7 +514,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
     p_ctx.out_stream = request
     if isinstance(ret, PushBase):
-        retval = resource.http_transport.init_push(ret, p_ctx, others)
+        retval = resource.http_transport.init_root_push(ret, p_ctx, others)
 
     elif ((isclass(om) and issubclass(om, File)) or
           (isclass(single_class) and issubclass(single_class, File))) and \

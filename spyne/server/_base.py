@@ -203,7 +203,7 @@ class ServerBase(object):
     def close_impl(self, ret, _):
         ret.close()
 
-    def init_push(self, ret, p_ctx, others):
+    def init_root_push(self, ret, p_ctx, others):
         assert isinstance(ret, PushBase)
 
         if p_ctx.cur_pusher is ret:
