@@ -165,7 +165,7 @@ class ToParentMixin(OutProtocolBase):
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         if inst is None:
-            inst = []
+            inst = ()
 
         if isinstance(inst, PushBase):
             while True:

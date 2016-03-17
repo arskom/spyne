@@ -306,10 +306,6 @@ class MethodContext(object):
         """The push interface to the outgoing bytestream. It's a file-like
         object."""
 
-        #self.out_stream = None
-        #"""The push interface to the outgoing bytestream. It's a file-like
-        #object."""
-
         self.function = None
         """The callable of the user code."""
 
