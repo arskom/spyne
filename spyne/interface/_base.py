@@ -240,7 +240,9 @@ class Interface(object):
         key = _generate_method_id(s, method)
         if key in self.method_id_map:
             c = self.method_id_map[key].parent_class
-            if c is s:
+            if c is None:
+                pass
+            elif c is s:
                 pass
             elif c.__orig__ is None:
                 assert c is s.__orig__, "%r.%s conflicts with %r.%s" % \
