@@ -128,16 +128,19 @@ class ServerBase(object):
                 elif isinstance(oobj, PushBase):
                     pass
 
-                elif ctx.cur_pusher is not None:
-                    assert isinstance(ctx.cur_pusher, PushBase)
-                    oobj = ctx.cur_pusher
+                elif len(ctx.pusher_stack) > 0:
+                    oobj = ctx.pusher_stack[-1]
+                    assert isinstance(oobj, PushBase)
 
                 else:
                     raise ValueError("%r is not a PushBase instance" % oobj)
 
-                self.run_push(oobj, ctx, [], ret)
-                oobj.close()
+                retval = self.init_interim_push(oobj, ctx, ret)
+                return self.close_if_possible(ctx, oobj, retval)
 
+        self.finalize_context(ctx)
+
+    def finalize_context(self, ctx):
         if ctx.service_class != None:
             if ctx.out_error is None:
                 ctx.service_class.event_manager.fire_event(
@@ -180,14 +183,15 @@ class ServerBase(object):
                 except StopIteration:
                     pass
 
+        self.finalize_context(ctx)
+
     def serve_forever(self):
         """Implement your event loop here, if needed."""
 
         raise NotImplementedError()
 
-    def run_push(self, ret, p_ctx, gen):
+    def init_interim_push(self, ret, p_ctx, gen):
         assert isinstance(ret, PushBase)
-
         assert p_ctx.out_stream is not None
 
         # fire events
@@ -198,19 +202,21 @@ class ServerBase(object):
         def _cb_push_finish():
             process_contexts(self, (), p_ctx)
 
-        ret.init(p_ctx, gen, _cb_push_finish, None)
+        return ret.init(p_ctx, gen, _cb_push_finish, None)
 
-    def close_impl(self, ret, _):
+    def close_if_possible(self, ctx, ret, _):
+        popped = ctx.pusher_stack.pop()
+        assert popped is ret
         ret.close()
 
     def init_root_push(self, ret, p_ctx, others):
         assert isinstance(ret, PushBase)
 
-        if p_ctx.cur_pusher is ret:
+        if p_ctx.pusher_stack is ret:
             logger.warning('PushBase reinit avoided.')
             return
 
-        p_ctx.cur_pusher = ret
+        p_ctx.pusher_stack.append(ret)
 
         # fire events
         p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
@@ -229,6 +235,6 @@ class ServerBase(object):
 
         retval = ret.init(p_ctx, gen, _cb_push_finish, None)
 
-        self.close_impl(ret, retval)
+        self.close_if_possible(p_ctx, ret, retval)
 
         return retval

@@ -168,6 +168,8 @@ class ToParentMixin(OutProtocolBase):
             inst = ()
 
         if isinstance(inst, PushBase):
+            ctx.pusher_stack.append(inst)
+
             while True:
                 sv = (yield)
                 ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True,
@@ -177,6 +179,7 @@ class ToParentMixin(OutProtocolBase):
                         while True:
                             sv2 = (yield)
                             ret.send(sv2)
+
                     except Break as e:
                         try:
                             ret.throw(e)
@@ -184,7 +187,7 @@ class ToParentMixin(OutProtocolBase):
                             pass
 
         else:
-            assert isinstance(inst, Iterable), ("%r is not iterable" % inst)
+            assert isinstance(inst, Iterable), ("%r is not iterable" % (inst,))
 
             for i, sv in enumerate(inst):
                 kwargs['from_arr'] = True

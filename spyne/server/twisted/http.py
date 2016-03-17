@@ -39,7 +39,6 @@ which can make testing a bit difficult. Use in moderation.
 This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 """
 
-
 from __future__ import absolute_import
 
 import logging
@@ -49,14 +48,13 @@ import re
 
 from os import fstat
 from mmap import mmap
-from inspect import isgenerator, isclass
+from inspect import isclass
 from collections import namedtuple
 
 from twisted.web.server import NOT_DONE_YET, Request
 from twisted.web.resource import Resource, NoResource, ForbiddenResource
 from twisted.web import static
 from twisted.web.static import getTypeAndEncoding
-from twisted.web.http import CACHED
 from twisted.python.log import err
 from twisted.internet.defer import Deferred
 
@@ -183,7 +181,7 @@ class TwistedHttpTransport(HttpBase):
         super(TwistedHttpTransport, self).__init__(app, chunked=chunked,
                max_content_length=max_content_length, block_length=block_length)
 
-    def close_impl(self, ret, retval):
+    def close_if_possible(self, ctx, ret, retval):
         if isinstance(retval, Deferred):
             def _eb_push_close(f):
                 ret.close()
@@ -192,15 +190,20 @@ class TwistedHttpTransport(HttpBase):
                 def _eb_inner(f):
                     return f
 
-                if r is None:
-                    ret.close()
+                if not isinstance(r, Deferred):
+                    return super(TwistedHttpTransport, self) \
+                                                 .close_if_possible(ctx, ret, r)
                 else:
-                    r.addCallback(_cb_push_close).addErrback(_eb_inner)
+                    return r \
+                        .addCallback(_cb_push_close) \
+                        .addErrback(_eb_inner)
 
-            retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
+            return retval \
+                .addCallback(_cb_push_close) \
+                .addErrback(_eb_push_close)
 
-        else:
-            super(TwistedHttpTransport, self).close_impl(ret)
+        return super(TwistedHttpTransport, self).close_if_possible(ctx,
+                                                                    ret, retval)
 
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
@@ -536,13 +539,27 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
             request.notifyFinish().addErrback(_eb_request_finished, request, p_ctx)
 
     else:
-        resource.http_transport.get_out_string(p_ctx)
+        ret = resource.http_transport.get_out_string(p_ctx)
 
-        producer = Producer(p_ctx.out_string, request)
-        producer.deferred.addCallback(_cb_request_finished, request, p_ctx)
-        producer.deferred.addErrback(_eb_request_finished, request, p_ctx)
+        if not isinstance(ret, Deferred):
+            producer = Producer(p_ctx.out_string, request)
+            producer.deferred.addCallback(_cb_request_finished, request, p_ctx)
+            producer.deferred.addErrback(_eb_request_finished, request, p_ctx)
 
-        request.registerProducer(producer, False)
+            request.registerProducer(producer, False)
+
+        else:
+            def _cb(ret):
+                if isinstance(ret, Deferred):
+                    return ret \
+                        .addCallback(_cb) \
+                        .addErrback(_eb_request_finished, request, p_ctx)
+                else:
+                    return _cb_request_finished(ret, request, p_ctx)
+
+            ret \
+                .addCallback(_cb) \
+                .addErrback(_eb_request_finished, request, p_ctx)
 
     process_contexts(resource.http_transport, others, p_ctx)
 

@@ -320,8 +320,8 @@ class MethodContext(object):
         self.out_protocol = transport.app.out_protocol
         """The protocol that will be used to (de)serialize outgoing input"""
 
-        self.cur_pusher = None
-        """Current PushBase instance writing to the stream"""
+        self.pusher_stack = []
+        """Last one is the current PushBase instance writing to the stream."""
 
         self.frozen = True
         """When this is set, no new attribute can be added to this class
