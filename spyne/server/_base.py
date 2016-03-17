@@ -193,3 +193,29 @@ class ServerBase(object):
             process_contexts(self, others, p_ctx)
 
         ret.init(p_ctx, p_ctx.out_stream, gen, _cb_push_finish, None)
+
+    def close_impl(self, ret, _):
+        ret.close()
+
+    def init_push(self, ret, p_ctx, others):
+        assert isinstance(ret, PushBase)
+
+        # fire events
+        p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
+        if p_ctx.service_class is not None:
+            p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
+
+        gen = self.get_out_string_push(p_ctx)
+
+        assert isgenerator(gen), "It looks like this protocol is not " \
+                                 "async-compliant yet."
+
+        def _cb_push_finish():
+            p_ctx.out_stream.finish()
+            process_contexts(self, others, p_ctx)
+
+        retval = ret.init(p_ctx, gen, _cb_push_finish, None)
+
+        self.close_impl(ret, retval)
+
+        return retval

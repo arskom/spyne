@@ -731,25 +731,23 @@ class PushBase(object):
         self.length = 0
         self.ctx = None
         self.app = None
-        self.response = None
         self.gen = None
         self._cb_finish = None
         self._eb_finish = None
 
-    def _init(self, ctx, response, gen, _cb_finish, _eb_finish):
+    def _init(self, ctx, gen, _cb_finish, _eb_finish):
         self.length = 0
 
         self.ctx = ctx
         self.app = ctx.app
 
-        self.response = response
         self.gen = gen
 
         self._cb_finish = _cb_finish
         self._eb_finish = _eb_finish
 
-    def init(self, ctx, response, gen, _cb_finish, _eb_finish):
-        self._init(ctx, response, gen, _cb_finish, _eb_finish)
+    def init(self, ctx, gen, _cb_finish, _eb_finish):
+        self._init(ctx, gen, _cb_finish, _eb_finish)
         if self._cb is not None:
             return self._cb(self)
 

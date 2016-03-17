@@ -183,6 +183,25 @@ class TwistedHttpTransport(HttpBase):
         super(TwistedHttpTransport, self).__init__(app, chunked=chunked,
                max_content_length=max_content_length, block_length=block_length)
 
+    def close_impl(self, ret, retval):
+        if isinstance(retval, Deferred):
+            def _eb_push_close(f):
+                ret.close()
+
+            def _cb_push_close(r):
+                def _eb_inner(f):
+                    return f
+
+                if r is None:
+                    ret.close()
+                else:
+                    r.addCallback(_cb_push_close).addErrback(_eb_inner)
+
+            retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
+
+        else:
+            super(TwistedHttpTransport, self).close_impl(ret)
+
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
         twisted web's Request object is parsed into ``ctx.in_body_doc`` and
@@ -467,46 +486,6 @@ def _eb_request_finished(retval, request, p_ctx):
     request.finish()
 
 
-def _init_push(ret, request, p_ctx, others, resource):
-    assert isinstance(ret, PushBase)
-
-    # fire events
-    p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
-    if p_ctx.service_class is not None:
-        p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
-
-    gen = resource.http_transport.get_out_string_push(p_ctx)
-
-    assert isgenerator(gen), "It looks like this protocol is not " \
-                             "async-compliant yet."
-
-    def _cb_push_finish():
-        p_ctx.out_stream.finish()
-        process_contexts(resource.http_transport, others, p_ctx)
-
-    retval = ret.init(p_ctx, request, gen, _cb_push_finish, None)
-
-    if isinstance(retval, Deferred):
-        def _eb_push_close(f):
-            ret.close()
-
-        def _cb_push_close(r):
-            def _eb_inner(f):
-                return f
-
-            if r is None:
-                ret.close()
-            else:
-                r.addCallback(_cb_push_close).addErrback(_eb_inner)
-
-        retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
-
-    else:
-        ret.close()
-
-    return retval
-
-
 def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     resp_code = p_ctx.transport.resp_code
     # If user code set its own response code, don't touch it.
@@ -535,7 +514,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
     p_ctx.out_stream = request
     if isinstance(ret, PushBase):
-        retval = _init_push(ret, request, p_ctx, others, resource)
+        retval = resource.http_transport.init_push(ret, p_ctx, others)
 
     elif ((isclass(om) and issubclass(om, File)) or
           (isclass(single_class) and issubclass(single_class, File))) and \
