@@ -479,19 +479,19 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             if cls.Attributes.min_occurs > 0:
                 parent.write(cloth)
 
-        else:
-            if not from_arr and cls.Attributes.max_occurs > 1:
-                return self.array_to_cloth(ctx, cls, inst, cloth, parent,
-                                                                      name=name)
+            return
 
-            handler = self.rendering_handlers[cls]
+        if not from_arr and cls.Attributes.max_occurs > 1:
+            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
 
-            identifier = "%s.%s" % (prot_name, handler.__name__)
-            logger_s.debug("Writing %s using %s for %s. Inst: %r", name,
-                                       identifier, cls.get_type_name(),
-                                       log_repr(inst, cls, from_array=from_arr))
+        handler = self.rendering_handlers[cls]
 
-            retval = handler(ctx, cls, inst, cloth, parent, name=name)
+        identifier = "%s.%s" % (prot_name, handler.__name__)
+        logger_s.debug("Writing %s using %s for %s. Inst: %r", name,
+                                   identifier, cls.get_type_name(),
+                                   log_repr(inst, cls, from_array=from_arr))
+
+        retval = handler(ctx, cls, inst, cloth, parent, name=name)
 
         return retval
 
