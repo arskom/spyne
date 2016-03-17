@@ -123,7 +123,7 @@ class ClothParserMixin(object):
 
         elif len(retval) == 1:
             retval = retval[0]
-            retval.iterancestors().next().remove(retval)
+            next(retval.iterancestors()).remove(retval)
             return retval
 
 
