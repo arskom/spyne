@@ -185,7 +185,7 @@ class ServerBase(object):
 
         raise NotImplementedError()
 
-    def run_push(self, ret, p_ctx, others, gen):
+    def run_push(self, ret, p_ctx, gen):
         assert isinstance(ret, PushBase)
 
         assert p_ctx.out_stream is not None
@@ -196,9 +196,9 @@ class ServerBase(object):
             p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
 
         def _cb_push_finish():
-            process_contexts(self, others, p_ctx)
+            process_contexts(self, (), p_ctx)
 
-        ret.init(p_ctx, p_ctx.out_stream, gen, _cb_push_finish, None)
+        ret.init(p_ctx, gen, _cb_push_finish, None)
 
     def close_impl(self, ret, _):
         ret.close()
