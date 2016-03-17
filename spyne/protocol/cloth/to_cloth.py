@@ -27,7 +27,7 @@ logger_c = logging.getLogger("%s.cloth" % __name__)
 logger_s = logging.getLogger("%s.serializer" % __name__)
 
 from lxml import html, etree
-from copy import copy, deepcopy
+from copy import deepcopy
 from inspect import isgenerator
 
 from spyne.util import Break, coroutine
