@@ -154,7 +154,7 @@ class HtmlColumnTable(HtmlTableBase):
         mrpc_delim_elt = ''
         if self.mrpc_delim_text is not None:
             mrpc_delim_elt = E.span(self.mrpc_delim_text,
-                                      **{'class': 'mrpc-delimiter'})
+                                                  **{'class': 'mrpc-delimiter'})
             mrpc_delim_elt.tail = ' '
 
         with parent.element('tr'):
