@@ -191,7 +191,7 @@ class HttpBase(ServerBase):
                 if not (match.span() == (0, len(host))):
                     continue
 
-                for k,v in match.groupdict().items():
+                for k, v in match.groupdict().items():
                     params[k].append(v)
 
             assert patt.address is not None
