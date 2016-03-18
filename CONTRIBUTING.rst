@@ -33,14 +33,17 @@ Code format
 -----------
 
 The only hard rule we have is to avoid tests in code (you are supposed to put
-all tests in the ``spyne.tests`` package). Spyne's test infrastructure is too
-complex already and we won't complicate it any further for your hippie testing
-tool-du-jour.
+all tests in the ``spyne.tests`` package). A test is a member function of a
+`TestSomething` class inside a module from ``spyne.tests`` package.
+
+This means eg. no doctests, no `if __name__ == '__main__'` etc. Spyne's test
+infrastructure is complex enough as it is and we won't complicate it any further
+for your hippie testing tool-or-methodology-du-jour for no good reason.
 
 That said, there are also a bunch of other guidelines that are mostly followed
-by Spyne code. They are not by all means mandatory for your pull request to go
-in but a consistent code style *does* make the lives of the future generations
-much easier.
+by Spyne code. They are not really mandatory for your pull request to go in but
+a consistent code style *does* make the lives of the future generations much
+easier.
 
 They are, in no particular order:
 
