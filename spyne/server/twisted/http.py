@@ -42,20 +42,26 @@ This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 from __future__ import absolute_import
 
 import logging
+
+from twisted.internet.threads import deferToThread
+
 logger = logging.getLogger(__name__)
 
 import re
+import threading
 
 from os import fstat
 from mmap import mmap
 from inspect import isclass
 from collections import namedtuple
 
+from twisted.web import static
 from twisted.web.server import NOT_DONE_YET, Request
 from twisted.web.resource import Resource, NoResource, ForbiddenResource
-from twisted.web import static
 from twisted.web.static import getTypeAndEncoding
 from twisted.python.log import err
+from twisted.internet import reactor
+from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
 
 from spyne import BODY_STYLE_BARE, BODY_STYLE_EMPTY, Redirect
@@ -181,7 +187,21 @@ class TwistedHttpTransport(HttpBase):
         super(TwistedHttpTransport, self).__init__(app, chunked=chunked,
                max_content_length=max_content_length, block_length=block_length)
 
-    def close_if_possible(self, ctx, ret, retval):
+        self.reactor_thread = None
+        def _cb():
+            self.reactor_thread = threading.current_thread()
+
+        deferLater(reactor, 0, _cb)
+
+    def pusher_init(self, p_ctx, gen, _cb_push_finish, pusher):
+        if pusher.orig_thread != self.reactor_thread:
+            return deferToThread(super(TwistedHttpTransport, self).pusher_init,
+                                            p_ctx, gen, _cb_push_finish, pusher)
+
+        return super(TwistedHttpTransport, self).pusher_init(
+                                            p_ctx, gen, _cb_push_finish, pusher)
+
+    def pusher_try_close(self, ctx, ret, retval):
         if isinstance(retval, Deferred):
             def _eb_push_close(f):
                 ret.close()
@@ -192,7 +212,7 @@ class TwistedHttpTransport(HttpBase):
 
                 if not isinstance(r, Deferred):
                     return super(TwistedHttpTransport, self) \
-                                                 .close_if_possible(ctx, ret, r)
+                                                 .pusher_try_close(ctx, ret, r)
                 else:
                     return r \
                         .addCallback(_cb_push_close) \
@@ -202,8 +222,8 @@ class TwistedHttpTransport(HttpBase):
                 .addCallback(_cb_push_close) \
                 .addErrback(_eb_push_close)
 
-        return super(TwistedHttpTransport, self).close_if_possible(ctx,
-                                                                    ret, retval)
+        return super(TwistedHttpTransport, self).pusher_try_close(ctx,
+                                                                  ret, retval)
 
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
@@ -439,7 +459,8 @@ class TwistedWebResource(Resource):
             self.init_push(ret, p_ctx, others)
 
         else:
-            retval = _cb_deferred(p_ctx.out_object, request, p_ctx, others, self, cb=False)
+            retval = _cb_deferred(p_ctx.out_object, request, p_ctx, others,
+                                                                 self, cb=False)
 
         return retval
 

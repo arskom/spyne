@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 import re
 import decimal
+import threading
 
 import spyne.const.xml_ns
 
@@ -725,6 +726,8 @@ class SimpleModel(ModelBase):
 
 class PushBase(object):
     def __init__(self, callback=None, errback=None):
+        self.orig_thread = threading.current_thread()
+
         self._cb = callback
         self._eb = errback
 

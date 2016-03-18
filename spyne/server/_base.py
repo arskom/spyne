@@ -109,6 +109,24 @@ class ServerBase(object):
         else:
             raise ctx.in_error
 
+    def convert_pull_to_push(self, ctx, gen):
+        oobj, = ctx.out_object
+        if oobj is None:
+            gen.throw(Break())
+
+        elif isinstance(oobj, PushBase):
+            pass
+
+        elif len(ctx.pusher_stack) > 0:
+            oobj = ctx.pusher_stack[-1]
+            assert isinstance(oobj, PushBase)
+
+        else:
+            raise ValueError("%r is not a PushBase instance" % oobj)
+
+        retval = self.init_interim_push(oobj, ctx, gen)
+        return self.pusher_try_close(ctx, oobj, retval)
+
     def get_out_string_pull(self, ctx):
         """Uses the ``ctx.out_object`` to set ``ctx.out_document`` and later
         ``ctx.out_string``."""
@@ -121,22 +139,7 @@ class ServerBase(object):
         if ctx.out_document is None:
             ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
             if isgenerator(ret):
-                oobj, = ctx.out_object
-                if oobj is None:
-                    ret.throw(Break())
-
-                elif isinstance(oobj, PushBase):
-                    pass
-
-                elif len(ctx.pusher_stack) > 0:
-                    oobj = ctx.pusher_stack[-1]
-                    assert isinstance(oobj, PushBase)
-
-                else:
-                    raise ValueError("%r is not a PushBase instance" % oobj)
-
-                retval = self.init_interim_push(oobj, ctx, ret)
-                return self.close_if_possible(ctx, oobj, retval)
+                return self.convert_pull_to_push(ctx, ret)
 
         self.finalize_context(ctx)
 
@@ -202,9 +205,12 @@ class ServerBase(object):
         def _cb_push_finish():
             process_contexts(self, (), p_ctx)
 
-        return ret.init(p_ctx, gen, _cb_push_finish, None)
+        return self.pusher_init(p_ctx, gen, _cb_push_finish, ret)
 
-    def close_if_possible(self, ctx, ret, _):
+    def pusher_init(self, p_ctx, gen, _cb_push_finish, pusher):
+        return pusher.init(p_ctx, gen, _cb_push_finish, None)
+
+    def pusher_try_close(self, ctx, ret, _):
         popped = ctx.pusher_stack.pop()
         assert popped is ret
         ret.close()
@@ -235,6 +241,6 @@ class ServerBase(object):
 
         retval = ret.init(p_ctx, gen, _cb_push_finish, None)
 
-        self.close_if_possible(p_ctx, ret, retval)
+        self.pusher_try_close(p_ctx, ret, retval)
 
         return retval
