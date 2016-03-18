@@ -145,12 +145,13 @@ class ToParentMixin(OutProtocolBase):
         # protocols to make decisions based on parents of instances at hand.
         ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
 
-        # finally, serialize the value. retval is the coroutine handle if any
-        identifier = "%s.%s" % (prot_name, handler.__name__)
-        log_str = log_repr(inst, cls, from_array=kwargs.get('from_arr', None))
-        logger.debug("Writing %s using %s for %s. Inst: %r", name,
-                                       identifier, cls.get_type_name(), log_str)
+        # disabled for performance reasons
+        #identifier = "%s.%s" % (prot_name, handler.__name__)
+        #log_str = log_repr(inst, cls, from_array=kwargs.get('from_arr', None))
+        #logger.debug("Writing %s using %s for %s. Inst: %r", name,
+        #                              identifier, cls.get_type_name(), log_str)
 
+        # finally, serialize the value. retval is the coroutine handle if any
         retval = handler(ctx, cls, inst, parent, name, **kwargs)
 
         # FIXME: to_parent must be made to a coroutine for the below to remain
