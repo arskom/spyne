@@ -162,6 +162,7 @@ class MethodContext(object):
         Useful for benchmarking purposes."""
 
         self.is_closed = False
+        """`True` means response is fully sent and request finalized."""
 
         self.app = transport.app
         """The parent application."""
@@ -306,10 +307,6 @@ class MethodContext(object):
         """The push interface to the outgoing bytestream. It's a file-like
         object."""
 
-        #self.out_stream = None
-        #"""The push interface to the outgoing bytestream. It's a file-like
-        #object."""
-
         self.function = None
         """The callable of the user code."""
 
@@ -322,6 +319,9 @@ class MethodContext(object):
 
         self.out_protocol = transport.app.out_protocol
         """The protocol that will be used to (de)serialize outgoing input"""
+
+        self.pusher_stack = []
+        """Last one is the current PushBase instance writing to the stream."""
 
         self.frozen = True
         """When this is set, no new attribute can be added to this class

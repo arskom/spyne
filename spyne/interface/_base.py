@@ -24,7 +24,7 @@ from collections import deque, defaultdict
 
 import spyne.interface
 
-from spyne import EventManager, MethodDescriptor
+from spyne import EventManager, MethodDescriptor, ServiceBase
 from spyne.const import xml_ns as namespace
 
 from spyne.model import ModelBase
@@ -34,10 +34,17 @@ from spyne.model.complex import XmlModifier
 from spyne.util.six import get_function_name
 
 
+def _get_owner_name(cls):
+    if issubclass(cls, ServiceBase):
+        return cls.get_service_name()
+    return cls.__name__
+
+
 def _generate_method_id(cls, descriptor):
+
     return '.'.join([
             cls.__module__,
-            cls.__name__,
+            _get_owner_name(cls),
             descriptor.name,
         ])
 
@@ -240,7 +247,9 @@ class Interface(object):
         key = _generate_method_id(s, method)
         if key in self.method_id_map:
             c = self.method_id_map[key].parent_class
-            if c is s:
+            if c is None:
+                pass
+            elif c is s:
                 pass
             elif c.__orig__ is None:
                 assert c is s.__orig__, "%r.%s conflicts with %r.%s" % \
@@ -253,8 +262,9 @@ class Interface(object):
                                         (c.__orig__, key, s.__orig__, key)
             return
 
-        logger.debug('  adding method %s.%s to match %r tag.', s.__name__,
-                                 get_function_name(method.function), method_key)
+        logger.debug('  adding method %s.%s to match %r tag.',
+                    _get_owner_name(s), get_function_name(method.function),
+                                                                     method_key)
 
         self.method_id_map[key] = method
 

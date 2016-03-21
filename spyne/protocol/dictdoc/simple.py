@@ -130,8 +130,9 @@ class SimpleDictDocument(DictDocument):
                 try:
                     native_v2 = self.from_unicode(member.type, v2)
                 except ValidationError as e:
+                    ns = "%s.%s" % (cls.get_namespace(), cls.get_type_name())
                     raise ValidationError(e.faultstring,
-                                  "Validation failed for %r.%r: %%s" % (cls, k))
+                                  "Validation failed for %s.%s: %%s" % (ns, k))
 
             if (validator is self.SOFT_VALIDATION and not
                            member.type.validate_native(member.type, native_v2)):

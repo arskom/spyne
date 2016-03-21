@@ -59,6 +59,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                                         polymorphic=polymorphic)
 
         self._init_cloth(cloth, cloth_parser)
+        self.developer_mode = False
 
     def get_context(self, parent, transport):
         return XmlClothProtocolContext(parent, transport)
@@ -85,12 +86,13 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             cls = inst.__class__
             name = cls.get_type_name()
 
-            ctx.out_document = E.div()
-            with self.docfile(ctx.out_stream) as xf:
-                # as XmlDocument is not push-ready yet, this is what we do.
-                # this is an ugly hack, bear with me.
-                retval = XmlCloth.HtmlMicroFormat() \
-                                            .to_parent(ctx, cls, inst, xf, name)
+            if self.developer_mode:
+                ctx.out_object = (inst,)
+
+                retval = self.incgen(ctx, cls, inst, name)
+            else:
+                with self.docfile(ctx.out_stream) as xf:
+                    retval = self.to_parent(ctx, cls, inst, xf, name)
 
         else:
             assert message is self.RESPONSE
@@ -194,6 +196,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                                                        **kwargs)
         return False, None
 
+    @coroutine
     def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
         pstack = ctx.protocol.prot_stack
         pstack.append(self)
@@ -201,22 +204,31 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         if self._root_cloth is not None:
             logger.debug("to root cloth")
-            retval = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
+            ret = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
                                                                    parent, name)
 
         elif self._cloth is not None:
             logger.debug("to parent cloth")
-            retval = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
+            ret = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                            name)
         else:
             logger.debug("to parent")
-            retval = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
+            ret = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        # FIXME: if retval is a coroutine handle, this will be inconsistent
+        if isgenerator(ret):  # Poor man's yield from
+            try:
+                while True:
+                    sv2 = (yield)
+                    ret.send(sv2)
+
+            except Break as b:
+                try:
+                    ret.throw(b)
+                except StopIteration:
+                    pass
+
         pstack.pop()
         logger.debug("pop prot  %r. newlen: %d", self, len(pstack))
-
-        return retval
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")

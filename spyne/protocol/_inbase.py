@@ -281,11 +281,9 @@ class InProtocolBase(ProtocolMixin):
 
         retval = string
 
-        print(retval)
         if ser_as in ('bytes', 'bytes_le'):
             retval, = binary_decoding_handlers[encoding](string)
 
-        print(retval)
         try:
             retval = _uuid_deserialize[ser_as](retval)
         except ValueError as e:
@@ -294,10 +292,24 @@ class InProtocolBase(ProtocolMixin):
         return retval
 
     def uuid_from_string(self, cls, string, suggested_encoding=None, **kwargs):
-        if self.default_string_encoding is not None:
-            string = string.decode(self.default_string_encoding)
-        return self.uuid_from_unicode(cls, string,
-                                suggested_encoding=suggested_encoding, **kwargs)
+        attr = self.get_cls_attrs(cls)
+        ser_as = attr.serialize_as
+        encoding = attr.encoding
+
+        if encoding is None:
+            encoding = suggested_encoding
+
+        retval = string
+
+        if ser_as in ('bytes', 'bytes_le'):
+            retval, = binary_decoding_handlers[encoding](string)
+
+        try:
+            retval = _uuid_deserialize[ser_as](retval)
+        except ValueError as e:
+            raise ValidationError(e)
+
+        return retval
 
     def unicode_from_string(self, cls, value):
         retval = value
@@ -447,15 +459,11 @@ class InProtocolBase(ProtocolMixin):
         serialize_as = self.get_cls_attrs(cls).serialize_as
         return self._datetime_dsmap[serialize_as](cls, string)
 
-    def date_from_string(self, cls, string):
-        return self.date_from_unicode(cls,
-                                    string.decode(self.default_string_encoding))
-
     def datetime_from_string(self, cls, string):
-        return self.datetime_from_unicode(cls,
-                                    string.decode(self.default_string_encoding))
+        serialize_as = self.get_cls_attrs(cls).serialize_as
+        return self._datetime_dsmap[serialize_as](cls, string)
 
-    def date_from_unicode(self, cls, string):
+    def date_from_string(self, cls, string):
         try:
             d = datetime.strptime(string, self.get_cls_attrs(cls).format)
             return date(d.year, d.month, d.day)
@@ -467,6 +475,20 @@ class InProtocolBase(ProtocolMixin):
             else:
                 raise ValidationError(string,
                                          "%%r: %s" % repr(e).replace("%", "%%"))
+
+    def date_from_unicode(self, cls, string):
+        try:
+            d = datetime.strptime(string, self.get_cls_attrs(cls).format)
+            return date(d.year, d.month, d.day)
+
+        except ValueError as e:
+            match = cls._offset_re.match(string)
+            if match:
+                return date(int(match.group('year')),
+                            int(match.group('month')), int(match.group('day')))
+            else:
+                # the message from ValueError is quite nice already
+                raise ValidationError(e.message, "%s")
 
     def duration_from_unicode(self, cls, string):
         duration = _duration_re.match(string).groupdict(0)

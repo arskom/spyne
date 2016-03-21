@@ -39,25 +39,29 @@ which can make testing a bit difficult. Use in moderation.
 This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 """
 
-
 from __future__ import absolute_import
 
 import logging
+
+from twisted.internet.threads import deferToThread
+
 logger = logging.getLogger(__name__)
 
 import re
+import threading
 
 from os import fstat
 from mmap import mmap
-from inspect import isgenerator, isclass
+from inspect import isclass
 from collections import namedtuple
 
+from twisted.web import static
 from twisted.web.server import NOT_DONE_YET, Request
 from twisted.web.resource import Resource, NoResource, ForbiddenResource
-from twisted.web import static
 from twisted.web.static import getTypeAndEncoding
-from twisted.web.http import CACHED
 from twisted.python.log import err
+from twisted.internet import reactor
+from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
 
 from spyne import BODY_STYLE_BARE, BODY_STYLE_EMPTY, Redirect
@@ -182,6 +186,44 @@ class TwistedHttpTransport(HttpBase):
                                                          block_length=8 * 1024):
         super(TwistedHttpTransport, self).__init__(app, chunked=chunked,
                max_content_length=max_content_length, block_length=block_length)
+
+        self.reactor_thread = None
+        def _cb():
+            self.reactor_thread = threading.current_thread()
+
+        deferLater(reactor, 0, _cb)
+
+    def pusher_init(self, p_ctx, gen, _cb_push_finish, pusher):
+        if pusher.orig_thread != self.reactor_thread:
+            return deferToThread(super(TwistedHttpTransport, self).pusher_init,
+                                            p_ctx, gen, _cb_push_finish, pusher)
+
+        return super(TwistedHttpTransport, self).pusher_init(
+                                            p_ctx, gen, _cb_push_finish, pusher)
+
+    def pusher_try_close(self, ctx, ret, retval):
+        if isinstance(retval, Deferred):
+            def _eb_push_close(f):
+                ret.close()
+
+            def _cb_push_close(r):
+                def _eb_inner(f):
+                    return f
+
+                if not isinstance(r, Deferred):
+                    return super(TwistedHttpTransport, self) \
+                                                 .pusher_try_close(ctx, ret, r)
+                else:
+                    return r \
+                        .addCallback(_cb_push_close) \
+                        .addErrback(_eb_inner)
+
+            return retval \
+                .addCallback(_cb_push_close) \
+                .addErrback(_eb_push_close)
+
+        return super(TwistedHttpTransport, self).pusher_try_close(ctx,
+                                                                  ret, retval)
 
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
@@ -414,10 +456,11 @@ class TwistedWebResource(Resource):
             ret.addErrback(_eb_deferred, request, p_ctx, others, self)
 
         elif isinstance(ret, PushBase):
-            _init_push(ret, request, p_ctx, others, self)
+            self.init_push(ret, p_ctx, others)
 
         else:
-            retval = _cb_deferred(p_ctx.out_object, request, p_ctx, others, self, cb=False)
+            retval = _cb_deferred(p_ctx.out_object, request, p_ctx, others,
+                                                                 self, cb=False)
 
         return retval
 
@@ -467,46 +510,6 @@ def _eb_request_finished(retval, request, p_ctx):
     request.finish()
 
 
-def _init_push(ret, request, p_ctx, others, resource):
-    assert isinstance(ret, PushBase)
-
-    # fire events
-    p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
-    if p_ctx.service_class is not None:
-        p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
-
-    gen = resource.http_transport.get_out_string_push(p_ctx)
-
-    assert isgenerator(gen), "It looks like this protocol is not " \
-                             "async-compliant yet."
-
-    def _cb_push_finish():
-        p_ctx.out_stream.finish()
-        process_contexts(resource.http_transport, others, p_ctx)
-
-    retval = ret.init(p_ctx, request, gen, _cb_push_finish, None)
-
-    if isinstance(retval, Deferred):
-        def _eb_push_close(f):
-            ret.close()
-
-        def _cb_push_close(r):
-            def _eb_inner(f):
-                return f
-
-            if r is None:
-                ret.close()
-            else:
-                r.addCallback(_cb_push_close).addErrback(_eb_inner)
-
-        retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
-
-    else:
-        ret.close()
-
-    return retval
-
-
 def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     resp_code = p_ctx.transport.resp_code
     # If user code set its own response code, don't touch it.
@@ -535,7 +538,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
     p_ctx.out_stream = request
     if isinstance(ret, PushBase):
-        retval = _init_push(ret, request, p_ctx, others, resource)
+        retval = resource.http_transport.init_root_push(ret, p_ctx, others)
 
     elif ((isclass(om) and issubclass(om, File)) or
           (isclass(single_class) and issubclass(single_class, File))) and \
@@ -557,13 +560,27 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
             request.notifyFinish().addErrback(_eb_request_finished, request, p_ctx)
 
     else:
-        resource.http_transport.get_out_string(p_ctx)
+        ret = resource.http_transport.get_out_string(p_ctx)
 
-        producer = Producer(p_ctx.out_string, request)
-        producer.deferred.addCallback(_cb_request_finished, request, p_ctx)
-        producer.deferred.addErrback(_eb_request_finished, request, p_ctx)
+        if not isinstance(ret, Deferred):
+            producer = Producer(p_ctx.out_string, request)
+            producer.deferred.addCallback(_cb_request_finished, request, p_ctx)
+            producer.deferred.addErrback(_eb_request_finished, request, p_ctx)
 
-        request.registerProducer(producer, False)
+            request.registerProducer(producer, False)
+
+        else:
+            def _cb(ret):
+                if isinstance(ret, Deferred):
+                    return ret \
+                        .addCallback(_cb) \
+                        .addErrback(_eb_request_finished, request, p_ctx)
+                else:
+                    return _cb_request_finished(ret, request, p_ctx)
+
+            ret \
+                .addCallback(_cb) \
+                .addErrback(_eb_request_finished, request, p_ctx)
 
     process_contexts(resource.http_transport, others, p_ctx)
 

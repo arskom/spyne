@@ -146,8 +146,12 @@ class YamlDocument(HierDictDocument):
             in_string_encoding = 'UTF-8'
 
         try:
-            ctx.in_document = yaml.load(b''.join(ctx.in_string).decode(
-                         in_string_encoding), **self.in_kwargs)
+            try:
+                s = b''.join(ctx.in_string).decode(in_string_encoding)
+            except TypeError:
+                s = ''.join(ctx.in_string)
+
+            ctx.in_document = yaml.load(s, **self.in_kwargs)
 
         except ParserError as e:
             raise Fault('Client.YamlDecodeError', repr(e))

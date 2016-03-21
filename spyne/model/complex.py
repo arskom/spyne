@@ -1334,6 +1334,8 @@ class Array(ComplexModelBase):
 
         del kwargs['serializer_attrs']
 
+        logger.debug('Pass serializer attrs %r', serializer_attrs)
+
         serializer, = cls._type_info.values()
         return cls(serializer.customize(**serializer_attrs)).customize(**kwargs)
 
@@ -1406,6 +1408,17 @@ class Iterable(Array):
         logged = False
 
     class Push(PushBase):
+        """The push interface to the `Iterable`.
+
+        Anything append()'ed to a `Push` instance is serialized and written to
+        outgoing stream immediately.
+
+        When using Twisted, Push callbacks are called from the reactor thread if
+        the instantiation is done in a reactor thread. Otherwise, callbacks are
+        called by `deferToThread`. Make sure to avoid relying on thread-local
+        stuff as `deferToThread` is not guaranteed to restore original thread
+        context.
+        """
         pass
 
 

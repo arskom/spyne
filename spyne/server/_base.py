@@ -109,6 +109,24 @@ class ServerBase(object):
         else:
             raise ctx.in_error
 
+    def convert_pull_to_push(self, ctx, gen):
+        oobj, = ctx.out_object
+        if oobj is None:
+            gen.throw(Break())
+
+        elif isinstance(oobj, PushBase):
+            pass
+
+        elif len(ctx.pusher_stack) > 0:
+            oobj = ctx.pusher_stack[-1]
+            assert isinstance(oobj, PushBase)
+
+        else:
+            raise ValueError("%r is not a PushBase instance" % oobj)
+
+        retval = self.init_interim_push(oobj, ctx, gen)
+        return self.pusher_try_close(ctx, oobj, retval)
+
     def get_out_string_pull(self, ctx):
         """Uses the ``ctx.out_object`` to set ``ctx.out_document`` and later
         ``ctx.out_string``."""
@@ -121,17 +139,11 @@ class ServerBase(object):
         if ctx.out_document is None:
             ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
             if isgenerator(ret):
-                oobj, = ctx.out_object
-                if oobj is None:
-                    ret.throw(Break())
+                return self.convert_pull_to_push(ctx, ret)
 
-                else:
-                    assert isinstance(oobj, PushBase), \
-                                          "%r is not a PushBase instance" % oobj
+        self.finalize_context(ctx)
 
-                    self.run_push(oobj, ctx, [], ret)
-                    oobj.close()
-
+    def finalize_context(self, ctx):
         if ctx.service_class != None:
             if ctx.out_error is None:
                 ctx.service_class.event_manager.fire_event(
@@ -174,14 +186,15 @@ class ServerBase(object):
                 except StopIteration:
                     pass
 
+        self.finalize_context(ctx)
+
     def serve_forever(self):
         """Implement your event loop here, if needed."""
 
         raise NotImplementedError()
 
-    def run_push(self, ret, p_ctx, others, gen):
+    def init_interim_push(self, ret, p_ctx, gen):
         assert isinstance(ret, PushBase)
-
         assert p_ctx.out_stream is not None
 
         # fire events
@@ -190,6 +203,44 @@ class ServerBase(object):
             p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
 
         def _cb_push_finish():
+            process_contexts(self, (), p_ctx)
+
+        return self.pusher_init(p_ctx, gen, _cb_push_finish, ret)
+
+    def pusher_init(self, p_ctx, gen, _cb_push_finish, pusher):
+        return pusher.init(p_ctx, gen, _cb_push_finish, None)
+
+    def pusher_try_close(self, ctx, ret, _):
+        popped = ctx.pusher_stack.pop()
+        assert popped is ret
+        ret.close()
+
+    def init_root_push(self, ret, p_ctx, others):
+        assert isinstance(ret, PushBase)
+
+        if p_ctx.pusher_stack is ret:
+            logger.warning('PushBase reinit avoided.')
+            return
+
+        p_ctx.pusher_stack.append(ret)
+
+        # fire events
+        p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
+        if p_ctx.service_class is not None:
+            p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
+
+        # start push serialization
+        gen = self.get_out_string_push(p_ctx)
+
+        assert isgenerator(gen), "It looks like this protocol is not " \
+                                 "async-compliant yet."
+
+        def _cb_push_finish():
+            p_ctx.out_stream.finish()
             process_contexts(self, others, p_ctx)
 
-        ret.init(p_ctx, p_ctx.out_stream, gen, _cb_push_finish, None)
+        retval = ret.init(p_ctx, gen, _cb_push_finish, None)
+
+        self.pusher_try_close(p_ctx, ret, retval)
+
+        return retval

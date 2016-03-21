@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
-from lxml import html
 from lxml.html.builder import E
 
 from spyne import ModelBase, ByteArray, ComplexModelBase, Array, AnyUri, \
@@ -33,7 +32,7 @@ from spyne.protocol.html import HtmlBase
 from spyne.util import coroutine, Break
 from spyne.util.oset import oset
 from spyne.util.cdict import cdict
-from spyne.util.six.moves.urllib.parse import urlencode, quote
+from spyne.util.six.moves.urllib.parse import urlencode
 
 
 class HtmlTableBase(HtmlBase):
@@ -107,6 +106,8 @@ class HtmlColumnTable(HtmlTableBase):
     """
 
     def __init__(self, *args, **kwargs):
+        before_table = kwargs.pop('before_table', None)
+
         super(HtmlColumnTable, self).__init__(*args, **kwargs)
 
         self.serialization_handlers.update({
@@ -114,6 +115,10 @@ class HtmlColumnTable(HtmlTableBase):
             ComplexModelBase: self.complex_model_to_parent,
             Array: self.array_to_parent,
         })
+
+        if before_table is not None:
+            self.event_manager.add_listener("before_table", before_table)
+
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
@@ -149,7 +154,7 @@ class HtmlColumnTable(HtmlTableBase):
         mrpc_delim_elt = ''
         if self.mrpc_delim_text is not None:
             mrpc_delim_elt = E.span(self.mrpc_delim_text,
-                                      **{'class': 'mrpc-delimiter'})
+                                                  **{'class': 'mrpc-delimiter'})
             mrpc_delim_elt.tail = ' '
 
         with parent.element('tr'):

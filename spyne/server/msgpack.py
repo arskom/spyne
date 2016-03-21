@@ -31,13 +31,13 @@ from spyne.auxproc import process_contexts
 from spyne.error import ValidationError
 from spyne.model import Fault
 from spyne.server import ServerBase
-from spyne.util.six import string_types
+from spyne.util.six import binary_type
 
 
 def _process_v1_msg(prot, msg):
     header = None
     body = msg[1]
-    if not isinstance(body, string_types):
+    if not isinstance(body, binary_type):
         raise ValidationError(body, "Body must be a bytestream.")
 
     if len(msg) > 2:

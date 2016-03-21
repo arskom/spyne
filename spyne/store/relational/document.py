@@ -49,7 +49,7 @@ from sqlalchemy.sql.type_api import UserDefinedType
 from spyne import ComplexModel, ValidationError, Unicode
 
 from spyne.util import six
-from spyne.util.six import string_types
+from spyne.util.six import binary_type, text_type
 from spyne.util.fileproxy import SeekableFileProxy
 
 
@@ -122,15 +122,18 @@ class PGJson(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, string_types) or value is None:
+            if isinstance(value, (text_type, binary_type)) or value is None:
                 return value
             else:
-                return json.dumps(value, encoding=self.encoding)
+                if six.PY2:
+                    return json.dumps(value, encoding=self.encoding)
+                else:
+                    return json.dumps(value)
         return process
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            if isinstance(value, string_types):
+            if isinstance(value, (text_type, binary_type)):
                 return json.loads(value)
             else:
                 return value
@@ -185,7 +188,7 @@ class PGObjectJson(UserDefinedType):
                 return self.get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
-                    )
+                    ).decode('utf8')
         return process
 
     def result_processor(self, dialect, col_type):
