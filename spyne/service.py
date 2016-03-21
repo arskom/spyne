@@ -47,7 +47,7 @@ class ServiceBaseMeta(type):
                                       self.__get_base_event_handlers(cls_bases))
 
         for k, v in cls_dict.items():
-            print(k, v, self.__has_aux_methods, self.__aux__)
+            logger.debug((k, v, self.__has_aux_methods, self.__aux__))
             if not hasattr(v, '_is_rpc'):
                 continue
 
