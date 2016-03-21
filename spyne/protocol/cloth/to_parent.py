@@ -35,7 +35,6 @@ from spyne.model.enum import EnumBase
 from spyne.protocol import OutProtocolBase
 from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
-from spyne.util.web import log_repr
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
 
@@ -345,7 +344,6 @@ class ToParentMixin(OutProtocolBase):
                     except StopIteration:
                         pass
 
-    @coroutine
     def fault_to_parent(self, ctx, cls, inst, parent, name):
         PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP_ENV]
         tag_name = "{%s}Fault" % NS_SOAP_ENV
@@ -357,24 +355,14 @@ class ToParentMixin(OutProtocolBase):
                 E("faultactor", inst.faultactor),
             )
 
-            if isinstance(etree._Element):
+            if isinstance(inst.detail, etree._Element):
                 parent.write(E.detail(inst.detail))
 
             # add other nonstandard fault subelements with get_members_etree
-            ret = self._write_members(ctx, cls, inst, parent)
-            if ret is not None:
-                try:
-                    while True:
-                        sv2 = (yield) # may throw Break
-                        ret.send(sv2)
+            self._write_members(ctx, cls, inst, parent)
+            # no need to track the returned generator because we expect no
+            # PushBase instance here.
 
-                except Break:
-                    try:
-                        ret.throw(Break())
-                    except StopIteration:
-                        pass
-
-    @coroutine
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, **_):
         PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP_ENV]
         tag_name = "{%s}Fault" % NS_SOAP_ENV
@@ -386,22 +374,14 @@ class ToParentMixin(OutProtocolBase):
                 E("faultstring", html.fromstring(inst.faultstring).text),
                 E("faultactor", inst.faultactor),
             )
-            if isinstance(etree._Element):
+
+            if isinstance(inst.detail, etree._Element):
                 parent.write(E.detail(inst.detail))
 
             # add other nonstandard fault subelements with get_members_etree
-            ret = self._write_members(ctx, cls, inst, parent)
-            if ret is not None:
-                try:
-                    while True:
-                        sv2 = (yield) # may throw Break
-                        ret.send(sv2)
-
-                except Break:
-                    try:
-                        ret.throw(Break())
-                    except StopIteration:
-                        pass
+            self._write_members(ctx, cls, inst, parent)
+            # no need to track the returned generator because we expect no
+            # PushBase instance here.
 
     def enum_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         self.base_to_parent(ctx, cls, str(inst), parent, name)
