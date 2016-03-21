@@ -555,11 +555,12 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             elts = self._get_outmost_elts(cloth)
 
         # it's actually an odict but that's irrelevant here.
-        fti = dict(fti.items())
+        fti_check = dict(fti.items())
 
         for i, elt in enumerate(elts):
             k = elt.attrib[self.ID_ATTR_NAME]
-            v = fti.pop(k, None)
+            v = fti.get(k, None)
+            fti_check.pop(k, None)
 
             if v is None:
                 logger_c.warning("elt id %r not in %r", k, cls)
@@ -589,7 +590,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     except StopIteration:
                         pass
 
-        if len(fti) > 0:
+        if len(fti_check) > 0:
             logger_s.debug("Skipping the following: %r", fti)
 
     @coroutine
