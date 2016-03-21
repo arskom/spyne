@@ -59,6 +59,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                                         polymorphic=polymorphic)
 
         self._init_cloth(cloth, cloth_parser)
+        self.developer_mode = False
 
     def get_context(self, parent, transport):
         return XmlClothProtocolContext(parent, transport)
@@ -85,12 +86,13 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             cls = inst.__class__
             name = cls.get_type_name()
 
-            ctx.out_document = E.div()
-            with self.docfile(ctx.out_stream) as xf:
-                # as XmlDocument is not push-ready yet, this is what we do.
-                # this is an ugly hack, bear with me.
-                retval = XmlCloth.HtmlMicroFormat() \
-                                            .to_parent(ctx, cls, inst, xf, name)
+            if self.developer_mode:
+                ctx.out_object = (inst,)
+
+                retval = self.incgen(ctx, cls, inst, name)
+            else:
+                with self.docfile(ctx.out_stream) as xf:
+                    retval = self.to_parent(ctx, cls, inst, xf, name)
 
         else:
             assert message is self.RESPONSE
