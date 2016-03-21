@@ -480,14 +480,15 @@ class InProtocolBase(ProtocolMixin):
         try:
             d = datetime.strptime(string, self.get_cls_attrs(cls).format)
             return date(d.year, d.month, d.day)
+
         except ValueError as e:
             match = cls._offset_re.match(string)
             if match:
                 return date(int(match.group('year')),
                             int(match.group('month')), int(match.group('day')))
             else:
-                raise ValidationError(string,
-                                         "%%r: %s" % repr(e).replace("%", "%%"))
+                # the message from ValueError is quite nice already
+                raise ValidationError(e.message, "%s")
 
     def duration_from_unicode(self, cls, string):
         duration = _duration_re.match(string).groupdict(0)
