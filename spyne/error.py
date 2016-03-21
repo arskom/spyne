@@ -72,10 +72,8 @@ class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
 
     def __init__(self, obj, custom_msg='The value %r could not be validated.'):
-        s = repr(obj)
-
         try:
-            msg = custom_msg % s
+            msg = custom_msg % obj
         except TypeError:
             msg = custom_msg
 
