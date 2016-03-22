@@ -68,6 +68,18 @@ class InvalidInputError(Fault):
 InvalidRequestError = InvalidInputError
 
 
+class MissingFieldError(InvalidInputError):
+    """Raised when a mandatory value is missing."""
+
+    def __init__(self, field_name, message="Field '%s' is missing."):
+        try:
+            message = message % (field_name,)
+        except TypeError:
+            pass
+
+        super(MissingFieldError, self).__init__('Client.InvalidInput', message)
+
+
 class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
 

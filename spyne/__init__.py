@@ -52,6 +52,7 @@ from spyne.error import RequestTooLongError
 from spyne.error import RequestNotAllowed
 from spyne.error import ArgumentError
 from spyne.error import InvalidInputError
+from spyne.error import MissingFieldError
 from spyne.error import ValidationError
 from spyne.error import InternalError
 from spyne.error import ResourceNotFoundError
