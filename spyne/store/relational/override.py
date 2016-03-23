@@ -17,19 +17,28 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A Postgresql serializer for Spyne objects.
 
-Uses SQLAlchemy for mapping objects to relations.
-"""
+from sqlalchemy.ext.compiler import compiles
 
-from spyne.store.relational._base import add_column
-from spyne.store.relational._base import gen_sqla_info
-from spyne.store.relational._base import gen_spyne_info
-from spyne.store.relational._base import get_pk_columns
+from sqlalchemy.dialects.postgresql import INET
+from spyne.store.relational import PGXml, PGJson, PGHtml
 
-from spyne.store.relational.document import PGXml, PGObjectXml, PGHtml
-from spyne.store.relational.document import PGJson, PGObjectJson, PGFileJson
-from spyne.store.relational.simple import PGLTree, PGLQuery, PGLTxtQuery
-from spyne.store.relational.spatial import PGGeometry
 
-from spyne.store.relational import override
+@compiles(PGXml, "firebird")
+def compile_xml_firebird(type_, compiler, **kw):
+    return "blob"
+
+
+@compiles(PGHtml, "firebird")
+def compile_html_firebird(type_, compiler, **kw):
+    return "blob"
+
+
+@compiles(PGJson, "firebird")
+def compile_json_firebird(type_, compiler, **kw):
+    return "blob"
+
+
+@compiles(INET, "firebird")
+def compile_inet_firebird(type_, compiler, **kw):
+    return "varchar(64)"
