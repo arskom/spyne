@@ -24,6 +24,27 @@ from sqlalchemy.dialects.postgresql import INET
 from spyne.store.relational import PGXml, PGJson, PGHtml
 
 
+@compiles(PGXml)
+def compile_xml(type_, compiler, **kw):
+    return "xml"
+
+
+@compiles(PGHtml)
+def compile_html(type_, compiler, **kw):
+    return "text"
+
+
+@compiles(PGJson)
+def compile_json(type_, compiler, **kw):
+    return "json"
+
+
+@compiles(INET)
+def compile_inet(type_, compiler, **kw):
+    return "inet"
+
+
+
 @compiles(PGXml, "firebird")
 def compile_xml_firebird(type_, compiler, **kw):
     return "blob"
