@@ -70,7 +70,7 @@ class PGXml(UserDefinedType):
                 return value
             else:
                 return etree.tostring(value, pretty_print=self.pretty_print,
-                                 encoding=self.encoding, xml_declaration=False)
+                                  encoding=self.encoding, xml_declaration=False)
         return process
 
     def result_processor(self, dialect, col_type):
