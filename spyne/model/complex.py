@@ -832,7 +832,12 @@ class ComplexModelBase(ModelBase):
                 def_val = attr.default
                 def_fac = attr.default_factory
 
-                if def_fac is not None:
+                cls_getattr_ret = getattr(self.__class__, k, None)
+                if isinstance(cls_getattr_ret, property) and \
+                                                   cls_getattr_ret.fset is None:
+                    continue  # we skip read-only properties
+
+                elif def_fac is not None:
                     if six.PY2 and hasattr(def_fac, 'im_func'):
                         # unbound-method error workaround. huh.
                         def_fac = def_fac.im_func
