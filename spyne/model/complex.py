@@ -849,16 +849,18 @@ class ComplexModelBase(ModelBase):
                 elif hasattr(cls, '_sa_class_manager'):
                     # except the attributes that sqlalchemy doesn't know about
                     if v.Attributes.exc_table:
+                        # FIXME: These hide real exceptions!
                         try:
                             setattr(self, k, None)
-                        except AttributeError:  # it could be a read-only property
+                        except AttributeError:
                             pass
 
                     elif issubclass(v, ComplexModelBase) and \
                                                   v.Attributes.store_as is None:
+                        # FIXME: These hide real exceptions!
                         try:
                             setattr(self, k, None)
-                        except AttributeError:  # it could be a read-only property
+                        except AttributeError:
                             pass
                 else:
                     setattr(self, k, None)
