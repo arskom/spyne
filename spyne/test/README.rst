@@ -28,22 +28,18 @@ test command ::
 
     python setup.py test
 
-If you want to simplify that and run test for every python interpreter then you
-can use tox: ::
-
-    tox  # yes, just tox :)
-
-Tox have py26, py27, py33, py34, pypy. There is also one distinction for Python 3
-environment will run all tests suite. If you want to check against only tests
-that are supposed to be passing for Python 3 you have to run py33-travis and
-py34-travis, use: ::
-
-    tox -e py33-travis
-    tox -e py34-travis
-
-Or if you don't want use tox then use: ::
+If you want to run only the that are supposed to pass under Python 3, run: ::
 
     python setup.py test_python3
+
+We use tox as well, bur only for django tests. So if you just want to run
+Spyne <=> Django interop tests with all combinations of supported CPython
+and Django versions, run: ::
+
+    tox
+
+The full list of environments that tos supports can be found inside
+``setup.py``\.
 
 Spyne's generic test script does not run WS-I tests. Also see the related
 section below.
@@ -65,7 +61,6 @@ interoperability tests by starting an actual daemon listening to a particular
 port and then making (or processing) real requests, so running all tests in one
 go is problematic. The rather specialized logic in setup.py for running tests
 is the result of these quirks. Patches are welcome!
-
 
 SOAP Interoperability Tests
 ===========================
