@@ -3,7 +3,7 @@
 Running Tests Locally
 *********************
 
-While the test coverage for Spyne is not that bad, we always accept new tests
+While the test coverage for Spyne is not too bad, we always accept new tests
 that cover new use-cases. Please consider contributing tests even if your
 use-case is working fine! Given the nature of open-source projects, Spyne may
 shift focus or change maintainers in the future. This can result in patches
@@ -11,7 +11,7 @@ which may cause incompatibilities with your existing code base. The only way to
 detect such corner cases is to have a great test suite.
 
 Spyne's master repository is already integrated with travis-ci.org. Head over
-to http://travis-ci.org/arskom/spyne to see it for yourself.
+to http://travis-ci.org/arskom/spyne to see the test results for yourself.
 
 As the necessary configuration is already done, it's very simple to integrate
 your own fork of Spyne with travis-ci.org, which should come in handy even if
@@ -19,30 +19,29 @@ you don't plan to be a long-time contributor to Spyne. Just sign in with your
 Github account and follow instructions.
 
 If you want to run the tests locally, first you have to install all dependencies
-(you want to use virtualenv for that). ::
+(you may want to use virtualenv for that). ::
 
     pip install -r requirements/test_requirements.txt
 
-and after all dependencies are installed you can run tests like that. ::
+and after all dependencies are installed you can run tests using the canonical
+test command ::
 
     python setup.py test
 
-The last thing you need to do is to make sure there is a live PostgreSQL
-instance, so that all of the db integration tests also work.
-
 If you want to simplify that and run test for every python interpreter then you
-can use tox. ::
+can use tox: ::
 
-    tox
+    tox  # yes, just tox :)
 
 Tox have py26, py27, py33, py34, pypy. There is also one distinction for Python 3
 environment will run all tests suite. If you want to check against only tests
-that are passing for Python 3 you have to run py33-travis and py34-travis. ::
+that are supposed to be passing for Python 3 you have to run py33-travis and
+py34-travis, use: ::
 
     tox -e py33-travis
     tox -e py34-travis
 
-Or if you don't want use tox then. ::
+Or if you don't want use tox then use: ::
 
     python setup.py test_python3
 
@@ -141,5 +140,5 @@ The travis configuration file is located in the root of the source repository,
 under its standard name: .travis.yml
 
 A script for running Spyne test suite inside Jenkins can also be found in the
-same directory as this README file, under the name jenkins.sh. Paste it to the
-"executable script" section in Jenkins configuration page.
+project root directory, under the name run_tests.sh. It's supposed to be used
+as a multi-configuration project. See the script header for more information.
