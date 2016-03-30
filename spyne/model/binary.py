@@ -107,6 +107,8 @@ class ByteArray(SimpleModel):
 
     @classmethod
     def to_base64(cls, value):
+        if isinstance(value, (list, tuple)) and isinstance(value[0], mmap):
+            return b64encode(value[0])
         return b64encode(b''.join(value))
 
     @classmethod
