@@ -283,15 +283,13 @@ class OutProtocolBase(ProtocolMixin):
         return retval
 
     def unicode_to_unicode(self, cls, value, **_):  # :)))
-        # value can be many things, but definetly not an int
-        if isinstance(value, six.integer_types):
-            logger.warning("Returning an int where a str is expected! "
-                                                "Not-so-silenty fixing this...")
-            value = str(value)
+        cls_attrs = self.get_cls_attrs(cls)
+
+        if cls_attrs.cast is not None:
+            value = cls_attrs.cast(value)
 
         retval = value
 
-        cls_attrs = self.get_cls_attrs(cls)
         if isinstance(value, six.binary_type):
             if cls_attrs.encoding is not None:
                 retval = value.decode(cls_attrs.encoding)

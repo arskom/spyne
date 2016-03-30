@@ -378,6 +378,16 @@ class TestPrimitive(unittest.TestCase):
         assert Unicode(nullable=True).Attributes.nullable == True
         assert Unicode(nullable=True)(5).Attributes.nullable == True
 
+    def test_unicode_cast(self):
+        # to_unicode is dumb enough to pass an int straight back
+        # this normally fails later in the pipeline
+        assert isinstance(ProtocolBase().to_unicode(Unicode, 1),
+                                                              six.integer_types)
+
+        # when cast is passed, the return value is a proper string
+        assert isinstance(ProtocolBase().to_unicode(Unicode(cast=str), 1),
+                                                              six.string_types)
+
     def test_null(self):
         element = etree.Element('test')
         XmlDocument().to_parent(None, Null, None, element, ns_test)
