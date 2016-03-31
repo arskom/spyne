@@ -5,8 +5,9 @@ Changelog
 spyne-2.13.0
 ------------
 * EXPERIMENTAL library-wide Python 3 Support! Yay!
- * MessagePack uses backwards-compatible raws with a hard-coded utf8 encoding.
-   Open an issue if not happy.
+ * MessagePack uses backwards-compatible raws with a hard-coded UTF-8 encoding
+   for Unicode (non-ByteArray) types. Please open an issue if not happy with
+   this.
  * It's the transports' job to decide on a codec. Use UTF-8 when in doubt, as
    that's what we're doing.
  * Float rounding behaviour seems to have changed in Python 3. In Python 2,
@@ -21,8 +22,13 @@ spyne-2.13.0
    ``test_datetime_usec`` and ``test_time_usec`` in
    ``spyne.test.model.test_primitive``.
 
+* Unicode used to tolerate (i.e. implicitly but not-so-silenty casted to
+  ``str``) int values. This is no longer the case. If you want to set proper
+  numbers to a Unicode-designated field, you must provide a casting function.
+  Generally, ``Unicode(cast=str)`` is what you want to do.
+  See d495aa3d56451bd02c0076a9a1f14c6450eadc8e for the change.
 * No major changes otherwise but we paid a lot of technical debt. e.g. We
-  modernized the test infrastructure.
+  revamped the test infrastructure.
 * Many bugs fixed.
 
 spyne-2.12.11
