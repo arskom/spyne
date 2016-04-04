@@ -35,7 +35,7 @@ def root_dict_to_etree(d):
     dictionaries is the same as :func:`dict_to_etree`.
     """
 
-    assert len(d) == 1
+    assert len(d) == 1, "Incoming dict len must be exactly 1. Data: %r" % d
 
     key, = d.keys()
     retval = etree.Element(key)
