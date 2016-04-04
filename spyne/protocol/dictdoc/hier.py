@@ -154,7 +154,7 @@ class HierDictDocument(DictDocument):
         # validate native type
         if validator is self.SOFT_VALIDATION and \
                                            not cls.validate_native(cls, retval):
-            raise ValidationError((key, retval))
+            raise ValidationError([key, retval])
 
         return retval
 
