@@ -234,7 +234,7 @@ class ModelBase(object):
         """The default value if the input is None."""
 
         default_factory = None
-        """The callable that produces a default value if the input is None."""
+        """The callable that produces a default value if the value is None."""
 
         nillable = None
         """Set this to false to reject null values. Synonyms with
