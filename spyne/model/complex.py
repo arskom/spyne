@@ -809,8 +809,9 @@ class ComplexModelBase(ModelBase):
         fti = cls.get_flat_type_info(cls)
 
         if cls.__orig__ is not None:
-            logger.warning("%r seems to be a customized class. It is not "
-                      "supposed to be instantiated. You have been warned.", cls)
+            logger.warning("%r(0x%X) seems to be a customized class. It is not "
+                    "supposed to be instantiated. You have been warned.",
+                                                                   cls, id(cls))
 
         if cls.Attributes._xml_tag_body_as is not None:
             for arg, (xtba_key, xtba_type) in \
