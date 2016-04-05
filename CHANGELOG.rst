@@ -22,11 +22,13 @@ spyne-2.13.0
    ``test_datetime_usec`` and ``test_time_usec`` in
    ``spyne.test.model.test_primitive``.
 
-* Unicode used to tolerate (i.e. implicitly but not-so-silenty casted to
-  ``str``) int values. This is no longer the case. If you want to set proper
-  numbers to a Unicode-designated field, you must provide a casting function.
-  Generally, ``Unicode(cast=str)`` is what you want to do.
+* ``spyne.model.Unicode`` used to tolerate (i.e. implicitly but not-so-silenty
+  casted to ``str``) int values. This is no longer the case. If you want to
+  set proper numbers to a Unicode-designated field, you must provide a
+  casting function. Generally, ``Unicode(cast=str)`` is what you want to do.
   See d495aa3d56451bd02c0076a9a1f14c6450eadc8e for the change.
+* ``exc_table`` is deprecated in favour of ``exc_db``. Please do a
+  s/exc_table/exc_db/g in your codebase when convenient.
 * No major changes otherwise but we paid a lot of technical debt. e.g. We
   revamped the test infrastructure.
 * Many bugs fixed.

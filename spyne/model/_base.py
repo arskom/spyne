@@ -281,8 +281,11 @@ class ModelBase(object):
         """
 
         exc_table = False
-        """If true, this field will be excluded from the table of the parent
-        class.
+        """DEPRECATED !!! Use ``exc_db`` instead."""
+
+        exc_db = False
+        """If ``True``, this field will not be persisted to the database. This
+        attribute only makes sense in a subfield of a ``ComplexModel`` subclass.
         """
 
         exc_interface = False
@@ -603,6 +606,10 @@ class ModelBase(object):
 
                 Attributes.values = v.keys()
                 Attributes.values_dict = v
+
+            elif k == 'exc_table':
+                Attributes.exc_table = v
+                Attributes.exc_db = v
 
             elif k == 'max_occurs' and v in ('unbounded', 'inf', float('inf')):
                 setattr(Attributes, k, decimal.Decimal('inf'))

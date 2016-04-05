@@ -446,7 +446,7 @@ def _add_simple_type(cls, props, table, k, v, sqla_type):
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
     mp = getattr(v.Attributes, 'mapper_property', None)
-    if not v.Attributes.exc_table:
+    if not v.Attributes.exc_db:
         if k in table.c:
             col = table.c[k]
 
