@@ -824,7 +824,7 @@ class XmlDocument(SubXmlBase):
 
         elif isinstance(inst.detail, dict):
             if len(inst.detail) > 0:
-                _append(subelts, E('detail', root_dict_to_etree(inst.detail)))
+                _append(subelts, {'detail':root_dict_to_etree(inst.detail)})
 
         elif inst.detail is None:
             pass
