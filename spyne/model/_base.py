@@ -231,10 +231,16 @@ class ModelBase(object):
         # are skipped. just for internal use.
 
         default = None
-        """The default value if the input is None."""
+        """The default value if the input is None.
+
+        Please note that this default is UNCONDITIONALLY applied in class
+        initializer. Please make an effort to use this only in customized
+        classes and not on original models.
+        """
 
         default_factory = None
-        """The callable that produces a default value if the value is None."""
+        """The callable that produces a default value if the value is None.
+        The warnings in ``default`` apply here as well."""
 
         db_default = None
         """The default value used only when persisting the value if it is
