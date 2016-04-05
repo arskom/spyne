@@ -853,7 +853,7 @@ class ComplexModelBase(ModelBase):
                 # sqlalchemy objects do their own init.
                 elif hasattr(cls, '_sa_class_manager'):
                     # except the attributes that sqlalchemy doesn't know about
-                    if v.Attributes.exc_table:
+                    if v.Attributes.exc_db:
                         setattr(self, k, None)
 
                     elif issubclass(v, ComplexModelBase) and \

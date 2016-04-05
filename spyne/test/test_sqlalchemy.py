@@ -508,6 +508,25 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         assert self.session.query(SomeClass).get(1).f == 'uuu'
 
+    def test_default_value(self):
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            f = Unicode(32, db_default=u'uuu')
+
+        self.metadata.create_all()
+        val = SomeClass()
+        assert val.f is None
+
+        self.session.add(val)
+        self.session.commit()
+
+        self.session.expunge_all()
+
+        assert self.session.query(SomeClass).get(1).f == u'uuu'
+
     def test_default_ctor_with_sql_relationship(self):
         class SomeOtherClass(TableModel):
             __tablename__ = 'some_other_class'

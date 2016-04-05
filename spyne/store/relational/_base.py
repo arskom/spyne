@@ -119,6 +119,12 @@ def _sp_attrs_to_sqla_constraints(cls, v, col_kwargs=None, col=None):
         else:
             col.nullable = False
 
+    if v.Attributes.db_default is not None:
+        if col is None:
+            col_kwargs['default'] = v.Attributes.db_default
+        else:
+            col.default = v.Attributes.db_default
+
 
 def _get_sqlalchemy_type(cls):
     db_type = cls.Attributes.db_type

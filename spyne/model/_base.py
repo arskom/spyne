@@ -236,6 +236,13 @@ class ModelBase(object):
         default_factory = None
         """The callable that produces a default value if the value is None."""
 
+        db_default = None
+        """The default value used only when persisting the value if it is
+        ``None``.
+
+        Only works for primitives. Unlike ``default`` this can also be set to a
+        callable that takes no arguments according to SQLAlchemy docs."""
+
         nillable = None
         """Set this to false to reject null values. Synonyms with
         ``nullable``. True by default. The default value can be changed by
