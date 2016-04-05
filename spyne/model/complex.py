@@ -731,7 +731,7 @@ class ComplexModelBase(ModelBase):
         store_as = None
         """Method for serializing to persistent storage. One of %r. It makes
         sense to specify this only when this object is a child of another
-        ComplexModel sublass.""" % (PSSM_VALUES,)
+        ComplexModel subclass.""" % (PSSM_VALUES,)
 
         sqla_metadata = None
         """None or :class:`sqlalchemy.MetaData` instance."""
