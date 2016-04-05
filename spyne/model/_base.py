@@ -586,10 +586,10 @@ class ModelBase(object):
                 continue
 
             if k in ('protocol', 'prot', 'p'):
-                setattr(Attributes, 'prot', v)
+                Attributes.prot = v
 
             elif k in ('voa', 'validate_on_assignment'):
-                setattr(Attributes, 'validate_on_assignment', v)
+                Attributes.validate_on_assignment = v
 
             elif k == 'parser':
                 setattr(Attributes, 'parser', staticmethod(v))
