@@ -60,6 +60,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session = sessionmaker(bind=self.engine)()
         self.metadata = TableModel.Attributes.sqla_metadata = MetaData()
         self.metadata.bind = self.engine
+        logging.info('Testing against sqlalchemy-%s', sqlalchemy.__version__)
 
     def test_schema(self):
         class SomeClass(TableModel):
