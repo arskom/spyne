@@ -140,7 +140,7 @@ def _get_sqlalchemy_type(cls):
         return PGInet
 
     # must be above Unicode, because Uuid is Unicode's subclass
-    if issubclass(cls, Uuid):
+    elif issubclass(cls, Uuid):
         return PGUuid(as_uuid=True)
 
     # must be above Unicode, because Point is Unicode's subclass
@@ -904,7 +904,7 @@ def add_column(cls, k, v):
 
     # Add to table
     t = _get_sqlalchemy_type(v)
-    if t is None: # complex model
+    if t is None:  # complex model
         _add_complex_type(cls, mapper_props, table, k, v)
     else:
         _add_simple_type(cls, mapper_props, table, k, v, t)

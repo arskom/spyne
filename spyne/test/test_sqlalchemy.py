@@ -18,12 +18,12 @@
 #
 
 import logging
-from pprint import pprint
-
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 import sqlalchemy
+
+from pprint import pprint
 
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData

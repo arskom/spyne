@@ -174,7 +174,7 @@ class HierDictDocument(DictDocument):
 
             for i, child in enumerate(doc):
                 retval.append(self._from_dict_value(i, serializer, child,
-                                                                    validator))
+                                                                     validator))
 
             return retval
 

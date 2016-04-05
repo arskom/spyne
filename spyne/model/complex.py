@@ -806,6 +806,7 @@ class ComplexModelBase(ModelBase):
 
     def __init__(self, *args, **kwargs):
         cls = self.__class__
+        cls_attr = cls.Attributes
         fti = cls.get_flat_type_info(cls)
 
         if cls.__orig__ is not None:
@@ -813,9 +814,9 @@ class ComplexModelBase(ModelBase):
                     "supposed to be instantiated. You have been warned.",
                                                                    cls, id(cls))
 
-        if cls.Attributes._xml_tag_body_as is not None:
+        if cls_attr._xml_tag_body_as is not None:
             for arg, (xtba_key, xtba_type) in \
-                                     zip(args, cls.Attributes._xml_tag_body_as):
+                                           zip(args, cls_attr._xml_tag_body_as):
                 if xtba_key is not None and len(args) == 1:
                     self._safe_set(xtba_key, arg, xtba_type)
                 elif len(args) > 0:
