@@ -279,7 +279,7 @@ class SimpleDictDocument(DictDocument):
                                            (set_skip, member.path, pkey, value))
 
             else:
-                is_set =cinst._safe_set(member.path[-1], value[0], member.type)
+                is_set = cinst._safe_set(member.path[-1], value[0], member.type)
 
                 set_skip = 'set ' if is_set else 'SKIP'
                 logger.debug("\t%s val %r(%r) = %r" %
