@@ -64,6 +64,7 @@ def _complex_to_csv(prot, ctx):
 
     elif ctx.out_error is None:
         writer = csv.DictWriter(queue, dialect=csv.excel, fieldnames=keys)
+        if prot.header:
         writer.writerow(dict(((k,k) for k in keys)))
 
         yield queue.getvalue()
@@ -88,6 +89,17 @@ class Csv(HierDictDocument):
 
     type = set(HierDictDocument.type)
     type.add('csv')
+
+    def __init__(self, app=None, validator=None, mime_type=None,
+            ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
+            ordered=False, polymorphic=False, header=True):
+
+        super(Csv, self).__init__(app=app, validator=validator,
+                        mime_type=mime_type, ignore_uncap=ignore_uncap,
+                        ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                        ordered=ordered, polymorphic=polymorphic)
+
+        self.header = header
 
     def create_in_document(self, ctx):
         raise NotImplementedError()
