@@ -84,11 +84,12 @@ class ToParentMixin(OutProtocolBase):
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         prot_name = self.__class__.__name__
+        cls_attrs = self.get_cls_attrs(cls)
 
         cls, switched = self.get_polymorphic_target(cls, inst)
 
         # if there is a subprotocol, switch to it
-        subprot = getattr(cls.Attributes, 'prot', None)
+        subprot = cls_attrs.prot
         if subprot is not None and not nosubprot and not \
                                            (subprot in ctx.protocol.prot_stack):
             logger.debug("Subprot from %r to %r", self, subprot)
@@ -102,13 +103,13 @@ class ToParentMixin(OutProtocolBase):
             return cor_handle
 
         # if instance is None, use the default factory to generate one
-        _df = cls.Attributes.default_factory
+        _df = cls_attrs.default_factory
         if inst is None and callable(_df):
             inst = _df()
 
         # if instance is still None, use the default value
         if inst is None:
-            inst = cls.Attributes.default
+            inst = cls_attrs.default
 
         # if instance is still None, use the global null handler to serialize it
         if inst is None and self.use_global_null_handler:
@@ -123,6 +124,8 @@ class ToParentMixin(OutProtocolBase):
 
         # if cls is an iterable of values and it's not being iterated on, do it
         from_arr = kwargs.get('from_arr', False)
+        # we need cls.Attributes here because we need the ACTUAL attrs that were
+        # set by the Array.__new__
         if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 

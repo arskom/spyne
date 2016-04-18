@@ -69,7 +69,12 @@ def _complex_to_csv(prot, ctx):
     else:
         writer = csv.DictWriter(queue, dialect=csv.excel, fieldnames=keys)
         if prot.header:
-        writer.writerow(dict(((k,k) for k in keys)))
+            titles = {}
+            for k in keys:
+                v = type_info[k]
+                titles[k] = prot.trc(v, ctx.locale, k)
+
+            writer.writerow(titles)
 
         yield queue.getvalue()
         queue.truncate(0)
