@@ -346,6 +346,19 @@ class HierDictDocument(DictDocument):
         return self.to_serstr(cls, inst)
 
     def _complex_to_doc(self, cls, inst):
+        cls_attrs = self.get_cls_attrs(cls)
+        sf = cls_attrs.simple_field
+        if sf is not None:
+            # we want this to throw when sf does not exist
+            subcls = cls.get_flat_type_info(cls)[sf]
+
+            subinst = getattr(inst, sf, None)
+
+            logger.debug("Render complex object %s to the value %r of its "
+                         "field '%s'", cls.get_type_name(), subinst, sf)
+
+            return self.to_unicode(subcls, subinst)
+
         if self.complex_as is list or \
                         getattr(cls.Attributes, 'serialize_as', False) is list:
             return list(self._complex_to_list(cls, inst))
