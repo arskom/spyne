@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 import csv
 from spyne.util import six
 
+from spyne import ComplexModelBase
 from spyne.protocol.dictdoc import HierDictDocument
 
 if six.PY2:
@@ -47,10 +48,13 @@ def _complex_to_csv(prot, ctx):
 
     serializer, = cls._type_info.values()
 
-    type_info = getattr(serializer, '_type_info',
-                        {serializer.get_type_name(): serializer})
+    if issubclass(serializer, ComplexModelBase):
+        type_info = serializer.get_flat_type_info(serializer)
+        keys = [k for k, _ in prot.sort_fields(serializer)]
 
-    keys = sorted(type_info.keys())
+    else:
+        type_info = {serializer.get_type_name(): serializer}
+        keys = list(type_info.keys())
 
     if ctx.out_error is not None:
         writer = csv.writer(queue, dialect=csv.excel)
