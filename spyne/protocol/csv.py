@@ -110,9 +110,9 @@ class Csv(HierDictDocument):
         if ctx.out_object is None:
             ctx.out_object = []
 
-        assert len(ctx.descriptor.out_message._type_info) == 1, """CSV Serializer
-            supports functions with exactly one return type:
-            %r""" % ctx.descriptor.out_message._type_info
+        assert len(ctx.descriptor.out_message._type_info) == 1, \
+            "CSV Serializer supports functions with exactly one return type: " \
+            "%r" % ctx.descriptor.out_message._type_info
 
     def create_out_string(self, ctx):
         ctx.out_string = _complex_to_csv(self, ctx)
