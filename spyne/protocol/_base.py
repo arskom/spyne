@@ -28,7 +28,7 @@ from weakref import WeakKeyDictionary
 from spyne import ProtocolContext, EventManager
 from spyne.model import Array
 from spyne.error import ResourceNotFoundError
-from spyne.util import DefaultAttrDict
+from spyne.util import DefaultAttrDict, memoize_id_method
 from spyne.util.six import string_types
 
 
@@ -146,8 +146,13 @@ class ProtocolMixin(object):
                                                      if not k.startswith('__')])
 
         if cls.Attributes.prot_attrs:
-            attr.update(cls.Attributes.prot_attrs.get(self.__class__, {}))
-            attr.update(cls.Attributes.prot_attrs.get(self, {}))
+            cls_attrs = cls.Attributes.prot_attrs.get(self.__class__, {})
+            # logger.debug("%r cls attr %r", cls, cls_attrs)
+            attr.update(cls_attrs)
+
+            inst_attrs = cls.Attributes.prot_attrs.get(self, {})
+            # logger.debug("%r inst attr %r", cls, cls_attrs)
+            attr.update(inst_attrs)
 
         return attr
 
@@ -259,5 +264,28 @@ class ProtocolMixin(object):
             return trdict
 
         return trdict.get(locale, default)
+
+    @memoize_id_method
+    def sort_fields(self, cls=None, items=None):
+        if items is None:
+            items = list(cls.get_flat_type_info(cls).items())
+
+        indexes = {}
+        for k, v in items:
+            order = self.get_cls_attrs(v).order
+            if order is not None:
+                if order < 0:
+                    indexes[k] = len(items) + order
+                else:
+                    indexes[k] = order
+
+        for k, v in items:
+            order = self.get_cls_attrs(v).order
+            if order is None:
+                indexes[k] = len(indexes)
+
+        items.sort(key=lambda x: indexes[x[0]])
+        return items
+
 
 META_ATTR = ['nullable', 'default_factory']
