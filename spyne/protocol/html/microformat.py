@@ -37,6 +37,7 @@ from spyne.util.cdict import cdict
 class HtmlMicroFormat(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=False,
                               cloth=None, cloth_parser=None, polymorphic=True,
+                                                    doctype="<!DOCTYPE html>",
                     root_tag='div', child_tag='div', field_name_attr='class',
                     field_name_tag=None, field_name_class='field_name'):
         """Protocol that returns the response object according to the "html
@@ -58,7 +59,7 @@ class HtmlMicroFormat(HtmlBase):
         super(HtmlMicroFormat, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
                 cloth=cloth, cloth_parser=cloth_parser, polymorphic=polymorphic,
-                                                                hier_delim=None)
+                                               hier_delim=None, doctype=doctype)
 
         assert root_tag in ('div', 'span')
         assert child_tag in ('div', 'span')
@@ -99,6 +100,21 @@ class HtmlMicroFormat(HtmlBase):
             retval.text = data_str
 
         parent.write(retval)
+
+    def start_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        """This is what subserialize calls"""
+
+        # if no doctype was written, write it
+        if not getattr(ctx.protocol, 'doctype_written', False):
+            if len(ctx.protocol.prot_stack) == 1:
+                if self.doctype is not None:
+                    parent.write_doctype(self.doctype)
+
+            # set this to true as no doctype can be written after this
+            # stage anyway.
+            ctx.protocol.doctype_written = True
+
+        return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
