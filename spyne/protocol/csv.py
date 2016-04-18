@@ -30,9 +30,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 import csv
-from spyne.util import six
 
 from spyne import ComplexModelBase
+from spyne.util import six
 from spyne.protocol.dictdoc import HierDictDocument
 
 if six.PY2:
