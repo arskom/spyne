@@ -52,7 +52,7 @@ def _complex_to_csv(prot, ctx):
 
     keys = sorted(type_info.keys())
 
-    if ctx.out_object is None:
+    if ctx.out_error is not None:
         writer = csv.writer(queue, dialect=csv.excel)
         writer.writerow(['Error in generating the document'])
         if ctx.out_error is not None:
@@ -62,7 +62,7 @@ def _complex_to_csv(prot, ctx):
         yield queue.getvalue()
         queue.truncate(0)
 
-    elif ctx.out_error is None:
+    else:
         writer = csv.DictWriter(queue, dialect=csv.excel, fieldnames=keys)
         if prot.header:
         writer.writerow(dict(((k,k) for k in keys)))
