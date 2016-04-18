@@ -448,6 +448,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
         prot_name = self.__class__.__name__
+        cls_attrs = self.get_cls_attrs(cls)
 
         if cloth is None:
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
@@ -455,21 +456,20 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         cls, switched = self.get_polymorphic_target(cls, inst)
 
         # if there's a subprotocol, switch to it
-        subprot = getattr(cls.Attributes, 'prot', None)
+        subprot = cls_attrs.prot
         if subprot is not None and not (subprot is self):
             self._enter_cloth(ctx, cloth, parent)
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
         # if instance is None, use the default factory to generate one
-        _df = cls.Attributes.default_factory
+        _df = cls_attrs.default_factory
         if inst is None and callable(_df):
             inst = _df()
 
         # if instance is still None, use the default value
         if inst is None:
-            inst = cls.Attributes.default
+            inst = cls_attrs.default
 
-        retval = None
         if inst is None:
             identifier = "%s.%s" % (prot_name, "null_to_cloth")
             logger_s.debug("Writing %s using %s for %s.", name,
