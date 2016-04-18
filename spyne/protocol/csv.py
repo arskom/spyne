@@ -73,9 +73,10 @@ def _complex_to_csv(prot, ctx):
         if ctx.out_object[0] is not None:
             for v in ctx.out_object[0]:
                 d = prot._to_dict_value(serializer, v)
-                for k in d:
-                    if isinstance(d[k], unicode):
-                        d[k] = d[k].encode('utf8')
+                if six.PY2:
+                    for k in d:
+                        if isinstance(d[k], unicode):
+                            d[k] = d[k].encode('utf8')
 
                 writer.writerow(d)
                 yval = queue.getvalue()
