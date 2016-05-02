@@ -44,11 +44,10 @@ from spyne.util.six import string_types
 
 
 class ToParentMixin(OutProtocolBase):
-    def __init__(self, app=None, mime_type=None,
-                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
-        super(ToParentMixin, self).__init__(app=app,
-                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
-                                 ignore_wrappers=ignore_wrappers)
+    def __init__(self, app=None, mime_type=None, ignore_uncap=False,
+                                       ignore_wrappers=False, polymorphic=True):
+        super(ToParentMixin, self).__init__(app=app, mime_type=mime_type,
+                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers)
 
         self.polymorphic = polymorphic
         self.use_global_null_handler = True

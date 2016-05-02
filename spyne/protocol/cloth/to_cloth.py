@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-# TODO: strip comments without removing e.g. <!--[if lt IE 9]>
-
 
 from __future__ import print_function
 
@@ -70,22 +68,36 @@ class ClothParserMixin(object):
     TAGBAG_ATTR_NAME = 'spyne-tagbag'
 
     @classmethod
-    def from_xml_cloth(cls, cloth):
+    def from_xml_cloth(cls, cloth, strip_comments=True):
         retval = cls()
-        retval._init_cloth(cloth, cloth_parser=etree.XMLParser())
+        retval._init_cloth(cloth, cloth_parser=etree.XMLParser(),
+                                                  strip_comments=strip_comments)
         return retval
 
     @classmethod
-    def from_html_cloth(cls, cloth):
+    def from_html_cloth(cls, cloth, strip_comments=True):
         retval = cls()
-        retval._init_cloth(cloth, cloth_parser=html.HTMLParser())
+        retval._init_cloth(cloth, cloth_parser=html.HTMLParser(),
+                                                  strip_comments=strip_comments)
         return retval
+
+    @staticmethod
+    def _strip_comments(root):
+        for elt in root.iter():
+            if isinstance(elt, etree._Comment):
+                if elt.getparent() is not None:
+                    if elt.text.startswith('[if ') \
+                                               and elt.text.endswith('[endif]'):
+                        pass
+                    else:
+                        elt.getparent().remove(elt)
+
 
     def _parse_file(self, file_name, cloth_parser):
         cloth = etree.parse(file_name, parser=cloth_parser)
         return cloth.getroot()
 
-    def _init_cloth(self, cloth, cloth_parser):
+    def _init_cloth(self, cloth, cloth_parser, strip_comments):
         """Called from XmlCloth.__init__ in order to not break the dunder init
         signature consistency"""
 
@@ -103,6 +115,8 @@ class ClothParserMixin(object):
         else:
             # because if we deepcopy just the cloth doctype is lost
             pass#cloth = deepcopy(cloth.getroottree()).getroot()
+        if strip_comments:
+            self._strip_comments(cloth)
 
         q = "//*[@%s]" % self.ROOT_ATTR_NAME
         elts = cloth.xpath(q)

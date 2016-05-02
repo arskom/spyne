@@ -51,14 +51,14 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     HtmlMicroFormat = None
 
     def __init__(self, app=None, mime_type=None, ignore_uncap=False,
-                                              ignore_wrappers=False, cloth=None,
-                                           cloth_parser=None, polymorphic=True):
+                        ignore_wrappers=False, cloth=None, cloth_parser=None,
+                                         polymorphic=True, strip_comments=True):
 
         super(XmlCloth, self).__init__(app=app, mime_type=mime_type,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
                                                         polymorphic=polymorphic)
 
-        self._init_cloth(cloth, cloth_parser)
+        self._init_cloth(cloth, cloth_parser, strip_comments)
         self.developer_mode = False
 
     def get_context(self, parent, transport):
