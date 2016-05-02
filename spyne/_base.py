@@ -31,6 +31,7 @@ class BODY_STYLE_WRAPPED: pass
 class BODY_STYLE_EMPTY: pass
 class BODY_STYLE_BARE: pass
 class BODY_STYLE_OUT_BARE: pass
+class BODY_STYLE_EMPTY_OUT_BARE: pass
 
 
 # When spyne.server.twisted gets imported, this type gets a static method named

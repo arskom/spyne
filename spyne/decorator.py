@@ -39,6 +39,7 @@ from spyne._base import BODY_STYLE_EMPTY
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE
 from spyne._base import BODY_STYLE_OUT_BARE
+from spyne._base import BODY_STYLE_EMPTY_OUT_BARE
 
 from spyne.model import ModelBase, ComplexModel
 from spyne.model.complex import TypeInfo
@@ -356,9 +357,14 @@ def rpc(*params, **kparams):
             if body_style_str.endswith('bare'):
                 from spyne.model import ComplexModelBase
 
-                t = in_message
-                if issubclass(t, ComplexModelBase) and len(t._type_info) == 0:
-                    body_style = BODY_STYLE_EMPTY
+                ti = in_message
+                to = out_message
+                if issubclass(ti, ComplexModelBase) and len(ti._type_info) == 0:
+                    if not issubclass(to, ComplexModelBase) or \
+                                                         len(to._type_info) > 0:
+                        body_style = BODY_STYLE_EMPTY_OUT_BARE
+                    else:
+                        body_style = BODY_STYLE_EMPTY
 
             retval = MethodDescriptor(f,
                 in_message, out_message, doc, _is_callback, _is_async,
