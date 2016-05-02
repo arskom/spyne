@@ -112,9 +112,6 @@ class ClothParserMixin(object):
         elif isinstance(cloth, string_types):
             cloth = self._parse_file(cloth, cloth_parser)
 
-        else:
-            # because if we deepcopy just the cloth doctype is lost
-            pass#cloth = deepcopy(cloth.getroottree()).getroot()
         if strip_comments:
             self._strip_comments(cloth)
 
@@ -143,12 +140,11 @@ class ClothParserMixin(object):
 
 class ToClothMixin(OutProtocolBase, ClothParserMixin):
     def __init__(self, app=None, mime_type=None, ignore_uncap=False,
-                                       ignore_wrappers=False, polymorphic=True):
+                                        ignore_wrappers=False, polymorphic=True):
         super(ToClothMixin, self).__init__(app=app, mime_type=mime_type,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers)
 
         self.polymorphic = polymorphic
-
         self.rendering_handlers = cdict({
             ModelBase: self.model_base_to_cloth,
             AnyXml: self.xml_to_cloth,
