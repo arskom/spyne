@@ -513,14 +513,14 @@ def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
             key = sub_name
             if sub_ns in _type_info:
                 raise Exception("%r is already defined: %r" %
-                                                        (key, _type_info[key]))
+                                                         (key, _type_info[key]))
             _type_info_alt[key] = v, k
 
         elif sub_name is None:
             key = "{%s}%s" % (sub_ns, k)
             if key in _type_info:
                 raise Exception("%r is already defined: %r" %
-                                                        (key, _type_info[key]))
+                                                         (key, _type_info[key]))
             _type_info_alt[key] = v, k
 
 
