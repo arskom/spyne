@@ -37,7 +37,7 @@ from spyne.model import Mandatory as M
 from spyne.model import Unicode
 from spyne.model import Uuid
 from spyne.model import Boolean
-from spyne.protocol.soap import Soap11
+from spyne.protocol.soap import Soap11, Soap12
 from spyne.service import ServiceBase
 from spyne.util.xml import get_schema_documents
 from spyne.util.xml import parse_schema_element
@@ -453,6 +453,22 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         NewGuy = objects['some_ns'].types["SomeGuy"]
         assert NewGuy._type_info['name'].type.__orig__ is Unicode
         assert NewGuy._type_info['name'].type.Attributes.default == "aa"
+
+    def test_inherited_attribute(self):
+        class DeviceEntity(ComplexModel):
+            token = XmlAttribute(Unicode, use='required')
+
+        class DigitalInput(DeviceEntity):
+            IdleState = XmlAttribute(Unicode)
+
+        class Service(ServiceBase):
+            @rpc(_returns=DigitalInput, _body_style='bare')
+            def GetDigitalInput(ctx):
+                return DigitalInput()
+
+        Application([Service], 'some_tns',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11())
 
     def test_simple_type_explicit_customization(self):
         class Header(ComplexModel):
