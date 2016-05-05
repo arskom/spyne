@@ -36,7 +36,9 @@ from collections import deque
 from inspect import isclass
 from itertools import chain
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY
+from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY, \
+    BODY_STYLE_EMPTY_OUT_BARE, BODY_STYLE_OUT_BARE
+
 from spyne import const
 from spyne.const import xml_ns
 
@@ -389,7 +391,8 @@ class _MethodsDict(dict):
                 d.out_message.__type_name__ = '%s.%s' % \
                           (cls.get_type_name(), d.out_message.get_type_name())
 
-            if d.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
+            if d.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY,
+                                BODY_STYLE_EMPTY_OUT_BARE, BODY_STYLE_OUT_BARE):
                 # The method only needs the primary key(s) and shouldn't
                 # complain when other mandatory fields are missing.
                 d.in_message = cls.novalidate_freq()
