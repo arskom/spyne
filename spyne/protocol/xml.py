@@ -444,9 +444,10 @@ class XmlDocument(SubXmlBase):
 
     def to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
         cls, add_type = self.get_polymorphic_target(cls, inst)
+        cls_attrs = self.get_cls_attrs(cls)
 
-        subprot = getattr(cls.Attributes, 'prot', None)
-        if subprot is not None:
+        subprot = cls_attrs.prot
+        if subprot is not None and isinstance(subprot, SubXmlBase):
             return subprot.subserialize(ctx, cls, inst, parent, ns,
                                                                 *args, **kwargs)
 
