@@ -460,6 +460,9 @@ class XmlDocument(SubXmlBase):
             return self.null_to_parent(ctx, cls, inst, parent, ns,
                                                                 *args, **kwargs)
 
+        if cls_attrs.exc:
+            return
+
         kwargs['add_type'] = add_type
         return handler(ctx, cls, inst, parent, ns, *args, **kwargs)
 
@@ -725,6 +728,10 @@ class XmlDocument(SubXmlBase):
                             pass
 
             for k, v in cls._type_info.items():
+                sub_cls_attrs = self.get_cls_attrs(v)
+                if sub_cls_attrs.exc:
+                    continue
+
                 try:
                     subvalue = getattr(inst, k, None)
                 except:  # e.g. SqlAlchemy could throw NoSuchColumnError
