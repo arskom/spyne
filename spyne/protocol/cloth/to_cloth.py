@@ -66,6 +66,15 @@ class ClothParserMixin(object):
     DATA_TAG_NAME = 'spyne-data'
     ROOT_ATTR_NAME = 'spyne-root'
     TAGBAG_ATTR_NAME = 'spyne-tagbag'
+    WRITE_CONTENTS_WHEN_NOT_NONE = 'spyne-write-contents'
+
+    SPYNE_ATTRS = {
+        ID_ATTR_NAME,
+        DATA_TAG_NAME,
+        ROOT_ATTR_NAME,
+        TAGBAG_ATTR_NAME,
+        WRITE_CONTENTS_WHEN_NOT_NONE,
+    }
 
     @classmethod
     def from_xml_cloth(cls, cloth, strip_comments=True):
@@ -353,7 +362,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         else:
             # finally, enter the target node.
             attrib = dict([(k, v) for k, v in cloth.attrib.items()
-                        if not (k in (self.ID_ATTR_NAME, self.ROOT_ATTR_NAME))])
+                                                  if not k in self.SPYNE_ATTRS])
 
             attrib.update(attrs)
 
@@ -481,13 +490,17 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             inst = cls_attrs.default
 
         if inst is None:
-            identifier = "%s.%s" % (prot_name, "null_to_cloth")
-            logger_s.debug("Writing %s using %s for %s.", name,
-                                                identifier, cls.get_type_name())
-
-            ctx.protocol.tags.add(id(cloth))
             if cls.Attributes.min_occurs > 0:
+                self._enter_cloth(ctx, cloth, parent)
+                identifier = "%s.%s" % (prot_name, "null_to_cloth")
+                logger_s.debug("Writing '%s' using %s type: %s.", name,
+                                                identifier, cls.get_type_name())
                 parent.write(cloth)
+
+            else:
+                logger_s.debug("Skipping '%s' type: %s.", name,
+                                                            cls.get_type_name())
+                self._enter_cloth(ctx, cloth, parent, skip=True)
 
             return
 
@@ -507,7 +520,15 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         self._enter_cloth(ctx, cloth, parent)
-        parent.write(self.to_unicode(cls, inst))
+
+        # FIXME: Does it make sense to do this in other types?
+        if self.WRITE_CONTENTS_WHEN_NOT_NONE in cloth.attrib:
+            logger_c.debug("Writing contents for %r", cloth)
+            for c in cloth:
+                parent.write(c)
+
+        else:
+            parent.write(self.to_unicode(cls, inst))
 
     def xml_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         self._enter_cloth(ctx, cloth, parent)
