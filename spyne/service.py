@@ -72,7 +72,7 @@ class ServiceBaseMeta(type):
 
             if self.__has_aux_methods and has_nonaux_methods:
                 raise Exception("You can't mix primary and "
-                        "auxiliary methods in a single service definition.")
+                                "auxiliary methods in a single service definition.")
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
@@ -83,10 +83,10 @@ class ServiceBaseMeta(type):
                 continue
 
             for k, v in evmgr.handlers.items():
-                handler=handlers.get(k, oset())
+                handler = handlers.get(k, oset())
                 for h in v:
                     handler.add(h)
-                handlers[k]=handler
+                handlers[k] = handler
 
         return handlers
 
