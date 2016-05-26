@@ -25,6 +25,8 @@ RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
 from collections import defaultdict, Iterable as AbcIterable
 
+from spyne import BODY_STYLE_BARE, BODY_STYLE_OUT_BARE, \
+                                                       BODY_STYLE_EMPTY_OUT_BARE
 from spyne.util import six
 from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
@@ -52,6 +54,12 @@ class HierDictDocument(DictDocument):
                 class_name = class_name.decode('utf8')
 
         return class_name
+
+    def get_complex_as(self, attr):
+        complex_as = self.complex_as
+        if attr.complex_as is not None:
+            complex_as = attr.complex_as
+        return complex_as
 
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
@@ -98,18 +106,24 @@ class HierDictDocument(DictDocument):
             out_type = ctx.descriptor.in_message
         elif message is self.RESPONSE:
             out_type = ctx.descriptor.out_message
+
         if out_type is None:
             return
 
         out_type_info = out_type.get_flat_type_info(out_type)
 
-        # instantiate the result message
-        out_instance = out_type()
-
         # assign raw result to its wrapper, result_message
-        for i, (k, v) in enumerate(out_type_info.items()):
-            attr_name = k
-            out_instance._safe_set(attr_name, ctx.out_object[i], v)
+        if ctx.descriptor.body_style in (BODY_STYLE_BARE,
+                                BODY_STYLE_OUT_BARE, BODY_STYLE_EMPTY_OUT_BARE):
+            out_instance, = ctx.out_object
+
+        else:
+            # instantiate the result message
+            out_instance = out_type()
+
+            for i, (k, v) in enumerate(out_type_info.items()):
+                attr_name = k
+                out_instance._safe_set(attr_name, ctx.out_object[i], v)
 
         ctx.out_document = self._object_to_doc(out_type, out_instance),
 
@@ -127,11 +141,14 @@ class HierDictDocument(DictDocument):
         if validator is self.SOFT_VALIDATION:
             self.validate(key, cls, inst)
 
+        cls_attr = self.get_cls_attrs(cls)
+        complex_as = self.get_complex_as(cls_attr)
+
         if issubclass(cls, (Any, AnyDict)):
             retval = inst
 
         # get native type
-        elif issubclass(cls, File) and isinstance(inst, self.complex_as):
+        elif issubclass(cls, File) and isinstance(inst, complex_as):
             retval = self._doc_to_object(cls.Attributes.type, inst, validator)
 
         elif issubclass(cls, ComplexModelBase):
@@ -297,7 +314,7 @@ class HierDictDocument(DictDocument):
         for k, v in cls._type_info.items():
             attr = self.get_cls_attrs(v)
 
-            if getattr(attr, 'exc', None):
+            if attr.exc:
                 continue
 
             try:
@@ -313,7 +330,8 @@ class HierDictDocument(DictDocument):
             val = self._object_to_doc(v, subinst)
             min_o = attr.min_occurs
 
-            if val is not None or min_o > 0 or self.complex_as is list:
+            complex_as = self.get_complex_as(attr)
+            if val is not None or min_o > 0 or complex_as is list:
                 sub_name = attr.sub_name
                 if sub_name is None:
                     sub_name = k
@@ -335,7 +353,11 @@ class HierDictDocument(DictDocument):
 
         if issubclass(cls, File) and isinstance(inst, cls.Attributes.type):
             retval = self._complex_to_doc(cls.Attributes.type, inst)
-            if self.complex_as is dict and not self.ignore_wrappers:
+
+            cls_attr = self.get_cls_attrs(cls)
+            complex_as = self.get_complex_as(cls_attr)
+
+            if complex_as is dict and not self.ignore_wrappers:
                 retval = next(iter(retval.values()))
 
             return retval
@@ -359,7 +381,9 @@ class HierDictDocument(DictDocument):
 
             return self.to_unicode(subcls, subinst)
 
-        if self.complex_as is list or \
+        cls_attr = self.get_cls_attrs(cls)
+        complex_as = self.get_complex_as(cls_attr)
+        if complex_as is list or \
                         getattr(cls.Attributes, 'serialize_as', False) is list:
             return list(self._complex_to_list(cls, inst))
         else:
@@ -367,8 +391,10 @@ class HierDictDocument(DictDocument):
 
     def _complex_to_dict(self, cls, inst):
         inst = cls.get_serialization_instance(inst)
+        cls_attr = self.get_cls_attrs(cls)
+        complex_as = self.get_complex_as(cls_attr)
 
-        d = self.complex_as(self._get_member_pairs(cls, inst))
+        d = complex_as(self._get_member_pairs(cls, inst))
         if self.ignore_wrappers:
             return d
         else:
