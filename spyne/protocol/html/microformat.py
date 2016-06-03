@@ -21,6 +21,7 @@ from inspect import isgenerator
 
 from lxml.html.builder import E
 
+from spyne.util import six
 from spyne.model import Array, AnyHtml
 from spyne.model import ComplexModelBase
 from spyne.model import ByteArray
@@ -61,10 +62,15 @@ class HtmlMicroFormat(HtmlBase):
                 cloth=cloth, cloth_parser=cloth_parser, polymorphic=polymorphic,
                                                hier_delim=None, doctype=doctype)
 
-        assert root_tag in ('div', 'span')
-        assert child_tag in ('div', 'span')
-        assert field_name_attr in ('class', 'id')
-        assert field_name_tag in (None, 'span', 'div')
+        if six.PY2:
+            text_type = basestring
+        else:
+            text_type = str
+
+        assert isinstance(root_tag, text_type)
+        assert isinstance(child_tag, text_type)
+        assert isinstance(field_name_attr, text_type)
+        assert field_name_tag is None or isinstance(field_name_tag, text_type)
 
         self.root_tag = root_tag
         self.child_tag = child_tag
