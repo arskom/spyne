@@ -46,8 +46,9 @@ class TestHtmlMicroFormat(unittest.TestCase):
                 return s
 
         app = Application([SomeService], 'tns',
-                                            in_protocol=HttpRpc(hier_delim='_'),
-                                            out_protocol=HtmlMicroFormat())
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
+
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -73,7 +74,9 @@ class TestHtmlMicroFormat(unittest.TestCase):
             def some_call():
                 return 1, 's'
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
+        app = Application([SomeService], 'tns',
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -109,8 +112,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
                 return CCM(c=ccm.c,i=ccm.i, s=ccm.s)
 
         app = Application([SomeService], 'tns',
-                                            in_protocol=HttpRpc(hier_delim='_'),
-                                            out_protocol=HtmlMicroFormat())
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -175,8 +178,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
                 return '\n'.join(s)
 
         app = Application([SomeService], 'tns',
-                                            in_protocol=HttpRpc(hier_delim='_'),
-                                            out_protocol=HtmlMicroFormat())
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -249,8 +252,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
                 return [CCM(c=ccm.c,i=ccm.i, s=ccm.s)] * 2
 
         app = Application([SomeService], 'tns',
-                                            in_protocol=HttpRpc(hier_delim='_'),
-                                            out_protocol=HtmlMicroFormat())
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server,
