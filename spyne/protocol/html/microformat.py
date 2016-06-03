@@ -81,7 +81,6 @@ class HtmlMicroFormat(HtmlBase):
             ImageUri: self.imageuri_to_parent,
             ByteArray: self.not_supported,
             ModelBase: self.model_base_to_parent,
-            Attachment: self.not_supported,
             ComplexModelBase: self.complex_model_to_parent,
         })
 
