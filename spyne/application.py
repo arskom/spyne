@@ -100,6 +100,9 @@ class Application(object):
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
 
+
+        logger.info("Initializing application {%s}%s...", self.tns, self.name)
+
         self.event_manager = EventManager(self)
         self.error_handler = None
 
