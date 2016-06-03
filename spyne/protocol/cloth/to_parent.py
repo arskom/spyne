@@ -210,7 +210,7 @@ class ToParentMixin(OutProtocolBase):
         if not self.ignore_uncap:
             raise NotImplementedError("Serializing %r not supported!" % cls)
 
-    def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def gen_anchor(self, cls, inst, name):
         assert name is not None
         href = getattr(inst, 'href', None)
         if href is None: # this is not a AnyUri.Value instance.
@@ -235,6 +235,10 @@ class ToParentMixin(OutProtocolBase):
         if content is not None:
             retval.append(content)
 
+        return retval
+
+    def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        retval = self.gen_anchor(cls, inst, name)
         parent.write(retval)
 
     def imageuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):

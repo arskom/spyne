@@ -85,6 +85,11 @@ class HtmlMicroFormat(HtmlBase):
             Array: self.array_to_parent,
         })
 
+    def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        retval = self.gen_anchor(cls, inst, parent)
+        retval.attrib[self.field_name_attr] = name
+        parent.write(retval)
+
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         retval = E(self.child_tag, **{self.field_name_attr: name})
         data_str = self.to_unicode(cls, inst)
