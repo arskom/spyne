@@ -68,9 +68,6 @@ class TestHtmlMicroFormat(unittest.TestCase):
                                    b'<div class="some_callResult">s</div></div>'
 
     def test_multiple_return(self):
-        class SomeNotSoComplexModel(ComplexModel):
-            s = String
-
         class SomeService(ServiceBase):
             @srpc(_returns=[Integer, String])
             def some_call():
