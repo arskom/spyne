@@ -29,12 +29,14 @@ from spyne.model import Array, AnyHtml, ComplexModelBase, ByteArray, \
 
 from spyne.protocol.html import HtmlBase
 
+
 class HtmlMicroFormat(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=False,
                                 cloth=None, cloth_parser=None, polymorphic=True,
                                                       doctype="<!DOCTYPE html>",
                        root_tag='div', child_tag='div', field_name_attr='class',
                              field_name_tag=None, field_name_class='field_name',
+                                                        before_first_root=None):
         """Protocol that returns the response object according to the "html
         microformat" specification. See
         https://en.wikipedia.org/wiki/Microformats for more info.
@@ -73,6 +75,9 @@ class HtmlMicroFormat(HtmlBase):
         if field_name_tag is not None:
             self.field_name_tag = E(field_name_tag)
         self._field_name_class = field_name_class
+        if before_first_root is not None:
+            self.event_manager.add_listener("before_first_root",
+                                                              before_first_root)
 
         self.serialization_handlers = cdict({
             Array: self.array_to_parent,
@@ -123,6 +128,11 @@ class HtmlMicroFormat(HtmlBase):
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         attrs = {self.field_name_attr: name}
+
+        if not getattr(ctx.protocol, 'before_first_root', False):
+            self.event_manager.fire_event("before_first_root",
+                                         ctx, cls, inst, parent, name, **kwargs)
+            ctx.protocol.before_first_root = True
 
         with parent.element(self.root_tag, attrs):
             ret = self._write_members(ctx, cls, inst, parent, use_ns=False,
