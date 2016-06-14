@@ -72,7 +72,8 @@ class AttributesMeta(type(object)):
         if not 'sqla_mapper_args' in cls_dict:
             cls_dict['sqla_mapper_args'] = None
 
-        return super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
+        return super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases,
+                                                                       cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         # you will probably want to look at ModelBase._s_customize as well.
@@ -675,7 +676,8 @@ class Null(ModelBase):
 
 class SimpleModelAttributesMeta(AttributesMeta):
     def __init__(self, cls_name, cls_bases, cls_dict):
-        super(SimpleModelAttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
+        super(SimpleModelAttributesMeta, self).__init__(cls_name, cls_bases,
+                                                                       cls_dict)
         if getattr(self, '_pattern', None) is None:
             self._pattern = None
 

@@ -108,14 +108,16 @@ class SimpleDictDocument(DictDocument):
                 except UnicodeDecodeError as e:
                     raise ValidationError(v2, "%r while decoding %%r" % e)
 
+            # validate raw data (before deserialization)
             try:
                 if (validator is self.SOFT_VALIDATION and not
-                              member.type.validate_string(member.type, v2)):
+                                  member.type.validate_string(member.type, v2)):
                     raise ValidationError((orig_k, v2))
 
             except TypeError:
                 raise ValidationError((orig_k, v2))
 
+            # deserialize to native type
             if issubclass(member.type, File):
                 if isinstance(v2, File.Value):
                     native_v2 = v2
@@ -134,6 +136,7 @@ class SimpleDictDocument(DictDocument):
                     raise ValidationError(e.faultstring,
                                   "Validation failed for %s.%s: %%s" % (ns, k))
 
+            # validate native data (after deserialization)
             if (validator is self.SOFT_VALIDATION and not
                            member.type.validate_native(member.type, native_v2)):
                 raise ValidationError((orig_k, v2))
