@@ -538,6 +538,10 @@ class ModelBase(object):
         Not meant to be overridden.
         """
 
+        __tn = cls.get_type_name()
+        def _log_debug(s, *args):
+            logger.debug("\t%s: %s" % (__tn, s), *args)
+
         cls_dict = odict({'__module__': cls.__module__, '__doc__': cls.__doc__})
 
         if getattr(cls, '__orig__', None) is None:
@@ -577,41 +581,51 @@ class ModelBase(object):
 
             type_attrs = prot.type_attrs.copy()
             type_attrs.update(kwargs)
-            logger.debug("%r: kwargs %r => %r from prot typeattr %r",
-                                       cls, kwargs, type_attrs, prot.type_attrs)
+            _log_debug("kwargs %r => %r from prot typeattr %r",
+                                            kwargs, type_attrs, prot.type_attrs)
             kwargs = type_attrs
 
         for k, v in kwargs.items():
             if k.startswith('_'):
+                _log_debug("ignoring '%s' because of leading underscore", k)
                 continue
 
             if k in ('protocol', 'prot', 'p'):
                 Attributes.prot = v
+                _log_debug("setting prot=%r", v)
 
             elif k in ('voa', 'validate_on_assignment'):
                 Attributes.validate_on_assignment = v
+                _log_debug("setting voa=%r", v)
 
             elif k == 'parser':
                 setattr(Attributes, 'parser', staticmethod(v))
+                _log_debug("setting parser=%r", v)
 
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
+                _log_debug("setting Annotations.%s=%r", k, v)
 
             elif k in ('primary_key', 'pk'):
                 setattr(Attributes, 'primary_key', v)
                 Attributes.sqla_column_args[-1]['primary_key'] = v
+                _log_debug("setting primary_key=%r", v)
 
             elif k in ('protocol_attrs', 'prot_attrs', 'pa'):
                 setattr(Attributes, 'prot_attrs', _decode_pa_dict(v))
+                _log_debug("setting prot_attrs=%r", v)
 
             elif k in ('foreign_key', 'fk'):
                 from sqlalchemy.schema import ForeignKey
                 t, d = Attributes.sqla_column_args
                 fkt = (ForeignKey(v),)
-                Attributes.sqla_column_args = (t + fkt, d)
+                new_v = (t + fkt, d)
+                Attributes.sqla_column_args = new_v
+                _log_debug("setting sqla_column_args=%r", new_v)
 
             elif k in ('autoincrement', 'onupdate', 'server_default'):
                 Attributes.sqla_column_args[-1][k] = v
+                _log_debug("adding %s=%r to Attributes.sqla_column_args", k, v)
 
             elif k == 'values_dict':
                 assert not 'values' in v, "`values` and `values_dict` can't be" \
@@ -619,16 +633,22 @@ class ModelBase(object):
 
                 Attributes.values = v.keys()
                 Attributes.values_dict = v
+                _log_debug("setting values=%r, values_dict=%r",
+                                      Attributes.values, Attributes.values_dict)
 
             elif k == 'exc_table':
                 Attributes.exc_table = v
                 Attributes.exc_db = v
+                _log_debug("setting exc_table=%r, exc_db=%r", v, v)
 
             elif k == 'max_occurs' and v in ('unbounded', 'inf', float('inf')):
-                setattr(Attributes, k, decimal.Decimal('inf'))
+                new_v = decimal.Decimal('inf')
+                setattr(Attributes, k, new_v)
+                _log_debug("setting max_occurs=%r", new_v)
 
             else:
                 setattr(Attributes, k, v)
+                _log_debug("setting %s=%r", k, v)
 
         return (cls.__name__, (cls,), cls_dict)
 
