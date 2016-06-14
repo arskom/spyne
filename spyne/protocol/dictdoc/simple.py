@@ -112,10 +112,10 @@ class SimpleDictDocument(DictDocument):
             try:
                 if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
-                    raise ValidationError((orig_k, v2))
+                    raise ValidationError([orig_k, v2])
 
             except TypeError:
-                raise ValidationError((orig_k, v2))
+                raise ValidationError([orig_k, v2])
 
             # deserialize to native type
             if issubclass(member.type, File):
