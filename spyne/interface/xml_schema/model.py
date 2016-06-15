@@ -272,7 +272,7 @@ def complex_add(document, cls, tags):
             attribute = etree.Element(XSD('attribute'))
             xml_attribute_add(v, k, attribute, document)
             if cls.Attributes._xml_tag_body_as is None:
-                complex_type.append(attribute)
+                sequence_parent.append(attribute)
             else:
                 xtba_ext.append(attribute)
             continue
