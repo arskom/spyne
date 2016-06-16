@@ -138,8 +138,12 @@ class ServerBase(object):
 
         if ctx.out_document is None:
             ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
-            if isgenerator(ret):
-                return self.convert_pull_to_push(ctx, ret)
+
+            if isgenerator(ret) and ctx.out_object is not None and \
+                                                       len(ctx.out_object) == 1:
+                oobj0 = next(iter(ctx.out_object))
+                if isinstance(oobj0, PushBase):
+                    return self.convert_pull_to_push(ctx, ret)
 
         self.finalize_context(ctx)
 
