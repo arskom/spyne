@@ -373,9 +373,7 @@ class OutProtocolBase(ProtocolMixin):
         else:
             retval.append("P")
         if value.days != 0:
-            retval.extend([
-                "%iD" % value.days,
-                ])
+            retval.append("%iD" % value.days)
 
         if tot_sec != 0 and tot_sec % 86400 == 0 and useconds == 0:
             return ''.join(retval)
