@@ -347,7 +347,7 @@ class OutProtocolBase(ProtocolMixin):
         """Returns serialized datetimes. Somehow."""
         sa = self.get_cls_attrs(cls).serialize_as
 
-        if sa is None:
+        if sa is None or sa in (str, 'str'):
             return self._datetime_to_bytes(cls, val)
 
         return _datetime_smap[sa](cls, val)
@@ -695,28 +695,43 @@ class OutProtocolBase(ProtocolMixin):
 
 _uuid_serialize = {
     None: str,
+    str: str,
+    'str': str,
+
     'hex': lambda u: u.hex,
     'urn': lambda u: u.urn,
     'bytes': lambda u: u.bytes,
     'bytes_le': lambda u: u.bytes_le,
     'fields': lambda u: u.fields,
+
+    int: lambda u: u.int,
     'int': lambda u: u.int,
 }
 
 _uuid_deserialize = {
-    None: lambda s: uuid.UUID(s),
+    None: uuid.UUID,
+    str: uuid.UUID,
+    'str': uuid.UUID,
+
     'hex': lambda s: uuid.UUID(hex=s),
     'urn': lambda s: uuid.UUID(hex=s),
     'bytes': lambda s: uuid.UUID(bytes=s),
     'bytes_le': lambda s: uuid.UUID(bytes_le=s),
     'fields': lambda s: uuid.UUID(fields=s),
+
+    int: lambda s: uuid.UUID(int=s),
     'int': lambda s: uuid.UUID(int=s),
+
+    (int, int): lambda s: uuid.UUID(int=s),
     ('int', int): lambda s: uuid.UUID(int=s),
+
+    (int, str): lambda s: uuid.UUID(int=int(s)),
     ('int', str): lambda s: uuid.UUID(int=int(s)),
 }
 
 if six.PY2:
     _uuid_deserialize[('int', long)] = _uuid_deserialize[('int', int)]
+    _uuid_deserialize[(int, long)] = _uuid_deserialize[('int', int)]
 
 
 
