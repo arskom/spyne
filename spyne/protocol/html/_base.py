@@ -90,3 +90,6 @@ class HtmlBase(XmlCloth):
     @staticmethod
     def get_class_root_cloth(cls):
         return cls.Attributes._html_root_cloth
+
+    def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        parent.write(str(inst))
