@@ -606,9 +606,9 @@ class ModelBase(object):
                 Attributes.validate_on_assignment = v
                 _log_debug("setting voa=%r", v)
 
-            elif k == 'parser':
-                setattr(Attributes, 'parser', staticmethod(v))
-                _log_debug("setting parser=%r", v)
+            elif k in ('parser', 'cast'):
+                setattr(Attributes, k, staticmethod(v))
+                _log_debug("setting %s=%r", k, v)
 
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)

@@ -284,9 +284,7 @@ class OutProtocolBase(ProtocolMixin):
 
     def unicode_to_unicode(self, cls, value, **_):  # :)))
         cls_attrs = self.get_cls_attrs(cls)
-
-        if cls_attrs.cast is not None:
-            value = cls_attrs.cast(value)
+        value = self._cast(cls_attrs, value)
 
         retval = value
 
@@ -398,10 +396,15 @@ class OutProtocolBase(ProtocolMixin):
         return ''.join(retval)
 
     def boolean_to_bytes(self, cls, value, **_):
+        cls_attrs = self.get_cls_attrs(cls)
+        value = self._cast(cls_attrs, value)
         return str(bool(value)).lower()
 
     def byte_array_to_bytes(self, cls, value, suggested_encoding=None, **_):
-        encoding = self.get_cls_attrs(cls).encoding
+        cls_attrs = self.get_cls_attrs(cls)
+        value = self._cast(cls_attrs, value)
+
+        encoding = cls_attrs.encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             if suggested_encoding is None:
                 encoding = self.binary_encoding

@@ -45,6 +45,10 @@ from spyne.protocol.xml import XmlDocument
 ns_test = 'test_namespace'
 
 
+class TestCast(unittest.TestCase):
+    pass  # TODO: test Unicode(cast=str)
+
+
 class TestPrimitive(unittest.TestCase):
     def test_getitem_cust(self):
         assert Unicode[dict(max_len=2)].Attributes.max_len

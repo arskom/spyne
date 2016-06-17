@@ -68,6 +68,11 @@ class ProtocolMixin(object):
 
         self._attrcache = WeakKeyDictionary()
 
+    def _cast(self, cls_attrs, inst):
+        if cls_attrs.cast is not None:
+            return cls_attrs.cast(inst)
+        return inst
+
     def _datetime_from_sec(self, cls, value):
         try:
             return datetime.fromtimestamp(value)
