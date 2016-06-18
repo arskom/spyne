@@ -28,17 +28,17 @@ test command ::
 
     python setup.py test
 
-If you want to run only the that are supposed to pass under Python 3, run: ::
+If you want to run only tests that are supposed to pass under Python 3, run: ::
 
     python setup.py test_python3
 
-We use tox as well, bur only for django tests. So if you just want to run
+We use tox as well, but only for django tests. So if you just want to run
 Spyne <=> Django interop tests with all combinations of supported CPython
 and Django versions, run: ::
 
     tox
 
-The full list of environments that tos supports can be found inside
+The full list of environments that tox supports can be found inside
 ``setup.py``\.
 
 Spyne's generic test script does not run WS-I tests. Also see the related
