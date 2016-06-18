@@ -4,6 +4,13 @@ Changelog
 
 spyne-2.13.0
 ------------
+* Introduced internal keys for services and methods. Uniqueness is enforced
+  during Application instantiation. If your server refuses to boot after
+  migrating to 2.13 raising ``MethodAlreadyExistsError``, explicitly setting a
+  unique `__service_name__` in one of the offending ``ServiceBase``
+  subclasses should fix the problem.
+
+  See 2fee1435c30dc50f7503f0915b5e56220dff34d0 for the change.
 * EXPERIMENTAL library-wide Python 3 Support! Yay!
  * MessagePack uses backwards-compatible raws with a hard-coded UTF-8 encoding
    for Unicode (non-ByteArray) types. Please open an issue if not happy with
@@ -31,8 +38,8 @@ spyne-2.13.0
   s/exc_table/exc_db/g in your codebase when convenient.
 * Bare methods with non-empty output now have
   ``descriptior.body_style = spyne.BODY_STYLE_EMPTY_OUT_BARE``\, which was
-  ``spyne.BODY_STYLE_EMPTY`` before. Should not break anything unless you are
-  doing some REAL fancy stuff in the method decorators or service events.
+  ``spyne.BODY_STYLE_EMPTY`` before. This hould not break anything unless you
+  are doing some REAL fancy stuff in the method decorators or service events.
 * No major changes otherwise but we paid a lot of technical debt. e.g. We
   revamped the test infrastructure.
 * Not that many bugs fixed.
