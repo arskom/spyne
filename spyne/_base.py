@@ -25,6 +25,7 @@ from copy import copy
 from collections import deque, namedtuple, defaultdict
 
 from spyne.const.xml_ns import DEFAULT_NS
+from spyne.util import six
 from spyne.util.oset import oset
 
 class BODY_STYLE_WRAPPED: pass
@@ -557,6 +558,14 @@ class MethodDescriptor(object):
         return '{%s}%s' % (
             self.in_message.get_namespace(), self.in_message.get_type_name())
 
+    @property
+    def internal_key(self):
+        """The internal function identifier in '{namespace}name' form."""
+
+        return '{%s}%s' % (
+                  self.service_class.get_internal_key(),
+                                           six.get_function_name(self.function))
+
     def reset_function(self, val=None):
         if val != None:
             self.__real_function = val
@@ -570,7 +579,7 @@ class EventManager(object):
     database transaction management, logging and measuring performance.
 
     Various Spyne components support firing events at various stages during the
-    processing of a request, which are documented in the relevant classes.
+    request handling process, which are documented in the relevant classes.
 
     The classes that support events are:
         * :class:`spyne.application.Application`

@@ -25,13 +25,10 @@ from collections import deque, defaultdict
 import spyne.interface
 
 from spyne import EventManager, MethodDescriptor, ServiceBase
-from spyne.const import xml_ns as namespace
-
-from spyne.model import ModelBase
-from spyne.model import Array, Iterable
-from spyne.model import ComplexModelBase
+from spyne.util import six
+from spyne.model import ModelBase, Array, Iterable, ComplexModelBase
 from spyne.model.complex import XmlModifier
-from spyne.util.six import get_function_name
+from spyne.const import xml_ns as namespace
 
 
 def _get_owner_name(cls):
@@ -263,7 +260,7 @@ class Interface(object):
             return
 
         logger.debug('  adding method %s.%s to match %r tag.',
-                    _get_owner_name(s), get_function_name(method.function),
+                    _get_owner_name(s), six.get_function_name(method.function),
                                                                      method_key)
 
         self.method_id_map[key] = method
@@ -305,8 +302,7 @@ class Interface(object):
 
         # populate types
         for s in self.services:
-            logger.debug("populating '%s.%s (%s)' types...", s.__module__,
-                                        s.__name__, s.get_service_key(self.app))
+            logger.debug("populating %s types...", s.get_internal_key())
 
             for method in s.public_methods.values():
                 if method.in_header is None:
@@ -357,7 +353,7 @@ class Interface(object):
         Not meant to be overridden.
         """
 
-        if not (isinstance(ns, str) or isinstance(ns, unicode)):
+        if not (isinstance(ns, str) or isinstance(ns, six.text_type)):
             raise TypeError(ns)
 
         if not (ns in self.prefmap):

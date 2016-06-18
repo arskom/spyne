@@ -154,6 +154,10 @@ class ServiceBase(object):
     """The name of this service definition as exposed in the interface document.
     Defaults to the class name."""
 
+    __service_module__ = None
+    """This is used for internal idenfitication of the service class,
+    to override the ``__module__`` attribute."""
+
     __port_types__ = ()
     """WSDL-Specific portType mappings"""
 
@@ -167,15 +171,22 @@ class ServiceBase(object):
         return cls.__name__
 
     @classmethod
-    def get_service_key(cls, app):
-        return '{%s}%s' % (app.tns, cls.get_service_name())
-
-    @classmethod
     def get_service_name(cls):
         if cls.__service_name__ is None:
             return cls.__name__
         else:
             return cls.__service_name__
+
+    @classmethod
+    def get_service_module(cls):
+        if cls.__service_module__ is None:
+            return cls.__module__
+        else:
+            return cls.__service_module__
+
+    @classmethod
+    def get_internal_key(cls):
+        return "%s.%s" % (cls.get_service_module(), cls.get_service_name())
 
     @classmethod
     def get_port_types(cls):
