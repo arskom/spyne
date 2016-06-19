@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 
 import cgi
 import threading
-import itertools
 
 from inspect import isgenerator
 from itertools import chain
@@ -367,6 +366,19 @@ class WsgiApplication(HttpBase):
             return self.handle_error(p_ctx, others, p_ctx.out_error,
                                                                  start_response)
 
+        assert p_ctx.out_object is not None
+        g = next(iter(p_ctx.out_object))
+        is_generator = len(p_ctx.out_object) == 1 and isgenerator(g)
+
+        # if the out_object is a generator function, this hack makes the user
+        # code run until first yield, which lets it set response headers and
+        # whatnot before calling start_response. It's important to run this
+        # here before serialization as the user function can also set output
+        # protocol. Is there a better way?
+        if is_generator:
+            first_obj = next(g)
+            p_ctx.out_object = ( chain((first_obj,), g), )
+
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = HTTP_200
 
@@ -410,33 +422,18 @@ class WsgiApplication(HttpBase):
         else:
             p_ctx.out_string = [''.join(p_ctx.out_string)]
 
-        # if the out_string is a generator function, this hack makes the user
-        # code run until first yield, which lets it set response headers and
-        # whatnot before calling start_response. Is there a better way?
         try:
-            len(p_ctx.out_string)  # generator?
+            len(p_ctx.out_string)
 
-            # nope
             p_ctx.transport.resp_headers['Content-Length'] = \
                                     str(sum([len(a) for a in p_ctx.out_string]))
-
-            start_response(p_ctx.transport.resp_code,
-                                _gen_http_headers(p_ctx.transport.resp_headers))
-
-            retval = itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
-
         except TypeError:
-            retval_iter = iter(p_ctx.out_string)
-            try:
-                first_chunk = next(retval_iter)
-            except StopIteration:
-                first_chunk = ''
+            pass
 
-            start_response(p_ctx.transport.resp_code,
+        start_response(p_ctx.transport.resp_code,
                                 _gen_http_headers(p_ctx.transport.resp_headers))
 
-            retval = itertools.chain([first_chunk], retval_iter,
-                                                        self.__finalize(p_ctx))
+        retval = chain(p_ctx.out_string, self.__finalize(p_ctx))
 
         try:
             process_contexts(self, others, p_ctx, error=None)
