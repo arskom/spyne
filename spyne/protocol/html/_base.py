@@ -40,7 +40,7 @@ class HtmlClothProtocolContext(XmlClothProtocolContext):
         self.tags = set()
 
 
-class HtmlBase(XmlCloth):
+class HtmlCloth(XmlCloth):
     mime_type = 'text/html; charset=UTF-8'
 
     def __init__(self, app=None, mime_type=None, ignore_uncap=False,
@@ -93,3 +93,7 @@ class HtmlBase(XmlCloth):
 
     def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(str(inst))
+
+
+# FIXME: Deprecated
+HtmlBase = HtmlCloth
