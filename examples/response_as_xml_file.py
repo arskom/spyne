@@ -45,6 +45,8 @@ class SomeService(ServiceBase):
             file_name = "{}.xml".format(ctx.descriptor.name)
 
             ctx.transport.set_mime_type("application/xml")
+
+            # Force download
             headers['Content-Disposition'] = \
                                            'attachment; filename=%s' % file_name
 
