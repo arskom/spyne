@@ -31,23 +31,18 @@ import re
 import pytz
 import tempfile
 
-from spyne.util.six import string_types, BytesIO
-from spyne.util.six.moves.http_cookies import SimpleCookie
-
 from spyne import BODY_STYLE_WRAPPED, MethodDescriptor
+from spyne.util import six
+from spyne.util.six import string_types, BytesIO
 from spyne.error import ResourceNotFoundError
 from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64, File
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import SimpleDictDocument
 
-
-try:
-    from io import StringIO
-except ImportError: # Python 2
-    try:
-        from cStringIO import StringIO
-    except ImportError:
-        from StringIO import StringIO
+if six.PY2:
+    from Cookie import SimpleCookie
+else:
+    from http.cookies import SimpleCookie
 
 
 TEMPORARY_DIR = None

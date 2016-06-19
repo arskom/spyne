@@ -21,9 +21,9 @@ from collections import defaultdict
 
 from spyne import TransportContext, MethodDescriptor, MethodContext, Redirect
 from spyne.server import ServerBase
-from spyne.const.http import gen_body_redirect, \
-    HTTP_301, HTTP_302, HTTP_303, HTTP_307
 from spyne.protocol.http import HttpPattern
+from spyne.const.http import gen_body_redirect, HTTP_301, HTTP_302, HTTP_303, \
+    HTTP_307
 
 
 class HttpRedirect(Redirect):
