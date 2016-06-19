@@ -122,6 +122,8 @@ class HttpMethodContext(MethodContext):
 
     def set_out_protocol(self, what):
         self._out_protocol = what
+        if self._out_protocol.app is None:
+            self._out_protocol.set_app(self.app)
         if isinstance(self.transport, HttpTransportContext):
             self.transport.set_mime_type(what.mime_type)
 

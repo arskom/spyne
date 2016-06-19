@@ -316,10 +316,10 @@ class MethodContext(object):
         """The locale the request will use when needed for things like date
         formatting, html rendering and such."""
 
-        self.in_protocol = transport.app.in_protocol
+        self._in_protocol = transport.app.in_protocol
         """The protocol that will be used to (de)serialize incoming input"""
 
-        self.out_protocol = transport.app.out_protocol
+        self._out_protocol = transport.app.out_protocol
         """The protocol that will be used to (de)serialize outgoing input"""
 
         self.pusher_stack = []
@@ -391,11 +391,22 @@ class MethodContext(object):
 
     def set_out_protocol(self, what):
         self._out_protocol = what
+        if self._out_protocol.app is None:
+            self._out_protocol.set_app(self.app)
 
     def get_out_protocol(self):
         return self._out_protocol
 
     out_protocol = property(get_out_protocol, set_out_protocol)
+
+    def set_in_protocol(self, what):
+        self._in_protocol = what
+        self._in_protocol.app = self.app
+
+    def get_in_protocol(self):
+        return self._in_protocol
+
+    in_protocol = property(get_in_protocol, set_in_protocol)
 
 
 class MethodDescriptor(object):
