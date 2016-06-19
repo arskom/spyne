@@ -604,6 +604,11 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             if issubclass(v, XmlData):
                 v = v.type
 
+            cls_attrs = self.get_cls_attrs(v)
+            if cls_attrs.exc:
+                logger_c.debug("Skipping excluded elt id %r", k)
+                continue
+
             if issubclass(cls, Array):
                 # if cls is an array, inst should already be a sequence type
                 # (eg list), so there's no point in doing a getattr -- we will
