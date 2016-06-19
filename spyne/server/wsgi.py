@@ -30,17 +30,11 @@ import cgi
 import threading
 import itertools
 
-from spyne.util.six.moves.urllib.parse import unquote, quote
+from inspect import isgenerator
+from itertools import chain
 
-try:
-    from werkzeug.formparser import parse_form_data
-except ImportError as import_error:
-    def parse_form_data(*args, **kwargs):
-        raise import_error
-
-
-from spyne.util.six import string_types, BytesIO
 from spyne.util.six.moves.http_cookies import SimpleCookie
+from spyne.util.six.moves.urllib.parse import unquote, quote
 
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
@@ -63,9 +57,16 @@ from spyne.const.http import HTTP_500
 
 try:
     from spyne.protocol.soap.mime import apply_mtom
-except ImportError as e:
+except ImportError as _import_error_1:
     def apply_mtom(*args, **kwargs):
-        raise e
+        raise _import_error_1
+
+try:
+    from werkzeug.formparser import parse_form_data
+except ImportError as _import_error_2:
+    def parse_form_data(*args, **kwargs):
+        raise _import_error_2
+
 
 
 def _parse_qs(qs):
@@ -338,7 +339,7 @@ class WsgiApplication(HttpBase):
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
 
-        return itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
+        return chain(p_ctx.out_string, self.__finalize(p_ctx))
 
     def handle_rpc(self, req_env, start_response):
         initial_ctx = WsgiMethodContext(self, req_env,
