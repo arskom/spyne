@@ -44,6 +44,7 @@ from __future__ import absolute_import
 import logging
 
 from twisted.internet.threads import deferToThread
+from twisted.python.failure import Failure
 
 logger = logging.getLogger(__name__)
 
@@ -204,6 +205,10 @@ class TwistedHttpTransport(HttpBase):
     def pusher_try_close(self, ctx, ret, retval):
         if isinstance(retval, Deferred):
             def _eb_push_close(f):
+                assert isinstance(f, Failure)
+
+                logger.error(f.getTraceback())
+
                 ret.close()
 
             def _cb_push_close(r):
@@ -220,7 +225,8 @@ class TwistedHttpTransport(HttpBase):
 
             return retval \
                 .addCallback(_cb_push_close) \
-                .addErrback(_eb_push_close)
+                .addErrback(_eb_push_close) \
+                .addErrback(err)
 
         return super(TwistedHttpTransport, self).pusher_try_close(ctx,
                                                                   ret, retval)
