@@ -470,6 +470,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         cls_attrs = self.get_cls_attrs(cls)
 
         if cloth is None:
+            logger_c.debug("No cloth fround, switching to to_parent...")
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         cls, switched = self.get_polymorphic_target(cls, inst)
@@ -588,6 +589,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         # it's actually an odict but that's irrelevant here.
         fti_check = dict(fti.items())
 
+        never_found = set()
         for i, elt in enumerate(elts):
             k = elt.attrib[self.ID_ATTR_NAME]
             v = fti.get(k, None)
@@ -595,6 +597,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
             if v is None:
                 logger_c.warning("elt id %r not in %r", k, cls)
+                never_found.add(k)
                 self._enter_cloth(ctx, elt, parent, skip=True)
                 continue
 
@@ -622,7 +625,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         pass
 
         if len(fti_check) > 0:
-            logger_s.debug("Skipping the following: %r", fti)
+            logger_s.debug("Skipping the following: %r", list(fti.keys()))
+            logger_s.debug("Never found the follwing: %r", list(never_found))
 
     @coroutine
     def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
