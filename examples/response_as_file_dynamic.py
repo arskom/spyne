@@ -43,8 +43,8 @@ def _say_hello(ctx, name, times, file_ext):
     if isinstance(ctx.transport, HttpTransportContext):
         file_name = "{}.{}".format(ctx.descriptor.name, file_ext)
 
-        ctx.transport.resp_headers['Content-Disposition'] = \
-                                           'attachment; filename=%s' % file_name
+        ctx.transport.add_header('Content-Disposition', 'attachment',
+                                                             filename=file_name)
 
     for i in range(times):
         yield u'Hello, %s' % name
@@ -84,8 +84,10 @@ class SomeService(ServiceBase):
         # WARNING!: don't forget to encode your data! This is the binary
         # output mode! You can't just write unicode data to socket!
 
-        return File.Value(
-            type="text/plain; charset=utf8",
+        mime_type = HttpTransportContext.gen_header("text/plain",
+                                                                 charset="utf8")
+
+        return File.Value(type=mime_type,
             data=['\n'.join(s.encode('utf8') for s in
                                            _say_hello(ctx, name, times, 'txt'))]
         )

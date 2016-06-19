@@ -1,4 +1,4 @@
-
+# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -19,6 +19,10 @@
 
 from collections import defaultdict
 
+from email import utils
+from email.utils import encode_rfc2231
+from email.message import tspecials
+
 from spyne import TransportContext, MethodDescriptor, MethodContext, Redirect
 from spyne.server import ServerBase
 from spyne.protocol.http import HttpPattern
@@ -34,6 +38,50 @@ class HttpRedirect(Redirect):
             raise TypeError(self.ctx.transport)
 
         self.ctx.transport.respond(HTTP_302, location=self.location)
+
+#
+# Plagiarized HttpTransport.add_header() and _formatparam() function from
+# Python 2.7 stdlib.
+#
+# Copyright (C) 2001-2007 Python Software Foundation
+# Author: Barry Warsaw
+# Contact: email-sig@python.org
+#
+def _formatparam(param, value=None, quote=True):
+    """Convenience function to format and return a key=value pair.
+
+    This will quote the value if needed or if quote is true.  If value is a
+    three tuple (charset, language, value), it will be encoded according
+    to RFC2231 rules.  If it contains non-ascii characters it will likewise
+    be encoded according to RFC2231 rules, using the utf-8 charset and
+    a null language.
+    """
+    if value is None or len(value) == 0:
+        return param
+
+    # A tuple is used for RFC 2231 encoded parameter values where items
+    # are (charset, language, value).  charset is a string, not a Charset
+    # instance.  RFC 2231 encoded values are never quoted, per RFC.
+    if isinstance(value, tuple):
+        # Encode as per RFC 2231
+        param += '*'
+        value = encode_rfc2231(value[2], value[0], value[1])
+        return '%s=%s' % (param, value)
+
+    try:
+        value.encode('ascii')
+
+    except UnicodeEncodeError:
+        param += '*'
+        value = encode_rfc2231(value, 'utf-8', '')
+        return '%s=%s' % (param, value)
+
+    # BAW: Please check this.  I think that if quote is set it should
+    # force quoting even if not necessary.
+    if quote or tspecials.search(value):
+        return '%s="%s"' % (param, utils.quote(value))
+
+    return '%s=%s' % (param, value)
 
 
 class HttpTransportContext(TransportContext):
@@ -93,6 +141,45 @@ class HttpTransportContext(TransportContext):
 
     def get_cookie(self, key):
         raise NotImplementedError()
+
+    @staticmethod
+    def gen_header(_value, **kwargs):
+        parts = []
+
+        for k, v in kwargs.items():
+            if v is None:
+                parts.append(k.replace('_', '-'))
+
+            else:
+                parts.append(_formatparam(k.replace('_', '-'), v))
+
+        if _value is not None:
+            parts.insert(0, _value)
+
+        return '; '.join(parts)
+
+    def add_header(self, _name, _value, **kwargs):
+        """Extended header setting.
+
+        name is the header field to add.  keyword arguments can be used to set
+        additional parameters for the header field, with underscores converted
+        to dashes.  Normally the parameter will be added as key="value" unless
+        value is None, in which case only the key will be added.  If a
+        parameter value contains non-ASCII characters it can be specified as a
+        three-tuple of (charset, language, value), in which case it will be
+        encoded according to RFC2231 rules.  Otherwise it will be encoded using
+        the utf-8 charset and a language of ''.
+
+        Examples:
+
+        msg.add_header('content-disposition', 'attachment', filename='bud.gif')
+        msg.add_header('content-disposition', 'attachment',
+                       filename=('utf-8', '', Fußballer.ppt'))
+        msg.add_header('content-disposition', 'attachment',
+                       filename='Fußballer.ppt'))
+        """
+
+        self.resp_headers[_name] = self.gen_header(_value, **kwargs)
 
     mime_type = property(
         lambda self: self.get_mime_type(),

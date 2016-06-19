@@ -41,14 +41,13 @@ class SomeService(ServiceBase):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello_as_file(ctx, name, times):
         if isinstance(ctx.transport, HttpTransportContext):
-            headers = ctx.transport.resp_headers
             file_name = "{}.xml".format(ctx.descriptor.name)
 
             ctx.transport.set_mime_type("application/xml")
 
             # Force download
-            headers['Content-Disposition'] = \
-                                           'attachment; filename=%s' % file_name
+            ctx.transport.add_header('Content-Disposition', 'attachment',
+                                                             filename=file_name)
 
         for i in range(times):
             yield u'Hello, %s' % name

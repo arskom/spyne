@@ -49,8 +49,8 @@ from spyne.protocol.http import HttpPattern
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
+from spyne.server.http import HttpTransportContext
 from spyne.util.test import call_wsgi_app_kwargs
-
 
 
 class TestString(unittest.TestCase):
@@ -81,6 +81,12 @@ class TestString(unittest.TestCase):
         headers = {'CONTENT_TYPE':'text/plain; charset=utf8'}
         ret = call_wsgi_app_kwargs(self.app, 'echo_string', headers, s="string")
         assert ret == b'string'
+
+
+class TestHttpTransportContext(unittest.TestCase):
+    def test_gen_header(self):
+        val = HttpTransportContext.gen_header("text/plain", charset="utf8")
+        assert val == 'text/plain; charset="utf8"'
 
 
 class TestSimpleDictDocument(unittest.TestCase):
