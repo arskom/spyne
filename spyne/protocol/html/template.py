@@ -29,7 +29,7 @@ from spyne.util import six
 
 
 class HtmlPage(object):
-    """An EXPERIMENTAL protocol-ish that parses and generates a template for
+    """A DEPRECATED protocol-ish that parses and generates a template for
     a html file.
 
     >>> open('temp.html', 'w').write('<html><body><div id="some_div" /></body></html>')
