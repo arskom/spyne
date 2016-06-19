@@ -212,14 +212,13 @@ class RunTests(ExtendedTestCommand):
             'test_sqlalchemy_deprecated.py',
         ]
 
-        ret = call_pytest_subprocess(*tests,
-                                     capture=self.capture) or ret
+        ret = call_pytest_subprocess(*tests, capture=self.capture) or ret
         ret = call_pytest_subprocess('interop/test_httprpc.py',
-                                     capture=self.capture) or ret
+                                                    capture=self.capture) or ret
         ret = call_pytest_subprocess('interop/test_soap_client_http.py',
-                                     capture=self.capture) or ret
+                                                    capture=self.capture) or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py',
-                                     capture=self.capture) or ret
+                                                    capture=self.capture) or ret
 
         # excluding PyPy as it chokes here on LXML
         if not IS_PYPY:
