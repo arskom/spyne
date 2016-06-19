@@ -141,8 +141,7 @@ class ServerBase(object):
 
             if isgenerator(ret) and ctx.out_object is not None and \
                                                        len(ctx.out_object) == 1:
-                oobj0 = next(iter(ctx.out_object))
-                if isinstance(oobj0, PushBase):
+                if len(ctx.pusher_stack) > 0:
                     return self.convert_pull_to_push(ctx, ret)
 
         self.finalize_context(ctx)
@@ -215,6 +214,7 @@ class ServerBase(object):
         return pusher.init(p_ctx, gen, _cb_push_finish, None)
 
     def pusher_try_close(self, ctx, ret, _):
+        logger.debug("Closing pusher with ret=%r", ret)
         popped = ctx.pusher_stack.pop()
         assert popped is ret
         ret.close()
