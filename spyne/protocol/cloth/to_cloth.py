@@ -499,7 +499,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 parent.write(cloth)
 
             else:
-                logger_s.debug("Skipping '%s' type: %s.", name,
+                logger_s.debug("Skipping '%s' type: %s because empty.", name,
                                                             cls.get_type_name())
                 self._enter_cloth(ctx, cloth, parent, skip=True)
 
@@ -606,7 +606,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
             cls_attrs = self.get_cls_attrs(v)
             if cls_attrs.exc:
-                logger_c.debug("Skipping excluded elt id %r", k)
+                logger_c.debug("Skipping elt id %r because excluded", k)
                 continue
 
             if issubclass(cls, Array):
@@ -630,8 +630,12 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         pass
 
         if len(fti_check) > 0:
-            logger_s.debug("Skipping the following: %r", list(fti.keys()))
-            logger_s.debug("Never found the follwing: %r", list(never_found))
+            if len(fti_check) > 0:
+                logger_s.debug("Skipping the following: %r",
+                                                         list(fti_check.keys()))
+            if len(never_found) > 0:
+                logger_s.debug("Never found the following: %r",
+                                                              list(never_found))
 
     @coroutine
     def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
