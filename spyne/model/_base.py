@@ -32,6 +32,8 @@ import threading
 
 import spyne.const.xml_ns
 
+from collections import OrderedDict
+
 from spyne import const
 from spyne.util import Break, six
 from spyne.util.cdict import cdict
@@ -638,6 +640,13 @@ class ModelBase(object):
             elif k == 'values_dict':
                 assert not 'values' in v, "`values` and `values_dict` can't be" \
                                           "specified at the same time"
+
+                if not isinstance(v, dict):
+                    # our odict has one nasty implicit behaviour: setitem on
+                    # int keys is treated as array indexes, not dict keys. so
+                    # dicts with int indexes can't work with odict. so we use
+                    # the one from stdlib
+                    v = OrderedDict(v)
 
                 Attributes.values = v.keys()
                 Attributes.values_dict = v
