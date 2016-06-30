@@ -241,11 +241,20 @@ class ServerBase(object):
                                  "async-compliant yet."
 
         def _cb_push_finish():
-            p_ctx.out_stream.finish()
             process_contexts(self, others, p_ctx)
 
-        retval = ret.init(p_ctx, gen, _cb_push_finish, None)
+        retval = self.pusher_init(p_ctx, gen, _cb_push_finish, ret)
 
         self.pusher_try_close(p_ctx, ret, retval)
 
         return retval
+
+    @staticmethod
+    def set_out_document_push(ctx):
+        ctx.out_document = _write()
+        ctx.out_document.send(None)
+
+
+def _write():
+    v = yield
+    yield v

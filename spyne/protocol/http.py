@@ -215,6 +215,7 @@ class HttpRpc(SimpleDictDocument):
 
         return retval
 
+    @coroutine
     def _handle_rpc_nonempty(self, ctx):
         result_class = ctx.descriptor.out_message
 
@@ -242,7 +243,16 @@ class HttpRpc(SimpleDictDocument):
             ctx.transport.set_mime_type(str(out_object.type))
 
         if out_class is not None:
-            ctx.out_document = self.to_bytes_iterable(out_class, out_object)
+            ret = self.to_bytes_iterable(out_class, out_object)
+
+            if not isinstance(ret, PushBase):
+                ctx.out_document = ret
+
+            else:
+                ctx.transport.itself.set_out_document_push(ctx)
+                while True:
+                    sv = yield
+                    ctx.out_document.send(sv)
 
     def _handle_rpc(self, ctx):
         retval = None

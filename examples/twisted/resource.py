@@ -111,9 +111,14 @@ class SomeNonBlockingService(ServiceBase):
 
         def _cb(response):
             if times[0] > 0:
-                response.append(
-                    "Hello %s, sleeping for %f seconds for %d more time(s)."
-                                                   % (name, seconds, times[0]))
+                msg = u"Hello %s, sleeping for %f seconds for " \
+                                 u"%d more time(s)." % (name, seconds, times[0])
+
+                response.append(msg.encode('utf8'))
+                response.append(b'\n')
+
+                logging.debug(msg)
+
                 times[0] -= 1
                 return deferLater(reactor, seconds, _cb, response)
 

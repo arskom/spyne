@@ -53,7 +53,7 @@ import threading
 
 from os import fstat
 from mmap import mmap
-from inspect import isclass
+from inspect import isclass, isgenerator
 from collections import namedtuple
 
 from twisted.web import static
@@ -202,22 +202,35 @@ class TwistedHttpTransport(HttpBase):
         return super(TwistedHttpTransport, self).pusher_init(
                                             p_ctx, gen, _cb_push_finish, pusher)
 
-    def pusher_try_close(self, ctx, ret, retval):
+    @staticmethod
+    def set_out_document_push(ctx):
+        class _ISwearImAGenerator(object):
+            def send(self, data):
+                if not data: return
+                ctx.out_stream.write(data)
+
+        ctx.out_document = _ISwearImAGenerator()
+
+    def pusher_try_close(self, ctx, pusher, retval):
         if isinstance(retval, Deferred):
             def _eb_push_close(f):
                 assert isinstance(f, Failure)
 
                 logger.error(f.getTraceback())
 
-                ret.close()
+                ctx.out_stream.finish()
+                return super(TwistedHttpTransport, self) \
+                                          .pusher_try_close(ctx, pusher, retval)
 
             def _cb_push_close(r):
                 def _eb_inner(f):
+                    ctx.out_stream.finish()
                     return f
 
                 if not isinstance(r, Deferred):
+                    ctx.out_stream.finish()
                     return super(TwistedHttpTransport, self) \
-                                                 .pusher_try_close(ctx, ret, r)
+                                          .pusher_try_close(ctx, pusher, retval)
                 else:
                     return r \
                         .addCallback(_cb_push_close) \
@@ -228,8 +241,9 @@ class TwistedHttpTransport(HttpBase):
                 .addErrback(_eb_push_close) \
                 .addErrback(err)
 
-        return super(TwistedHttpTransport, self).pusher_try_close(ctx,
-                                                                  ret, retval)
+        ctx.out_stream.finish()
+        return super(TwistedHttpTransport, self).pusher_try_close(
+                                                            ctx, pusher, retval)
 
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
@@ -440,6 +454,8 @@ class TwistedWebResource(Resource):
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
 
+        p_ctx.out_stream = request
+
         if p_ctx.in_error:
             return self.handle_rpc_error(p_ctx, others, p_ctx.in_error, request)
 
@@ -462,7 +478,7 @@ class TwistedWebResource(Resource):
             ret.addErrback(_eb_deferred, request, p_ctx, others, self)
 
         elif isinstance(ret, PushBase):
-            retval = self.http_transport.init_root_push(ret, p_ctx, others)
+            self.http_transport.init_root_push(ret, p_ctx, others)
 
         else:
             retval = _cb_deferred(p_ctx.out_object, request, p_ctx, others,
@@ -517,7 +533,9 @@ def _eb_request_finished(retval, request, p_ctx):
 
 
 def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
+    ### set response headers
     resp_code = p_ctx.transport.resp_code
+
     # If user code set its own response code, don't touch it.
     if resp_code is None:
         resp_code = HTTP_200
@@ -525,6 +543,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
     _set_response_headers(request, p_ctx.transport.resp_headers)
 
+    ### normalize response data
     om = p_ctx.descriptor.out_message
     single_class = None
     if cb:
@@ -540,11 +559,11 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     else:
         p_ctx.out_object = ret
 
+    ### start response
     retval = NOT_DONE_YET
 
-    p_ctx.out_stream = request
-    if isinstance(ret, PushBase):
-        retval = resource.http_transport.init_root_push(ret, p_ctx, others)
+    if issubclass(ret, PushBase):
+        pass
 
     elif ((isclass(om) and issubclass(om, File)) or
           (isclass(single_class) and issubclass(single_class, File))) and \
