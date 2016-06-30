@@ -122,8 +122,8 @@ def coroutine(func):
         except StopIteration:
             return None
 
-        except Exception as e:
-            logger.exception(e)
+        except Exception:
+            raise
 
         return ret
 
