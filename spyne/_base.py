@@ -25,12 +25,14 @@ from copy import copy
 from collections import deque, namedtuple, defaultdict
 
 from spyne.const.xml_ns import DEFAULT_NS
+from spyne.util import six
 from spyne.util.oset import oset
 
 class BODY_STYLE_WRAPPED: pass
 class BODY_STYLE_EMPTY: pass
 class BODY_STYLE_BARE: pass
 class BODY_STYLE_OUT_BARE: pass
+class BODY_STYLE_EMPTY_OUT_BARE: pass
 
 
 # When spyne.server.twisted gets imported, this type gets a static method named
@@ -314,10 +316,10 @@ class MethodContext(object):
         """The locale the request will use when needed for things like date
         formatting, html rendering and such."""
 
-        self.in_protocol = transport.app.in_protocol
+        self._in_protocol = transport.app.in_protocol
         """The protocol that will be used to (de)serialize incoming input"""
 
-        self.out_protocol = transport.app.out_protocol
+        self._out_protocol = transport.app.out_protocol
         """The protocol that will be used to (de)serialize outgoing input"""
 
         self.pusher_stack = []
@@ -389,11 +391,22 @@ class MethodContext(object):
 
     def set_out_protocol(self, what):
         self._out_protocol = what
+        if self._out_protocol.app is None:
+            self._out_protocol.set_app(self.app)
 
     def get_out_protocol(self):
         return self._out_protocol
 
     out_protocol = property(get_out_protocol, set_out_protocol)
+
+    def set_in_protocol(self, what):
+        self._in_protocol = what
+        self._in_protocol.app = self.app
+
+    def get_in_protocol(self):
+        return self._in_protocol
+
+    in_protocol = property(get_in_protocol, set_in_protocol)
 
 
 class MethodDescriptor(object):
@@ -556,6 +569,14 @@ class MethodDescriptor(object):
         return '{%s}%s' % (
             self.in_message.get_namespace(), self.in_message.get_type_name())
 
+    @property
+    def internal_key(self):
+        """The internal function identifier in '{namespace}name' form."""
+
+        return '{%s}%s' % (
+                  self.service_class.get_internal_key(),
+                                           six.get_function_name(self.function))
+
     def reset_function(self, val=None):
         if val != None:
             self.__real_function = val
@@ -569,7 +590,7 @@ class EventManager(object):
     database transaction management, logging and measuring performance.
 
     Various Spyne components support firing events at various stages during the
-    processing of a request, which are documented in the relevant classes.
+    request handling process, which are documented in the relevant classes.
 
     The classes that support events are:
         * :class:`spyne.application.Application`

@@ -18,12 +18,12 @@
 #
 
 import logging
-from pprint import pprint
-
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 import sqlalchemy
+
+from pprint import pprint
 
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData
@@ -60,6 +60,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session = sessionmaker(bind=self.engine)()
         self.metadata = TableModel.Attributes.sqla_metadata = MetaData()
         self.metadata.bind = self.engine
+        logging.info('Testing against sqlalchemy-%s', sqlalchemy.__version__)
 
     def test_schema(self):
         class SomeClass(TableModel):
@@ -507,6 +508,25 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.expunge_all()
 
         assert self.session.query(SomeClass).get(1).f == 'uuu'
+
+    def test_default_value(self):
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            f = Unicode(32, db_default=u'uuu')
+
+        self.metadata.create_all()
+        val = SomeClass()
+        assert val.f is None
+
+        self.session.add(val)
+        self.session.commit()
+
+        self.session.expunge_all()
+
+        assert self.session.query(SomeClass).get(1).f == u'uuu'
 
     def test_default_ctor_with_sql_relationship(self):
         class SomeOtherClass(TableModel):

@@ -44,11 +44,10 @@ from spyne.util.six import string_types
 
 
 class ToParentMixin(OutProtocolBase):
-    def __init__(self, app=None, mime_type=None,
-                 ignore_uncap=False, ignore_wrappers=False, polymorphic=True):
-        super(ToParentMixin, self).__init__(app=app,
-                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
-                                 ignore_wrappers=ignore_wrappers)
+    def __init__(self, app=None, mime_type=None, ignore_uncap=False,
+                                       ignore_wrappers=False, polymorphic=True):
+        super(ToParentMixin, self).__init__(app=app, mime_type=mime_type,
+                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers)
 
         self.polymorphic = polymorphic
         self.use_global_null_handler = True
@@ -84,11 +83,12 @@ class ToParentMixin(OutProtocolBase):
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         prot_name = self.__class__.__name__
+        cls_attrs = self.get_cls_attrs(cls)
 
         cls, switched = self.get_polymorphic_target(cls, inst)
 
         # if there is a subprotocol, switch to it
-        subprot = getattr(cls.Attributes, 'prot', None)
+        subprot = cls_attrs.prot
         if subprot is not None and not nosubprot and not \
                                            (subprot in ctx.protocol.prot_stack):
             logger.debug("Subprot from %r to %r", self, subprot)
@@ -102,13 +102,13 @@ class ToParentMixin(OutProtocolBase):
             return cor_handle
 
         # if instance is None, use the default factory to generate one
-        _df = cls.Attributes.default_factory
+        _df = cls_attrs.default_factory
         if inst is None and callable(_df):
             inst = _df()
 
         # if instance is still None, use the default value
         if inst is None:
-            inst = cls.Attributes.default
+            inst = cls_attrs.default
 
         # if instance is still None, use the global null handler to serialize it
         if inst is None and self.use_global_null_handler:
@@ -123,6 +123,8 @@ class ToParentMixin(OutProtocolBase):
 
         # if cls is an iterable of values and it's not being iterated on, do it
         from_arr = kwargs.get('from_arr', False)
+        # we need cls.Attributes here because we need the ACTUAL attrs that were
+        # set by the Array.__new__
         if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
@@ -208,7 +210,7 @@ class ToParentMixin(OutProtocolBase):
         if not self.ignore_uncap:
             raise NotImplementedError("Serializing %r not supported!" % cls)
 
-    def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def gen_anchor(self, cls, inst, name):
         assert name is not None
         href = getattr(inst, 'href', None)
         if href is None: # this is not a AnyUri.Value instance.
@@ -233,6 +235,10 @@ class ToParentMixin(OutProtocolBase):
         if content is not None:
             retval.append(content)
 
+        return retval
+
+    def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        retval = self.gen_anchor(cls, inst, name)
         parent.write(retval)
 
     def imageuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):

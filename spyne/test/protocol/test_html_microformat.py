@@ -46,8 +46,9 @@ class TestHtmlMicroFormat(unittest.TestCase):
                 return s
 
         app = Application([SomeService], 'tns',
-                                            in_protocol=HttpRpc(hier_delim='_'),
-                                            out_protocol=HtmlMicroFormat())
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
+
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -68,15 +69,14 @@ class TestHtmlMicroFormat(unittest.TestCase):
                                    b'<div class="some_callResult">s</div></div>'
 
     def test_multiple_return(self):
-        class SomeNotSoComplexModel(ComplexModel):
-            s = String
-
         class SomeService(ServiceBase):
             @srpc(_returns=[Integer, String])
             def some_call():
                 return 1, 's'
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
+        app = Application([SomeService], 'tns',
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -112,8 +112,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
                 return CCM(c=ccm.c,i=ccm.i, s=ccm.s)
 
         app = Application([SomeService], 'tns',
-                                            in_protocol=HttpRpc(hier_delim='_'),
-                                            out_protocol=HtmlMicroFormat())
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -178,8 +178,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
                 return '\n'.join(s)
 
         app = Application([SomeService], 'tns',
-                                            in_protocol=HttpRpc(hier_delim='_'),
-                                            out_protocol=HtmlMicroFormat())
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -205,6 +205,37 @@ class TestHtmlMicroFormat(unittest.TestCase):
         assert b''.join(ctx.out_string) == b'<div class="some_callResponse">' \
                                b'<div class="some_callResult">1\n2</div></div>'
 
+    def test_before_first_root(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = String
+
+        class CCM(ComplexModel):
+            c = CM
+            i = Integer
+            s = String
+
+        class SomeService(ServiceBase):
+            @srpc(CCM, _returns=Array(CCM))
+            def some_call(ccm):
+                return [CCM(c=ccm.c,i=ccm.i, s=ccm.s)] * 2
+
+        cb_called = [False]
+        def _cb(ctx, cls, inst, parent, name, **kwargs):
+            assert not cb_called[0]
+            cb_called[0] = True
+
+        app = Application([SomeService], 'tns',
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(
+                                           doctype=None, before_first_root=_cb))
+        server = WsgiApplication(app)
+
+        call_wsgi_app_kwargs(server,
+                             ccm_c_s='abc', ccm_c_i=123, ccm_i=456, ccm_s='def')
+
+        assert cb_called[0]
+
     def test_complex_array(self):
         class CM(ComplexModel):
             i = Integer
@@ -221,8 +252,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
                 return [CCM(c=ccm.c,i=ccm.i, s=ccm.s)] * 2
 
         app = Application([SomeService], 'tns',
-                                            in_protocol=HttpRpc(hier_delim='_'),
-                                            out_protocol=HtmlMicroFormat())
+                                     in_protocol=HttpRpc(hier_delim='_'),
+                                     out_protocol=HtmlMicroFormat(doctype=None))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server,

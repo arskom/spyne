@@ -4,9 +4,17 @@ Changelog
 
 spyne-2.13.0
 ------------
+* Introduced internal keys for services and methods. Uniqueness is enforced
+  during Application instantiation. If your server refuses to boot after
+  migrating to 2.13 raising ``MethodAlreadyExistsError``, explicitly setting a
+  unique `__service_name__` in one of the offending ``ServiceBase``
+  subclasses should fix the problem.
+
+  See 2fee1435c30dc50f7503f0915b5e56220dff34d0 for the change.
 * EXPERIMENTAL library-wide Python 3 Support! Yay!
- * MessagePack uses backwards-compatible raws with a hard-coded utf8 encoding.
-   Open an issue if not happy.
+ * MessagePack uses backwards-compatible raws with a hard-coded UTF-8 encoding
+   for Unicode (non-ByteArray) types. Please open an issue if not happy with
+   this.
  * It's the transports' job to decide on a codec. Use UTF-8 when in doubt, as
    that's what we're doing.
  * Float rounding behaviour seems to have changed in Python 3. In Python 2,
@@ -21,9 +29,20 @@ spyne-2.13.0
    ``test_datetime_usec`` and ``test_time_usec`` in
    ``spyne.test.model.test_primitive``.
 
+* ``spyne.model.Unicode`` used to tolerate (i.e. implicitly but not-so-silenty
+  casted to ``str``) int values. This is no longer the case. If you want to
+  set proper numbers to a Unicode-designated field, you must provide a
+  casting function. Generally, ``Unicode(cast=str)`` is what you want to do.
+  See d495aa3d56451bd02c0076a9a1f14c6450eadc8e for the change.
+* ``exc_table`` is deprecated in favour of ``exc_db``\. Please do a
+  s/exc_table/exc_db/g in your codebase when convenient.
+* Bare methods with non-empty output now have
+  ``descriptior.body_style = spyne.BODY_STYLE_EMPTY_OUT_BARE``\, which was
+  ``spyne.BODY_STYLE_EMPTY`` before. This hould not break anything unless you
+  are doing some REAL fancy stuff in the method decorators or service events.
 * No major changes otherwise but we paid a lot of technical debt. e.g. We
-  modernized the test infrastructure.
-* Many bugs fixed.
+  revamped the test infrastructure.
+* Usual bug fixes.
 
 spyne-2.12.11
 -------------

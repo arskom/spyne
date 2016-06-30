@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-# TODO: strip comments without removing e.g. <!--[if lt IE 9]>
-
 
 from __future__ import print_function
 
@@ -68,24 +66,47 @@ class ClothParserMixin(object):
     DATA_TAG_NAME = 'spyne-data'
     ROOT_ATTR_NAME = 'spyne-root'
     TAGBAG_ATTR_NAME = 'spyne-tagbag'
+    WRITE_CONTENTS_WHEN_NOT_NONE = 'spyne-write-contents'
+
+    SPYNE_ATTRS = {
+        ID_ATTR_NAME,
+        DATA_TAG_NAME,
+        ROOT_ATTR_NAME,
+        TAGBAG_ATTR_NAME,
+        WRITE_CONTENTS_WHEN_NOT_NONE,
+    }
 
     @classmethod
-    def from_xml_cloth(cls, cloth):
+    def from_xml_cloth(cls, cloth, strip_comments=True):
         retval = cls()
-        retval._init_cloth(cloth, cloth_parser=etree.XMLParser())
+        retval._init_cloth(cloth, cloth_parser=etree.XMLParser(),
+                                                  strip_comments=strip_comments)
         return retval
 
     @classmethod
-    def from_html_cloth(cls, cloth):
+    def from_html_cloth(cls, cloth, strip_comments=True):
         retval = cls()
-        retval._init_cloth(cloth, cloth_parser=html.HTMLParser())
+        retval._init_cloth(cloth, cloth_parser=html.HTMLParser(),
+                                                  strip_comments=strip_comments)
         return retval
+
+    @staticmethod
+    def _strip_comments(root):
+        for elt in root.iter():
+            if isinstance(elt, etree._Comment):
+                if elt.getparent() is not None:
+                    if elt.text.startswith('[if ') \
+                                               and elt.text.endswith('[endif]'):
+                        pass
+                    else:
+                        elt.getparent().remove(elt)
+
 
     def _parse_file(self, file_name, cloth_parser):
         cloth = etree.parse(file_name, parser=cloth_parser)
         return cloth.getroot()
 
-    def _init_cloth(self, cloth, cloth_parser):
+    def _init_cloth(self, cloth, cloth_parser, strip_comments):
         """Called from XmlCloth.__init__ in order to not break the dunder init
         signature consistency"""
 
@@ -100,9 +121,8 @@ class ClothParserMixin(object):
         elif isinstance(cloth, string_types):
             cloth = self._parse_file(cloth, cloth_parser)
 
-        else:
-            # because if we deepcopy just the cloth doctype is lost
-            pass#cloth = deepcopy(cloth.getroottree()).getroot()
+        if strip_comments:
+            self._strip_comments(cloth)
 
         q = "//*[@%s]" % self.ROOT_ATTR_NAME
         elts = cloth.xpath(q)
@@ -129,12 +149,11 @@ class ClothParserMixin(object):
 
 class ToClothMixin(OutProtocolBase, ClothParserMixin):
     def __init__(self, app=None, mime_type=None, ignore_uncap=False,
-                                       ignore_wrappers=False, polymorphic=True):
+                                        ignore_wrappers=False, polymorphic=True):
         super(ToClothMixin, self).__init__(app=app, mime_type=mime_type,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers)
 
         self.polymorphic = polymorphic
-
         self.rendering_handlers = cdict({
             ModelBase: self.model_base_to_cloth,
             AnyXml: self.xml_to_cloth,
@@ -343,7 +362,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         else:
             # finally, enter the target node.
             attrib = dict([(k, v) for k, v in cloth.attrib.items()
-                        if not (k in (self.ID_ATTR_NAME, self.ROOT_ATTR_NAME))])
+                                                  if not k in self.SPYNE_ATTRS])
 
             attrib.update(attrs)
 
@@ -448,36 +467,41 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
         prot_name = self.__class__.__name__
+        cls_attrs = self.get_cls_attrs(cls)
 
         if cloth is None:
+            logger_c.debug("No cloth fround, switching to to_parent...")
             return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         cls, switched = self.get_polymorphic_target(cls, inst)
 
         # if there's a subprotocol, switch to it
-        subprot = getattr(cls.Attributes, 'prot', None)
+        subprot = cls_attrs.prot
         if subprot is not None and not (subprot is self):
             self._enter_cloth(ctx, cloth, parent)
             return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
         # if instance is None, use the default factory to generate one
-        _df = cls.Attributes.default_factory
+        _df = cls_attrs.default_factory
         if inst is None and callable(_df):
             inst = _df()
 
         # if instance is still None, use the default value
         if inst is None:
-            inst = cls.Attributes.default
+            inst = cls_attrs.default
 
-        retval = None
         if inst is None:
-            identifier = "%s.%s" % (prot_name, "null_to_cloth")
-            logger_s.debug("Writing %s using %s for %s.", name,
-                                                identifier, cls.get_type_name())
-
-            ctx.protocol.tags.add(id(cloth))
             if cls.Attributes.min_occurs > 0:
+                self._enter_cloth(ctx, cloth, parent)
+                identifier = "%s.%s" % (prot_name, "null_to_cloth")
+                logger_s.debug("Writing '%s' using %s type: %s.", name,
+                                                identifier, cls.get_type_name())
                 parent.write(cloth)
+
+            else:
+                logger_s.debug("Skipping '%s' type: %s because empty.", name,
+                                                            cls.get_type_name())
+                self._enter_cloth(ctx, cloth, parent, skip=True)
 
             return
 
@@ -497,7 +521,15 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         self._enter_cloth(ctx, cloth, parent)
-        parent.write(self.to_unicode(cls, inst))
+
+        # FIXME: Does it make sense to do this in other types?
+        if self.WRITE_CONTENTS_WHEN_NOT_NONE in cloth.attrib:
+            logger_c.debug("Writing contents for %r", cloth)
+            for c in cloth:
+                parent.write(c)
+
+        else:
+            parent.write(self.to_unicode(cls, inst))
 
     def xml_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         self._enter_cloth(ctx, cloth, parent)
@@ -557,6 +589,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         # it's actually an odict but that's irrelevant here.
         fti_check = dict(fti.items())
 
+        never_found = set()
         for i, elt in enumerate(elts):
             k = elt.attrib[self.ID_ATTR_NAME]
             v = fti.get(k, None)
@@ -564,11 +597,17 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
             if v is None:
                 logger_c.warning("elt id %r not in %r", k, cls)
+                never_found.add(k)
                 self._enter_cloth(ctx, elt, parent, skip=True)
                 continue
 
             if issubclass(v, XmlData):
                 v = v.type
+
+            cls_attrs = self.get_cls_attrs(v)
+            if cls_attrs.exc:
+                logger_c.debug("Skipping elt id %r because excluded", k)
+                continue
 
             if issubclass(cls, Array):
                 # if cls is an array, inst should already be a sequence type
@@ -591,7 +630,12 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         pass
 
         if len(fti_check) > 0:
-            logger_s.debug("Skipping the following: %r", fti)
+            if len(fti_check) > 0:
+                logger_s.debug("Skipping the following: %r",
+                                                         list(fti_check.keys()))
+            if len(never_found) > 0:
+                logger_s.debug("Never found the following: %r",
+                                                              list(never_found))
 
     @coroutine
     def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):

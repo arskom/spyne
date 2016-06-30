@@ -138,8 +138,11 @@ class ServerBase(object):
 
         if ctx.out_document is None:
             ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
-            if isgenerator(ret):
-                return self.convert_pull_to_push(ctx, ret)
+
+            if isgenerator(ret) and ctx.out_object is not None and \
+                                                       len(ctx.out_object) == 1:
+                if len(ctx.pusher_stack) > 0:
+                    return self.convert_pull_to_push(ctx, ret)
 
         self.finalize_context(ctx)
 
@@ -211,6 +214,7 @@ class ServerBase(object):
         return pusher.init(p_ctx, gen, _cb_push_finish, None)
 
     def pusher_try_close(self, ctx, ret, _):
+        logger.debug("Closing pusher with ret=%r", ret)
         popped = ctx.pusher_stack.pop()
         assert popped is ret
         ret.close()
@@ -227,7 +231,8 @@ class ServerBase(object):
         # fire events
         p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
         if p_ctx.service_class is not None:
-            p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
+            p_ctx.service_class.event_manager.fire_event(
+                                           'method_return_push', p_ctx)
 
         # start push serialization
         gen = self.get_out_string_push(p_ctx)
@@ -236,11 +241,20 @@ class ServerBase(object):
                                  "async-compliant yet."
 
         def _cb_push_finish():
-            p_ctx.out_stream.finish()
             process_contexts(self, others, p_ctx)
 
-        retval = ret.init(p_ctx, gen, _cb_push_finish, None)
+        retval = self.pusher_init(p_ctx, gen, _cb_push_finish, ret)
 
         self.pusher_try_close(p_ctx, ret, retval)
 
         return retval
+
+    @staticmethod
+    def set_out_document_push(ctx):
+        ctx.out_document = _write()
+        ctx.out_document.send(None)
+
+
+def _write():
+    v = yield
+    yield v

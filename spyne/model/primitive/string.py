@@ -74,6 +74,9 @@ class Unicode(SimpleModel):
         """A regular python string formatting string. See here:
         http://docs.python.org/library/stdtypes.html#string-formatting"""
 
+        cast = None
+        """Type override callable for casting non-unicode input to unicode."""
+
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 

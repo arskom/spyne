@@ -444,9 +444,10 @@ class XmlDocument(SubXmlBase):
 
     def to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
         cls, add_type = self.get_polymorphic_target(cls, inst)
+        cls_attrs = self.get_cls_attrs(cls)
 
-        subprot = getattr(cls.Attributes, 'prot', None)
-        if subprot is not None:
+        subprot = cls_attrs.prot
+        if subprot is not None and isinstance(subprot, SubXmlBase):
             return subprot.subserialize(ctx, cls, inst, parent, ns,
                                                                 *args, **kwargs)
 
@@ -458,6 +459,9 @@ class XmlDocument(SubXmlBase):
         if inst is None:
             return self.null_to_parent(ctx, cls, inst, parent, ns,
                                                                 *args, **kwargs)
+
+        if cls_attrs.exc:
+            return
 
         kwargs['add_type'] = add_type
         return handler(ctx, cls, inst, parent, ns, *args, **kwargs)
@@ -724,6 +728,10 @@ class XmlDocument(SubXmlBase):
                             pass
 
             for k, v in cls._type_info.items():
+                sub_cls_attrs = self.get_cls_attrs(v)
+                if sub_cls_attrs.exc:
+                    continue
+
                 try:
                     subvalue = getattr(inst, k, None)
                 except:  # e.g. SqlAlchemy could throw NoSuchColumnError
@@ -824,7 +832,7 @@ class XmlDocument(SubXmlBase):
 
         elif isinstance(inst.detail, dict):
             if len(inst.detail) > 0:
-                _append(subelts, E('detail', root_dict_to_etree(inst.detail)))
+                _append(subelts, root_dict_to_etree({'detail':inst.detail}))
 
         elif inst.detail is None:
             pass

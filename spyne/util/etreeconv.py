@@ -29,13 +29,14 @@ from lxml import etree
 
 from spyne.util.odict import odict
 
+
 def root_dict_to_etree(d):
     """Converts a dictionary to an xml hiearchy. Just like a valid xml document,
     the dictionary must have a single element. The format of the child
     dictionaries is the same as :func:`dict_to_etree`.
     """
 
-    assert len(d) == 1
+    assert len(d) == 1, "Incoming dict len must be exactly 1. Data: %r" % d
 
     key, = d.keys()
     retval = etree.Element(key)
@@ -54,6 +55,7 @@ def root_dict_to_etree(d):
             dict_to_etree(a, retval)
 
     return retval
+
 
 def dict_to_etree(d, parent):
     """Takes a the dict whose value is either None or an instance of dict, odict
@@ -86,6 +88,7 @@ def dict_to_etree(d, parent):
                 else:
                     child.text=str(e)
 
+
 def root_etree_to_dict(element, iterable=(list, list.append)):
     """Takes an xml root element and returns the corresponding dict. The second
     argument is a pair of iterable type and the function used to add elements to
@@ -93,6 +96,7 @@ def root_etree_to_dict(element, iterable=(list, list.append)):
     """
 
     return {element.tag: iterable[0]([etree_to_dict(element, iterable)])}
+
 
 def etree_to_dict(element, iterable=(list, list.append)):
     """Takes an xml root element and returns the corresponding dict. The second
@@ -111,6 +115,7 @@ def etree_to_dict(element, iterable=(list, list.append)):
         retval = element.text
 
     return retval
+
 
 def etree_strip_namespaces(element):
     """Removes any namespace information form the given element recursively."""

@@ -26,7 +26,7 @@ import re
 import uuid
 import errno
 
-from os.path import isabs, join
+from os.path import isabs, join, abspath
 from collections import deque
 from datetime import timedelta, datetime
 from decimal import Decimal as D
@@ -283,15 +283,11 @@ class OutProtocolBase(ProtocolMixin):
         return retval
 
     def unicode_to_unicode(self, cls, value, **_):  # :)))
-        # value can be many things, but definetly not an int
-        if isinstance(value, six.integer_types):
-            logger.warning("Returning an int where a str is expected! "
-                                                "Not-so-silenty fixing this...")
-            value = str(value)
+        cls_attrs = self.get_cls_attrs(cls)
+        value = self._cast(cls_attrs, value)
 
         retval = value
 
-        cls_attrs = self.get_cls_attrs(cls)
         if isinstance(value, six.binary_type):
             if cls_attrs.encoding is not None:
                 retval = value.decode(cls_attrs.encoding)
@@ -342,13 +338,14 @@ class OutProtocolBase(ProtocolMixin):
         return str(value)
 
     def time_to_bytes(self, cls, value, **_):
-        """Returns ISO formatted dates."""
+        """Returns ISO formatted times."""
         return value.isoformat()
 
     def datetime_to_bytes(self, cls, val):
+        """Returns serialized datetimes. Somehow."""
         sa = self.get_cls_attrs(cls).serialize_as
 
-        if sa is None:
+        if sa is None or sa in (str, 'str'):
             return self._datetime_to_bytes(cls, val)
 
         return _datetime_smap[sa](cls, val)
@@ -374,9 +371,7 @@ class OutProtocolBase(ProtocolMixin):
         else:
             retval.append("P")
         if value.days != 0:
-            retval.extend([
-                "%iD" % value.days,
-                ])
+            retval.append("%iD" % value.days)
 
         if tot_sec != 0 and tot_sec % 86400 == 0 and useconds == 0:
             return ''.join(retval)
@@ -401,10 +396,15 @@ class OutProtocolBase(ProtocolMixin):
         return ''.join(retval)
 
     def boolean_to_bytes(self, cls, value, **_):
+        cls_attrs = self.get_cls_attrs(cls)
+        value = self._cast(cls_attrs, value)
         return str(bool(value)).lower()
 
     def byte_array_to_bytes(self, cls, value, suggested_encoding=None, **_):
-        encoding = self.get_cls_attrs(cls).encoding
+        cls_attrs = self.get_cls_attrs(cls)
+        value = self._cast(cls_attrs, value)
+
+        encoding = cls_attrs.encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             if suggested_encoding is None:
                 encoding = self.binary_encoding
@@ -509,10 +509,9 @@ class OutProtocolBase(ProtocolMixin):
     def file_to_bytes_iterable(self, cls, value, **_):
         if value.data is not None:
             if isinstance(value.data, (list, tuple)) and \
-                    isinstance(value.data[0], mmap):
+                                                isinstance(value.data[0], mmap):
                 return _file_to_iter(value.data[0])
-            else:
-                return iter(value.data)
+            return iter(value.data)
 
         if value.handle is not None:
             f = value.handle
@@ -526,6 +525,8 @@ class OutProtocolBase(ProtocolMixin):
             path = value.path
             if not isabs(value.path):
                 path = join(value.store, value.path)
+                assert abspath(path).startswith(value.store), \
+                                                 "No relative paths are allowed"
             return _file_to_iter(open(path, 'rb'))
 
         except IOError as e:
@@ -591,6 +592,7 @@ class OutProtocolBase(ProtocolMixin):
         return dt_format
 
     def _datetime_to_bytes(self, cls, value, **_):
+        """Returns ISO formatted datetimes."""
         cls_attrs = self.get_cls_attrs(cls)
         if cls_attrs.as_timezone is not None and value.tzinfo is not None:
             value = value.astimezone(cls_attrs.as_timezone)
@@ -695,28 +697,43 @@ class OutProtocolBase(ProtocolMixin):
 
 _uuid_serialize = {
     None: str,
+    str: str,
+    'str': str,
+
     'hex': lambda u: u.hex,
     'urn': lambda u: u.urn,
     'bytes': lambda u: u.bytes,
     'bytes_le': lambda u: u.bytes_le,
     'fields': lambda u: u.fields,
+
+    int: lambda u: u.int,
     'int': lambda u: u.int,
 }
 
 _uuid_deserialize = {
-    None: lambda s: uuid.UUID(s),
+    None: uuid.UUID,
+    str: uuid.UUID,
+    'str': uuid.UUID,
+
     'hex': lambda s: uuid.UUID(hex=s),
     'urn': lambda s: uuid.UUID(hex=s),
     'bytes': lambda s: uuid.UUID(bytes=s),
     'bytes_le': lambda s: uuid.UUID(bytes_le=s),
     'fields': lambda s: uuid.UUID(fields=s),
+
+    int: lambda s: uuid.UUID(int=s),
     'int': lambda s: uuid.UUID(int=s),
+
+    (int, int): lambda s: uuid.UUID(int=s),
     ('int', int): lambda s: uuid.UUID(int=s),
+
+    (int, str): lambda s: uuid.UUID(int=int(s)),
     ('int', str): lambda s: uuid.UUID(int=int(s)),
 }
 
 if six.PY2:
     _uuid_deserialize[('int', long)] = _uuid_deserialize[('int', int)]
+    _uuid_deserialize[(int, long)] = _uuid_deserialize[('int', int)]
 
 
 

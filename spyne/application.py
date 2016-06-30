@@ -22,14 +22,12 @@ logger = logging.getLogger(__name__)
 logger_client = logging.getLogger('.'.join([__name__, 'client']))
 logger_server = logging.getLogger('.'.join([__name__, 'server']))
 
-from spyne import BODY_STYLE_EMPTY
-from spyne import BODY_STYLE_BARE
-from spyne import BODY_STYLE_WRAPPED
-from spyne.error import Fault, Redirect
+from spyne import BODY_STYLE_EMPTY, BODY_STYLE_BARE, BODY_STYLE_WRAPPED, \
+    EventManager
+from spyne.error import Fault, Redirect, RespawnError
 from spyne.interface import Interface
-from spyne import EventManager
+from spyne.util import six
 from spyne.util.appreg import register_application
-from spyne.error import RespawnError
 
 
 def get_fault_string_from_exception(e):
@@ -100,6 +98,9 @@ class Application(object):
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
 
+
+        logger.info("Initializing application {%s}%s...", self.tns, self.name)
+
         self.event_manager = EventManager(self)
         self.error_handler = None
 
@@ -123,6 +124,7 @@ class Application(object):
         # separate for backwards compatibility reasons.
         self.out_protocol.message = self.out_protocol.RESPONSE
 
+        self.check_unique_method_keys()
         register_application(self)
 
     def process_request(self, ctx):
@@ -295,3 +297,24 @@ class Application(object):
 
     def __hash__(self):
         return hash(tuple((id(s) for s in self.services)))
+
+    def check_unique_method_keys(self):
+        class MethodAlreadyExistsError(Exception):
+            def __init__(self, what):
+                super(MethodAlreadyExistsError, self).__init__(
+                                           "Method key %r already exists", what)
+
+        keys = {}
+        for s in self.services:
+            for mdesc in s.public_methods.values():
+                other_mdesc = keys.get(mdesc.internal_key, None)
+                if other_mdesc is not None:
+                    logger.error(
+                        'Methods keys for "%s.%s" and "%s.%s" conflict',
+                                   mdesc.function.__module__,
+                                   six.get_function_name(mdesc.function),
+                                   other_mdesc.function.__module__,
+                                   six.get_function_name(other_mdesc.function))
+                    raise MethodAlreadyExistsError(mdesc.internal_key)
+
+                keys[mdesc.internal_key] = mdesc

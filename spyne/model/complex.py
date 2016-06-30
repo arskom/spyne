@@ -36,7 +36,9 @@ from collections import deque
 from inspect import isclass
 from itertools import chain
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY
+from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY, \
+    BODY_STYLE_EMPTY_OUT_BARE, BODY_STYLE_OUT_BARE
+
 from spyne import const
 from spyne.const import xml_ns
 
@@ -389,7 +391,8 @@ class _MethodsDict(dict):
                 d.out_message.__type_name__ = '%s.%s' % \
                           (cls.get_type_name(), d.out_message.get_type_name())
 
-            if d.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
+            if d.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY,
+                                BODY_STYLE_EMPTY_OUT_BARE, BODY_STYLE_OUT_BARE):
                 # The method only needs the primary key(s) and shouldn't
                 # complain when other mandatory fields are missing.
                 d.in_message = cls.novalidate_freq()
@@ -510,14 +513,14 @@ def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
             key = sub_name
             if sub_ns in _type_info:
                 raise Exception("%r is already defined: %r" %
-                                                        (key, _type_info[key]))
+                                                         (key, _type_info[key]))
             _type_info_alt[key] = v, k
 
         elif sub_name is None:
             key = "{%s}%s" % (sub_ns, k)
             if key in _type_info:
                 raise Exception("%r is already defined: %r" %
-                                                        (key, _type_info[key]))
+                                                         (key, _type_info[key]))
             _type_info_alt[key] = v, k
 
 
@@ -532,7 +535,7 @@ def _process_child_attrs(cls, retval, kwargs):
 
         if retval.__extends__ is not None:
             retval.__extends__ = retval.__extends__.customize(
-                                            child_attrs_all=child_attrs_all)
+                                                child_attrs_all=child_attrs_all)
 
         retval.Attributes._delayed_child_attrs_all = child_attrs_all
 
@@ -549,9 +552,9 @@ def _process_child_attrs(cls, retval, kwargs):
         base_fti = {}
         if retval.__extends__ is not None:
             retval.__extends__ = retval.__extends__.customize(
-                                                    child_attrs=child_attrs)
-            base_fti = retval.__extends__.get_flat_type_info(
-                                                         retval.__extends__)
+                                                        child_attrs=child_attrs)
+            base_fti = retval.__extends__.get_flat_type_info(retval.__extends__)
+
         for k, v in child_attrs.items():
             if k not in base_fti:
                 logger.debug("  child_attr delayed %r=%r", k, v)
@@ -731,7 +734,7 @@ class ComplexModelBase(ModelBase):
         store_as = None
         """Method for serializing to persistent storage. One of %r. It makes
         sense to specify this only when this object is a child of another
-        ComplexModel sublass.""" % (PSSM_VALUES,)
+        ComplexModel subclass.""" % (PSSM_VALUES,)
 
         sqla_metadata = None
         """None or :class:`sqlalchemy.MetaData` instance."""
@@ -806,15 +809,17 @@ class ComplexModelBase(ModelBase):
 
     def __init__(self, *args, **kwargs):
         cls = self.__class__
+        cls_attr = cls.Attributes
         fti = cls.get_flat_type_info(cls)
 
         if cls.__orig__ is not None:
-            logger.warning("%r seems to be a customized class. It is not "
-                      "supposed to be instantiated. You have been warned.", cls)
+            logger.warning("%r(0x%X) seems to be a customized class. It is not "
+                    "supposed to be instantiated. You have been warned.",
+                                                                   cls, id(cls))
 
-        if cls.Attributes._xml_tag_body_as is not None:
+        if cls_attr._xml_tag_body_as is not None:
             for arg, (xtba_key, xtba_type) in \
-                                     zip(args, cls.Attributes._xml_tag_body_as):
+                                           zip(args, cls_attr._xml_tag_body_as):
                 if xtba_key is not None and len(args) == 1:
                     self._safe_set(xtba_key, arg, xtba_type)
                 elif len(args) > 0:
@@ -853,20 +858,12 @@ class ComplexModelBase(ModelBase):
                 # sqlalchemy objects do their own init.
                 elif hasattr(cls, '_sa_class_manager'):
                     # except the attributes that sqlalchemy doesn't know about
-                    if v.Attributes.exc_table:
-                        # FIXME: These hide real exceptions!
-                        try:
-                            setattr(self, k, None)
-                        except AttributeError:
-                            pass
+                    if v.Attributes.exc_db:
+                        setattr(self, k, None)
 
                     elif issubclass(v, ComplexModelBase) and \
                                                   v.Attributes.store_as is None:
-                        # FIXME: These hide real exceptions!
-                        try:
-                            setattr(self, k, None)
-                        except AttributeError:
-                            pass
+                        setattr(self, k, None)
                 else:
                     setattr(self, k, None)
 

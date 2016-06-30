@@ -45,6 +45,10 @@ from spyne.protocol.xml import XmlDocument
 ns_test = 'test_namespace'
 
 
+class TestCast(unittest.TestCase):
+    pass  # TODO: test Unicode(cast=str)
+
+
 class TestPrimitive(unittest.TestCase):
     def test_getitem_cust(self):
         assert Unicode[dict(max_len=2)].Attributes.max_len
@@ -377,6 +381,16 @@ class TestPrimitive(unittest.TestCase):
     def test_unicode_nullable_mult_cust_true(self):
         assert Unicode(nullable=True).Attributes.nullable == True
         assert Unicode(nullable=True)(5).Attributes.nullable == True
+
+    def test_unicode_cast(self):
+        # to_unicode is dumb enough to pass an int straight back
+        # this normally fails later in the pipeline
+        assert isinstance(ProtocolBase().to_unicode(Unicode, 1),
+                                                              six.integer_types)
+
+        # when cast is passed, the return value is a proper string
+        assert isinstance(ProtocolBase().to_unicode(Unicode(cast=str), 1),
+                                                              six.string_types)
 
     def test_null(self):
         element = etree.Element('test')

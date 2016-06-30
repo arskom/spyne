@@ -30,8 +30,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 import csv
-from spyne.util import six
 
+from spyne import ComplexModelBase
+from spyne.util import six
 from spyne.protocol.dictdoc import HierDictDocument
 
 if six.PY2:
@@ -47,12 +48,15 @@ def _complex_to_csv(prot, ctx):
 
     serializer, = cls._type_info.values()
 
-    type_info = getattr(serializer, '_type_info',
-                        {serializer.get_type_name(): serializer})
+    if issubclass(serializer, ComplexModelBase):
+        type_info = serializer.get_flat_type_info(serializer)
+        keys = [k for k, _ in prot.sort_fields(serializer)]
 
-    keys = sorted(type_info.keys())
+    else:
+        type_info = {serializer.get_type_name(): serializer}
+        keys = list(type_info.keys())
 
-    if ctx.out_object is None:
+    if ctx.out_error is not None:
         writer = csv.writer(queue, dialect=csv.excel)
         writer.writerow(['Error in generating the document'])
         if ctx.out_error is not None:
@@ -62,9 +66,15 @@ def _complex_to_csv(prot, ctx):
         yield queue.getvalue()
         queue.truncate(0)
 
-    elif ctx.out_error is None:
+    else:
         writer = csv.DictWriter(queue, dialect=csv.excel, fieldnames=keys)
-        writer.writerow(dict(((k,k) for k in keys)))
+        if prot.header:
+            titles = {}
+            for k in keys:
+                v = type_info[k]
+                titles[k] = prot.trc(v, ctx.locale, k)
+
+            writer.writerow(titles)
 
         yield queue.getvalue()
         queue.truncate(0)
@@ -72,9 +82,10 @@ def _complex_to_csv(prot, ctx):
         if ctx.out_object[0] is not None:
             for v in ctx.out_object[0]:
                 d = prot._to_dict_value(serializer, v)
-                for k in d:
-                    if isinstance(d[k], unicode):
-                        d[k] = d[k].encode('utf8')
+                if six.PY2:
+                    for k in d:
+                        if isinstance(d[k], unicode):
+                            d[k] = d[k].encode('utf8')
 
                 writer.writerow(d)
                 yval = queue.getvalue()
@@ -89,6 +100,17 @@ class Csv(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('csv')
 
+    def __init__(self, app=None, validator=None, mime_type=None,
+            ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
+            ordered=False, polymorphic=False, header=True):
+
+        super(Csv, self).__init__(app=app, validator=validator,
+                        mime_type=mime_type, ignore_uncap=ignore_uncap,
+                        ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                        ordered=ordered, polymorphic=polymorphic)
+
+        self.header = header
+
     def create_in_document(self, ctx):
         raise NotImplementedError()
 
@@ -98,9 +120,9 @@ class Csv(HierDictDocument):
         if ctx.out_object is None:
             ctx.out_object = []
 
-        assert len(ctx.descriptor.out_message._type_info) == 1, """CSV Serializer
-            supports functions with exactly one return type:
-            %r""" % ctx.descriptor.out_message._type_info
+        assert len(ctx.descriptor.out_message._type_info) == 1, \
+            "CSV Serializer supports functions with exactly one return type: " \
+            "%r" % ctx.descriptor.out_message._type_info
 
     def create_out_string(self, ctx):
         ctx.out_string = _complex_to_csv(self, ctx)

@@ -28,19 +28,12 @@ logger = logging.getLogger(__name__)
 
 import cgi
 import threading
-import itertools
 
-from spyne.util.six.moves.urllib.parse import unquote, quote
+from inspect import isgenerator
+from itertools import chain
 
-try:
-    from werkzeug.formparser import parse_form_data
-except ImportError as import_error:
-    def parse_form_data(*args, **kwargs):
-        raise import_error
-
-
-from spyne.util.six import string_types, BytesIO
 from spyne.util.six.moves.http_cookies import SimpleCookie
+from spyne.util.six.moves.urllib.parse import unquote, quote
 
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
@@ -63,9 +56,16 @@ from spyne.const.http import HTTP_500
 
 try:
     from spyne.protocol.soap.mime import apply_mtom
-except ImportError as e:
+except ImportError as _import_error_1:
     def apply_mtom(*args, **kwargs):
-        raise e
+        raise _import_error_1
+
+try:
+    from werkzeug.formparser import parse_form_data
+except ImportError as _import_error_2:
+    def parse_form_data(*args, **kwargs):
+        raise _import_error_2
+
 
 
 def _parse_qs(qs):
@@ -338,7 +338,7 @@ class WsgiApplication(HttpBase):
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
 
-        return itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
+        return chain(p_ctx.out_string, self.__finalize(p_ctx))
 
     def handle_rpc(self, req_env, start_response):
         initial_ctx = WsgiMethodContext(self, req_env,
@@ -365,6 +365,19 @@ class WsgiApplication(HttpBase):
         if p_ctx.out_error:
             return self.handle_error(p_ctx, others, p_ctx.out_error,
                                                                  start_response)
+
+        assert p_ctx.out_object is not None
+        g = next(iter(p_ctx.out_object))
+        is_generator = len(p_ctx.out_object) == 1 and isgenerator(g)
+
+        # if the out_object is a generator function, this hack makes the user
+        # code run until first yield, which lets it set response headers and
+        # whatnot before calling start_response. It's important to run this
+        # here before serialization as the user function can also set output
+        # protocol. Is there a better way?
+        if is_generator:
+            first_obj = next(g)
+            p_ctx.out_object = ( chain((first_obj,), g), )
 
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = HTTP_200
@@ -409,33 +422,18 @@ class WsgiApplication(HttpBase):
         else:
             p_ctx.out_string = [''.join(p_ctx.out_string)]
 
-        # if the out_string is a generator function, this hack makes the user
-        # code run until first yield, which lets it set response headers and
-        # whatnot before calling start_response. Is there a better way?
         try:
-            len(p_ctx.out_string)  # generator?
+            len(p_ctx.out_string)
 
-            # nope
             p_ctx.transport.resp_headers['Content-Length'] = \
                                     str(sum([len(a) for a in p_ctx.out_string]))
-
-            start_response(p_ctx.transport.resp_code,
-                                _gen_http_headers(p_ctx.transport.resp_headers))
-
-            retval = itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
-
         except TypeError:
-            retval_iter = iter(p_ctx.out_string)
-            try:
-                first_chunk = next(retval_iter)
-            except StopIteration:
-                first_chunk = ''
+            pass
 
-            start_response(p_ctx.transport.resp_code,
+        start_response(p_ctx.transport.resp_code,
                                 _gen_http_headers(p_ctx.transport.resp_headers))
 
-            retval = itertools.chain([first_chunk], retval_iter,
-                                                        self.__finalize(p_ctx))
+        retval = chain(p_ctx.out_string, self.__finalize(p_ctx))
 
         try:
             process_contexts(self, others, p_ctx, error=None)

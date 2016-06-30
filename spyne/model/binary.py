@@ -107,6 +107,8 @@ class ByteArray(SimpleModel):
 
     @classmethod
     def to_base64(cls, value):
+        if isinstance(value, (list, tuple)) and isinstance(value[0], mmap):
+            return b64encode(value[0])
         return b64encode(b''.join(value))
 
     @classmethod
@@ -186,7 +188,7 @@ _BINARY = type('FileTypeBinary', (object,), {})
 _TEXT = type('FileTypeText', (object,), {})
 
 
-class _Value(ComplexModel):
+class _FileValue(ComplexModel):
     """The class for values marked as ``File``.
 
     :param name: Original name of the file
@@ -197,6 +199,8 @@ class _Value(ComplexModel):
     :param handle: :class:`file` object that contains the file's data.
         It is ignored unless the ``path`` argument is ``None``.
     """
+
+    __type_name__ = "FileValue"
 
     _type_info = [
         ('name', Unicode(encoding='utf8')),
@@ -267,7 +271,7 @@ class File(SimpleModel):
 
     BINARY = _BINARY
     TEXT = _BINARY
-    Value = _Value
+    Value = _FileValue
 
     class Attributes(SimpleModel.Attributes):
         encoding = BINARY_ENCODING_USE_DEFAULT
@@ -277,7 +281,7 @@ class File(SimpleModel):
         One of (None, 'base64', 'hex')
         """
 
-        type = _Value
+        type = _FileValue
         """The native type used to serialize the information in the file object.
         """
 

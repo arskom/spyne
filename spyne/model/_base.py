@@ -32,6 +32,8 @@ import threading
 
 import spyne.const.xml_ns
 
+from collections import OrderedDict
+
 from spyne import const
 from spyne.util import Break, six
 from spyne.util.cdict import cdict
@@ -72,7 +74,8 @@ class AttributesMeta(type(object)):
         if not 'sqla_mapper_args' in cls_dict:
             cls_dict['sqla_mapper_args'] = None
 
-        return super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
+        return super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases,
+                                                                       cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         # you will probably want to look at ModelBase._s_customize as well.
@@ -231,10 +234,23 @@ class ModelBase(object):
         # are skipped. just for internal use.
 
         default = None
-        """The default value if the input is None."""
+        """The default value if the input is None.
+
+        Please note that this default is UNCONDITIONALLY applied in class
+        initializer. Please make an effort to use this only in customized
+        classes and not on original models.
+        """
 
         default_factory = None
-        """The callable that produces a default value if the input is None."""
+        """The callable that produces a default value if the value is None.
+        The warnings in ``default`` apply here as well."""
+
+        db_default = None
+        """The default value used only when persisting the value if it is
+        ``None``.
+
+        Only works for primitives. Unlike ``default`` this can also be set to a
+        callable that takes no arguments according to SQLAlchemy docs."""
 
         nillable = None
         """Set this to false to reject null values. Synonyms with
@@ -281,8 +297,11 @@ class ModelBase(object):
         """
 
         exc_table = False
-        """If true, this field will be excluded from the table of the parent
-        class.
+        """DEPRECATED !!! Use ``exc_db`` instead."""
+
+        exc_db = False
+        """If ``True``, this field will not be persisted to the database. This
+        attribute only makes sense in a subfield of a ``ComplexModel`` subclass.
         """
 
         exc_interface = False
@@ -522,6 +541,17 @@ class ModelBase(object):
         Not meant to be overridden.
         """
 
+        __tn = None
+        def _log_debug_rest(s, *args):
+            logger.debug("\t%s: %s" % (__tn, s), *args)
+
+        def _log_debug_first(s, *args):
+            __tn = cls.get_type_name()
+            logger.debug("\t%s: %s" % (__tn, s), *args)
+            _log_debug = _log_debug_rest
+
+        _log_debug = _log_debug_first
+
         cls_dict = odict({'__module__': cls.__module__, '__doc__': cls.__doc__})
 
         if getattr(cls, '__orig__', None) is None:
@@ -561,54 +591,81 @@ class ModelBase(object):
 
             type_attrs = prot.type_attrs.copy()
             type_attrs.update(kwargs)
-            logger.debug("%r: kwargs %r => %r from prot typeattr %r",
-                                       cls, kwargs, type_attrs, prot.type_attrs)
+            _log_debug("kwargs %r => %r from prot typeattr %r",
+                                            kwargs, type_attrs, prot.type_attrs)
             kwargs = type_attrs
 
         for k, v in kwargs.items():
             if k.startswith('_'):
+                _log_debug("ignoring '%s' because of leading underscore", k)
                 continue
 
             if k in ('protocol', 'prot', 'p'):
-                setattr(Attributes, 'prot', v)
+                Attributes.prot = v
+                _log_debug("setting prot=%r", v)
 
             elif k in ('voa', 'validate_on_assignment'):
-                setattr(Attributes, 'validate_on_assignment', v)
+                Attributes.validate_on_assignment = v
+                _log_debug("setting voa=%r", v)
 
-            elif k == 'parser':
-                setattr(Attributes, 'parser', staticmethod(v))
+            elif k in ('parser', 'cast'):
+                setattr(Attributes, k, staticmethod(v))
+                _log_debug("setting %s=%r", k, v)
 
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
+                _log_debug("setting Annotations.%s=%r", k, v)
 
             elif k in ('primary_key', 'pk'):
                 setattr(Attributes, 'primary_key', v)
                 Attributes.sqla_column_args[-1]['primary_key'] = v
+                _log_debug("setting primary_key=%r", v)
 
             elif k in ('protocol_attrs', 'prot_attrs', 'pa'):
                 setattr(Attributes, 'prot_attrs', _decode_pa_dict(v))
+                _log_debug("setting prot_attrs=%r", v)
 
             elif k in ('foreign_key', 'fk'):
                 from sqlalchemy.schema import ForeignKey
                 t, d = Attributes.sqla_column_args
                 fkt = (ForeignKey(v),)
-                Attributes.sqla_column_args = (t + fkt, d)
+                new_v = (t + fkt, d)
+                Attributes.sqla_column_args = new_v
+                _log_debug("setting sqla_column_args=%r", new_v)
 
             elif k in ('autoincrement', 'onupdate', 'server_default'):
                 Attributes.sqla_column_args[-1][k] = v
+                _log_debug("adding %s=%r to Attributes.sqla_column_args", k, v)
 
             elif k == 'values_dict':
                 assert not 'values' in v, "`values` and `values_dict` can't be" \
                                           "specified at the same time"
 
+                if not isinstance(v, dict):
+                    # our odict has one nasty implicit behaviour: setitem on
+                    # int keys is treated as array indexes, not dict keys. so
+                    # dicts with int indexes can't work with odict. so we use
+                    # the one from stdlib
+                    v = OrderedDict(v)
+
                 Attributes.values = v.keys()
                 Attributes.values_dict = v
+                _log_debug("setting values=%r, values_dict=%r",
+                                      Attributes.values, Attributes.values_dict)
+
+            elif k == 'exc_table':
+                Attributes.exc_table = v
+                Attributes.exc_db = v
+                _log_debug("setting exc_table=%r, exc_db=%r", v, v)
 
             elif k == 'max_occurs' and v in ('unbounded', 'inf', float('inf')):
-                setattr(Attributes, k, decimal.Decimal('inf'))
+                new_v = decimal.Decimal('inf')
+                setattr(Attributes, k, new_v)
+                _log_debug("setting max_occurs=%r", new_v)
 
             else:
                 setattr(Attributes, k, v)
+                _log_debug("setting %s=%r", k, v)
 
         return (cls.__name__, (cls,), cls_dict)
 
@@ -635,7 +692,8 @@ class Null(ModelBase):
 
 class SimpleModelAttributesMeta(AttributesMeta):
     def __init__(self, cls_name, cls_bases, cls_dict):
-        super(SimpleModelAttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
+        super(SimpleModelAttributesMeta, self).__init__(cls_name, cls_bases,
+                                                                       cls_dict)
         if getattr(self, '_pattern', None) is None:
             self._pattern = None
 

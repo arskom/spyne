@@ -119,6 +119,12 @@ def _sp_attrs_to_sqla_constraints(cls, v, col_kwargs=None, col=None):
         else:
             col.nullable = False
 
+    if v.Attributes.db_default is not None:
+        if col is None:
+            col_kwargs['default'] = v.Attributes.db_default
+        else:
+            col.default = v.Attributes.db_default
+
 
 def _get_sqlalchemy_type(cls):
     db_type = cls.Attributes.db_type
@@ -134,7 +140,7 @@ def _get_sqlalchemy_type(cls):
         return PGInet
 
     # must be above Unicode, because Uuid is Unicode's subclass
-    if issubclass(cls, Uuid):
+    elif issubclass(cls, Uuid):
         return PGUuid(as_uuid=True)
 
     # must be above Unicode, because Point is Unicode's subclass
@@ -446,7 +452,7 @@ def _add_simple_type(cls, props, table, k, v, sqla_type):
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
     mp = getattr(v.Attributes, 'mapper_property', None)
-    if not v.Attributes.exc_table:
+    if not v.Attributes.exc_db:
         if k in table.c:
             col = table.c[k]
 
@@ -898,7 +904,7 @@ def add_column(cls, k, v):
 
     # Add to table
     t = _get_sqlalchemy_type(v)
-    if t is None: # complex model
+    if t is None:  # complex model
         _add_complex_type(cls, mapper_props, table, k, v)
     else:
         _add_simple_type(cls, mapper_props, table, k, v, t)

@@ -29,28 +29,19 @@ from spyne.util.six.moves.http_cookies import SimpleCookie
 from datetime import datetime
 from wsgiref.validate import validator as wsgiref_validator
 
-from spyne.model.complex import Array
-
 from spyne.server.wsgi import _parse_qs
 from spyne.application import Application
 from spyne.error import ValidationError
 from spyne.const.http import HTTP_200
 from spyne.decorator import rpc
 from spyne.decorator import srpc
-from spyne.model.binary import ByteArray
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Uuid
-from spyne.model.primitive import String
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Integer8
-from spyne.model.complex import ComplexModel
-from spyne.protocol.http import HttpRpc
-from spyne.protocol.http import HttpPattern
+from spyne.model import ByteArray, DateTime, Uuid, String, Integer, Integer8, \
+    ComplexModel, Array
+from spyne.protocol.http import HttpRpc, HttpPattern
 from spyne.service import ServiceBase
-from spyne.server.wsgi import WsgiApplication
-from spyne.server.wsgi import WsgiMethodContext
+from spyne.server.wsgi import WsgiApplication, WsgiMethodContext
+from spyne.server.http import HttpTransportContext
 from spyne.util.test import call_wsgi_app_kwargs
-
 
 
 class TestString(unittest.TestCase):
@@ -81,6 +72,12 @@ class TestString(unittest.TestCase):
         headers = {'CONTENT_TYPE':'text/plain; charset=utf8'}
         ret = call_wsgi_app_kwargs(self.app, 'echo_string', headers, s="string")
         assert ret == b'string'
+
+
+class TestHttpTransportContext(unittest.TestCase):
+    def test_gen_header(self):
+        val = HttpTransportContext.gen_header("text/plain", charset="utf8")
+        assert val == 'text/plain; charset="utf8"'
 
 
 class TestSimpleDictDocument(unittest.TestCase):
