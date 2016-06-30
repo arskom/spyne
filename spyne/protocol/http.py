@@ -237,12 +237,12 @@ class HttpRpc(SimpleDictDocument):
             out_class = result_class
             out_object, = ctx.out_object
 
-        if issubclass(out_class, File) and not \
-                    isinstance(out_object, (list, tuple, string_types)) \
-                    and out_object.type is not None:
-            ctx.transport.set_mime_type(str(out_object.type))
-
         if out_class is not None:
+            if issubclass(out_class, File) and not \
+                        isinstance(out_object, (list, tuple, string_types)) \
+                        and out_object.type is not None:
+                ctx.transport.set_mime_type(str(out_object.type))
+
             ret = self.to_bytes_iterable(out_class, out_object)
 
             if not isinstance(ret, PushBase):
