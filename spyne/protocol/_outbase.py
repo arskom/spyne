@@ -26,7 +26,7 @@ import re
 import uuid
 import errno
 
-from os.path import isabs, join
+from os.path import isabs, join, abspath
 from collections import deque
 from datetime import timedelta, datetime
 from decimal import Decimal as D
@@ -525,6 +525,8 @@ class OutProtocolBase(ProtocolMixin):
             path = value.path
             if not isabs(value.path):
                 path = join(value.store, value.path)
+                assert abspath(path).startswith(value.store), \
+                                                 "No relative paths are allowed"
             return _file_to_iter(open(path, 'rb'))
 
         except IOError as e:
