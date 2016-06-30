@@ -42,7 +42,6 @@ spyne-2.13.0
   are doing some REAL fancy stuff in the method decorators or service events.
 * No major changes otherwise but we paid a lot of technical debt. e.g. We
   revamped the test infrastructure.
-* Django: CharField is not mapped to Unicode instead of NormalizedString'
 * Usual bug fixes.
 
 spyne-2.12.11
