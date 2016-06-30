@@ -31,8 +31,8 @@ import re
 import pytz
 import tempfile
 
-from spyne import BODY_STYLE_WRAPPED, MethodDescriptor
-from spyne.util import six
+from spyne import BODY_STYLE_WRAPPED, MethodDescriptor, PushBase
+from spyne.util import six, coroutine, Break
 from spyne.util.six import string_types, BytesIO
 from spyne.error import ResourceNotFoundError
 from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64, File
@@ -197,62 +197,78 @@ class HttpRpc(SimpleDictDocument):
         self.event_manager.fire_event('after_deserialize', ctx)
 
     def serialize(self, ctx, message):
+        retval = None
+
         assert message in (self.RESPONSE,)
 
         if ctx.out_document is not None:
             return
 
-        if ctx.out_error is None:
-            result_class = ctx.descriptor.out_message
-            header_class = ctx.descriptor.out_header
-            if header_class is not None:
-                # HttpRpc supports only one header class
-                header_class = header_class[0]
-
-            # assign raw result to its wrapper, result_message
-            if ctx.out_object is None or len(ctx.out_object) < 1:
-                ctx.out_document = ['']
-
-            else:
-                out_class = None
-                out_object = None
-
-                if ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
-                    fti = result_class.get_flat_type_info(result_class)
-                    if len(fti) > 1 and not self.ignore_uncap:
-                        raise TypeError("HttpRpc protocol can only "
-                            "serialize functions with a single return type.")
-
-                    if len(fti) == 1:
-                        out_class, = fti.values()
-                        out_object, = ctx.out_object
-
-                else:
-                    out_class = result_class
-                    out_object, = ctx.out_object
-
-                if out_class is not None:
-                    ctx.out_document = self.to_bytes_iterable(out_class,
-                                                                    out_object)
-                    if issubclass(out_class, File) and not \
-                           isinstance(out_object, (list, tuple, string_types)) \
-                                                and out_object.type is not None:
-                        ctx.transport.set_mime_type(str(out_object.type))
-
-            # header
-            if ctx.out_header is not None:
-                out_header = ctx.out_header
-                if isinstance(ctx.out_header, (list, tuple)):
-                    out_header = ctx.out_header[0]
-
-                ctx.out_header_doc = self.object_to_simple_dict(header_class,
-                                   out_header, subvalue_eater=_header_to_bytes)
-
-        else:
+        if ctx.out_error is not None:
             ctx.transport.mime_type = 'text/plain'
             ctx.out_document = ctx.out_error.to_bytes_iterable(ctx.out_error)
 
+        else:
+            retval = self._handle_rpc(ctx)
+
         self.event_manager.fire_event('serialize', ctx)
+
+        return retval
+
+    def _handle_rpc_nonempty(self, ctx):
+        result_class = ctx.descriptor.out_message
+
+        out_class = None
+        out_object = None
+
+        if ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
+            fti = result_class.get_flat_type_info(result_class)
+
+            if len(fti) > 1 and not self.ignore_uncap:
+                raise TypeError("HttpRpc protocol can only serialize "
+                                "functions with a single return type.")
+
+            if len(fti) == 1:
+                out_class, = fti.values()
+                out_object, = ctx.out_object
+
+        else:
+            out_class = result_class
+            out_object, = ctx.out_object
+
+        if issubclass(out_class, File) and not \
+                    isinstance(out_object, (list, tuple, string_types)) \
+                    and out_object.type is not None:
+            ctx.transport.set_mime_type(str(out_object.type))
+
+        if out_class is not None:
+            ctx.out_document = self.to_bytes_iterable(out_class, out_object)
+
+    def _handle_rpc(self, ctx):
+        retval = None
+
+        # assign raw result to its wrapper, result_message
+        if ctx.out_object is None or len(ctx.out_object) < 1:
+            ctx.out_document = ['']
+
+        else:
+            retval = self._handle_rpc_nonempty(ctx)
+
+        header_class = ctx.descriptor.out_header
+        if header_class is not None:
+            # HttpRpc supports only one header class
+            header_class = header_class[0]
+
+        # header
+        if ctx.out_header is not None:
+            out_header = ctx.out_header
+            if isinstance(ctx.out_header, (list, tuple)):
+                out_header = ctx.out_header[0]
+
+            ctx.out_header_doc = self.object_to_simple_dict(header_class,
+                out_header, subvalue_eater=_header_to_bytes)
+
+        return retval
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         if ctx.out_string is not None:

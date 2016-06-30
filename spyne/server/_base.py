@@ -231,7 +231,8 @@ class ServerBase(object):
         # fire events
         p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
         if p_ctx.service_class is not None:
-            p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
+            p_ctx.service_class.event_manager.fire_event(
+                                           'method_return_push', p_ctx)
 
         # start push serialization
         gen = self.get_out_string_push(p_ctx)
