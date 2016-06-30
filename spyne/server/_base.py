@@ -222,7 +222,7 @@ class ServerBase(object):
     def init_root_push(self, ret, p_ctx, others):
         assert isinstance(ret, PushBase)
 
-        if p_ctx.pusher_stack is ret:
+        if ret in p_ctx.pusher_stack:
             logger.warning('PushBase reinit avoided.')
             return
 
