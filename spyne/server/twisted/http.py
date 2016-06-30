@@ -562,7 +562,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     ### start response
     retval = NOT_DONE_YET
 
-    if issubclass(ret, PushBase):
+    if isinstance(ret, PushBase):
         pass
 
     elif ((isclass(om) and issubclass(om, File)) or
