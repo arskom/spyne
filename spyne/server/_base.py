@@ -214,10 +214,12 @@ class ServerBase(object):
         return pusher.init(p_ctx, gen, _cb_push_finish, None)
 
     def pusher_try_close(self, ctx, ret, _):
+        ret.close()
+
         logger.debug("Closing pusher with ret=%r", ret)
+
         popped = ctx.pusher_stack.pop()
         assert popped is ret
-        ret.close()
 
     def init_root_push(self, ret, p_ctx, others):
         assert isinstance(ret, PushBase)

@@ -218,9 +218,12 @@ class TwistedHttpTransport(HttpBase):
 
                 logger.error(f.getTraceback())
 
-                ctx.out_stream.finish()
-                return super(TwistedHttpTransport, self) \
+                retval = super(TwistedHttpTransport, self) \
                                           .pusher_try_close(ctx, pusher, retval)
+
+                ctx.out_stream.finish()
+
+                return retval
 
             def _cb_push_close(r):
                 def _eb_inner(f):
@@ -228,9 +231,12 @@ class TwistedHttpTransport(HttpBase):
                     return f
 
                 if not isinstance(r, Deferred):
+                    retval = super(TwistedHttpTransport, self) \
+                                               .pusher_try_close(ctx, pusher, r)
                     ctx.out_stream.finish()
-                    return super(TwistedHttpTransport, self) \
-                                          .pusher_try_close(ctx, pusher, retval)
+
+                    return retval
+
                 else:
                     return r \
                         .addCallback(_cb_push_close) \
@@ -241,9 +247,11 @@ class TwistedHttpTransport(HttpBase):
                 .addErrback(_eb_push_close) \
                 .addErrback(err)
 
-        ctx.out_stream.finish()
-        return super(TwistedHttpTransport, self).pusher_try_close(
-                                                            ctx, pusher, retval)
+        retval = ctx.out_stream.finish()
+
+        super(TwistedHttpTransport, self).pusher_try_close(ctx, pusher, retval)
+
+        return retval
 
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
