@@ -105,7 +105,7 @@ class UserDefinedContext(object):
 class MyApplication(Application):
     def call_wrapper(self, ctx):
         try:
-            return ctx.service_class.call_wrapper(ctx)
+            return super(MyApplication, self).call_wrapper(ctx)
 
         except KeyError:
             raise ResourceNotFoundError(ctx.in_object)

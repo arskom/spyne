@@ -81,20 +81,21 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
     if obj is None:
         return 'None'
 
-    if cls is None:
-        cls = obj.__class__
+    objcls = None
+    if hasattr(obj, '__class__'):
+        objcls = obj.__class__
 
-    if cls in (list, tuple):
+    if objcls in (list, tuple):
         cls = Array(Any)
 
-    if cls is dict:
+    elif objcls is dict:
         cls = AnyDict
 
-    if cls in NATIVE_MAP:
-        cls = NATIVE_MAP[cls]
+    elif objcls in NATIVE_MAP:
+        cls = NATIVE_MAP[objcls]
 
-    if hasattr(obj, '__class__') and issubclass(obj.__class__, cls):
-        cls = obj.__class__
+    if objcls is not None and (cls is None or issubclass(objcls, cls)):
+        cls = objcls
 
     logged = None
     if hasattr(cls, 'Attributes'):
@@ -123,41 +124,55 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
     if issubclass(cls, AnyDict):
         retval = []
-        if logged == 'full':
-            for i, (v, v) in enumerate(obj.items()):
-                retval.append('%r: %r' % (v, v))
 
-        elif logged == 'keys':
-            for i, k in enumerate(obj.keys()):
-                if i >= MAX_DICT_ELEMENT_NUM:
-                    retval.append("(...)")
-                    break
+        if isinstance(obj, dict):
+            if logged == 'full':
+                for i, (k, v) in enumerate(obj.items()):
+                    retval.append('%r: %r' % (k, v))
 
-                retval.append('%r: (...)' % (k,))
+            elif logged == 'keys':
+                for i, k in enumerate(obj.keys()):
+                    if i >= MAX_DICT_ELEMENT_NUM:
+                        retval.append("(...)")
+                        break
 
-        elif logged == 'values':
-            for i, v in enumerate(obj.values()):
-                if i >= MAX_DICT_ELEMENT_NUM:
-                    retval.append("(...)")
-                    break
+                    retval.append('%r: (...)' % (k,))
 
-                retval.append('(...): %s' % (log_repr(v, tags=tags),))
+            elif logged == 'values':
+                for i, v in enumerate(obj.values()):
+                    if i >= MAX_DICT_ELEMENT_NUM:
+                        retval.append("(...)")
+                        break
 
-        elif logged == 'keys-full':
-            for i, k in enumerate(obj.keys()):
-                retval.append('%r: (...)' % (k,))
+                    retval.append('(...): %s' % (log_repr(v, tags=tags),))
 
-        elif logged == 'values-full':
-            for i, v in enumerate(obj.values()):
-                retval.append('(...): %r' % (v,))
+            elif logged == 'keys-full':
+                for k in obj.keys():
+                    retval.append('%r: (...)' % (k,))
 
+            elif logged == 'values-full':
+                for v in obj.values():
+                    retval.append('(...): %r' % (v,))
+
+            else:
+                for i, (k, v) in enumerate(obj.items()):
+                    if i >= MAX_DICT_ELEMENT_NUM:
+                        retval.append("(...)")
+                        break
+
+                    retval.append('%r: %s' % (k,
+                                              log_repr(v, parent=k, tags=tags)))
         else:
-            for i, (k, v) in enumerate(obj.items()):
-                if i >= MAX_DICT_ELEMENT_NUM:
-                    retval.append("(...)")
-                    break
+            if logged in ('full', 'keys-full', 'values-full'):
+                retval = [repr(s) for s in obj]
 
-                retval.append('%r: %s' % (k, log_repr(v, parent=k, tags=tags)))
+            else:
+                for i, v in enumerate(obj):
+                    if i >= MAX_DICT_ELEMENT_NUM:
+                        retval.append("(...)")
+                        break
+
+                    retval.append(log_repr(v, tags=tags))
 
         return "{%s}" % ', '.join(retval)
 
