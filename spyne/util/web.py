@@ -27,26 +27,19 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
-
-from spyne import BODY_STYLE_WRAPPED, rpc, Any, AnyDict, NATIVE_MAP
-from spyne.util import six
-from spyne.application import Application as AppBase
+from spyne import rpc, Any, AnyDict, NATIVE_MAP
+from spyne.const import MAX_ARRAY_ELEMENT_NUM, MAX_DICT_ELEMENT_NUM
 from spyne.const import MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
-from spyne.const import MAX_ARRAY_ELEMENT_NUM
-from spyne.error import Fault
-from spyne.error import InternalError
 from spyne.error import ResourceNotFoundError
-from spyne.service import ServiceBase
-from spyne.util import memoize
-from spyne.util.email import email_exception
+from spyne.model import Array
+from spyne.model import ComplexModelBase
 from spyne.model import Mandatory as M, UnsignedInteger32, PushBase, Iterable, \
     ModelBase, File
 from spyne.model import Unicode
-from spyne.model import Array
-from spyne.model import ComplexModelBase
+from spyne.service import ServiceBase
 from spyne.store.relational import PGFileJson
+from spyne.util import memoize
+from spyne.util import six
 
 
 EXCEPTION_ADDRESS = None
@@ -103,8 +96,14 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
     if hasattr(obj, '__class__') and issubclass(obj.__class__, cls):
         cls = obj.__class__
 
-    if hasattr(cls, 'Attributes') and not cls.Attributes.logged:
-        return "%s(...)" % cls.get_type_name()
+    logged = None
+    if hasattr(cls, 'Attributes'):
+        logged = cls.Attributes.logged
+        if not logged:
+            return "%s(...)" % cls.get_type_name()
+
+        if logged == '...':
+            return "(...)"
 
     if issubclass(cls, File) and isinstance(obj, File.Value):
         cls = obj.__class__
@@ -121,6 +120,46 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
                 l = str(given_len)
 
         return "<len=%s>" % l
+
+    if issubclass(cls, AnyDict):
+        retval = []
+        if logged == 'full':
+            for i, (v, v) in enumerate(obj.items()):
+                retval.append('%r: %r' % (v, v))
+
+        elif logged == 'keys':
+            for i, k in enumerate(obj.keys()):
+                if i >= MAX_DICT_ELEMENT_NUM:
+                    retval.append("(...)")
+                    break
+
+                retval.append('%r: (...)' % (k,))
+
+        elif logged == 'values':
+            for i, v in enumerate(obj.values()):
+                if i >= MAX_DICT_ELEMENT_NUM:
+                    retval.append("(...)")
+                    break
+
+                retval.append('(...): %s' % (log_repr(v, tags=tags),))
+
+        elif logged == 'keys-full':
+            for i, k in enumerate(obj.keys()):
+                retval.append('%r: (...)' % (k,))
+
+        elif logged == 'values-full':
+            for i, v in enumerate(obj.values()):
+                retval.append('(...): %r' % (v,))
+
+        else:
+            for i, (k, v) in enumerate(obj.items()):
+                if i >= MAX_DICT_ELEMENT_NUM:
+                    retval.append("(...)")
+                    break
+
+                retval.append('%r: %s' % (k, log_repr(v, parent=k, tags=tags)))
+
+        return "{%s}" % ', '.join(retval)
 
     if issubclass(cls, Array):
         cls, = cls._type_info.values()
@@ -139,8 +178,11 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
             retval = '[<PushData>]'
 
         else:
+            if logged is None:
+                logged = cls.Attributes.logged
+
             for i, o in enumerate(obj):
-                if i >= MAX_ARRAY_ELEMENT_NUM:
+                if logged != 'full' and i >= MAX_ARRAY_ELEMENT_NUM:
                     retval.append("(...)")
                     break
 
@@ -162,6 +204,10 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
                 break
 
             if not t.Attributes.logged:
+                continue
+
+            if logged == '...':
+                retval.append("%s=(...)" % k)
                 continue
 
             try:

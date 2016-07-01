@@ -27,6 +27,9 @@ MAX_STRING_FIELD_LENGTH = 64
 MAX_ARRAY_ELEMENT_NUM = 2
 """Maximum number of array elements for :func:`spyne.util.log_repr`"""
 
+MAX_DICT_ELEMENT_NUM = 2
+"""Maximum number of dict elements for :func:`spyne.util.log_repr`"""
+
 MAX_FIELD_NUM = 10
 """Maximum number of complex model fields for :func:`spyne.util.log_repr`"""
 

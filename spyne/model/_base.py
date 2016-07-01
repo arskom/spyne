@@ -308,8 +308,27 @@ class ModelBase(object):
         """If true, this field will be excluded from the interface document."""
 
         logged = True
-        """If false, this object will be ignored in ``log_repr``, mostly used
-        for logging purposes."""
+        """If `False`, this object will be ignored in ``log_repr``, mostly used
+        for logging purposes.
+
+        * Primitives can have logger=``'...'`` which will
+        always log the value as ``(...)``.
+
+        * ``AnyDict`` can have one of
+        ``('keys', 'keys-full', 'values', 'values-full, 'full')`` as logger
+        value where for ``'keys'`` and ``'values'`` the output of ``keys()``
+        and ``values()`` will be logged up to MAX_DICT_ELEMENT_NUM number of
+        elements and for ``'full'`` variants, all of the contents of the dict
+        will be logged will be logged
+
+        * ``Array`` can also have ``logger='full'`` where all of the value
+        will be logged where as for simple ``logger=True`` only
+        MAX_ARRAY_ELEMENT_NUM elements will be logged.
+
+        * For ``ComplexModel`` subclasses sent as first value to log_repr,
+        ``logger=False`` means a string of form ``ClassName(...)`` will  be
+        logged.
+        """
 
         unique = None
         """If True, this object will be set as unique in the database schema
