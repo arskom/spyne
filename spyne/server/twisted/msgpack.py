@@ -36,7 +36,7 @@ from twisted.internet.protocol import Protocol, Factory, connectionDone, \
     ClientFactory
 from twisted.python.failure import Failure
 
-from spyne import EventManager, Address, ServerBase
+from spyne import EventManager, Address, ServerBase, Fault
 from spyne.auxproc import process_contexts
 from spyne.error import InternalError
 
@@ -291,13 +291,15 @@ class TwistedMessagePackProtocol(Protocol):
 
 
 def _eb_deferred(fail, prot, p_ctx, others):
-    p_ctx.out_error = fail.value
-    tb = None
+    assert isinstance(fail, Failure)
 
-    if isinstance(fail, Failure):
-        tb = fail.getTracebackObject()
-        fail.printTraceback()
+    if isinstance(fail.value, Fault):
+        p_ctx.out_error = fail.value
+
+    else:
         p_ctx.out_error = InternalError(fail.value)
+        if not getattr(fail, 'logged', False):
+            fail.printTraceback()
 
     prot.handle_error(p_ctx, others, p_ctx.out_error)
 
@@ -307,8 +309,6 @@ def _eb_deferred(fail, prot, p_ctx, others):
         data_len += len(data)
 
     p_ctx.transport.resp_length = data_len
-
-    return Failure(p_ctx.out_error, p_ctx.out_error.__class__, tb)
 
 
 def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
