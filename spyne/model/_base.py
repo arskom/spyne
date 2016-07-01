@@ -305,7 +305,8 @@ class ModelBase(object):
         """
 
         exc_interface = False
-        """If true, this field will be excluded from the interface document."""
+        """If `True`, this field will be excluded from the interface
+        document."""
 
         logged = True
         """If `False`, this object will be ignored in ``log_repr``, mostly used
