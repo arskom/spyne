@@ -291,6 +291,16 @@ class TestIncompleteInput(unittest.TestCase):
         msg = element[0]
         r = XmlDocument().from_element(None, Y, msg)
 
+    def test_serialization_instance_on_subclass(self):
+        test_values = {
+            'x': [1, 2],
+            'y': 38
+        }
+        instance = Y.get_serialization_instance(test_values)
+
+        self.assertEqual(instance.x, [1, 2])
+        self.assertEqual(instance.y, 38)
+
 
 class SisMsg(ComplexModel):
     data_source = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
