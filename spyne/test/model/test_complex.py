@@ -316,6 +316,47 @@ class EncExtractXs(ComplexModel):
     enc_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
     hist_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
 
+class TestComplex(unittest.TestCase):
+    def test_array_type_name(self):
+        assert Array(String, type_name='punk').__type_name__ == 'punk'
+
+    def test_ctor_kwargs(self):
+        class Category(ComplexModel):
+            id = Integer(min_occurs=1, max_occurs=1, nillable=False)
+            children = Array(Unicode)
+
+        v = Category(id=5, children=['a','b'])
+
+        assert v.id == 5
+        assert v.children == ['a', 'b']
+
+    def test_ctor_args(self):
+        class Category(ComplexModel):
+            id = XmlData(Integer(min_occurs=1, max_occurs=1, nillable=False))
+            children = Array(Unicode)
+
+        v = Category(id=5, children=['a','b'])
+
+        assert v.id == 5
+        assert v.children == ['a', 'b']
+
+        v = Category(5, children=['a','b'])
+
+        assert v.id == 5
+        assert v.children == ['a', 'b']
+
+    def test_ctor_args_2(self):
+        class Category(ComplexModel):
+            children = Array(Unicode)
+
+        class BetterCategory(Category):
+            sub_category = Unicode
+
+        v = BetterCategory(children=['a','b'], sub_category='aaa')
+
+        assert v.children == ['a', 'b']
+        assert v.sub_category == 'aaa'
+
 
 class TestXmlAttribute(unittest.TestCase):
     def assertIsNotNone(self, obj, msg=None):
@@ -578,46 +619,6 @@ class TestSelfRefence(unittest.TestCase):
 
         sr, = Category._type_info['children']._type_info.values()
         assert issubclass(sr, Category)
-
-    def test_array_type_name(self):
-        assert Array(String, type_name='punk').__type_name__ == 'punk'
-
-    def test_ctor_kwargs(self):
-        class Category(ComplexModel):
-            id = Integer(min_occurs=1, max_occurs=1, nillable=False)
-            children = Array(Unicode)
-
-        v = Category(id=5, children=['a','b'])
-
-        assert v.id == 5
-        assert v.children == ['a', 'b']
-
-    def test_ctor_args(self):
-        class Category(ComplexModel):
-            id = XmlData(Integer(min_occurs=1, max_occurs=1, nillable=False))
-            children = Array(Unicode)
-
-        v = Category(id=5, children=['a','b'])
-
-        assert v.id == 5
-        assert v.children == ['a', 'b']
-
-        v = Category(5, children=['a','b'])
-
-        assert v.id == 5
-        assert v.children == ['a', 'b']
-
-    def test_ctor_args_2(self):
-        class Category(ComplexModel):
-            children = Array(Unicode)
-
-        class BetterCategory(Category):
-            sub_category = Unicode
-
-        v = BetterCategory(children=['a','b'], sub_category='aaa')
-
-        assert v.children == ['a', 'b']
-        assert v.sub_category == 'aaa'
 
 
 class TestMemberRpc(unittest.TestCase):
