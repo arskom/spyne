@@ -229,12 +229,72 @@ class TestLogRepr(unittest.TestCase):
                 ('t', ByteArray(logged=False)),
                 ('z', Array(String)),
             ]
-
         l = MAX_STRING_FIELD_LENGTH + 100
         val = Z(z=["abc"] * l, t=['t'], f=File.Value(name='aaa', data=['t']))
         print(repr(val))
 
         assert log_repr(val) == "Z(z=['abc', 'abc', (...)])"
+
+    def test_log_repr_dict_vanilla(self):
+        from spyne.model import AnyDict
+        from spyne.util.web import log_repr
+
+        t = AnyDict
+
+        assert log_repr({1: 1}, t) == "{1: 1}"
+        assert log_repr({1: 1, 2: 2}, t) == "{1: 1, 2: 2}"
+        assert log_repr({1: 1, 2: 2, 3: 3}, t) == "{1: 1, 2: 2, (...)}"
+
+        assert log_repr([1], t) == "[1]"
+        assert log_repr([1, 2], t) == "[1, 2]"
+        assert log_repr([1, 2, 3], t) == "[1, 2, (...)]"
+
+    def test_log_repr_dict_keys(self):
+        from spyne.model import AnyDict
+        from spyne.util.web import log_repr
+
+        t = AnyDict(logged='keys')
+
+        assert log_repr({1: 1}, t) == "{1: (...)}"
+
+        assert log_repr([1], t) == "[1]"
+
+    def test_log_repr_dict_values(self):
+        from spyne.model import AnyDict
+        from spyne.util.web import log_repr
+
+        t = AnyDict(logged='values')
+
+        assert log_repr({1: 1}, t) == "{(...): 1}"
+
+        assert log_repr([1], t) == "[1]"
+
+    def test_log_repr_dict_full(self):
+        from spyne.model import AnyDict
+        from spyne.util.web import log_repr
+
+        t = AnyDict(logged='full')
+
+        assert log_repr({1: 1, 2: 2, 3: 3}, t) == "{1: 1, 2: 2, 3: 3}"
+        assert log_repr([1, 2, 3], t) == "[1, 2, 3]"
+
+    def test_log_repr_dict_keys_full(self):
+        from spyne.model import AnyDict
+        from spyne.util.web import log_repr
+
+        t = AnyDict(logged='keys-full')
+
+        assert log_repr({1: 1, 2: 2, 3: 3}, t) == "{1: (...), 2: (...), 3: (...)}"
+        assert log_repr([1, 2, 3], t) == "[1, 2, 3]"
+
+    def test_log_repr_dict_values_full(self):
+        from spyne.model import AnyDict
+        from spyne.util.web import log_repr
+
+        t = AnyDict(logged='values-full')
+
+        assert log_repr({1: 1, 2: 2, 3: 3}, t) == "{(...): 1, (...): 2, (...): 3}"
+        assert log_repr([1, 2, 3], t) == "[1, 2, 3]"
 
 
 class TestDeserialize(unittest.TestCase):

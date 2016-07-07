@@ -66,7 +66,7 @@ class WriterServiceBase(ServiceBase):
     pass
 
 
-def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=None):
+def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=None, prot=None):
     """Use this function if you want to serialize a ComplexModelBase instance to
     logs. It will:
 
@@ -86,20 +86,27 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
         objcls = obj.__class__
 
     if objcls in (list, tuple):
-        cls = Array(Any)
+        objcls = Array(Any)
 
     elif objcls is dict:
-        cls = AnyDict
+        objcls = AnyDict
 
     elif objcls in NATIVE_MAP:
-        cls = NATIVE_MAP[objcls]
+        objcls = NATIVE_MAP[objcls]
 
     if objcls is not None and (cls is None or issubclass(objcls, cls)):
         cls = objcls
 
+    cls_attrs = None
     logged = None
+
     if hasattr(cls, 'Attributes'):
-        logged = cls.Attributes.logged
+        if prot is None:
+            cls_attrs = cls.Attributes
+        else:
+            cls_attrs = prot.get_cls_attrs(cls)
+
+        logged = cls_attrs.logged
         if not logged:
             return "%s(...)" % cls.get_type_name()
 
@@ -109,7 +116,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
     if issubclass(cls, File) and isinstance(obj, File.Value):
         cls = obj.__class__
 
-    if cls.Attributes.logged == 'len':
+    if cls_attrs.logged == 'len':
         l = '?'
         try:
             if isinstance(obj, (list, tuple)):
@@ -154,7 +161,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
                 for v in obj.values():
                     retval.append('(...): %r' % (v,))
 
-            else:
+            elif logged is True:  # default behaviour
                 for i, (k, v) in enumerate(obj.items()):
                     if i >= MAX_DICT_ELEMENT_NUM:
                         retval.append("(...)")
@@ -162,6 +169,11 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
                     retval.append('%r: %s' % (k,
                                               log_repr(v, parent=k, tags=tags)))
+            else:
+                raise ValueError("Invalid value logged=%r", logged)
+
+            return "{%s}" % ', '.join(retval)
+
         else:
             if logged in ('full', 'keys-full', 'values-full'):
                 retval = [repr(s) for s in obj]
@@ -174,40 +186,39 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
                     retval.append(log_repr(v, tags=tags))
 
-        return "{%s}" % ', '.join(retval)
+            return "[%s]" % ', '.join(retval)
 
-    if issubclass(cls, Array):
-        cls, = cls._type_info.values()
-
-    if (cls.Attributes.max_occurs > 1) and not from_array:
+    if (issubclass(cls, Array) or (cls_attrs.max_occurs > 1)) and not from_array:
         if id(obj) in tags:
             return "%s(...)" % obj.__class__.__name__
+
         tags.add(id(obj))
 
         retval = []
+
         subcls = cls
         if issubclass(cls, Array):
             subcls, = cls._type_info.values()
 
         if isinstance(obj, PushBase):
-            retval = '[<PushData>]'
+            return '[<PushData>]'
 
-        else:
-            if logged is None:
-                logged = cls.Attributes.logged
+        if logged is None:
+            logged = cls_attrs.logged
 
-            for i, o in enumerate(obj):
-                if logged != 'full' and i >= MAX_ARRAY_ELEMENT_NUM:
-                    retval.append("(...)")
-                    break
+        for i, o in enumerate(obj):
+            if logged != 'full' and i >= MAX_ARRAY_ELEMENT_NUM:
+                retval.append("(...)")
+                break
 
-                retval.append(log_repr(o, subcls, from_array=True, tags=tags))
+            retval.append(log_repr(o, subcls, from_array=True, tags=tags))
 
-            retval = "[%s]" % (', '.join(retval))
+        return "[%s]" % (', '.join(retval))
 
-    elif issubclass(cls, ComplexModelBase):
+    if issubclass(cls, ComplexModelBase):
         if id(obj) in tags:
             return "%s(...)" % obj.__class__.__name__
+
         tags.add(id(obj))
 
         retval = []
@@ -245,21 +256,19 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
         return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
-    elif issubclass(cls, Unicode) and isinstance(obj, six.string_types):
+    if issubclass(cls, Unicode) and isinstance(obj, six.string_types):
         if len(obj) > MAX_STRING_FIELD_LENGTH:
             return '%r(...)' % obj[:MAX_STRING_FIELD_LENGTH]
 
-        else:
-            return repr(obj)
+        return repr(obj)
 
-    elif issubclass(cls, File) and isinstance(obj, PGFileJson.FileData):
-        retval = log_repr(obj, PGFileJson.FileData, tags=tags)
+    if issubclass(cls, File) and isinstance(obj, PGFileJson.FileData):
+        return log_repr(obj, PGFileJson.FileData, tags=tags)
 
-    else:
-        retval = repr(obj)
+    retval = repr(obj)
 
-        if len(retval) > MAX_STRING_FIELD_LENGTH:
-            retval = retval[:MAX_STRING_FIELD_LENGTH] + "(...)"
+    if len(retval) > MAX_STRING_FIELD_LENGTH:
+        retval = retval[:MAX_STRING_FIELD_LENGTH] + "(...)"
 
     return retval
 
