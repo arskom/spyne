@@ -356,33 +356,32 @@ def _gen_index_info(table, col, k, v):
         index = True
 
     try:
-        index_name, index_method = v.Attributes.index
+        index_name, index_method = index
 
     except (TypeError, ValueError):
         index_name = "%s_%s%s" % (table.name, k, '_unique' if unique else '')
-        index_method = v.Attributes.index
+        index_method = index
 
     if index in (False, None):
-        pass
+        return
 
+    if index is True:
+        index_args = (index_name, col), dict(unique=unique)
     else:
-        if index is True:
-            index_args = (index_name, col), dict(unique=unique)
-        else:
-            index_args = (index_name, col), dict(unique=unique,
-                                      postgresql_using=index_method)
+        index_args = (index_name, col), dict(unique=unique,
+                                  postgresql_using=index_method)
 
-        if isinstance(table, _FakeTable):
-            table.indexes.append(index_args)
-        else:
-            indexes = dict([(idx.name, idx) for idx in col.table.indexes])
-            existing_idx = indexes.get(index_name, None)
-            if existing_idx is None:
-                Index(*index_args[0], **index_args[1])
+    if isinstance(table, _FakeTable):
+        table.indexes.append(index_args)
+    else:
+        indexes = dict([(idx.name, idx) for idx in col.table.indexes])
+        existing_idx = indexes.get(index_name, None)
+        if existing_idx is None:
+            Index(*index_args[0], **index_args[1])
 
-            else:
-                assert existing_idx.unique == unique
-                assert existing_idx.kwargs.get('postgresql_using') == index_method
+        else:
+            assert existing_idx.unique == unique
+            assert existing_idx.kwargs.get('postgresql_using') == index_method
 
 
 def _check_inheritance(cls, cls_bases):
@@ -775,16 +774,14 @@ def _add_complex_type(cls, props, table, k, v):
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
     if isinstance(p, c_table):
-        return _add_complex_type_as_table(cls, props, table, k, v,
-                                                        p, col_args, col_kwargs)
-
+        return _add_complex_type_as_table(cls, props, table, k, v, p,
+                                                           col_args, col_kwargs)
     elif isinstance(p, c_xml):
-        return _add_complex_type_as_xml(cls, props, table, k, v,
-                                                        p, col_args, col_kwargs)
+        return _add_complex_type_as_xml(cls, props, table, k, v, p,
+                                                           col_args, col_kwargs)
     elif isinstance(p, c_json):
-        return _add_complex_type_as_json(cls, props, table, k, v,
-                                                        p, col_args, col_kwargs)
-
+        return _add_complex_type_as_json(cls, props, table, k, v, p,
+                                                           col_args, col_kwargs)
     elif isinstance(p, c_msgpack):
         raise NotImplementedError(c_msgpack)
 
