@@ -87,22 +87,32 @@ class _JOINED:
 
 
 _sq2sp_type_map = {
-    sqlalchemy.Text: String,
-    sqlalchemy.String: String,
-    sqlalchemy.Unicode: String,
-    sqlalchemy.UnicodeText: String,
-
     sqlalchemy.Float: Float,
     sqlalchemy.Numeric: Decimal,
+
     sqlalchemy.BigInteger: Integer,
+    sqlalchemy.BIGINT: Integer,
+
     sqlalchemy.Integer: Integer,
+    sqlalchemy.INTEGER: Integer,
+
     sqlalchemy.SmallInteger: Integer,
+    sqlalchemy.SMALLINT: Integer,
 
     sqlalchemy.Binary: ByteArray,
     sqlalchemy.LargeBinary: ByteArray,
+
     sqlalchemy.Boolean: Boolean,
+    sqlalchemy.BOOLEAN: Boolean,
+
     sqlalchemy.DateTime: DateTime,
+    sqlalchemy.TIMESTAMP: DateTime,
+    sqlalchemy.dialects.postgresql.base.TIMESTAMP: DateTime,
+    sqlalchemy.DATETIME: DateTime,
+
     sqlalchemy.Date: Date,
+    sqlalchemy.DATE: Date,
+
     sqlalchemy.Time: Time,
 
     PGUuid: Uuid,
@@ -951,26 +961,20 @@ def _get_spyne_type(v):
     """This function maps sqlalchemy types to spyne types."""
 
     rpc_type = None
-
     if isinstance(v.type, sqlalchemy.Enum):
         if v.type.convert_unicode:
             rpc_type = Unicode(values=v.type.enums)
         else:
             rpc_type = Enum(*v.type.enums, **{'type_name': v.type.name})
 
-    elif isinstance(v.type, sqlalchemy.Unicode):
-        rpc_type = Unicode(v.type.length)
-
-    elif isinstance(v.type, sqlalchemy.UnicodeText):
+    elif isinstance(v.type, (sqlalchemy.UnicodeText, sqlalchemy.Text)):
         rpc_type = Unicode
 
-    elif isinstance(v.type, sqlalchemy.Text):
-        rpc_type = String
+    elif isinstance(v.type, (sqlalchemy.Unicode, sqlalchemy.String,
+                                                           sqlalchemy.VARCHAR)):
+        rpc_type = Unicode(v.type.length)
 
-    elif isinstance(v.type, sqlalchemy.String):
-        rpc_type = String(v.type.length)
-
-    elif isinstance(v.type, (sqlalchemy.Numeric)):
+    elif isinstance(v.type, sqlalchemy.Numeric):
         rpc_type = Decimal(v.type.precision, v.type.scale)
 
     elif isinstance(v.type, PGXml):
