@@ -590,8 +590,8 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         _sanitize_type_info(cls_name, _type_info, _type_info_alt)
         _sanitize_sqlalchemy_parameters(cls_dict, attrs)
 
-        return super(ComplexModelMeta, cls).__new__(cls, cls_name, cls_bases,
-                                                    cls_dict)
+        return super(ComplexModelMeta, cls).__new__(cls,
+                                                  cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = self._type_info
