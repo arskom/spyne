@@ -87,8 +87,13 @@ class _JOINED:
 
 
 _sq2sp_type_map = {
-    sqlalchemy.Float: Float,
+    # we map float => double because sqla doesn't
+    # distinguish between floats and doubles.
+    sqlalchemy.Float: Double,
+    sqlalchemy.FLOAT: Double,
+
     sqlalchemy.Numeric: Decimal,
+    sqlalchemy.NUMERIC: Decimal,
 
     sqlalchemy.BigInteger: Integer,
     sqlalchemy.BIGINT: Integer,
