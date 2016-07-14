@@ -114,6 +114,7 @@ _sq2sp_type_map = {
     sqlalchemy.DATE: Date,
 
     sqlalchemy.Time: Time,
+    sqlalchemy.TIME: Time,
 
     PGUuid: Uuid,
     PGLTree: Ltree,
