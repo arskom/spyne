@@ -95,14 +95,14 @@ _sq2sp_type_map = {
     sqlalchemy.Numeric: Decimal,
     sqlalchemy.NUMERIC: Decimal,
 
-    sqlalchemy.BigInteger: Integer,
-    sqlalchemy.BIGINT: Integer,
+    sqlalchemy.BigInteger: Integer64,
+    sqlalchemy.BIGINT: Integer64,
 
-    sqlalchemy.Integer: Integer,
-    sqlalchemy.INTEGER: Integer,
+    sqlalchemy.Integer: Integer32,
+    sqlalchemy.INTEGER: Integer32,
 
-    sqlalchemy.SmallInteger: Integer,
-    sqlalchemy.SMALLINT: Integer,
+    sqlalchemy.SmallInteger: Integer16,
+    sqlalchemy.SMALLINT: Integer16,
 
     sqlalchemy.Binary: ByteArray,
     sqlalchemy.LargeBinary: ByteArray,
