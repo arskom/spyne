@@ -214,7 +214,7 @@ def _substitute_self_reference(params, kparams, kwargs, _no_self):
             kparams[k] = v
 
 
-def rpc(*params, **kparams):
+def rpc(*params, **kparams_original):
     """Method decorator to tag a method as a remote procedure call in a
     :class:`spyne.service.ServiceBase` subclass.
 
@@ -278,6 +278,7 @@ def rpc(*params, **kparams):
 
     def explain(f):
         def explain_method(**kwargs):
+            kparams = dict(kparams_original)
             function_name = kwargs['_default_function_name']
 
             # this block is passed straight to the descriptor
