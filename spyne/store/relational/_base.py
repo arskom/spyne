@@ -420,13 +420,6 @@ def _check_inheritance(cls, cls_bases):
                 inheritance = _JOINED
                 raise NotImplementedError("Joined table inheritance is not yet "
                                           "implemented.")
-            inc_prop = base_class.Attributes.sqla_mapper.include_properties
-            if inc_prop is not None:
-                inc.extend(inc_prop)
-
-            exc_prop = base_class.Attributes.sqla_mapper.exclude_properties
-            if exc_prop is not None:
-                inc = [_p for _p in inc if not _p in exc_prop]
 
     # check whether the base classes are already mapped
     base_mapper = None
@@ -884,10 +877,6 @@ def _gen_mapper(cls, props, table, cls_bases):
     else:
         props.update(_props)
         mapper_kwargs['properties'] = props
-
-    _inc = mapper_kwargs.get('include_properties', None)
-    if _inc is None:
-        mapper_kwargs['include_properties'] = inc + list(props.keys())
 
     po = mapper_kwargs.get('polymorphic_on', None)
     if po is not None:
