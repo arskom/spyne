@@ -18,8 +18,7 @@
 #
 
 """
-This package contains EXPERIMENTAL html output protocols. The API here is in
-constant change. You have been warned.
+This package contains some basic html output protocols.
 """
 
 from spyne.protocol.html._base import HtmlBase
