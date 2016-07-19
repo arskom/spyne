@@ -80,6 +80,7 @@ from spyne.model.primitive.number import UnsignedInt
 from spyne.model.primitive.number import UnsignedInteger64
 from spyne.model.primitive.number import UnsignedLong
 from spyne.model.primitive.number import NonNegativeInteger # Xml Schema calls it so
+from spyne.model.primitive.number import PositiveInteger
 from spyne.model.primitive.number import UnsignedInteger
 
 from spyne.model.primitive.network import MacAddress
