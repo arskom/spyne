@@ -417,6 +417,17 @@ class ModelBase(object):
 
     _force_own_namespace = None
 
+    @classmethod
+    def ancestors(cls):
+        retval = []
+
+        extends = cls.__extends__
+        while extends is not None:
+            retval.append(extends)
+            extends = extends.__extends__
+
+        return retval
+
     @staticmethod
     def is_default(cls):
         return True
