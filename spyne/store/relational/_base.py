@@ -962,6 +962,21 @@ def add_column(cls, subname, subcls):
             sqla_mapper.add_property(subname, subcls)
 
 
+def _parent_mapper_has_property(cls, cls_bases, k):
+    if len(cls_bases) == 0 and cls.__orig__ is cls_bases[0]:
+        return False
+
+    for b in cls_bases:
+        mapper = b.Attributes.sqla_mapper
+        if mapper is not None and mapper.has_property(k):
+            # print("    Skipping mapping field", "%s.%s" % (cls.__name__, k),
+            #          "because parent mapper from", b.__name__, "already has it")
+            return True
+
+    # print("NOT skipping mapping field", "%s.%s" % (cls.__name__, k))
+    return False
+
+
 def gen_sqla_info(cls, cls_bases=()):
     """Return SQLAlchemy table object corresponding to the passed Spyne object.
     Also maps given class to the returned table.
@@ -994,6 +1009,9 @@ def gen_sqla_info(cls, cls_bases=()):
         fields = cls.get_flat_type_info(cls).items()
 
     for k, v in fields:
+        if _parent_mapper_has_property(cls, cls_bases, k):
+            continue
+
         t = _get_sqlalchemy_type(v)
 
         if t is None:  # complex model
