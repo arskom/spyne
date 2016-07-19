@@ -334,15 +334,16 @@ class TestSqlAlchemySchema(unittest.TestCase):
             }
             i = Integer32
 
-        SubBar()
+        sqlalchemy.orm.configure_mappers()
 
         mapper_subbar = SubBar.Attributes.sqla_mapper
+        mapper_bar = Bar.Attributes.sqla_mapper
         assert not mapper_subbar.concrete
 
         for inheriting in mapper_subbar.iterate_to_root():
             if inheriting is not mapper_subbar \
-                                         and inheriting.has_property('foos') \
-                                         and mapper_subbar.has_property('foos'):
+                    and not (mapper_bar.relationships['foos'] is
+                                           mapper_subbar.relationships['foos']):
                 raise Exception("Thou shalt stop children relationships "
                                            "from overriding the ones in parent")
 
