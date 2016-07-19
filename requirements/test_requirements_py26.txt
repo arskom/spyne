@@ -8,7 +8,7 @@ sqlalchemy
 lxml>=2.3
 pyyaml
 pyzmq
-twisted
+twisted<15.4
 colorama
 msgpack-python
 webtest
