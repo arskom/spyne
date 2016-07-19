@@ -760,6 +760,18 @@ class TestSqlAlchemySchema(unittest.TestCase):
         C.append_field('d', D.store_as('table'))
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
 
+    def test_append_field_complex_delayed(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            u = Unicode(pk=True)
+
+        class D(C):
+            i = Integer32
+
+        C.append_field('d', DateTime)
+
+        assert D.Attributes.sqla_mapper.has_property('d')
+
     def _test_append_field_complex_explicit_existing_column(self):
         # FIXME: Test something!
 
