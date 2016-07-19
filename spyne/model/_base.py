@@ -419,6 +419,8 @@ class ModelBase(object):
 
     @classmethod
     def ancestors(cls):
+        """Returns a list of parent classes in child-to-parent order."""
+
         retval = []
 
         extends = cls.__extends__

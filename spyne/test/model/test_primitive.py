@@ -53,6 +53,15 @@ class TestPrimitive(unittest.TestCase):
     def test_getitem_cust(self):
         assert Unicode[dict(max_len=2)].Attributes.max_len
 
+    def test_ancestors(self):
+        class A(ComplexModel): i = Integer
+        class B(A): i2 = Integer
+        class C(B): i3 = Integer
+
+        assert C.ancestors() == [B, A]
+        assert B.ancestors() == [A]
+        assert A.ancestors() == []
+
     def test_nillable_quirks(self):
         assert ModelBase.Attributes.nillable == True
         class Attributes(ModelBase.Attributes):
