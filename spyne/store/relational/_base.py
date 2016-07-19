@@ -127,19 +127,19 @@ _sq2sp_type_map = {
 
 
 # this needs to be called whenever a new column is instantiated.
-def _sp_attrs_to_sqla_constraints(cls, v, col_kwargs=None, col=None):
+def _sp_attrs_to_sqla_constraints(cls, subcls, col_kwargs=None, col=None):
     # cls is the parent class of v
-    if v.Attributes.nullable == False and cls.__extends__ is None:
+    if subcls.Attributes.nullable == False and cls.__extends__ is None:
         if col is None:
             col_kwargs['nullable'] = False
         else:
             col.nullable = False
 
-    if v.Attributes.db_default is not None:
+    if subcls.Attributes.db_default is not None:
         if col is None:
-            col_kwargs['default'] = v.Attributes.db_default
+            col_kwargs['default'] = subcls.Attributes.db_default
         else:
-            col.default = v.Attributes.db_default
+            col.default = subcls.Attributes.db_default
 
 
 def _get_sqlalchemy_type(cls):
@@ -148,103 +148,103 @@ def _get_sqlalchemy_type(cls):
         return db_type
 
     # must be above Unicode, because Ltree is Unicode's subclass
-    elif issubclass(cls, Ltree):
+    if issubclass(cls, Ltree):
         return PGLTree
 
     # must be above Unicode, because Ip*Address is Unicode's subclass
-    elif issubclass(cls, (IpAddress, Ipv4Address, Ipv6Address)):
+    if issubclass(cls, (IpAddress, Ipv4Address, Ipv6Address)):
         return PGInet
 
     # must be above Unicode, because Uuid is Unicode's subclass
-    elif issubclass(cls, Uuid):
+    if issubclass(cls, Uuid):
         return PGUuid(as_uuid=True)
 
     # must be above Unicode, because Point is Unicode's subclass
-    elif issubclass(cls, Point):
+    if issubclass(cls, Point):
         return PGGeometry("POINT", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because Line is Unicode's subclass
-    elif issubclass(cls, Line):
+    if issubclass(cls, Line):
         return PGGeometry("LINESTRING", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because Polygon is Unicode's subclass
-    elif issubclass(cls, Polygon):
+    if issubclass(cls, Polygon):
         return PGGeometry("POLYGON", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because MultiPoint is Unicode's subclass
-    elif issubclass(cls, MultiPoint):
+    if issubclass(cls, MultiPoint):
         return PGGeometry("MULTIPOINT", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because MultiLine is Unicode's subclass
-    elif issubclass(cls, MultiLine):
+    if issubclass(cls, MultiLine):
         return PGGeometry("MULTILINESTRING", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because MultiPolygon is Unicode's subclass
-    elif issubclass(cls, MultiPolygon):
+    if issubclass(cls, MultiPolygon):
         return PGGeometry("MULTIPOLYGON", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because String is Unicode's subclass
-    elif issubclass(cls, String):
+    if issubclass(cls, String):
         if cls.Attributes.max_len == String.Attributes.max_len: # Default is arbitrary-length
             return sqlalchemy.Text
         else:
             return sqlalchemy.String(cls.Attributes.max_len)
 
-    elif issubclass(cls, Unicode):
+    if issubclass(cls, Unicode):
         if cls.Attributes.max_len == Unicode.Attributes.max_len: # Default is arbitrary-length
             return sqlalchemy.UnicodeText
         else:
             return sqlalchemy.Unicode(cls.Attributes.max_len)
 
-    elif issubclass(cls, EnumBase):
+    if issubclass(cls, EnumBase):
         return sqlalchemy.Enum(*cls.__values__, name=cls.__type_name__)
 
-    elif issubclass(cls, AnyXml):
+    if issubclass(cls, AnyXml):
         return PGXml
 
-    elif issubclass(cls, AnyHtml):
+    if issubclass(cls, AnyHtml):
         return PGHtml
 
-    elif issubclass(cls, AnyDict):
+    if issubclass(cls, AnyDict):
         sa = cls.Attributes.store_as
         if isinstance(sa, c_json):
             return PGJson
         raise NotImplementedError(dict(cls=AnyDict, store_as=sa))
 
-    elif issubclass(cls, ByteArray):
+    if issubclass(cls, ByteArray):
         return sqlalchemy.LargeBinary
 
-    elif issubclass(cls, (Integer64, UnsignedInteger64)):
+    if issubclass(cls, (Integer64, UnsignedInteger64)):
         return sqlalchemy.BigInteger
 
-    elif issubclass(cls, (Integer32, UnsignedInteger32)):
+    if issubclass(cls, (Integer32, UnsignedInteger32)):
         return sqlalchemy.Integer
 
-    elif issubclass(cls, (Integer16, UnsignedInteger16)):
+    if issubclass(cls, (Integer16, UnsignedInteger16)):
         return sqlalchemy.SmallInteger
 
-    elif issubclass(cls, (Integer8, UnsignedInteger8)):
+    if issubclass(cls, (Integer8, UnsignedInteger8)):
         return sqlalchemy.SmallInteger
 
-    elif issubclass(cls, Float):
+    if issubclass(cls, Float):
         return FLOAT
 
-    elif issubclass(cls, Double):
+    if issubclass(cls, Double):
         return DOUBLE_PRECISION
 
-    elif issubclass(cls, (Integer, UnsignedInteger)):
+    if issubclass(cls, (Integer, UnsignedInteger)):
         return sqlalchemy.DECIMAL
 
-    elif issubclass(cls, Decimal):
+    if issubclass(cls, Decimal):
         return sqlalchemy.DECIMAL
 
-    elif issubclass(cls, Boolean):
+    if issubclass(cls, Boolean):
         return sqlalchemy.Boolean
 
-    elif issubclass(cls, Date):
+    if issubclass(cls, Date):
         return sqlalchemy.Date
 
-    elif issubclass(cls, DateTime):
+    if issubclass(cls, DateTime):
         if cls.Attributes.timezone is None:
             if cls.Attributes.as_timezone is None:
                 return sqlalchemy.DateTime(timezone=True)
@@ -253,41 +253,42 @@ def _get_sqlalchemy_type(cls):
         else:
             return sqlalchemy.DateTime(timezone=cls.Attributes.timezone)
 
-    elif issubclass(cls, Time):
+    if issubclass(cls, Time):
         return sqlalchemy.Time
 
-    elif issubclass(cls, XmlModifier):
+    if issubclass(cls, XmlModifier):
         retval = _get_sqlalchemy_type(cls.type)
         return retval
 
 
-def _get_col_o2o(parent, k, v, fk_col_name, deferrable=None, initially=None,
-                                                  ondelete=None, onupdate=None):
+def _get_col_o2o(parent, subname, subcls, fk_col_name, deferrable=None,
+                                  initially=None, ondelete=None, onupdate=None):
     """Gets key and child type and returns a column that points to the primary
     key of the child.
     """
 
-    assert v.Attributes.table_name is not None, "%r has no table name." % v
+    assert subcls.Attributes.table_name is not None, \
+                                                "%r has no table name." % subcls
 
-    col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-    _sp_attrs_to_sqla_constraints(parent, v, col_kwargs)
+    col_args, col_kwargs = sanitize_args(subcls.Attributes.sqla_column_args)
+    _sp_attrs_to_sqla_constraints(parent, subcls, col_kwargs)
 
     # get pkeys from child class
-    pk_column, = get_pk_columns(v)  # FIXME: Support multi-col keys
+    pk_column, = get_pk_columns(subcls)  # FIXME: Support multi-col keys
 
     pk_key, pk_spyne_type = pk_column
     pk_sqla_type = _get_sqlalchemy_type(pk_spyne_type)
 
     # generate a fk to it from the current object (cls)
     if fk_col_name is None:
-        fk_col_name = k + "_" + pk_key
+        fk_col_name = subname + "_" + pk_key
 
-    assert fk_col_name != k, "The column name for the foreign key must be " \
-                             "different from the column name for the object " \
-                             "itself."
+    assert fk_col_name != subname, \
+        "The column name for the foreign key must be different from the " \
+        "column name for the object itself."
 
-    fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key), use_alter=True,
-          name='%s_%s_fkey' % (v.Attributes.table_name, fk_col_name),
+    fk = ForeignKey('%s.%s' % (subcls.Attributes.table_name, pk_key), use_alter=True,
+          name='%s_%s_fkey' % (subcls.Attributes.table_name, fk_col_name),
           deferrable=deferrable, initially=initially,
           ondelete=ondelete, onupdate=onupdate)
 
@@ -298,8 +299,6 @@ def _get_col_o2m(cls, fk_col_name, deferrable=None, initially=None,
                                                   ondelete=None, onupdate=None):
     """Gets the parent class and returns a column that points to the primary key
     of the parent.
-
-    Funky implementation. Yes.
     """
 
     assert cls.Attributes.table_name is not None, "%r has no table name." % cls
@@ -462,43 +461,57 @@ def _check_table(cls):
     return table
 
 
-def _add_simple_type(cls, props, table, k, v, sqla_type):
-    col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-    _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
+def _add_simple_type(cls, props, table, subname, subcls, sqla_type):
+    col_args, col_kwargs = sanitize_args(subcls.Attributes.sqla_column_args)
+    _sp_attrs_to_sqla_constraints(cls, subcls, col_kwargs)
 
-    mp = getattr(v.Attributes, 'mapper_property', None)
-    if not v.Attributes.exc_db:
-        if k in table.c:
-            col = table.c[k]
+    mp = getattr(subcls.Attributes, 'mapper_property', None)
+    if not subcls.Attributes.exc_db:
+        if subname in table.c:
+            col = table.c[subname]
 
         else:
-            col = Column(k, sqla_type, *col_args, **col_kwargs)
+            col = Column(subname, sqla_type, *col_args, **col_kwargs)
             table.append_column(col)
-            _gen_index_info(table, col, k, v)
+            _gen_index_info(table, col, subname, subcls)
 
-        if not v.Attributes.exc_mapper:
-            props[k] = col
+        if not subcls.Attributes.exc_mapper:
+            props[subname] = col
 
     elif mp is not None:
-        props[k] = mp
+        props[subname] = mp
 
 
-def _gen_array_m2m(cls, props, k, child, p):
+def _gen_array_m2m(cls, props, subname, arrser, storage):
+    """Generates a relational many-to-many array.
+
+    :param cls: The class that owns the field
+    :param props: SQLAlchemy Mapper properties
+    :param subname: Field name
+    :param arrser: Array serializer, ie the __orig__ of the class inside the
+                   Array object
+    :param storage: The storage configuration object passed to the store_as
+    attribute.
+    """
+
     metadata = cls.Attributes.sqla_metadata
 
-    col_own, col_child = _get_cols_m2m(cls, k, child, p.left, p.right,
-                                    p.fk_left_deferrable, p.fk_left_initially,
-                                    p.fk_right_deferrable, p.fk_right_initially,
-                                    p.fk_left_ondelete, p.fk_left_onupdate,
-                                    p.fk_right_ondelete, p.fk_right_onupdate)
+    col_own, col_child = _get_cols_m2m(cls, subname, arrser,
+                        storage.left, storage.right,
+                        storage.fk_left_deferrable, storage.fk_left_initially,
+                        storage.fk_right_deferrable, storage.fk_right_initially,
+                        storage.fk_left_ondelete, storage.fk_left_onupdate,
+                        storage.fk_right_ondelete, storage.fk_right_onupdate)
 
-    p.left = col_own.key
-    p.right = col_child.key
+    storage.left = col_own.key
+    storage.right = col_child.key
 
-    if p.multi == True:
-        rel_table_name = '_'.join([cls.Attributes.table_name, k])
+    # noinspection PySimplifyBooleanCheck because literal True means
+    # "generate table name automatically" here
+    if storage.multi is True:
+        rel_table_name = '_'.join([cls.Attributes.table_name, subname])
     else:
-        rel_table_name = p.multi
+        rel_table_name = storage.multi
 
     if rel_table_name in metadata.tables:
         rel_t = metadata.tables[rel_table_name]
@@ -510,7 +523,7 @@ def _gen_array_m2m(cls, props, k, child, p):
         rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
     own_t = cls.Attributes.sqla_table
-    if p.explicit_join:
+    if storage.explicit_join:
         # Specify primaryjoin and secondaryjoin when requested.
         # There are special cases when sqlalchemy can't figure it out by itself.
         # this is where we help it when we can.
@@ -523,60 +536,72 @@ def _gen_array_m2m(cls, props, k, child, p):
         col_pk = own_t.c[col_pk_key]
 
         rel_kwargs = dict(
-            lazy=p.lazy,
-            backref=p.backref,
-            cascade=p.cascade,
-            order_by=p.order_by,
+            lazy=storage.lazy,
+            backref=storage.backref,
+            cascade=storage.cascade,
+            order_by=storage.order_by,
             secondary=rel_t,
             primaryjoin=(col_pk == rel_t.c[col_own.key]),
             secondaryjoin=(col_pk == rel_t.c[col_child.key]),
-            back_populates=p.back_populates,
+            back_populates=storage.back_populates,
         )
 
-        if p.single_parent is not None:
-            rel_kwargs['single_parent'] = p.single_parent
+        if storage.single_parent is not None:
+            rel_kwargs['single_parent'] = storage.single_parent
 
-        props[k] = relationship(child, **rel_kwargs)
+        props[subname] = relationship(arrser, **rel_kwargs)
 
     else:
         rel_kwargs = dict(
             secondary=rel_t,
-            backref=p.backref,
-            back_populates=p.back_populates,
-            cascade=p.cascade,
-            lazy=p.lazy,
-            order_by=p.order_by
+            backref=storage.backref,
+            back_populates=storage.back_populates,
+            cascade=storage.cascade,
+            lazy=storage.lazy,
+            order_by=storage.order_by
         )
 
-        if p.single_parent is not None:
-            rel_kwargs['single_parent'] = p.single_parent
+        if storage.single_parent is not None:
+            rel_kwargs['single_parent'] = storage.single_parent
 
-        props[k] = relationship(child, **rel_kwargs)
+        props[subname] = relationship(arrser, **rel_kwargs)
 
 
-def _gen_array_simple(cls, props, k, child_cust, p):
+def _gen_array_simple(cls, props, subname, arrser_cust, storage):
+    """Generate an array of simple objects.
+
+    :param cls: The class that owns this field
+    :param props: SQLAlchemy Mapper properties
+    :param subname: Field name
+    :param arrser_cust: Array serializer, ie the class itself inside the Array
+                        object
+    :param storage: The storage configuration object passed to the store_as
+    """
+
     table_name = cls.Attributes.table_name
     metadata = cls.Attributes.sqla_metadata
 
     # get left (fk) column info
-    _gen_col = _get_col_o2m(cls, p.left,
-                 ondelete=p.fk_left_ondelete, onupdate=p.fk_left_onupdate,
-                 deferrable=p.fk_left_deferrable, initially=p.fk_left_initially)
+    _gen_col = _get_col_o2m(cls, storage.left,
+        ondelete=storage.fk_left_ondelete, onupdate=storage.fk_left_onupdate,
+        deferrable=storage.fk_left_deferrable,
+                                          initially=storage.fk_left_initially)
+
     col_info = next(_gen_col) # gets the column name
     # FIXME: Add support for multi-column primary keys.
-    p.left, child_left_col_type = col_info[0]
-    child_left_col_name = p.left
+    storage.left, child_left_col_type = col_info[0]
+    child_left_col_name = storage.left
 
     # get right(data) column info
-    child_right_col_type = _get_sqlalchemy_type(child_cust)
-    child_right_col_name = p.right  # this is the data column
+    child_right_col_type = _get_sqlalchemy_type(arrser_cust)
+    child_right_col_name = storage.right  # this is the data column
     if child_right_col_name is None:
-        child_right_col_name = k
+        child_right_col_name = subname
 
     # get table name
-    child_table_name = child_cust.Attributes.table_name
+    child_table_name = arrser_cust.Attributes.table_name
     if child_table_name is None:
-        child_table_name = '_'.join([table_name, k])
+        child_table_name = '_'.join([table_name, subname])
 
     if child_table_name in metadata.tables:
         child_t = metadata.tables[child_table_name]
@@ -595,23 +620,24 @@ def _gen_array_simple(cls, props, k, child_cust, p):
         else:
             # Table exists but our own foreign key doesn't.
             child_left_col = next(_gen_col)
-            _sp_attrs_to_sqla_constraints(cls, child_cust, col=child_left_col)
+            _sp_attrs_to_sqla_constraints(cls, arrser_cust, col=child_left_col)
             child_t.append_column(child_left_col)
 
     else:
         # table does not exist, generate table
         child_right_col = Column(child_right_col_name, child_right_col_type)
-        _sp_attrs_to_sqla_constraints(cls, child_cust, col=child_right_col)
+        _sp_attrs_to_sqla_constraints(cls, arrser_cust, col=child_right_col)
 
         child_left_col = next(_gen_col)
-        _sp_attrs_to_sqla_constraints(cls, child_cust, col=child_left_col)
+        _sp_attrs_to_sqla_constraints(cls, arrser_cust, col=child_left_col)
 
         child_t = Table(child_table_name , metadata,
             Column('id', sqlalchemy.Integer, primary_key=True),
             child_left_col,
             child_right_col,
         )
-        _gen_index_info(child_t, child_right_col, child_right_col_name, child_cust)
+        _gen_index_info(child_t, child_right_col, child_right_col_name,
+                                                                    arrser_cust)
 
     # generate temporary class for association proxy
     cls_name = ''.join(x.capitalize() or '_' for x in
@@ -623,30 +649,32 @@ def _gen_array_simple(cls, props, k, child_cust, p):
 
     cls_ = type("_" + cls_name, (object,), {'__init__': _i})
     mapper(cls_, child_t)
-    props["_" + k] = relationship(cls_)
+    props["_" + subname] = relationship(cls_)
 
     # generate association proxy
-    setattr(cls, k, association_proxy("_" + k, child_right_col_name))
+    setattr(cls, subname, association_proxy("_" + subname, child_right_col_name))
 
 
-def _gen_array_o2m(cls, props, k, child, child_cust, p):
-    _gen_col = _get_col_o2m(cls, p.right,
-               ondelete=p.fk_right_ondelete, onupdate=p.fk_right_onupdate,
-               deferrable=p.fk_right_deferrable, initially=p.fk_right_initially)
+def _gen_array_o2m(cls, props, subname, arrser, arrser_cust, storage):
+    _gen_col = _get_col_o2m(cls, storage.right,
+        ondelete=storage.fk_right_ondelete, onupdate=storage.fk_right_onupdate,
+        deferrable=storage.fk_right_deferrable,
+                                           initially=storage.fk_right_initially)
+
     col_info = next(_gen_col)  # gets the column name
-    p.right, col_type = col_info[0]  # FIXME: Add support for multi-column primary keys.
+    storage.right, col_type = col_info[0]  # FIXME: Add support for multi-column primary keys.
 
-    assert p.left is None, \
+    assert storage.left is None, \
         "'left' is ignored in one-to-many relationships " \
         "with complex types (because they already have a " \
         "table). You probably meant to use 'right'."
 
-    child_t = child.__table__
+    child_t = arrser.__table__
 
-    if p.right in child_t.c:
-        # FIXME: This branch MUST be tested.
-        new_col_type = child_t.c[p.right].type.__class__
-        assert col_type is child_t.c[p.right].type.__class__, \
+    if storage.right in child_t.c:
+        # TODO: This branch MUST be tested.
+        new_col_type = child_t.c[storage.right].type.__class__
+        assert col_type is child_t.c[storage.right].type.__class__, \
                 "Existing column type %r disagrees with new column type %r" % \
                                                         (col_type, new_col_type)
 
@@ -656,155 +684,171 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
         #
         # so, not adding the child column to to child mapper
         # here.
-        col = child_t.c[p.right]
+        col = child_t.c[storage.right]
 
     else:
         col = next(_gen_col)
 
-        _sp_attrs_to_sqla_constraints(cls, child_cust, col=col)
+        _sp_attrs_to_sqla_constraints(cls, arrser_cust, col=col)
 
         child_t.append_column(col)
-        child.__mapper__.add_property(col.name, col)
+        arrser.__mapper__.add_property(col.name, col)
 
 
     rel_kwargs = dict(
-        lazy=p.lazy,
-        backref=p.backref,
-        cascade=p.cascade,
-        order_by=p.order_by,
+        lazy=storage.lazy,
+        backref=storage.backref,
+        cascade=storage.cascade,
+        order_by=storage.order_by,
         foreign_keys=[col],
-        back_populates=p.back_populates,
+        back_populates=storage.back_populates,
     )
 
-    if p.single_parent is not None:
-        rel_kwargs['single_parent'] = p.single_parent
+    if storage.single_parent is not None:
+        rel_kwargs['single_parent'] = storage.single_parent
 
-    props[k] = relationship(child, **rel_kwargs)
+    props[subname] = relationship(arrser, **rel_kwargs)
 
 
 def _is_array(v):
-    return (v.Attributes.max_occurs > 1 or issubclass(v, Array))
+    return v.Attributes.max_occurs > 1 or issubclass(v, Array)
 
 
-def _add_complex_type_as_table(cls, props, table, k, v, p, col_args, col_kwargs):
+def _add_array_to_complex(cls, props, subname, subcls, storage):
+    arrser_cust = subcls
+    if issubclass(subcls, Array):
+        arrser_cust, = subcls._type_info.values()
+
+    arrser = arrser_cust
+    if arrser_cust.__orig__ is not None:
+        arrser = arrser_cust.__orig__
+
+    if storage.multi != False:  # many to many
+        _gen_array_m2m(cls, props, subname, arrser, storage)
+
+    elif issubclass(arrser, SimpleModel):  # one to many simple type
+        _gen_array_simple(cls, props, subname, arrser_cust, storage)
+
+    else:  # one to many complex type
+        _gen_array_o2m(cls, props, subname, arrser, arrser_cust, storage)
+
+
+def _add_simple_type_to_complex(cls, props, table, subname, subcls, storage,
+                                                                    col_kwargs):
+    # v has the Attribute values we need whereas real_v is what the
+    # user instantiates (thus what sqlalchemy needs)
+    if subcls.__orig__ is None:  # vanilla class
+        real_v = subcls
+    else:  # customized class
+        real_v = subcls.__orig__
+
+    assert not getattr(storage, 'multi', False), \
+            'Storing a single element-type using a relation table is pointless.'
+
+    assert storage.right is None, \
+                               "'right' is ignored in a one-to-one relationship"
+
+    col = _get_col_o2o(cls, subname, subcls, storage.left,
+        ondelete=storage.fk_left_ondelete, onupdate=storage.fk_left_onupdate,
+        deferrable=storage.fk_left_deferrable,
+                                            initially=storage.fk_left_initially)
+
+    storage.left = col.name
+
+    if col.name in table.c:
+        col = table.c[col.name]
+        if col_kwargs.get('nullable') is False:
+            col.nullable = False
+    else:
+        table.append_column(col)
+
+    rel_kwargs = dict(
+        lazy=storage.lazy,
+        backref=storage.backref,
+        order_by=storage.order_by,
+        back_populates=storage.back_populates,
+    )
+
+    if storage.single_parent is not None:
+        rel_kwargs['single_parent'] = storage.single_parent
+
+    if real_v is (cls.__orig__ or cls):
+        (pk_col_name, pk_col_type), = get_pk_columns(cls)
+        rel_kwargs['remote_side'] = [table.c[pk_col_name]]
+
+    rel = relationship(real_v, uselist=False, foreign_keys=[col],
+        **rel_kwargs)
+
+    _gen_index_info(table, col, subname, subcls)
+
+    props[subname] = rel
+    props[col.name] = col
+
+
+def _add_complex_type_as_table(cls, props, table, subname, subcls, storage,
+                                                          col_args, col_kwargs):
     # add one to many relation
-    if _is_array(v):
-        child_cust = v
-        if issubclass(v, Array):
-            child_cust, = v._type_info.values()
-
-        child = child_cust
-        if child_cust.__orig__ is not None:
-            child = child_cust.__orig__
-
-        if p.multi != False: # many to many
-            _gen_array_m2m(cls, props, k, child, p)
-
-        elif issubclass(child, SimpleModel): # one to many simple type
-            _gen_array_simple(cls, props, k, child_cust, p)
-
-        else: # one to many complex type
-            _gen_array_o2m(cls, props, k, child, child_cust, p)
+    if _is_array(subcls):
+        _add_array_to_complex(cls, props, subname, subcls, storage)
 
     # add one to one relation
     else:
-        # v has the Attribute values we need whereas real_v is what the
-        # user instantiates (thus what sqlalchemy needs)
-        if v.__orig__ is None:  # vanilla class
-            real_v = v
-        else: # customized class
-            real_v = v.__orig__
-
-        assert not getattr(p, 'multi', False), ('Storing a single element-type '
-                                                'using a relation table is '
-                                                'pointless.')
-
-        assert p.right is None, "'right' is ignored in a one-to-one " \
-                                "relationship"
-
-        col = _get_col_o2o(cls, k, v, p.left,
-                 ondelete=p.fk_left_ondelete, onupdate=p.fk_left_onupdate,
-                 deferrable=p.fk_left_deferrable, initially=p.fk_left_initially)
-        p.left = col.name
-
-        if col.name in table.c:
-            col = table.c[col.name]
-            if col_kwargs.get('nullable') is False:
-                col.nullable = False
-        else:
-            table.append_column(col)
-
-        rel_kwargs = dict(
-            lazy=p.lazy,
-            backref=p.backref,
-            order_by=p.order_by,
-            back_populates=p.back_populates,
-        )
-        if p.single_parent is not None:
-            rel_kwargs['single_parent'] = p.single_parent
-
-        if real_v is (cls.__orig__ or cls):
-            (pk_col_name, pk_col_type), = get_pk_columns(cls)
-            rel_kwargs['remote_side'] = [table.c[pk_col_name]]
-
-        rel = relationship(real_v, uselist=False, foreign_keys=[col],
-                                                                   **rel_kwargs)
-
-        _gen_index_info(table, col, k, v)
-
-        props[k] = rel
-        props[col.name] = col
+        _add_simple_type_to_complex(cls, props, table, subname, subcls,
+                                                            storage, col_kwargs)
 
 
-def _add_complex_type_as_xml(cls, props, table, k, v, p, col_args, col_kwargs):
-    if k in table.c:
-        col = table.c[k]
+def _add_complex_type_as_xml(cls, props, table, subname, subcls, storage,
+                                                          col_args, col_kwargs):
+    if subname in table.c:
+        col = table.c[subname]
     else:
-        t = PGObjectXml(v, p.root_tag, p.no_ns, p.pretty_print)
-        col = Column(k, t, *col_args, **col_kwargs)
+        t = PGObjectXml(subcls, storage.root_tag, storage.no_ns,
+                                                           storage.pretty_print)
+        col = Column(subname, t, *col_args, **col_kwargs)
 
-    props[k] = col
-    if not k in table.c:
+    props[subname] = col
+    if not subname in table.c:
         table.append_column(col)
 
 
-def _add_complex_type_as_json(cls, props, table, k, v, p, col_args, col_kwargs):
-    if k in table.c:
-        col = table.c[k]
+def _add_complex_type_as_json(cls, props, table, subname, subcls, storage,
+                                                          col_args, col_kwargs):
+    if subname in table.c:
+        col = table.c[subname]
     else:
-        t = PGObjectJson(v, ignore_wrappers=p.ignore_wrappers,
-                                                        complex_as=p.complex_as)
-        col = Column(k, t, *col_args, **col_kwargs)
+        t = PGObjectJson(subcls, ignore_wrappers=storage.ignore_wrappers,
+                                                  complex_as=storage.complex_as)
+        col = Column(subname, t, *col_args, **col_kwargs)
 
-    props[k] = col
-    if not k in table.c:
+    props[subname] = col
+    if not subname in table.c:
         table.append_column(col)
 
 
-def _add_complex_type(cls, props, table, k, v):
-    if issubclass(v, File):
-        return _add_file_type(cls, props, table, k, v)
+def _add_complex_type(cls, props, table, subname, subcls):
+    if issubclass(subcls, File):
+        return _add_file_type(cls, props, table, subname, subcls)
 
-    p = getattr(v.Attributes, 'store_as', None)
-    col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-    _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
+    storage = getattr(subcls.Attributes, 'store_as', None)
+    col_args, col_kwargs = sanitize_args(subcls.Attributes.sqla_column_args)
+    _sp_attrs_to_sqla_constraints(cls, subcls, col_kwargs)
 
-    if isinstance(p, c_table):
-        return _add_complex_type_as_table(cls, props, table, k, v, p,
-                                                           col_args, col_kwargs)
-    elif isinstance(p, c_xml):
-        return _add_complex_type_as_xml(cls, props, table, k, v, p,
-                                                           col_args, col_kwargs)
-    elif isinstance(p, c_json):
-        return _add_complex_type_as_json(cls, props, table, k, v, p,
-                                                           col_args, col_kwargs)
-    elif isinstance(p, c_msgpack):
+    if isinstance(storage, c_table):
+        return _add_complex_type_as_table(cls, props, table, subname, subcls,
+                                                  storage, col_args, col_kwargs)
+    if isinstance(storage, c_xml):
+        return _add_complex_type_as_xml(cls, props, table, subname, subcls,
+                                                  storage, col_args, col_kwargs)
+    if isinstance(storage, c_json):
+        return _add_complex_type_as_json(cls, props, table, subname, subcls,
+                                                  storage, col_args, col_kwargs)
+    if isinstance(storage, c_msgpack):
         raise NotImplementedError(c_msgpack)
 
-    elif p is None:
+    if storage is None:
         return
 
-    raise ValueError(p)
+    raise ValueError(storage)
 
 
 def _convert_fake_table(cls, table):
@@ -826,8 +870,8 @@ def _gen_mapper(cls, props, table, cls_bases):
     """Generate SQLAlchemy mapper from Spyne definition data.
 
     :param cls: La Class.
-    :param props: a dict.
-    :param table: a Table instance. Not a `_FakeTable` or anything.
+    :param props: Dict of properties for SQLAlchemt'y Mapper call.
+    :param table: A Table instance. Not a `_FakeTable` or anything.
     :param cls_bases: Sequence of class bases.
     """
 
@@ -877,56 +921,56 @@ def _gen_mapper(cls, props, table, cls_bases):
     return cls_mapper
 
 
-def _add_file_type(cls, props, table, k, v):
-    p = getattr(v.Attributes, 'store_as', None)
-    col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-    _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
+def _add_file_type(cls, props, table, subname, subcls):
+    storage = getattr(subcls.Attributes, 'store_as', None)
+    col_args, col_kwargs = sanitize_args(subcls.Attributes.sqla_column_args)
+    _sp_attrs_to_sqla_constraints(cls, subcls, col_kwargs)
 
-    if isinstance(p, HybridFileStore):
-        if k in table.c:
-            col = table.c[k]
+    if isinstance(storage, HybridFileStore):
+        if subname in table.c:
+            col = table.c[subname]
         else:
-            assert isabs(p.store)
+            assert isabs(storage.store)
             #FIXME: Add support for storage markers from spyne.model.complex
-            if p.db_format == 'json':
-                t = PGFileJson(p.store, p.type)
+            if storage.db_format == 'json':
+                t = PGFileJson(storage.store, storage.type)
             else:
-                raise NotImplementedError(p.db_format)
+                raise NotImplementedError(storage.db_format)
 
-            col = Column(k, t, *col_args, **col_kwargs)
+            col = Column(subname, t, *col_args, **col_kwargs)
 
-        props[k] = col
-        if not k in table.c:
+        props[subname] = col
+        if not subname in table.c:
             table.append_column(col)
 
     else:
-        raise NotImplementedError(p)
+        raise NotImplementedError(storage)
 
 
-def add_column(cls, k, v):
+def add_column(cls, subname, subcls):
     """Add field to the given Spyne object also mapped as a SQLAlchemy object
     to a SQLAlchemy table
 
     :param cls: The class to add the column to.
-    :param k: The column name
-    :param v: The column type, a ModelBase subclass.
+    :param subname: The column name
+    :param subcls: The column type, a ModelBase subclass.
     """
 
     table = cls.__table__
     mapper_props = {}
 
     # Add to table
-    t = _get_sqlalchemy_type(v)
-    if t is None:  # complex model
-        _add_complex_type(cls, mapper_props, table, k, v)
+    sqla_type = _get_sqlalchemy_type(subcls)
+    if sqla_type is None:  # complex model
+        _add_complex_type(cls, mapper_props, table, subname, subcls)
     else:
-        _add_simple_type(cls, mapper_props, table, k, v, t)
+        _add_simple_type(cls, mapper_props, table, subname, subcls, sqla_type)
 
     # Add to mapper
     sqla_mapper = cls.Attributes.sqla_mapper
-    for k,v in mapper_props.items():
-        if not sqla_mapper.has_property(k):
-            sqla_mapper.add_property(k, v)
+    for subname, subcls in mapper_props.items():
+        if not sqla_mapper.has_property(subname):
+            sqla_mapper.add_property(subname, subcls)
 
 
 def gen_sqla_info(cls, cls_bases=()):
@@ -964,45 +1008,41 @@ def gen_sqla_info(cls, cls_bases=()):
 
 
 def _get_spyne_type(v):
-    """This function maps sqlalchemy types to spyne types."""
+    """Map sqlalchemy types to spyne types."""
 
-    rpc_type = None
     if isinstance(v.type, sqlalchemy.Enum):
         if v.type.convert_unicode:
-            rpc_type = Unicode(values=v.type.enums)
+            return Unicode(values=v.type.enums)
         else:
-            rpc_type = Enum(*v.type.enums, **{'type_name': v.type.name})
+            return Enum(*v.type.enums, **{'type_name': v.type.name})
 
-    elif isinstance(v.type, (sqlalchemy.UnicodeText, sqlalchemy.Text)):
-        rpc_type = Unicode
+    if isinstance(v.type, (sqlalchemy.UnicodeText, sqlalchemy.Text)):
+        return Unicode
 
-    elif isinstance(v.type, (sqlalchemy.Unicode, sqlalchemy.String,
+    if isinstance(v.type, (sqlalchemy.Unicode, sqlalchemy.String,
                                                            sqlalchemy.VARCHAR)):
-        rpc_type = Unicode(v.type.length)
+        return Unicode(v.type.length)
 
-    elif isinstance(v.type, sqlalchemy.Numeric):
-        rpc_type = Decimal(v.type.precision, v.type.scale)
+    if isinstance(v.type, sqlalchemy.Numeric):
+        return Decimal(v.type.precision, v.type.scale)
 
-    elif isinstance(v.type, PGXml):
-        rpc_type = AnyXml
+    if isinstance(v.type, PGXml):
+        return AnyXml
 
-    elif isinstance(v.type, PGHtml):
-        rpc_type = AnyHtml
+    if isinstance(v.type, PGHtml):
+        return AnyHtml
 
-    elif type(v.type) in _sq2sp_type_map:
-        rpc_type = _sq2sp_type_map[type(v.type)]
+    if type(v.type) in _sq2sp_type_map:
+        return _sq2sp_type_map[type(v.type)]
 
-    elif isinstance(v.type, (PGObjectJson, PGObjectXml)):
-        rpc_type = v.type.cls
+    if isinstance(v.type, (PGObjectJson, PGObjectXml)):
+        return v.type.cls
 
-    elif isinstance(v.type, PGFileJson):
-        rpc_type = v.FileData
+    if isinstance(v.type, PGFileJson):
+        return v.FileData
 
-    else:
-        raise Exception("Spyne type was not found. Probably _sq2sp_type_map "
-                        "needs a new entry. %r" % v)
-
-    return rpc_type
+    raise Exception("Spyne type was not found. Probably _sq2sp_type_map "
+                    "needs a new entry. %r" % v)
 
 
 def gen_spyne_info(cls):

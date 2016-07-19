@@ -281,6 +281,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         class SomeOtherClass(TableModel):
             __tablename__ = 'some_other_class'
             __table_args__ = {"sqlite_autoincrement": True}
+
             id = Integer32(primary_key=True)
             s = Unicode(64)
 
@@ -289,7 +290,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         self.metadata.create_all()
 
-        sc = SomeClass(id=5, s='s', numbers=[1,2,3,4])
+        sc = SomeClass(id=5, s='s', numbers=[1, 2, 3, 4])
 
         self.session.add(sc)
         self.session.commit()
@@ -334,6 +335,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             def __init__(self, name, engineer_info):
                 self.name = name
                 self.engineer_info = engineer_info
+
             def __repr__(self):
                 return (
                     self.__class__.__name__ + " " +
@@ -345,15 +347,18 @@ class TestSqlAlchemySchema(unittest.TestCase):
             Column('name', sqlalchemy.String(50)),
             Column('manager_data', sqlalchemy.String(50)),
             Column('engineer_info', sqlalchemy.String(50)),
-            Column('type', sqlalchemy.String(20), nullable=False)
+            Column('type', sqlalchemy.String(20), nullable=False),
         )
 
         employee_mapper = mapper(Employee, employees_table,
-            polymorphic_on=employees_table.c.type, polymorphic_identity='employee')
+                                        polymorphic_on=employees_table.c.type,
+                                                polymorphic_identity='employee')
+
         manager_mapper = mapper(Manager, inherits=employee_mapper,
-                                            polymorphic_identity='manager')
+                                                polymorphic_identity='manager')
+
         engineer_mapper = mapper(Engineer, inherits=employee_mapper,
-                                            polymorphic_identity='engineer')
+                                                polymorphic_identity='engineer')
 
         self.metadata.create_all()
 
@@ -362,7 +367,9 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.commit()
         self.session.close()
 
-        assert self.session.query(Employee).with_polymorphic('*').filter_by(employee_id=1).one().type == 'manager'
+        assert self.session.query(Employee).with_polymorphic('*') \
+                   .filter_by(employee_id=1)\
+                   .one().type == 'manager'
 
     def test_inheritance_polymorphic_with_non_nullables_in_subclasses(self):
         class SomeOtherClass(TableModel):
