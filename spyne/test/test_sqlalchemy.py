@@ -311,6 +311,46 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         self.session.close()
 
+    def test_inheritance_with_complex_fields(self):
+        class Foo(TableModel):
+            __tablename__ = 'foo'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class Bar(TableModel):
+            __tablename__ = 'bar'
+            __table_args__ = {"sqlite_autoincrement": True}
+            __mapper_args__ = {
+                'polymorphic_on': 'type',
+                'polymorphic_identity': 'bar',
+                'with_polymorphic': '*',
+            }
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+            type = Unicode(6)
+            foos = Array(Foo).store_as('table')
+
+        class SubBar(Bar):
+            __mapper_args__ = {
+                'polymorphic_identity': 'subbar',
+            }
+            i = Integer32
+
+        SubBar()
+
+        mapper_subbar = SubBar.Attributes.sqla_mapper
+        assert not mapper_subbar.concrete
+
+        for inheriting in mapper_subbar.iterate_to_root():
+            if inheriting is not mapper_subbar \
+                                        and inheriting.has_property('foos') \
+                                        and mapper_subbar.has_property('foos'):
+                raise Exception("Thou shalt stop children relationships "
+                                           "from overriding the ones in parent")
+
     def test_sqlalchemy_inheritance(self):
         # no spyne code is involved here.
         # this is just to test test the sqlalchemy behavior that we rely on.
