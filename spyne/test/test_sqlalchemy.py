@@ -36,21 +36,15 @@ from sqlalchemy.orm import sessionmaker
 
 from spyne import M
 
-from spyne.model import XmlAttribute, File
-from spyne.model import XmlData
-from spyne.model import ComplexModel
-from spyne.model import Array
-from spyne.model import Integer32
-from spyne.model import Unicode
-from spyne.model import Integer
-from spyne.model import Enum
-from spyne.model import TTableModel
+from spyne.model import XmlAttribute, File, XmlData, ComplexModel, Array, \
+    Integer32, Unicode, Integer, Enum, TTableModel, DateTime
 
 from spyne.model.binary import HybridFileStore
 from spyne.model.complex import xml
 from spyne.model.complex import table
 
 TableModel = TTableModel()
+
 
 class TestSqlAlchemySchema(unittest.TestCase):
     def setUp(self):
@@ -72,7 +66,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             i = Integer32(64, index=True)
 
         t = SomeClass.__table__
-        self.metadata.create_all() # not needed, just nice to see.
+        self.metadata.create_all()  # not needed, just nice to see.
 
         assert t.c.id.primary_key == True
         assert t.c.id.autoincrement == False
@@ -199,7 +193,8 @@ class TestSqlAlchemySchema(unittest.TestCase):
             __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
-            others = Array(SomeOtherClass, store_as=table(multi=True, backref='some_classes'))
+            others = Array(SomeOtherClass,
+                             store_as=table(multi=True, backref='some_classes'))
 
         self.metadata.create_all()
 
@@ -269,8 +264,8 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.commit()
         self.session.close()
 
-        sc_xml = self.session.connection().execute("select others from some_class") \
-                                                               .fetchall()[0][0]
+        sc_xml = self.session.connection() \
+                     .execute("select others from some_class") .fetchall()[0][0]
 
         from lxml import etree
         assert etree.fromstring(sc_xml).tag == 'SomeOtherClassArray'
@@ -346,8 +341,8 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         for inheriting in mapper_subbar.iterate_to_root():
             if inheriting is not mapper_subbar \
-                                        and inheriting.has_property('foos') \
-                                        and mapper_subbar.has_property('foos'):
+                                         and inheriting.has_property('foos') \
+                                         and mapper_subbar.has_property('foos'):
                 raise Exception("Thou shalt stop children relationships "
                                            "from overriding the ones in parent")
 
@@ -358,6 +353,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         class Employee(object):
             def __init__(self, name):
                 self.name = name
+
             def __repr__(self):
                 return self.__class__.__name__ + " " + self.name
 
@@ -365,10 +361,11 @@ class TestSqlAlchemySchema(unittest.TestCase):
             def __init__(self, name, manager_data):
                 self.name = name
                 self.manager_data = manager_data
+
             def __repr__(self):
                 return (
                     self.__class__.__name__ + " " +
-                    self.name + " " +  self.manager_data
+                    self.name + " " + self.manager_data
                 )
 
         class Engineer(Employee):
@@ -379,7 +376,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             def __repr__(self):
                 return (
                     self.__class__.__name__ + " " +
-                    self.name + " " +  self.engineer_info
+                    self.name + " " + self.engineer_info
                 )
 
         employees_table = Table('employees', self.metadata,
@@ -408,17 +405,14 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.close()
 
         assert self.session.query(Employee).with_polymorphic('*') \
-                   .filter_by(employee_id=1)\
+                   .filter_by(employee_id=1) \
                    .one().type == 'manager'
 
     def test_inheritance_polymorphic_with_non_nullables_in_subclasses(self):
         class SomeOtherClass(TableModel):
             __tablename__ = 'some_other_class'
-            __table_args__ = {"sqlite_autoincrement": True} # this is sqlite-specific
-            __mapper_args__ = (
-                (),
-                {'polymorphic_on': 't', 'polymorphic_identity': 1},
-            )
+            __table_args__ = {"sqlite_autoincrement": True}
+            __mapper_args__ = {'polymorphic_on': 't', 'polymorphic_identity': 1}
 
             id = Integer32(primary_key=True)
             t = Integer32(nillable=False)
@@ -456,19 +450,21 @@ class TestSqlAlchemySchema(unittest.TestCase):
         else:
             raise Exception("Must fail with IntegrityError.")
 
-        sc2 = SomeClass(s='s') # this won't fail. should it?
+        sc2 = SomeClass(s='s')  # this won't fail. should it?
         self.session.add(sc2)
         self.session.commit()
 
         self.session.expunge_all()
 
-        assert self.session.query(SomeOtherClass).with_polymorphic('*').filter_by(id=soc_id).one().t == 1
+        assert self.session.query(SomeOtherClass).with_polymorphic('*') \
+                   .filter_by(id=soc_id).one().t == 1
+
         self.session.close()
 
     def test_inheritance_polymorphic(self):
         class SomeOtherClass(TableModel):
             __tablename__ = 'some_class'
-            __table_args__ = {"sqlite_autoincrement": True} # this is sqlite-specific
+            __table_args__ = {"sqlite_autoincrement": True}
             __mapper_args__ = {'polymorphic_on': 't', 'polymorphic_identity': 1}
 
             id = Integer32(primary_key=True)
@@ -481,13 +477,14 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         self.metadata.create_all()
 
-        sc = SomeClass(id=5, s='s', numbers=[1,2,3,4])
+        sc = SomeClass(id=5, s='s', numbers=[1, 2, 3, 4])
 
         self.session.add(sc)
         self.session.commit()
         self.session.close()
 
-        assert self.session.query(SomeOtherClass).with_polymorphic('*').filter_by(id=5).one().t == 2
+        assert self.session.query(SomeOtherClass).with_polymorphic('*') \
+            .filter_by(id=5).one().t == 2
         self.session.close()
 
     def test_nested_sql_array_as_json(self):
@@ -533,7 +530,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.expunge_all()
 
         ret = self.session.query(SomeClass).get(1)
-        assert ret.i == 1 # redundant
+        assert ret.i == 1  # redundant
         assert ret.s == 's'
 
     def test_default_ctor(self):
@@ -585,9 +582,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         class SomeClass(TableModel):
             __tablename__ = 'some_class'
-            __table_args__ = (
-                {"sqlite_autoincrement": True},
-            )
+            __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
             o = SomeOtherClass.customize(store_as='table')
@@ -606,9 +601,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         class SomeClass(TableModel):
             __tablename__ = 'some_class'
-            __table_args__ = (
-                {"sqlite_autoincrement": True},
-            )
+            __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
             o = SomeOtherClass.customize(store_as='table', index='btree')
@@ -678,7 +671,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         sc = self.session.query(SomeClass).get(1)
         assert ''.join([scc.s for scc in sc.children]) == 'p|q'
-        assert     sum([scc.i for scc in sc.children]) ==  619
+        assert sum([scc.i for scc in sc.children]) == 619
 
     def test_reflection(self):
         class SomeClass(TableModel):
@@ -713,14 +706,15 @@ class TestSqlAlchemySchema(unittest.TestCase):
         class SomeTableSubset(TableModel):
             __table__ = SomeTable.__table__
 
-            id = Integer32(pk=True) # sqla session doesn't work without pk
+            id = Integer32(pk=True)  # sqla session doesn't work without pk
             i = Integer32
 
         class SomeTableOtherSubset(TableModel):
             __table__ = SomeTable.__table__
-            _type_info = [(k,v) for k, v in SomeTable._type_info.items() if k in ('id', 's')]
+            _type_info = [(k, v) for k, v in SomeTable._type_info.items()
+                                                            if k in ('id', 's')]
 
-        self.session.add(SomeTable(id=1,i=2,s='s'))
+        self.session.add(SomeTable(id=1, i=2, s='s'))
         self.session.commit()
 
         st = self.session.query(SomeTable).get(1)
@@ -728,7 +722,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         stos = self.session.query(SomeTableOtherSubset).get(1)
 
         sts.i = 3
-        sts.s = 'ss' # will not be flushed to db
+        sts.s = 'ss'  # will not be flushed to db
         self.session.commit()
 
         assert st.s == 's'
@@ -767,6 +761,8 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
 
     def _test_append_field_complex_explicit_existing_column(self):
+        # FIXME: Test something!
+
         class C(TableModel):
             __tablename__ = "c"
             id = Integer32(pk=True)
@@ -793,7 +789,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.metadata.create_all()
 
         c1, c2 = C(id=1), C(id=2)
-        d = D(id=1, c=[c1,c2])
+        d = D(id=1, c=[c1, c2])
         self.session.add(d)
         self.session.commit()
         assert c1.d.id == 1
@@ -809,7 +805,8 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         C.append_field('d', D.store_as('table'))
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
-        assert isinstance(C.Attributes.sqla_table.c['d_id'].type, sqlalchemy.Integer)
+        assert isinstance(C.Attributes.sqla_table.c['d_id'].type,
+                                                             sqlalchemy.Integer)
 
     def test_append_field_array(self):
         class C(TableModel):
@@ -823,7 +820,8 @@ class TestSqlAlchemySchema(unittest.TestCase):
         C.append_field('d', Array(D).store_as('table'))
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
         print(repr(D.Attributes.sqla_table))
-        assert isinstance(D.Attributes.sqla_table.c['c_id'].type, sqlalchemy.Integer)
+        assert isinstance(D.Attributes.sqla_table.c['c_id'].type,
+                                                             sqlalchemy.Integer)
 
     def test_append_field_array_many(self):
         class C(TableModel):
