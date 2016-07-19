@@ -119,11 +119,12 @@ def coroutine(func):
         try:
             next(ret)
 
-        except StopIteration as e:
+        except StopIteration:
             return None
 
         except Exception as e:
             logger.exception(e)
+            raise e
 
         return ret
 
