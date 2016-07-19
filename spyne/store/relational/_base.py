@@ -970,7 +970,30 @@ def gen_sqla_info(cls, cls_bases=()):
     table = _check_table(cls)
     mapper_props = {}
 
-    for k, v in cls.get_flat_type_info(cls).items():
+    ancestors = cls.ancestors()
+    if len(ancestors) > 0:
+        anc_mapper = ancestors[0].Attributes.sqla_mapper
+        if anc_mapper is None:
+            # no mapper in parent, use all fields
+            fields = cls.get_flat_type_info(cls).items()
+
+        elif anc_mapper.concrete:
+            # there is mapper in parent and it's concrete, so use all fields
+            fields = cls.get_flat_type_info(cls).items()
+
+        else:
+            # there is a mapper in parent and it's not concrete, so parent
+            # columns are already mapped, so use only own fields.
+            fields = cls._type_info.items()
+
+    else:
+        # when no parents, use all fields anyway.
+        assert set(cls._type_info.items()) == \
+               set(cls.get_flat_type_info(cls).items())
+
+        fields = cls.get_flat_type_info(cls).items()
+
+    for k, v in fields:
         t = _get_sqlalchemy_type(v)
 
         if t is None:  # complex model
