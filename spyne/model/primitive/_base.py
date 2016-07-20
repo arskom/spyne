@@ -76,8 +76,8 @@ class AnyDict(SimpleModel):
     class Attributes(SimpleModel.Attributes):
         store_as = None
         """Method for serializing to persistent storage. One of 'xml', 'json' or
-        'msgpack'. It makes sense to specify this only when this object is
-        child of a `ComplexModel` sublass."""
+        'msgpack'. It makes sense to specify this only when this object belongs
+        to a `ComplexModel` sublass."""
 
     @classmethod
     def customize(cls, **kwargs):
