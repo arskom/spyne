@@ -239,7 +239,13 @@ def _get_sqlalchemy_type(cls):
         return sqlalchemy.DECIMAL
 
     if issubclass(cls, Boolean):
-        return sqlalchemy.Boolean
+        if cls.Attributes.store_as is bool:
+            return sqlalchemy.Boolean
+        if cls.Attributes.store_as is int:
+            return sqlalchemy.SmallInteger
+
+        raise ValueError("Boolean.store_as has invalid value %r" %
+                                                        cls.Attributes.store_as)
 
     if issubclass(cls, Date):
         return sqlalchemy.Date

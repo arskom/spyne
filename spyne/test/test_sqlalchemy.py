@@ -37,13 +37,32 @@ from sqlalchemy.orm import sessionmaker
 from spyne import M
 
 from spyne.model import XmlAttribute, File, XmlData, ComplexModel, Array, \
-    Integer32, Unicode, Integer, Enum, TTableModel, DateTime
+    Integer32, Unicode, Integer, Enum, TTableModel, DateTime, Boolean
 
 from spyne.model.binary import HybridFileStore
 from spyne.model.complex import xml
 from spyne.model.complex import table
 
 TableModel = TTableModel()
+
+
+class TestSqlAlchemyTypeMappings(unittest.TestCase):
+    def test_bool(self):
+        class SomeClass1(TableModel):
+            __tablename__ = 'test_bool_1'
+            i = Integer32(pk=True)
+            b = Boolean
+
+        assert isinstance(SomeClass1.Attributes.sqla_table.c.b.type,
+                                                             sqlalchemy.Boolean)
+
+        class SomeClass2(TableModel):
+            __tablename__ = 'test_bool_2'
+            i = Integer32(pk=True)
+            b = Boolean(store_as=int)
+
+        assert isinstance(SomeClass2.Attributes.sqla_table.c.b.type,
+                                                        sqlalchemy.SmallInteger)
 
 
 class TestSqlAlchemySchema(unittest.TestCase):

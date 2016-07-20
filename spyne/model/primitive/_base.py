@@ -95,6 +95,12 @@ class AnyDict(SimpleModel):
 class Boolean(SimpleModel):
     """Life is simple here. Just true or false."""
 
+    class Attributes(SimpleModel.Attributes):
+        store_as = bool
+        """Method for serializing to persistent storage. One of `bool` or `int`
+        builtins. It makes sense to specify this only when this object belongs
+        to a `ComplexModel` sublass."""
+
     __type_name__ = 'boolean'
 
 
