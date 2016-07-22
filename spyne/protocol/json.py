@@ -227,6 +227,7 @@ class JsonP(JsonDocument):
                     [b');'],
                 )
 
+
 class _SpyneJsonRpc1(JsonDocument):
     version = 1
     VERSION = 'ver'

@@ -28,8 +28,7 @@ from spyne import MethodContext
 from spyne import Application
 from spyne import rpc,srpc
 from spyne import ServiceBase
-from spyne.model import Integer
-from spyne.model import ComplexModel
+from spyne.model import Integer, Unicode, ComplexModel
 from spyne.protocol.json import JsonP
 from spyne.protocol.json import JsonDocument
 from spyne.protocol.json import JsonEncoder
@@ -77,7 +76,7 @@ class TestSpyneJsonRpc1(unittest.TestCase):
                 print(ctx.in_header)
                 return ctx.in_header.i
 
-        ctx = _dry_sjrpc1([SomeService], 
+        ctx = _dry_sjrpc1([SomeService],
                     {"ver": 1, "body": {"yay": None}, "head": {"i":5}}, True)
 
         print(ctx)
@@ -94,7 +93,7 @@ class TestSpyneJsonRpc1(unittest.TestCase):
             def div(ctx, dividend, divisor):
                 return dividend / divisor
 
-        ctx = _dry_sjrpc1([SomeService], 
+        ctx = _dry_sjrpc1([SomeService],
                     {"ver": 1, "body": {"div": [4,0]}}, True)
 
         print(ctx)
@@ -143,25 +142,43 @@ class TestJsonDocument(unittest.TestCase):
 class TestJsonP(unittest.TestCase):
     def test_callback_name(self):
         callback_name = 'some_callback'
-        retval = 42
+
+        class SomeComplexModel(ComplexModel):
+            i = Integer
+            s = Unicode
+
+        v1 = 42
+        v2 = SomeComplexModel(i=42, s='foo')
 
         class SomeService(ServiceBase):
             @srpc(_returns=Integer)
             def yay():
-                return retval
+                return v1
+
+            @srpc(_returns=SomeComplexModel)
+            def complex():
+                return v2
 
         app = Application([SomeService], 'tns',
                                 in_protocol=JsonDocument(),
                                 out_protocol=JsonP(callback_name))
 
         server = NullServer(app, ostr=True)
+
         ret = server.service.yay()
         ret = list(ret)
-        print(ret)
+        print(b''.join(ret))
         assert b''.join(ret) == b''.join((callback_name.encode('utf8'), b'(',
-                                             str(retval).encode('utf8'), b');'))
+                                             str(v1).encode('utf8'), b');'))
 
-    def illustrate_wrappers(self):
+        ret = server.service.complex()
+        ret = list(ret)
+        print(b''.join(ret))
+        assert b''.join(ret) == b''.join((callback_name.encode('utf8'), b'(',
+                                    json.dumps({"i": 42, "s": "foo"}) , b');'))
+
+
+    def test_wrapped_array_in_wrapped_response(self):
         from spyne.model.complex import ComplexModel, Array
         from spyne.model.primitive import Unicode
 
@@ -184,8 +201,11 @@ class TestJsonP(unittest.TestCase):
                             out_protocol=JsonDocument(ignore_wrappers=False))
 
         server = NullServer(app, ostr=True)
-        print(''.join(server.service.yay()))
-        # assert false
+        retstr = ''.join(server.service.yay())
+        print(retstr)
+        assert retstr == '{"yayResponse": {"yayResult": [' \
+            '{"Permission": {"application": "app", "feature": "f1"}}, ' \
+            '{"Permission": {"application": "app", "feature": "f2"}}]}}'
 
 
 if __name__ == '__main__':
