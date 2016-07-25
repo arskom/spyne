@@ -208,31 +208,32 @@ class ProtocolMixin(object):
         """
 
         if not self.polymorphic:
-            logger.debug("%r Protocol is NOT polymorphic", self)
+            logger.debug("PMORPH Skipped: %r is NOT polymorphic", self)
             return cls, False
 
         orig_cls = cls.__orig__ or cls
 
         if inst.__class__ is orig_cls:
-            logger.debug("Instance class is the same as "
-                                                        "designated base class")
+            logger.debug("PMORPH Skipped: Instance class %r is the same as "
+                                        "designated base class", inst.__class__)
             return cls, False
 
         if not isinstance(inst, orig_cls):
-            logger.debug("Instance class is not a subclass of "
-                                                        "designated base class")
+            logger.debug("PMORPH Skipped: Instance class %r is not a subclass "
+                        "of designated base class %r", inst.__class__, orig_cls)
             return cls, False
 
         cls_attr = self.get_cls_attrs(cls)
         polymap_cls = cls_attr.polymap.get(inst.__class__, None)
 
         if polymap_cls is not None:
-            logger.debug("Polymap hit cls switch: %r => %r", cls, polymap_cls)
+            logger.debug("PMORPH OK: cls switch with polymap: %r => %r",
+                                                               cls, polymap_cls)
             return polymap_cls, True
 
         else:
-            logger.debug("Polymap miss cls switch: %r => %r", cls,
-                                                                 inst.__class__)
+            logger.debug("PMORPH OK: cls switch without polymap: %r => %r",
+                                                            cls, inst.__class__)
             return inst.__class__, True
 
     @staticmethod
