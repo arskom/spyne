@@ -135,7 +135,7 @@ class HierDictDocument(DictDocument):
 
         elif issubclass(cls, Unicode) and not isinstance(inst,(six.text_type,
                                                                six.binary_type)):
-            raise ValidationError((key, inst))
+            raise ValidationError([key, inst])
 
     def _from_dict_value(self, key, cls, inst, validator):
         if validator is self.SOFT_VALIDATION:
