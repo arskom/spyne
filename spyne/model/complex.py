@@ -36,8 +36,7 @@ from collections import deque
 from inspect import isclass
 from itertools import chain
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY, \
-    BODY_STYLE_EMPTY_OUT_BARE, BODY_STYLE_OUT_BARE
+from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED
 
 from spyne import const
 from spyne.const import xml_ns
@@ -391,8 +390,7 @@ class _MethodsDict(dict):
                 d.out_message.__type_name__ = '%s.%s' % \
                           (cls.get_type_name(), d.out_message.get_type_name())
 
-            if d.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY,
-                                BODY_STYLE_EMPTY_OUT_BARE, BODY_STYLE_OUT_BARE):
+            if d.is_out_bare():
                 # The method only needs the primary key(s) and shouldn't
                 # complain when other mandatory fields are missing.
                 d.in_message = cls.novalidate_freq()
@@ -937,7 +935,13 @@ class ComplexModelBase(ModelBase):
             cls_orig = cls
             if cls.__orig__ is not None:
                 cls_orig = cls.__orig__
-            inst = cls_orig()
+
+            try:
+                inst = cls_orig()
+
+            except Exception as e:
+                logger.error("Error instantiating %r: %r", cls_orig, e)
+                raise
 
             keys = cls.get_flat_type_info(cls).keys()
             for i in range(len(value)):

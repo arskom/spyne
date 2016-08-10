@@ -53,7 +53,7 @@ import threading
 
 from os import fstat
 from mmap import mmap
-from inspect import isclass, isgenerator
+from inspect import isclass
 from collections import namedtuple
 
 from twisted.web import static
@@ -65,7 +65,7 @@ from twisted.internet import reactor
 from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_EMPTY, Redirect
+from spyne import Redirect
 from spyne.application import logger_server
 from spyne.application import get_fault_string_from_exception
 
@@ -557,7 +557,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     om = p_ctx.descriptor.out_message
     single_class = None
     if cb:
-        if p_ctx.descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
+        if p_ctx.descriptor.is_out_bare():
             p_ctx.out_object = [ret]
 
         elif (not issubclass(om, ComplexModelBase)) or len(om._type_info) <= 1:

@@ -201,8 +201,7 @@ def _cb_sync(ctx, cnt, fc):
         raise ctx.out_error
 
     else:
-        if ctx.descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_OUT_BARE,
-                                                     BODY_STYLE_EMPTY_OUT_BARE):
+        if ctx.descriptor.is_out_bare():
             retval = ctx.out_object[0]
 
         elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:

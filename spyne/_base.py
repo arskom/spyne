@@ -581,6 +581,12 @@ class MethodDescriptor(object):
                   self.service_class.get_internal_key(),
                                            six.get_function_name(self.function))
 
+    def is_out_bare(self):
+        return self.body_style in (BODY_STYLE_EMPTY_OUT_BARE,
+                                   BODY_STYLE_EMPTY,
+                                   BODY_STYLE_BARE,
+                                   BODY_STYLE_OUT_BARE)
+
     def reset_function(self, val=None):
         if val != None:
             self.__real_function = val

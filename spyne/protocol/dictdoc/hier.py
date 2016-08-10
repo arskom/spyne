@@ -25,8 +25,6 @@ RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
 from collections import defaultdict, Iterable as AbcIterable
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_OUT_BARE, \
-                                                       BODY_STYLE_EMPTY_OUT_BARE
 from spyne.util import six
 from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
@@ -113,8 +111,7 @@ class HierDictDocument(DictDocument):
         out_type_info = out_type.get_flat_type_info(out_type)
 
         # assign raw result to its wrapper, result_message
-        if ctx.descriptor.body_style in (BODY_STYLE_BARE,
-                                BODY_STYLE_OUT_BARE, BODY_STYLE_EMPTY_OUT_BARE):
+        if ctx.descriptor.is_out_bare():
             out_instance, = ctx.out_object
 
         else:
