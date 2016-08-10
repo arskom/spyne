@@ -142,6 +142,10 @@ class AnyUri(Unicode):
             self.text = text
             self.content = content
 
+        def __repr__(self):
+            return "Uri(href={0!r}, text={1!r}, content={2!r})" \
+                                     .format(self.href, self.text, self.content)
+
 
 class ImageUri(AnyUri):
     """A special kind of String that holds the uri of an image."""
