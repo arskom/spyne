@@ -44,7 +44,7 @@ from spyne.protocol._base import ProtocolMixin
 
 from spyne.model import ModelBase, XmlAttribute, SimpleModel, Null, \
     ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, Decimal, \
-    Double, Integer, Time, DateTime, Uuid, Duration, Boolean, AnyDict
+    Double, Integer, Time, DateTime, Uuid, Duration, Boolean, AnyDict, AnyUri
 
 from spyne.const.http import HTTP_400, HTTP_401, HTTP_404, HTTP_405, HTTP_413, \
     HTTP_500
@@ -131,6 +131,7 @@ class OutProtocolBase(ProtocolMixin):
             Null: self.null_to_bytes,
             Double: self.double_to_bytes,
             AnyXml: self.any_xml_to_unicode,
+            AnyUri: self.any_uri_to_unicode,
             AnyDict: self.any_dict_to_unicode,
             Unicode: self.unicode_to_unicode,
             Boolean: self.boolean_to_bytes,
@@ -281,6 +282,9 @@ class OutProtocolBase(ProtocolMixin):
             return cls_attrs.format % retval
 
         return retval
+
+    def any_uri_to_unicode(self, cls, value, **_):
+        return self.unicode_to_unicode(cls, value, **_)
 
     def unicode_to_unicode(self, cls, value, **_):  # :)))
         cls_attrs = self.get_cls_attrs(cls)

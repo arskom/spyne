@@ -129,3 +129,8 @@ class Csv(HierDictDocument):
         if 'http' in ctx.transport.type:
             ctx.transport.resp_headers['Content-Disposition'] = (
                            'attachment; filename=%s.csv;' % ctx.descriptor.name)
+
+    def any_uri_to_unicode(self, cls, value, **_):
+        if isinstance(value, cls.Value):
+            value = value.text
+        return super(Csv, self).any_uri_to_unicode(cls, value, **_)
