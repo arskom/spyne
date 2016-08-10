@@ -510,12 +510,21 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         handler = self.rendering_handlers[cls]
 
-        identifier = "%s.%s" % (prot_name, handler.__name__)
-        logger_s.debug("Writing %s using %s for %s. Inst: %r", name,
-                                   identifier, cls.get_type_name(),
-                                   log_repr(inst, cls, from_array=from_arr))
+        # push the instance at hand to instance stack. this makes it easier for
+        # protocols to make decisions based on parents of instances at hand.
+        ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
+
+        # disabled for performance reasons
+        #identifier = "%s.%s" % (prot_name, handler.__name__)
+        #logger_s.debug("Writing %s using %s for %s. Inst: %r", name,
+        #                            identifier, cls.get_type_name(),
+        #                            log_repr(inst, cls, from_array=from_arr))
 
         retval = handler(ctx, cls, inst, cloth, parent, name=name)
+
+        # FIXME: to_parent must be made to a coroutine for the below to remain
+        #        consistent when Iterable.Push is used.
+        ctx.outprot_ctx.inst_stack.pop()
 
         return retval
 
