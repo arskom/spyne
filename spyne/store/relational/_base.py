@@ -73,7 +73,7 @@ from spyne.model import SimpleModel, AnyDict, Enum, ByteArray, Array, \
     Integer32, Integer64, Point, Line, Polygon, MultiPoint, MultiLine, \
     MultiPolygon, UnsignedInteger, UnsignedInteger8, UnsignedInteger16, \
     UnsignedInteger32, UnsignedInteger64, File, Ltree, Ipv6Address, Ipv4Address, \
-    IpAddress
+    IpAddress, Duration
 
 from spyne.util import sanitize_args
 
@@ -114,6 +114,7 @@ _sq2sp_type_map = {
     sqlalchemy.TIMESTAMP: DateTime,
     sqlalchemy.dialects.postgresql.base.TIMESTAMP: DateTime,
     sqlalchemy.DATETIME: DateTime,
+    sqlalchemy.dialects.postgresql.base.INTERVAL: Duration,
 
     sqlalchemy.Date: Date,
     sqlalchemy.DATE: Date,
@@ -261,6 +262,9 @@ def _get_sqlalchemy_type(cls):
 
     if issubclass(cls, Time):
         return sqlalchemy.Time
+
+    if issubclass(cls, Duration):
+        return sqlalchemy.dialects.postgresql.base.INTERVAL
 
     if issubclass(cls, XmlModifier):
         retval = _get_sqlalchemy_type(cls.type)
