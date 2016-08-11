@@ -33,6 +33,7 @@ class ZmqMethodContext(MethodContext):
         super(ZmqMethodContext, self).__init__(app, MethodContext.SERVER)
         self.transport.type = 'zmq'
 
+
 class ZeroMQServer(ServerBase):
     """The ZeroMQ server transport."""
     transport = 'http://rfc.zeromq.org/'
@@ -77,6 +78,10 @@ class ZeroMQServer(ServerBase):
 
             contexts = self.generate_contexts(initial_ctx)
             p_ctx, others = contexts[0], contexts[1:]
+
+            # TODO: Rate limiting
+            p_ctx.active = True
+
             if p_ctx.in_error:
                 p_ctx.out_object = p_ctx.in_error
                 error = p_ctx.in_error

@@ -463,6 +463,8 @@ class TwistedWebResource(Resource):
         p_ctx, others = contexts[0], contexts[1:]
 
         p_ctx.out_stream = request
+        # TODO: Rate limiting
+        p_ctx.active = True
 
         if p_ctx.in_error:
             return self.handle_rpc_error(p_ctx, others, p_ctx.in_error, request)

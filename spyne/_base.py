@@ -220,6 +220,10 @@ class MethodContext(object):
         """List of stuff to be closed when closing this context. Anything that
         has a close() callable can go in."""
 
+        self.active = False
+        """Transports may choose to delay incoming requests. When a context
+        is queued but waiting, this is False."""
+
         self.__descriptor = None
 
         #

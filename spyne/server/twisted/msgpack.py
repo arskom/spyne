@@ -80,7 +80,7 @@ class TwistedMessagePackProtocol(Protocol):
     IDLE_TIMEOUT_SEC = 0
 
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, out_chunk_size=0,
-                                           out_chunk_delay_sec=1, factory=None):
+                      out_chunk_delay_sec=1, max_in_queue_size=0, factory=None):
         """Twisted protocol implementation for Spyne's MessagePack transport.
 
         :param tpt: Spyne transport. It's an app-wide instance.
@@ -96,6 +96,7 @@ class TwistedMessagePackProtocol(Protocol):
         self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self.out_chunk_size = out_chunk_size
         self.out_chunk_delay_sec = out_chunk_delay_sec
+        self.max_in_queue_size = max_in_queue_size
         self.factory = factory
 
         self.sessid = ''
@@ -105,6 +106,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.idle_timer = None
         self.out_chunks = deque()
         self.inreq_queue = OrderedDict()
+        self.inactive_queue = list()
         self.disconnecting = False  # FIXME: should we use this to raise an
                                     # invalid connection state exception ?
 
@@ -134,6 +136,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.idle_timer = None
         self.out_chunks = deque()
         self.inreq_queue = OrderedDict()
+        self.inactive_queue = list()
         self.disconnecting = False  # FIXME: should we use this to raise an
                                     # invalid connection state exception ?
 
@@ -185,8 +188,32 @@ class TwistedMessagePackProtocol(Protocol):
         p_ctx.transport.protocol = self
         p_ctx.transport.sessid = self.sessid
 
-        self.inreq_queue[id(p_ctx)] = None
-        self.process_contexts(p_ctx, others)
+        self.inactive_queue.append((p_ctx, others))
+        self.process_inactive()
+
+    @property
+    def num_active_contexts(self):
+        return len(self.inreq_queue)
+
+    @property
+    def num_inactive_contexts(self):
+        return len(self.inactive_queue)
+
+    def process_inactive(self):
+        if self.max_in_queue_size == 0:
+            while self.num_inactive_contexts > 0:
+                p_ctx, others = self.inactive_queue.pop()
+
+                self.inreq_queue[id(p_ctx)] = None
+                self.process_contexts(p_ctx, others)
+
+        else:
+            while self.num_active_contexts < self.max_in_queue_size and \
+                                                 self.num_inactive_contexts > 0:
+                p_ctx, others = self.inactive_queue.pop()
+
+                self.inreq_queue[id(p_ctx)] = None
+                self.process_contexts(p_ctx, others)
 
     def enqueue_outresp_data(self, ctxid, data):
         assert self.inreq_queue[ctxid] is None
@@ -199,6 +226,8 @@ class TwistedMessagePackProtocol(Protocol):
             self.out_write(v)
 
             del self.inreq_queue[k]
+
+        self.process_inactive()
 
     def out_write(self, data):
         if self.out_chunk_size == 0:

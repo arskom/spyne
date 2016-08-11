@@ -144,6 +144,9 @@ class DjangoServer(HttpBase):
         contexts = self.get_contexts(request)
         p_ctx, others = contexts[0], contexts[1:]
 
+        # TODO: Rate limiting
+        p_ctx.active = True
+
         if p_ctx.in_error:
             return self.handle_error(p_ctx, others, p_ctx.in_error)
 

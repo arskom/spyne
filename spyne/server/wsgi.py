@@ -351,6 +351,9 @@ class WsgiApplication(HttpBase):
         contexts = self.generate_contexts(initial_ctx, in_string_charset)
         p_ctx, others = contexts[0], contexts[1:]
 
+        # TODO: rate limiting
+        p_ctx.active = True
+
         if p_ctx.in_error:
             return self.handle_error(p_ctx, others, p_ctx.in_error,
                                                                  start_response)
