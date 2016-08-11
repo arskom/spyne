@@ -102,6 +102,7 @@ class HierDictDocument(DictDocument):
         # get the result message
         if message is self.REQUEST:
             out_type = ctx.descriptor.in_message
+
         elif message is self.RESPONSE:
             out_type = ctx.descriptor.out_message
 
