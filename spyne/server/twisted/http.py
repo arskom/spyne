@@ -263,17 +263,17 @@ class TwistedHttpTransport(HttpBase):
         assert isinstance(request, Request)
 
         ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
-        fi = ctx.transport.file_info
-        if fi is not None and len(request.args) == 1:
-            key, = request.args.keys()
-            if fi.field_name == key and fi.file_name is not None:
-                ctx.in_body_doc = {key: [File.Value(name=fi.file_name,
-                                    type=fi.file_type, data=request.args[key])]}
+        ctx.in_body_doc = request.args
 
-            else:
-                ctx.in_body_doc = request.args
-        else:
-            ctx.in_body_doc = request.args
+        fi = ctx.transport.file_info
+        if fi is not None:
+            data = request.args.get(fi.field_name, None)
+            if data is not None and fi.file_name is not None:
+                ctx.in_body_doc[fi.field_name] = \
+                    [File.Value(
+                        name=fi.file_name,
+                        type=fi.file_type,
+                        data=request.args[fi.field_name])]
 
         # this is a huge hack because twisted seems to take the slashes in urls
         # too seriously.
@@ -462,6 +462,7 @@ class TwistedWebResource(Resource):
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
 
+        p_ctx.active = True
         p_ctx.out_stream = request
         # TODO: Rate limiting
         p_ctx.active = True
