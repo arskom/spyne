@@ -215,6 +215,11 @@ class TwistedMessagePackProtocol(Protocol):
                 self.inreq_queue[id(p_ctx)] = None
                 self.process_contexts(p_ctx, others)
 
+            peer = self.transport.getPeer()
+            addr_str = Address.from_twisted_address(peer)
+            logger.debug("%s active %d inactive %d", addr_str,
+                        self.num_active_contexts, self.num_inactive_contexts)
+
     def enqueue_outresp_data(self, ctxid, data):
         assert self.inreq_queue[ctxid] is None
         self.inreq_queue[ctxid] = data
