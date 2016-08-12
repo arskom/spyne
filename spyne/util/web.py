@@ -27,19 +27,16 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from spyne import rpc, Any, AnyDict, NATIVE_MAP
-from spyne.const import MAX_ARRAY_ELEMENT_NUM, MAX_DICT_ELEMENT_NUM
-from spyne.const import MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
-from spyne.error import ResourceNotFoundError
-from spyne.model import Array
-from spyne.model import ComplexModelBase
-from spyne.model import Mandatory as M, UnsignedInteger32, PushBase, Iterable, \
-    ModelBase, File
-from spyne.model import Unicode
-from spyne.service import ServiceBase
+from spyne import rpc, Any, AnyDict, NATIVE_MAP, M, Array, ComplexModelBase, \
+    UnsignedInteger32, PushBase, Iterable, ModelBase, File, ServiceBase, \
+    ResourceNotFoundError
+
+from spyne.const import MAX_ARRAY_ELEMENT_NUM, MAX_DICT_ELEMENT_NUM, \
+    MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
+
+from spyne.util import memoize, six
+
 from spyne.store.relational import PGFileJson
-from spyne.util import memoize
-from spyne.util import six
 
 
 EXCEPTION_ADDRESS = None

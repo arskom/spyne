@@ -42,14 +42,10 @@ This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 from __future__ import absolute_import
 
 import logging
-
-import cgi
-from twisted.internet.threads import deferToThread
-from twisted.python.failure import Failure
-
 logger = logging.getLogger(__name__)
 
 import re
+import cgi
 import threading
 
 from os import fstat
@@ -62,9 +58,11 @@ from twisted.web.server import NOT_DONE_YET, Request
 from twisted.web.resource import Resource, NoResource, ForbiddenResource
 from twisted.web.static import getTypeAndEncoding
 from twisted.python.log import err
+from twisted.python.failure import Failure
 from twisted.internet import reactor
 from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
+from twisted.internet.threads import deferToThread
 
 from spyne import Redirect
 from spyne.application import logger_server
@@ -75,13 +73,17 @@ from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404, HTTP_200
+
 from spyne.model import PushBase, File, ComplexModelBase
 from spyne.model.fault import Fault
+
 from spyne.protocol.http import HttpRpc
+
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
+
 from spyne.util.six import text_type, string_types
 from spyne.util.six.moves.urllib.parse import unquote
 
@@ -320,7 +322,7 @@ FILE_NAME_RE = re.compile(r'filename="([^"]+)"')
 _FileInfo = namedtuple("_FileInfo", "field_name file_name file_type data")
 
 
-def _get_file_name(ctx):
+def _get_file_info(ctx):
     """We need this hack because twisted doesn't offer a way to get file name
     from Content-Disposition header.
     """
@@ -355,13 +357,14 @@ def _get_file_name(ctx):
 
 
 def _has_fd(istr):
-    if hasattr(istr, 'fileno'):
-        try:
-            istr.fileno()
-            return True
-        except IOError:
-            return False
-    return False
+    if not hasattr(istr, 'fileno'):
+        return False
+    try:
+        istr.fileno()
+    except IOError:
+        return False
+    else:
+        return True
 
 
 class TwistedWebResource(Resource):
@@ -451,7 +454,7 @@ class TwistedWebResource(Resource):
             request.content.seek(0)
             initial_ctx.in_string = [request.content.read()]
 
-        initial_ctx.transport.file_info = _get_file_name(initial_ctx)
+        initial_ctx.transport.file_info = _get_file_info(initial_ctx)
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
