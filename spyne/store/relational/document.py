@@ -53,6 +53,14 @@ from spyne.util.six import binary_type, text_type
 from spyne.util.fileproxy import SeekableFileProxy
 
 
+class FileData(ComplexModel):
+    _type_info = [
+        ('name', Unicode),
+        ('type', Unicode),
+        ('path', Unicode),
+    ]
+
+
 class PGXml(UserDefinedType):
     def __init__(self, pretty_print=False, xml_declaration=False,
                                                               encoding='UTF-8'):
@@ -216,16 +224,9 @@ class PGObjectJson(UserDefinedType):
 
 
 class PGFileJson(PGObjectJson):
-    class FileData(ComplexModel):
-        _type_info = [
-            ('name', Unicode),
-            ('type', Unicode),
-            ('path', Unicode),
-        ]
-
     def __init__(self, store, type=None):
         if type is None:
-            type = PGFileJson.FileData
+            type = FileData
 
         super(PGFileJson, self).__init__(type, ignore_wrappers=True,
                                                                 complex_as=list)
