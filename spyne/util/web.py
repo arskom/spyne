@@ -29,7 +29,7 @@ from inspect import isclass
 
 from spyne import rpc, Any, AnyDict, NATIVE_MAP, M, Array, ComplexModelBase, \
     UnsignedInteger32, PushBase, Iterable, ModelBase, File, ServiceBase, \
-    ResourceNotFoundError
+    ResourceNotFoundError, Unicode
 
 from spyne.const import MAX_ARRAY_ELEMENT_NUM, MAX_DICT_ELEMENT_NUM, \
     MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
