@@ -221,12 +221,12 @@ class TwistedHttpTransport(HttpBase):
 
                 logger.error(f.getTraceback())
 
-                retval = super(TwistedHttpTransport, self) \
+                subretval = super(TwistedHttpTransport, self) \
                                           .pusher_try_close(ctx, pusher, retval)
 
                 ctx.out_stream.finish()
 
-                return retval
+                return subretval
 
             def _cb_push_close(r):
                 def _eb_inner(f):
