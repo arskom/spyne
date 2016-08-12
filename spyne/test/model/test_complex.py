@@ -37,6 +37,7 @@ from spyne.const import xml_ns
 from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
+from spyne.model.addtl import TimeSegment
 from spyne.protocol import ProtocolBase
 from spyne.protocol.soap import Soap11
 from spyne.server.null import NullServer
@@ -1032,6 +1033,15 @@ class TestCustomize(unittest.TestCase):
                     "<class 'spyne.test.model.test_complex.TestComplexModel'> "
                     "have conflicting names.")
 
+
+class TestAdditional(unittest.TestCase):
+    def test_time_segment(self):
+        data = TimeSegment.from_string("[11:12:13.123456,14:15:16.789012]")
+
+        assert data.start_inclusive == True
+        assert data.start == datetime.time(11, 12, 13, 123456)
+        assert data.end == datetime.time(14, 15, 16, 789012)
+        assert data.end_inclusive == True
 
 if __name__ == '__main__':
     unittest.main()
