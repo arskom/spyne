@@ -43,6 +43,7 @@ from __future__ import absolute_import
 
 import logging
 
+import cgi
 from twisted.internet.threads import deferToThread
 from twisted.python.failure import Failure
 
@@ -265,15 +266,15 @@ class TwistedHttpTransport(HttpBase):
         ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
         ctx.in_body_doc = request.args
 
-        fi = ctx.transport.file_info
-        if fi is not None:
+        for fi in ctx.transport.file_info:
+            assert isinstance(fi, _FileInfo)
             data = request.args.get(fi.field_name, None)
             if data is not None and fi.file_name is not None:
                 ctx.in_body_doc[fi.field_name] = \
                     [File.Value(
                         name=fi.file_name,
                         type=fi.file_type,
-                        data=request.args[fi.field_name])]
+                        data=fi.data)]
 
         # this is a huge hack because twisted seems to take the slashes in urls
         # too seriously.
@@ -316,48 +317,41 @@ class TwistedHttpTransport(HttpBase):
 
 FIELD_NAME_RE = re.compile(r'name="([^"]+)"')
 FILE_NAME_RE = re.compile(r'filename="([^"]+)"')
-_FileInfo = namedtuple("_FileInfo", "field_name file_name file_type "
-                                                                "header_offset")
-def _get_file_name(instr):
-    """We need this huge hack because twisted doesn't offer a way to get file
-    name from Content-Disposition header. This works only when there's just one
-    file because we want to avoid scanning the whole stream. So this won't get
-    the names of the subsequent files even though that's a perfectly valid
-    request.
+_FileInfo = namedtuple("_FileInfo", "field_name file_name file_type data")
+
+
+def _get_file_name(ctx):
+    """We need this hack because twisted doesn't offer a way to get file name
+    from Content-Disposition header.
     """
 
-    field_name = file_name = file_type = content_idx = None
+    retval = []
 
-    # hack to see if it looks like a multipart request. 5 is arbitrary.
-    if instr[:5] == "-----":
-        first_page = instr[:4096] # 4096 = default page size on linux.
+    request = ctx.transport.req
+    headers = request.getAllHeaders()
+    content_type = headers.get('content-type', None)
+    if content_type is None:
+        return retval
 
-        # this normally roughly <200
-        header_idx = first_page.find('\r\n') + 2
-        content_idx = first_page.find('\r\n\r\n', header_idx)
-        if header_idx > 0 and content_idx > header_idx:
-            headerstr = first_page[header_idx:content_idx]
+    img = cgi.FieldStorage(
+        fp=request.content,
+        headers=ctx.in_header_doc,
+        environ={
+            'REQUEST_METHOD': request.method,
+            'CONTENT_TYPE': content_type,
+        }
+    )
 
-            for line in headerstr.split("\r\n"):
-                k, v = line.split(":", 2)
-                if k == "Content-Disposition":
-                    for subv in v.split(";"):
-                        subv = subv.strip()
-                        m = FIELD_NAME_RE.match(subv)
-                        if m:
-                            field_name = m.group(1)
-                            continue
+    for k in img.keys():
+        field = img[k]
 
-                        m = FILE_NAME_RE.match(subv)
-                        if m:
-                            file_name = m.group(1)
-                    continue
+        file_type = field.type
+        file_name = field.disposition_options.get('filename', None)
+        if file_name is not None:
+            retval.append(_FileInfo(k, file_name, file_type,
+                                                [mmap(field.file.fileno(), 0)]))
 
-                if k == "Content-Type":
-                    file_type = v.strip()
-
-        # 4 == len('\r\n\r\n')
-        return _FileInfo(field_name, file_name, file_type, content_idx + 4)
+    return retval
 
 
 def _has_fd(istr):
@@ -444,6 +438,7 @@ class TwistedWebResource(Resource):
     def handle_rpc(self, request):
         initial_ctx = TwistedHttpMethodContext(self.http_transport, request,
                                  self.http_transport.app.out_protocol.mime_type)
+
         if _has_fd(request.content):
             f = request.content
 
@@ -456,8 +451,7 @@ class TwistedWebResource(Resource):
             request.content.seek(0)
             initial_ctx.in_string = [request.content.read()]
 
-        initial_ctx.transport.file_info = \
-                                        _get_file_name(initial_ctx.in_string[0])
+        initial_ctx.transport.file_info = _get_file_name(initial_ctx)
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
