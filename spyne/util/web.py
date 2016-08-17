@@ -33,11 +33,9 @@ from spyne import rpc, Any, AnyDict, NATIVE_MAP, M, Array, ComplexModelBase, \
 
 from spyne.const import MAX_ARRAY_ELEMENT_NUM, MAX_DICT_ELEMENT_NUM, \
     MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
+from spyne.store.relational.document import FileData
 
 from spyne.util import memoize, six
-
-from spyne.store.relational import PGFileJson
-
 
 EXCEPTION_ADDRESS = None
 
@@ -259,8 +257,8 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
         return repr(obj)
 
-    if issubclass(cls, File) and isinstance(obj, PGFileJson.FileData):
-        return log_repr(obj, PGFileJson.FileData, tags=tags)
+    if issubclass(cls, File) and isinstance(obj, FileData):
+        return log_repr(obj, FileData, tags=tags)
 
     retval = repr(obj)
 
