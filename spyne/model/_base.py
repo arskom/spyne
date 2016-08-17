@@ -574,16 +574,8 @@ class ModelBase(object):
         Not meant to be overridden.
         """
 
-        __tn = None
-        def _log_debug_rest(s, *args):
-            logger.debug("\t%s: %s" % (__tn, s), *args)
-
-        def _log_debug_first(s, *args):
-            __tn = cls.get_type_name()
-            logger.debug("\t%s: %s" % (__tn, s), *args)
-            _log_debug = _log_debug_rest
-
-        _log_debug = _log_debug_first
+        def _log_debug(s, *args):
+            logger.debug("\t%s: %s" % (cls.get_type_name(), s), *args)
 
         cls_dict = odict({'__module__': cls.__module__, '__doc__': cls.__doc__})
 
