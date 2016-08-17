@@ -37,7 +37,7 @@ from spyne.const import xml_ns
 from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
-from spyne.model.addtl import TimeSegment
+from spyne.model.addtl import TimeSegment, DateSegment, DateTimeSegment
 from spyne.protocol import ProtocolBase
 from spyne.protocol.soap import Soap11
 from spyne.server.null import NullServer
@@ -1038,10 +1038,28 @@ class TestAdditional(unittest.TestCase):
     def test_time_segment(self):
         data = TimeSegment.from_string("[11:12:13.123456,14:15:16.789012]")
 
-        assert data.start_inclusive == True
+        assert data.start_inclusive
         assert data.start == datetime.time(11, 12, 13, 123456)
         assert data.end == datetime.time(14, 15, 16, 789012)
+        assert data.end_inclusive
+
+    def test_date_segment(self):
+        data = DateSegment.from_string("[2016-03-03,2016-05-07[")
+
+        assert data.start_inclusive == True
+        assert data.start == datetime.date(2016, 3, 3)
+        assert data.end == datetime.date(2016, 5, 7)
+        assert data.end_inclusive == False
+
+    def test_datetime_segment(self):
+        data = DateTimeSegment.from_string("]2016-03-03T10:20:30.405060,"
+                                            "2016-05-07T00:01:02.030405]")
+
+        assert data.start_inclusive == False
+        assert data.start == datetime.datetime(2016, 3, 3, 10, 20, 30, 405060)
+        assert data.end   == datetime.datetime(2016, 5, 7,  0,  1,  2,  30405)
         assert data.end_inclusive == True
+
 
 if __name__ == '__main__':
     unittest.main()

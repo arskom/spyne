@@ -18,28 +18,45 @@
 #
 
 import re
-from spyne import M, Boolean, DateTime, Date, Time, ComplexModel
+from spyne import M, Boolean, DateTime, Date, Time, ComplexModel, \
+    ValidationError
+from spyne.protocol import InProtocolBase
 
 
 class SegmentBase(object):
-    _SEGMENT_RE = re.compile(
-        r"([\[\]])"
-        r"([0-9-]+)"
-        r","
-        r"([0-9-]+)"
-        r"([\[\]])")
-
     @classmethod
     def from_string(cls, s):
-        match = SegmentBase._SEGMENT_RE.match(s)
+        match = cls._SEGMENT_RE.match(s)
+        if match is None:
+            raise ValidationError(s)
         start_incl, start_str, end_str, end_incl = match.groups()
-        return cls(start=start, end=end)
+
+        print()
+        print(start_incl, start_str, end_str, end_incl)
+
+        start_incl = (start_incl == '[')
+        start = InProtocolBase().from_unicode(
+                                            cls._type_info['start'], start_str)
+        end = InProtocolBase().from_unicode(cls._type_info['start'], end_str)
+        end_incl = (end_incl == ']')
+
+        print(start_incl, start, end, end_incl)
+
+        return cls(start_inclusive=start_incl, start=start, end=end,
+                                                         end_inclusive=end_incl)
 
     def to_string(self):
         return '[%s,%s]' % (self.start.isoformat(), self.end.isoformat())
 
 
 class DateTimeSegment(ComplexModel, SegmentBase):
+    _SEGMENT_RE = re.compile(
+        ur"([\[\]])"
+        ur"([0-9:\.T-]+)"
+        ur","
+        ur"([0-9:\.T-]+)"
+        ur"([\[\]])", re.DEBUG | re.UNICODE)
+
     _type_info = [
         ('start_inclusive', M(Boolean(default=True))),
         ('start', M(DateTime)),
@@ -48,15 +65,15 @@ class DateTimeSegment(ComplexModel, SegmentBase):
     ]
 
 
-    def to_string(self):
-        return '%s%s,%s%s' % (
-            '[' if self.start_inclusive else ']',
-            self.start.isoformat(), self.end.isoformat(),
-            ']' if self.start_inclusive else '(',
-        )
-
 
 class DateSegment(ComplexModel, SegmentBase):
+    _SEGMENT_RE = re.compile(
+        ur"([\[\]])"
+        ur"([0-9-]+)"
+        ur","
+        ur"([0-9-]+)"
+        ur"([\[\]])", re.DEBUG | re.UNICODE)
+
     _type_info = [
         ('start_inclusive', M(Boolean(default=True))),
         ('start', M(Date)),
@@ -66,19 +83,16 @@ class DateSegment(ComplexModel, SegmentBase):
 
 
 class TimeSegment(ComplexModel, SegmentBase):
+    _SEGMENT_RE = re.compile(
+        ur"([\[\]])"
+        ur"([0-9:\.]+)"
+        ur","
+        ur"([0-9:\.]+)"
+        ur"([\[\]])", re.DEBUG | re.UNICODE)
+
     _type_info = [
         ('start_inclusive', M(Boolean(default=True))),
         ('start', M(Time)),
         ('end', M(Time)),
         ('end_inclusive', M(Boolean(default=True))),
     ]
-
-    @classmethod
-    def from_string(cls, s):
-        start_incl, start, end, end_incl = SegmentBase._SEGMENT_RE.match(s)
-        return cls(start_inclusive=start_incl,
-                   start=start, end=end,
-                   enc_inclusive=end_incl)
-
-    def to_string(self):
-        return '[%s,%s]' % (self.start.isoformat(), self.end.isoformat())
