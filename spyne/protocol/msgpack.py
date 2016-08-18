@@ -228,7 +228,8 @@ class MessagePackRpc(MessagePackDocument):
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                                                                msgname_or_error)
 
-        ctx.in_header_doc = None # MessagePackRpc does not seem to have Header support
+        # MessagePackRpc does not seem to have Header support
+        ctx.in_header_doc = None
 
         if isinstance(msgname_or_error, dict) and msgname_or_error:
             # we got an error
