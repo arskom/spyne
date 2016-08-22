@@ -20,9 +20,31 @@
 from lxml.builder import E
 from pprint import pformat
 
+from spyne import Boolean
 from spyne.protocol.html import HtmlBase
 
 
 class PrettyFormat(HtmlBase):
     def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E.pre(pformat(inst)))
+
+
+class BooleanListProtocol(HtmlBase):
+    def __init__(self, nothing=None):
+        super(BooleanListProtocol, self).__init__()
+
+        self.nothing = nothing
+
+    def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
+        if inst is not None:
+            wrote_nothing = True
+            for k, v in cls.get_flat_type_info(cls).items():
+                if not issubclass(v, Boolean):
+                    continue
+
+                if getattr(inst, k, False):
+                    parent.write(E.p(self.trc(cls, ctx.locale, k)))
+                    wrote_nothing = False
+
+            if wrote_nothing and self.nothing is not None:
+                parent.write(E.p(self.nothing))
