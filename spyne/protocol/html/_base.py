@@ -29,6 +29,12 @@ from spyne.protocol.cloth._base import XmlClothProtocolContext
 from spyne.util.oset import oset
 
 
+def parse_html_fragment_file(T_FILES):
+    elt = html.fromstring(open(T_FILES).read())
+    elt.getparent().remove(elt)
+    return elt
+
+
 class HtmlClothProtocolContext(XmlClothProtocolContext):
     def __init__(self, parent, transport, type=None):
         super(HtmlClothProtocolContext, self).__init__(parent, transport, type)
