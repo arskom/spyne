@@ -28,11 +28,19 @@ from lxml import etree, html
 from lxml.builder import E
 
 from spyne import ComplexModel, XmlAttribute, Unicode, Array, Integer, \
-    SelfReference
+    SelfReference, XmlData
 from spyne.protocol.cloth import XmlCloth
 from spyne.test import FakeContext
 from spyne.util.six import BytesIO
 
+
+### !!! WARNING !!! ### !!! WARNING !!! ###
+#
+#  This test uses spyne_id and spyne_tagbag instead of spyne-id and spyne-tagbag
+# for ease of testing. The real attributes are different from what you are going
+# to see in the wild. You have been warned !!!
+#
+### !!! WARNING !!! ### !!! WARNING !!! ###
 
 class TestModelCloth(unittest.TestCase):
     def test_root_html(self):
@@ -126,6 +134,27 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(SomeObject(), cloth=cloth)
 
         assert elt[0].text is None
+
+    def test_xml_data_tag(self):
+        class SomeObject(ComplexModel):
+            d = XmlData(Unicode)
+
+        cloth = etree.fromstring('<a><spyne-data spyne_id="d"/></a>')
+
+        elt = self._run(SomeObject(d='data'), cloth=cloth)
+
+        assert elt.text == 'data'
+
+    def test_xml_data_attr(self):
+        class SomeObject(ComplexModel):
+            d = XmlData(Unicode)
+
+        cloth = etree.fromstring(
+            '<a spyne-id="d" spyne-data="d"></a>')
+
+        elt = self._run(SomeObject(d='data'), cloth=cloth)
+
+        assert elt.text == 'data'
 
     def test_simple_value_xmlattribute(self):
         v = 'punk.'

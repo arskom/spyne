@@ -64,6 +64,7 @@ def _gen_tagname(ns, name):
 class ClothParserMixin(object):
     ID_ATTR_NAME = 'spyne-id'
     DATA_TAG_NAME = 'spyne-data'
+    DATA_ATTR_NAME = 'spyne-data'
     ROOT_ATTR_NAME = 'spyne-root'
     TAGBAG_ATTR_NAME = 'spyne-tagbag'
     WRITE_CONTENTS_WHEN_NOT_NONE = 'spyne-write-contents'
@@ -585,6 +586,38 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
 
+        # it's actually an odict but that's irrelevant here.
+        fti_check = dict(fti.items())
+        never_found = set()
+
+        # This is a giant special case for the spyne-data attribute
+        k = cloth.attrib.get(self.DATA_ATTR_NAME, None)
+        if k is not None:
+            v = fti.get(k, None)
+            fti_check.pop(k, None)
+
+            if v is None:
+                logger_c.warning("elt id %r not in %r", k, cls)
+                never_found.add(k)
+
+            else:
+                if issubclass(v, XmlData):
+                    v = v.type
+
+                else:
+                    logger_c.warning("elt id %r not XmlData subclass but %r",
+                                                                         k, cls)
+
+                cls_attrs = self.get_cls_attrs(v)
+                if cls_attrs.exc:
+                    logger_c.debug("Skipping elt id %r because excluded", k)
+
+                else:
+                    val = getattr(inst, k, None)
+                    # we only support XmlData of a primitive.,. is this a
+                    # problem?
+                    parent.write(self.to_unicode(v, val))
+
         for elt in self._get_elts(cloth, "mrpc"):
             self._actions_to_cloth(ctx, cls, inst, elt)
 
@@ -595,10 +628,6 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             logger_c.debug("%r(%r) is NOT a tagbag", cloth, cloth.attrib)
             elts = self._get_outmost_elts(cloth)
 
-        # it's actually an odict but that's irrelevant here.
-        fti_check = dict(fti.items())
-
-        never_found = set()
         for i, elt in enumerate(elts):
             k = elt.attrib[self.ID_ATTR_NAME]
             v = fti.get(k, None)

@@ -33,7 +33,13 @@ from spyne import rpc, Any, AnyDict, NATIVE_MAP, M, Array, ComplexModelBase, \
 
 from spyne.const import MAX_ARRAY_ELEMENT_NUM, MAX_DICT_ELEMENT_NUM, \
     MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
-from spyne.store.relational.document import FileData
+
+try:
+    from spyne.store.relational.document import FileData
+except ImportError:
+    # this is used just for isinstance check. so just set it to an anonymnous
+    #  value
+    FileData = type('__hidden', (object, ), {})
 
 from spyne.util import memoize, six
 
