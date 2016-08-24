@@ -53,7 +53,7 @@ class HtmlCloth(XmlCloth):
                            ignore_wrappers=False, cloth=None, cloth_parser=None,
                                 polymorphic=True, hier_delim='.', doctype=None):
 
-        super(HtmlBase, self).__init__(app=app, mime_type=mime_type,
+        super(HtmlCloth, self).__init__(app=app, mime_type=mime_type,
                 ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
                 cloth=cloth, cloth_parser=cloth_parser, polymorphic=polymorphic)
 
