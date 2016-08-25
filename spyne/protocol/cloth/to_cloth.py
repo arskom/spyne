@@ -616,7 +616,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     val = getattr(inst, k, None)
                     # we only support XmlData of a primitive.,. is this a
                     # problem?
-                    parent.write(self.to_unicode(v, val))
+                    if val is not None:
+                        parent.write(self.to_unicode(v, val))
 
         for elt in self._get_elts(cloth, "mrpc"):
             self._actions_to_cloth(ctx, cls, inst, elt)
