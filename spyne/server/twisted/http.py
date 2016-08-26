@@ -344,7 +344,12 @@ def _get_file_info(ctx):
         }
     )
 
-    for k in img.keys():
+    try:
+        keys = img.keys()
+    except TypeError:
+        return retval
+
+    for k in keys:
         field = img[k]
 
         file_type = field.type
