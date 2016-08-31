@@ -132,10 +132,13 @@ def _validate_body_style(kparams):
 
     elif _soap_body_style == 'document':
         _body_style = 'wrapped'
+
     elif _soap_body_style == 'rpc':
         _body_style = 'bare'
+
     elif _soap_body_style is None:
         pass
+
     else:
         raise ValueError("soap_body_style must be one of ('rpc', 'document')")
 

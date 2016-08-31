@@ -232,11 +232,13 @@ class MethodContext(object):
 
         # stream
         self.in_string = None
-        """Incoming bytestream as a sequence of ``str`` or ``bytes`` instances."""
+        """Incoming bytestream as a sequence of ``str`` or ``bytes``
+        instances."""
 
         # parsed
         self.in_document = None
-        """Incoming document, what you get when you parse the incoming stream."""
+        """Incoming document, what you get when you parse the incoming
+        stream."""
         self.in_header_doc = None
         """Incoming header document of the request."""
         self.in_body_doc = None

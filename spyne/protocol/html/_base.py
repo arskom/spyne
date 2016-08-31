@@ -102,6 +102,7 @@ class HtmlCloth(XmlCloth):
         parent.write(str(inst))
 
     def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
+        # FIXME: This ugly HACK needs to GO!!!
         try:
             from neurons.base.screen import ScreenBase
 
