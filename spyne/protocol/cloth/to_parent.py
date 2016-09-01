@@ -202,23 +202,29 @@ class ToParentMixin(OutProtocolBase):
             inst = ()
 
         if isinstance(inst, PushBase):
+            # this will be popped by pusher_try_close
             ctx.pusher_stack.append(inst)
 
-            while True:
-                sv = (yield)
-                ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True,
-                                                                       **kwargs)
-                if isgenerator(ret):
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-
-                    except Break as e:
+            try:
+                while True:
+                    sv = (yield)
+                    ret = self.to_parent(ctx, cls, sv, parent, name,
+                                                        from_arr=True, **kwargs)
+                    if isgenerator(ret):
                         try:
-                            ret.throw(e)
-                        except StopIteration:
-                            pass
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+
+                        except Break as e:
+                            try:
+                                ret.throw(e)
+                            except StopIteration:
+                                pass
+
+            except Break:
+                # pusher is done with pushing
+                pass
 
         else:
             assert isinstance(inst, Iterable), ("%r is not iterable" % (inst,))
