@@ -97,28 +97,28 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         else:
             assert message is self.RESPONSE
-            result_message_class = ctx.descriptor.out_message
+            result_class = ctx.descriptor.out_message
 
-            name = result_message_class.get_type_name()
+            name = result_class.get_type_name()
             if ctx.descriptor.body_style == BODY_STYLE_WRAPPED:
                 if self.ignore_wrappers:
-                    result_message = ctx.out_object[0]
-                    while result_message_class.Attributes._wrapper and \
-                                      len(result_message_class._type_info) == 1:
-                        result_message_class, = \
-                                        result_message_class._type_info.values()
+                    result_inst = ctx.out_object[0]
+                    while result_class.Attributes._wrapper and \
+                                      len(result_class._type_info) == 1:
+                        result_class, = \
+                                        result_class._type_info.values()
 
                 else:
-                    result_message = result_message_class()
+                    result_inst = result_class()
 
                     for i, attr_name in enumerate(
-                                        result_message_class._type_info.keys()):
-                        setattr(result_message, attr_name, ctx.out_object[i])
+                                        result_class._type_info.keys()):
+                        setattr(result_inst, attr_name, ctx.out_object[i])
 
             else:
-                result_message, = ctx.out_object
+                result_inst, = ctx.out_object
 
-            retval = self.incgen(ctx, result_message_class, result_message, name)
+            retval = self.incgen(ctx, result_class, result_inst, name)
 
         self.event_manager.fire_event('after_serialize', ctx)
 
