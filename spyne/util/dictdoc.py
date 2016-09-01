@@ -87,7 +87,7 @@ def get_object_as_dict(o, cls=None, ignore_wrappers=True, complex_as=dict,
     return retval
 
 
-def get_object_as_simple_dict(o, cls=None, hier_delim='_'):
+def get_object_as_simple_dict(o, cls=None, hier_delim='.'):
     if cls is None:
         cls = o.__class__
 
