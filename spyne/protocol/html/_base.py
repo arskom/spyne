@@ -44,6 +44,8 @@ class HtmlClothProtocolContext(XmlClothProtocolContext):
         self.ctxstack = defaultdict(list)
         self.rootstack = oset()
         self.tags = set()
+
+        # this is supposed to be for neurons.base.screen.ScreenBase subclasses
         self.screen = None
 
 
@@ -101,22 +103,6 @@ class HtmlCloth(XmlCloth):
     def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(str(inst))
 
-    def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
-        # FIXME: This ugly HACK needs to GO!!!
-        try:
-            from neurons.base.screen import ScreenBase
-
-        except ImportError:
-            pass
-
-        else:
-            if issubclass(cls, ScreenBase) and isinstance(inst, ScreenBase):
-                assert ctx.protocol.screen is None
-                ctx.protocol.screen = inst
-                logger.debug("Found screen instance %r", cls)
-
-        return super(HtmlCloth, self).subserialize(ctx, cls, inst, parent, name,
-                                                                       **kwargs)
 
 # FIXME: Deprecated
 HtmlBase = HtmlCloth
