@@ -87,12 +87,12 @@ def get_object_as_dict(o, cls=None, ignore_wrappers=True, complex_as=dict,
     return retval
 
 
-def get_object_as_simple_dict(o, cls=None, hier_delim='.'):
+def get_object_as_simple_dict(o, cls=None, hier_delim='.', prefix=None):
     if cls is None:
         cls = o.__class__
 
     return SimpleDictDocument(hier_delim=hier_delim) \
-                                                  .object_to_simple_dict(cls, o)
+                                   .object_to_simple_dict(cls, o, prefix=prefix)
 
 
 def get_object_as_json(o, cls=None, ignore_wrappers=True, complex_as=list,
