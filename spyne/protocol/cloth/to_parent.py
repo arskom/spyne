@@ -37,6 +37,7 @@ from spyne.protocol.xml import SchemaValidationError
 from spyne.util import coroutine, Break, six
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
+from spyne.util.color import R, B
 
 
 # FIXME: Serialize xml attributes!!!
@@ -81,85 +82,116 @@ class ToParentMixin(OutProtocolBase):
     def to_subprot(self, ctx, cls, inst, parent, name, subprot, **kwargs):
         return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
+    @coroutine
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
+        pushed = False
         prot_name = self.__class__.__name__
-        cls_attrs = self.get_cls_attrs(cls)
 
         cls, switched = self.get_polymorphic_target(cls, inst)
+        cls_attrs = self.get_cls_attrs(cls)
 
         # if there is a subprotocol, switch to it
         subprot = cls_attrs.prot
         if subprot is not None and not nosubprot and not \
                                            (subprot in ctx.protocol.prot_stack):
             logger.debug("Subprot from %r to %r", self, subprot)
-            return self.to_subprot(ctx, cls, inst, parent, name, subprot,
+            ret = self.to_subprot(ctx, cls, inst, parent, name, subprot,
                                                                        **kwargs)
+        else:
+            # if there is a class cloth, switch to it
+            has_cloth, cor_handle = self.check_class_cloths(ctx, cls, inst,
+                                                         parent, name, **kwargs)
+            if has_cloth:
+                ret = cor_handle
 
-        # if there is a class cloth, switch to it
-        ret, cor_handle = self.check_class_cloths(ctx, cls, inst, parent, name,
+            else:
+                # if instance is None, use the default factory to generate one
+                _df = cls_attrs.default_factory
+                if inst is None and callable(_df):
+                    inst = _df()
+
+                # if instance is still None, use the default value
+                if inst is None:
+                    inst = cls_attrs.default
+
+                # if instance is still None, use the global null handler to
+                # serialize it
+                if inst is None and self.use_global_null_handler:
+                    identifier = prot_name + '.null_to_parent'
+                    logger.debug("Writing %s using %s for %s.", name,
+                                                identifier, cls.get_type_name())
+                    self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
+
+                    return
+
+                # if requested, ignore wrappers
+                if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
+                    cls, inst = self.strip_wrappers(cls, inst)
+
+                # if cls is an iterable of values and it's not being iterated on, do it
+                from_arr = kwargs.get('from_arr', False)
+                # we need cls.Attributes here because we need the ACTUAL attrs that were
+                # set by the Array.__new__
+                if not from_arr and cls.Attributes.max_occurs > 1:
+                    ret = self.array_to_parent(ctx, cls, inst, parent, name,
                                                                        **kwargs)
-        if ret:
-            return cor_handle
+                else:
+                    # fetch the serializer for the class at hand
+                    try:
+                        handler = self.serialization_handlers[cls]
 
-        # if instance is None, use the default factory to generate one
-        _df = cls_attrs.default_factory
-        if inst is None and callable(_df):
-            inst = _df()
+                    except KeyError:
+                        # if this protocol uncapable of serializing this class
+                        if self.ignore_uncap:
+                            logger.debug("Ignore uncap %r", name)
+                            return  # ignore it if requested
 
-        # if instance is still None, use the default value
-        if inst is None:
-            inst = cls_attrs.default
+                        # raise the error otherwise
+                        logger.error("%r is missing handler for "
+                                             "%r for field %r", self, cls, name)
+                        raise
 
-        # if instance is still None, use the global null handler to serialize it
-        if inst is None and self.use_global_null_handler:
-            identifier = prot_name + '.null_to_parent'
-            logger.debug("Writing %s using %s for %s.", name, identifier,
-                                                            cls.get_type_name())
-            return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
+                    # push the instance at hand to instance stack. this makes it
+                    # easier for protocols to make decisions based on parents
+                    # of instances at hand.
+                    ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
+                    pushed = True
+                    logger.debug("%s %r pushed %r %r", R("$"), self, cls, inst)
 
-        # if requested, ignore wrappers
-        if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
-            cls, inst = self.strip_wrappers(cls, inst)
+                    # disabled for performance reasons
+                    #identifier = "%s.%s" % (prot_name, handler.__name__)
+                    #log_str = log_repr(inst, cls,
+                    #                   from_array=kwargs.get('from_arr', None))
+                    #logger.debug("Writing %s using %s for %s. Inst: %r", name,
+                    #                  identifier, cls.get_type_name(), log_str)
 
-        # if cls is an iterable of values and it's not being iterated on, do it
-        from_arr = kwargs.get('from_arr', False)
-        # we need cls.Attributes here because we need the ACTUAL attrs that were
-        # set by the Array.__new__
-        if not from_arr and cls.Attributes.max_occurs > 1:
-            return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
+                    # finally, serialize the value. retval is the coroutine
+                    # handle if any
+                    ret = handler(ctx, cls, inst, parent, name, **kwargs)
 
-        # fetch the serializer for the class at hand
-        try:
-            handler = self.serialization_handlers[cls]
-        except KeyError:
-            # if this protocol uncapable of serializing this class
-            if self.ignore_uncap:
-                logger.debug("Ignore uncap %r", name)
-                return  # ignore it if requested
+        if isgenerator(ret):
+            try:
+                while True:
+                    sv2 = (yield)
+                    ret.send(sv2)
 
-            # raise the error otherwise
-            logger.error("%r is missing handler for %r for field %r",
-                                                                self, cls, name)
-            raise
+            except Break as e:
+                try:
+                    ret.throw(e)
 
-        # push the instance at hand to instance stack. this makes it easier for
-        # protocols to make decisions based on parents of instances at hand.
-        ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
+                except (Break, StopIteration, GeneratorExit):
+                    pass
 
-        # disabled for performance reasons
-        #identifier = "%s.%s" % (prot_name, handler.__name__)
-        #log_str = log_repr(inst, cls, from_array=kwargs.get('from_arr', None))
-        #logger.debug("Writing %s using %s for %s. Inst: %r", name,
-        #                              identifier, cls.get_type_name(), log_str)
+                finally:
+                    if pushed:
+                        logger.debug("%s %r popped %r %r", B("$"), self, cls,
+                                                                           inst)
+                        ctx.outprot_ctx.inst_stack.pop()
 
-        # finally, serialize the value. retval is the coroutine handle if any
-        retval = handler(ctx, cls, inst, parent, name, **kwargs)
-
-        # FIXME: to_parent must be made to a coroutine for the below to remain
-        #        consistent when Iterable.Push is used.
-        ctx.outprot_ctx.inst_stack.pop()
-
-        return retval
+        else:
+            if pushed:
+                logger.debug("%s %r popped %r %r", B("$"), self, cls, inst)
+                ctx.outprot_ctx.inst_stack.pop()
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_unicode(cls, inst)))
