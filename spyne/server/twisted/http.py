@@ -197,13 +197,13 @@ class TwistedHttpTransport(HttpBase):
 
         deferLater(reactor, 0, _cb)
 
-    def pusher_init(self, p_ctx, gen, _cb_push_finish, pusher):
+    def pusher_init(self, p_ctx, gen, _cb_push_finish, pusher, interim):
         if pusher.orig_thread != self.reactor_thread:
             return deferToThread(super(TwistedHttpTransport, self).pusher_init,
-                                            p_ctx, gen, _cb_push_finish, pusher)
+                                   p_ctx, gen, _cb_push_finish, pusher, interim)
 
         return super(TwistedHttpTransport, self).pusher_init(
-                                            p_ctx, gen, _cb_push_finish, pusher)
+                                   p_ctx, gen, _cb_push_finish, pusher, interim)
 
     @staticmethod
     def set_out_document_push(ctx):
@@ -215,6 +215,9 @@ class TwistedHttpTransport(HttpBase):
         ctx.out_document = _ISwearImAGenerator()
 
     def pusher_try_close(self, ctx, pusher, retval):
+        # the whole point of this function is to call ctx.out_stream.finish()
+        # when a *root* pusher has no more data to send. interim pushers don't
+        # have to close anything.
         if isinstance(retval, Deferred):
             def _eb_push_close(f):
                 assert isinstance(f, Failure)
@@ -224,33 +227,37 @@ class TwistedHttpTransport(HttpBase):
                 subretval = super(TwistedHttpTransport, self) \
                                           .pusher_try_close(ctx, pusher, retval)
 
-                ctx.out_stream.finish()
+                if not pusher.interim:
+                    ctx.out_stream.finish()
 
                 return subretval
 
             def _cb_push_close(r):
                 def _eb_inner(f):
-                    ctx.out_stream.finish()
+                    if not pusher.interim:
+                        ctx.out_stream.finish()
+
                     return f
 
                 if not isinstance(r, Deferred):
                     retval = super(TwistedHttpTransport, self) \
                                                .pusher_try_close(ctx, pusher, r)
-                    ctx.out_stream.finish()
+                    if not pusher.interim:
+                        ctx.out_stream.finish()
 
                     return retval
 
-                else:
-                    return r \
-                        .addCallback(_cb_push_close) \
-                        .addErrback(_eb_inner)
+                return r \
+                    .addCallback(_cb_push_close) \
+                    .addErrback(_eb_inner)
 
             return retval \
                 .addCallback(_cb_push_close) \
                 .addErrback(_eb_push_close) \
                 .addErrback(err)
 
-        retval = ctx.out_stream.finish()
+        if not pusher.interim:
+            retval = ctx.out_stream.finish()
 
         super(TwistedHttpTransport, self).pusher_try_close(ctx, pusher, retval)
 

@@ -437,10 +437,6 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     ret.throw(e)
                 except (Break, StopIteration, GeneratorExit):
                     pass
-                finally:
-                    self._close_cloth(ctx, parent)
-        else:
-            self._close_cloth(ctx, parent)
 
     @coroutine
     def to_root_cloth(self, ctx, cls, inst, cloth, parent, name):

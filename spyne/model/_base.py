@@ -820,8 +820,9 @@ class PushBase(object):
         self.gen = None
         self._cb_finish = None
         self._eb_finish = None
+        self.interim = False
 
-    def _init(self, ctx, gen, _cb_finish, _eb_finish):
+    def _init(self, ctx, gen, _cb_finish, _eb_finish, interim):
         self.length = 0
 
         self.ctx = ctx
@@ -832,8 +833,10 @@ class PushBase(object):
         self._cb_finish = _cb_finish
         self._eb_finish = _eb_finish
 
-    def init(self, ctx, gen, _cb_finish, _eb_finish):
-        self._init(ctx, gen, _cb_finish, _eb_finish)
+        self.interim = interim
+
+    def init(self, ctx, gen, _cb_finish, _eb_finish, interim):
+        self._init(ctx, gen, _cb_finish, _eb_finish, interim)
         if self._cb is not None:
             return self._cb(self)
 

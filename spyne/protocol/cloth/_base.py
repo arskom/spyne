@@ -87,6 +87,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             name = cls.get_type_name()
 
             if self.developer_mode:
+                # FIXME: the eff is this?
                 ctx.out_object = (inst,)
 
                 retval = self.incgen(ctx, cls, inst, name)
@@ -155,6 +156,10 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                             ret.throw(b)
                         except StopIteration:
                             pass
+                        finally:
+                            self._close_cloth(ctx, xf)
+                else:
+                    self._close_cloth(ctx, xf)
 
         except LxmlSyntaxError as e:
             if e.msg == 'no content written':

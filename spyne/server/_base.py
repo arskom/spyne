@@ -142,6 +142,8 @@ class ServerBase(object):
             if isgenerator(ret) and ctx.out_object is not None and \
                                                        len(ctx.out_object) == 1:
                 if len(ctx.pusher_stack) > 0:
+                    # we suspend request processing here because there now
+                    # seems to be a PushBase waiting for input.
                     return self.convert_pull_to_push(ctx, ret)
 
         self.finalize_context(ctx)
@@ -200,26 +202,32 @@ class ServerBase(object):
         assert isinstance(ret, PushBase)
         assert p_ctx.out_stream is not None
 
+        # we don't add interim pushers to the stack because we don't know
+        # where to find them in the out_object's hierarchy. whatever finds
+        # one in the serialization pipeline has to push it to pusher_stack so
+        # the machinery in ServerBase can initialize them using this function.
+
         # fire events
         p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
         if p_ctx.service_class is not None:
-            p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
+            p_ctx.service_class.event_manager.fire_event(
+                                                    'method_return_push', p_ctx)
 
         def _cb_push_finish():
             process_contexts(self, (), p_ctx)
 
-        return self.pusher_init(p_ctx, gen, _cb_push_finish, ret)
+        return self.pusher_init(p_ctx, gen, _cb_push_finish, ret, interim=True)
 
-    def pusher_init(self, p_ctx, gen, _cb_push_finish, pusher):
-        return pusher.init(p_ctx, gen, _cb_push_finish, None)
+    def pusher_init(self, p_ctx, gen, _cb_push_finish, pusher, interim):
+        return pusher.init(p_ctx, gen, _cb_push_finish, None, interim)
 
-    def pusher_try_close(self, ctx, ret, _):
-        ret.close()
+    def pusher_try_close(self, ctx, pusher, _):
+        logger.debug("Closing pusher with ret=%r", pusher)
 
-        logger.debug("Closing pusher with ret=%r", ret)
+        pusher.close()
 
         popped = ctx.pusher_stack.pop()
-        assert popped is ret
+        assert popped is pusher
 
     def init_root_push(self, ret, p_ctx, others):
         assert isinstance(ret, PushBase)
@@ -245,7 +253,8 @@ class ServerBase(object):
         def _cb_push_finish():
             process_contexts(self, others, p_ctx)
 
-        retval = self.pusher_init(p_ctx, gen, _cb_push_finish, ret)
+        retval = self.pusher_init(p_ctx, gen, _cb_push_finish, ret,
+                                                                  interim=False)
 
         self.pusher_try_close(p_ctx, ret, retval)
 
