@@ -47,6 +47,8 @@ class HtmlClothProtocolContext(XmlClothProtocolContext):
 
         # this is supposed to be for neurons.base.screen.ScreenBase subclasses
         self.screen = None
+        self.prev_view = None
+        self.next_view = None
 
 
 class HtmlCloth(XmlCloth):
