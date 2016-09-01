@@ -32,6 +32,7 @@ from spyne.util import Break, coroutine
 from spyne.util.web import log_repr
 from spyne.util.oset import oset
 from spyne.util.six import string_types
+from spyne.util.color import R, B
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
     PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData, Any
 
@@ -464,70 +465,100 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         else:
             self._close_cloth(ctx, parent)
 
+    @coroutine
     # TODO: Maybe DRY this with to_parent?
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
                                                                       **kwargs):
-        prot_name = self.__class__.__name__
-        cls_attrs = self.get_cls_attrs(cls)
 
+        prot_name = self.__class__.__name__
+
+        pushed = False
         if cloth is None:
             logger_c.debug("No cloth fround, switching to to_parent...")
-            return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
+            ret = self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
-        cls, switched = self.get_polymorphic_target(cls, inst)
+        else:
+            cls, _ = self.get_polymorphic_target(cls, inst)
+            cls_attrs = self.get_cls_attrs(cls)
 
-        # if there's a subprotocol, switch to it
-        subprot = cls_attrs.prot
-        if subprot is not None and not (subprot is self):
-            self._enter_cloth(ctx, cloth, parent)
-            return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
+            # if instance is None, use the default factory to generate one
+            _df = cls_attrs.default_factory
+            if inst is None and callable(_df):
+                inst = _df()
 
-        # if instance is None, use the default factory to generate one
-        _df = cls_attrs.default_factory
-        if inst is None and callable(_df):
-            inst = _df()
+            # if instance is still None, use the default value
+            if inst is None:
+                inst = cls_attrs.default
 
-        # if instance is still None, use the default value
-        if inst is None:
-            inst = cls_attrs.default
-
-        if inst is None:
-            if cls.Attributes.min_occurs > 0:
+            # if there's a subprotocol, switch to it
+            subprot = cls_attrs.prot
+            if subprot is not None and not (subprot is self):
                 self._enter_cloth(ctx, cloth, parent)
-                identifier = "%s.%s" % (prot_name, "null_to_cloth")
-                logger_s.debug("Writing '%s' using %s type: %s.", name,
-                                                identifier, cls.get_type_name())
-                parent.write(cloth)
 
+                ret = subprot.subserialize(ctx, cls, inst, parent, name,
+                                                                       **kwargs)
+
+            # if there is no subprotocol, try rendering the value
             else:
-                logger_s.debug("Skipping '%s' type: %s because empty.", name,
-                                                            cls.get_type_name())
-                self._enter_cloth(ctx, cloth, parent, skip=True)
+                # try rendering the null value
+                if inst is None:
+                    if cls.Attributes.min_occurs > 0:
+                        self._enter_cloth(ctx, cloth, parent)
+                        identifier = "%s.%s" % (prot_name, "null_to_cloth")
+                        logger_s.debug("Writing '%s' using %s type: %s.", name,
+                                                identifier, cls.get_type_name())
+                        parent.write(cloth)
 
-            return
+                    else:
+                        logger_s.debug("Skipping '%s' type: %s because empty.",
+                                                      name, cls.get_type_name())
+                        self._enter_cloth(ctx, cloth, parent, skip=True)
 
-        if not from_arr and cls.Attributes.max_occurs > 1:
-            return self.array_to_cloth(ctx, cls, inst, cloth, parent, name=name)
+                    return
 
-        handler = self.rendering_handlers[cls]
+                # push the instance at hand to instance stack. this makes it
+                # easier for protocols to make decisions based on parents of
+                # instances at hand.
+                pushed = True
+                logger_c.debug("%s %r pushed %r %r", R("#"), self, cls, inst)
+                ctx.outprot_ctx.inst_stack.append((cls, inst, from_arr))
 
-        # push the instance at hand to instance stack. this makes it easier for
-        # protocols to make decisions based on parents of instances at hand.
-        ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
+                # try rendering the array value
+                if not from_arr and cls.Attributes.max_occurs > 1:
+                    ret = self.array_to_cloth(ctx, cls, inst, cloth, parent,
+                                                                      name=name)
+                else:
+                    # try rendering anything else
+                    handler = self.rendering_handlers[cls]
 
-        # disabled for performance reasons
-        #identifier = "%s.%s" % (prot_name, handler.__name__)
-        #logger_s.debug("Writing %s using %s for %s. Inst: %r", name,
-        #                            identifier, cls.get_type_name(),
-        #                            log_repr(inst, cls, from_array=from_arr))
+                    # disabled for performance reasons
+                    #identifier = "%s.%s" % (prot_name, handler.__name__)
+                    #logger_s.debug("Writing %s using %s for %s. Inst: %r",
+                    #                  name, identifier, cls.get_type_name(),
+                    #                  log_repr(inst, cls, from_array=from_arr))
 
-        retval = handler(ctx, cls, inst, cloth, parent, name=name)
+                    ret = handler(ctx, cls, inst, cloth, parent, name=name)
 
-        # FIXME: to_parent must be made to a coroutine for the below to remain
-        #        consistent when Iterable.Push is used.
-        ctx.outprot_ctx.inst_stack.pop()
+        if isgenerator(ret):
+            try:
+                while True:
+                    sv2 = (yield)
+                    ret.send(sv2)
+            except Break as e:
+                try:
+                    ret.throw(e)
+                except (Break, StopIteration, GeneratorExit):
+                    pass
+                finally:
+                    if pushed:
+                        logger_c.debug("%s %r popped %r %r", B("#"),
+                                                                self, cls, inst)
+                        ctx.outprot_ctx.inst_stack.pop()
 
-        return retval
+        else:
+            if pushed:
+                logger_c.debug("%s %r popped %r %r", B("#"), self, cls, inst)
+                ctx.outprot_ctx.inst_stack.pop()
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
         self._enter_cloth(ctx, cloth, parent)
