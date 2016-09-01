@@ -32,6 +32,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 import re
+
+from itertools import chain
+
 from django.core.exceptions import (ImproperlyConfigured, ObjectDoesNotExist,
                                     ValidationError as DjValidationError)
 from django.core.validators import (slug_re,
@@ -261,11 +264,25 @@ class DjangoModelMapper(object):
         self._registry[django_type] = field_mapper
 
     @staticmethod
+    def get_all_field_names(meta):
+        if hasattr(meta, 'get_all_field_names'):
+            return meta.get_all_field_names()
+
+        return list(set(chain.from_iterable(
+            (field.name, field.attname) if hasattr(field, 'attname') else (
+            field.name,)
+            for field in meta.get_fields()
+            # For complete backwards compatibility, you may want to exclude
+            # GenericForeignKey from the results.
+            if not (field.many_to_one and field.related_model is None)
+        )))
+
+    @staticmethod
     def _get_fields(django_model, exclude=None):
         field_names = set(exclude) if exclude is not None else set()
         meta = django_model._meta  # pylint: disable=W0212
-        unknown_fields_names = field_names.difference(
-            meta.get_all_field_names())
+        unknown_fields_names = \
+             field_names.difference(DjangoModelMapper.get_all_field_names(meta))
 
         if unknown_fields_names:
             raise ImproperlyConfigured(
