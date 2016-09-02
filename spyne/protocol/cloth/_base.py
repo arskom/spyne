@@ -34,6 +34,7 @@ from spyne.util import Break, coroutine
 from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
 from spyne.util.six import BytesIO
+from spyne.util.color import R, B
 
 
 class XmlClothProtocolContext(ProtocolContext):
@@ -90,7 +91,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                 # FIXME: the eff is this?
                 ctx.out_object = (inst,)
 
-                retval = self.incgen(ctx, cls, inst, name)
+                retval = self._incgen(ctx, cls, inst, name)
             else:
                 with self.docfile(ctx.out_stream) as xf:
                     retval = self.to_parent(ctx, cls, inst, xf, name)
@@ -118,7 +119,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             else:
                 result_inst, = ctx.out_object
 
-            retval = self.incgen(ctx, result_class, result_inst, name)
+            retval = self._incgen(ctx, result_class, result_inst, name)
 
         self.event_manager.fire_event('after_serialize', ctx)
 
@@ -135,7 +136,12 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             ctx.out_string = [ctx.out_stream.getvalue()]
 
     @coroutine
-    def incgen(self, ctx, cls, inst, name):
+    def _incgen(self, ctx, cls, inst, name):
+        """Entry point to the (stack of) XmlCloth-based protocols.
+
+        Not supposed to be overridden.
+        """
+
         if name is None:
             name = cls.get_type_name()
 
@@ -156,10 +162,6 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                             ret.throw(b)
                         except StopIteration:
                             pass
-                        finally:
-                            self._close_cloth(ctx, xf)
-                else:
-                    self._close_cloth(ctx, xf)
 
         except LxmlSyntaxError as e:
             if e.msg == 'no content written':
@@ -203,19 +205,28 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
     @coroutine
     def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
+        """Bridge between multiple XmlCloth-based protocols.
+
+        Not supposed to be overridden.
+        """
+
         pstack = ctx.protocol.prot_stack
         pstack.append(self)
-        logger.debug("push prot %r. newlen: %d", self, len(pstack))
+        logger.debug("%s push prot %r. newlen: %d", R("%"), self, len(pstack))
 
+        have_cloth = False
         if self._root_cloth is not None:
             logger.debug("to root cloth")
             ret = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
                                                                    parent, name)
+            have_cloth = True
 
         elif self._cloth is not None:
             logger.debug("to parent cloth")
             ret = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                            name)
+            have_cloth = True
+
         else:
             logger.debug("to parent")
             ret = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
@@ -231,9 +242,22 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                     ret.throw(b)
                 except StopIteration:
                     pass
+                finally:
+                    self._finalize_protocol(ctx, parent, have_cloth)
+        else:
+            self._finalize_protocol(ctx, parent, have_cloth)
 
         pstack.pop()
-        logger.debug("pop prot  %r. newlen: %d", self, len(pstack))
+        logger.debug("%s pop prot  %r. newlen: %d", B("%"), self, len(pstack))
+
+    def _finalize_protocol(self, ctx, parent, have_cloth):
+        if have_cloth:
+            self._close_cloth(ctx, parent)
+            return
+
+        if len(ctx.protocol.prot_stack) == 1 and len(ctx.protocol.eltstack) > 0:
+            self._close_cloth(ctx, parent)
+            return
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")
