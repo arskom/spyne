@@ -208,6 +208,9 @@ class ToParentMixin(OutProtocolBase):
             try:
                 while True:
                     sv = (yield)
+
+                    ctx.protocol.inst_stack.append(sv)
+
                     ret = self.to_parent(ctx, cls, sv, parent, name,
                                                         from_arr=True, **kwargs)
                     if isgenerator(ret):
@@ -221,6 +224,9 @@ class ToParentMixin(OutProtocolBase):
                                 ret.throw(e)
                             except StopIteration:
                                 pass
+
+                    popped_val = ctx.protocol.inst_stack.pop()
+                    assert popped_val is sv
 
             except Break:
                 # pusher is done with pushing
