@@ -44,7 +44,6 @@ from spyne.protocol.http import HttpRpc
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
-from spyne.util import reconstruct_url
 from spyne.util.odict import odict
 
 from spyne.const.ansi_color import LIGHT_GREEN
@@ -67,6 +66,53 @@ except ImportError as _import_error_2:
         raise _import_error_2
 
 
+def _reconstruct_url(environ, protocol=True, server_name=True, path=True,
+                                                             query_string=True):
+    """Rebuilds the calling url from values found in the
+    environment.
+
+    This algorithm was found via PEP 333, the wsgi spec and
+    contributed by Ian Bicking.
+    """
+
+    url = ''
+    if protocol:
+        url = environ['wsgi.url_scheme'] + '://'
+
+    if server_name:
+        if environ.get('HTTP_HOST'):
+            url += environ['HTTP_HOST']
+
+        else:
+            url += environ['SERVER_NAME']
+
+            if environ['wsgi.url_scheme'] == 'https':
+                if environ['SERVER_PORT'] != '443':
+                    url += ':' + environ['SERVER_PORT']
+
+            else:
+                if environ['SERVER_PORT'] != '80':
+                    url += ':' + environ['SERVER_PORT']
+
+    if path:
+        if (quote(environ.get('SCRIPT_NAME', '')) == '/' and
+            quote(environ.get('PATH_INFO', ''))[0] == '/'):
+            #skip this if it is only a slash
+            pass
+
+        elif quote(environ.get('SCRIPT_NAME', ''))[0:2] == '//':
+            url += quote(environ.get('SCRIPT_NAME', ''))[1:]
+
+        else:
+            url += quote(environ.get('SCRIPT_NAME', ''))
+
+        url += quote(environ.get('PATH_INFO', ''))
+
+    if query_string:
+        if environ.get('QUERY_STRING'):
+            url += '?' + environ['QUERY_STRING']
+
+    return url
 
 def _parse_qs(qs):
     pairs = (s2 for s1 in qs.split('&') for s2 in s1.split(';'))
@@ -235,7 +281,7 @@ class WsgiApplication(HttpBase):
 
         url = wsgi_url
         if url is None:
-            url = reconstruct_url(req_env).split('.wsdl')[0]
+            url = _reconstruct_url(req_env).split('.wsdl')[0]
 
         if self.is_wsdl_request(req_env):
             return self.handle_wsdl_request(req_env, start_response, url)

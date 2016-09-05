@@ -29,10 +29,9 @@ from lxml.html.builder import E
 from spyne import ModelBase, ByteArray, ComplexModelBase, Array, AnyUri, \
     ImageUri
 from spyne.protocol.html import HtmlBase
-from spyne.util import coroutine, Break
+from spyne.util import coroutine, Break, urlencode
 from spyne.util.oset import oset
 from spyne.util.cdict import cdict
-from spyne.util.six.moves.urllib.parse import urlencode
 
 
 class HtmlTableBase(HtmlBase):

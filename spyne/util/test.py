@@ -19,10 +19,7 @@
 
 from pprint import pformat
 
-try:
-    from urllib.parse import urlencode
-except ImportError: # Python 2
-    from urllib import urlencode
+from spyne.util import urlencode
 
 
 def _start_response(code, headers):

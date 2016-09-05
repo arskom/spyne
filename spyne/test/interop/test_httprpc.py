@@ -22,26 +22,14 @@ import unittest
 import time
 
 import pytz
-from spyne.util import six
-
-if six.PY2:
-    import thread
-
-    from urllib import urlencode
-    from urllib2 import urlopen
-    from urllib2 import Request
-    from urllib2 import HTTPError
-else:
-    import _thread as thread
-
-    from urllib.parse import urlencode
-    from urllib.request import urlopen
-    from urllib.request import Request
-    from urllib.error import HTTPError
 
 from datetime import datetime
 
+from spyne.util import thread, urlencode, urlopen, Request, HTTPError
+
+
 _server_started = False
+
 
 class TestHttpRpc(unittest.TestCase):
     def setUp(self):
