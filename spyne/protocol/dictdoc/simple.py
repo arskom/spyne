@@ -139,7 +139,7 @@ class SimpleDictDocument(DictDocument):
             # validate native data (after deserialization)
             if (validator is self.SOFT_VALIDATION and not
                            member.type.validate_native(member.type, native_v2)):
-                raise ValidationError((orig_k, v2))
+                raise ValidationError([orig_k, v2])
 
             value.append(native_v2)
 
