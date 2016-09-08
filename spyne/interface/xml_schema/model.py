@@ -253,7 +253,7 @@ def complex_add(document, cls, tags):
             # Doesn't support multi-language documentation
             annotation = etree.SubElement(member, XSD('annotation'))
             doc = etree.SubElement(annotation, XSD('documentation'))
-            doc.text = doc_text
+            doc.text = v_doc_text
 
         if a.xml_choice_group is None:
             sequence.append(member)

@@ -904,7 +904,7 @@ class ComplexModelBase(ModelBase):
                 cls_orig = cls.__orig__
             inst = cls_orig()
 
-            keys = cls._type_info.keys()
+            keys = cls.get_flat_type_info(cls).keys()
             for i in range(len(value)):
                 setattr(inst, keys[i], value[i])
 
@@ -914,7 +914,7 @@ class ComplexModelBase(ModelBase):
                 cls_orig = cls.__orig__
             inst = cls_orig()
 
-            for k in cls._type_info:
+            for k in cls.get_flat_type_info(cls):
                 setattr(inst, k, value.get(k, None))
 
         else:
