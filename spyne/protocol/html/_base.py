@@ -44,6 +44,7 @@ class HtmlClothProtocolContext(XmlClothProtocolContext):
         self.ctxstack = defaultdict(list)
         self.rootstack = oset()
         self.tags = set()
+        self.objcache = dict()
 
         # this is supposed to be for neurons.base.screen.ScreenBase subclasses
         self.screen = None
