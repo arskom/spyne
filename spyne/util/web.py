@@ -36,10 +36,12 @@ from spyne.const import MAX_ARRAY_ELEMENT_NUM, MAX_DICT_ELEMENT_NUM, \
 
 try:
     from spyne.store.relational.document import FileData
+    from sqlalchemy.orm.exc import DetachedInstanceError
 except ImportError:
-    # this is used just for isinstance check. so just set it to an anonymnous
-    #  value
+    # these are used just for isinstance checks. so we just set it to an
+    # anonymous value
     FileData = type('__hidden', (object, ), {})
+    DetachedInstanceError = type('__hidden', (Exception, ), {})
 
 from spyne.util import memoize, six
 
@@ -239,7 +241,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=
 
             try:
                 v = getattr(obj, k, None)
-            except (AttributeError, KeyError):
+            except (AttributeError, KeyError, DetachedInstanceError):
                 v = None
 
             # HACK!: sometimes non-db attributes restored from database don't
