@@ -206,8 +206,14 @@ class DjangoServer(HttpBase):
             url = None
             if not sys.argv[1] == 'runserver':
                 # Site is in production environment and hence ensure the port is included
-                url = '%s://%s:%s%s' % (
-                    absolute_url.split(':')[:1][0], request.get_host(), request.get_port(), request.get_full_path())
+                protocal = absolute_url.split(':')[:1][0]
+                host = request.get_host()
+                port = request.get_port()
+                path = request.get_full_path()
+                if port:
+                    url = '%s://%s:%s%s' % (protocal, host, port, path)
+                else:
+                    url = '%s://%s:%s%s' % (protocal, host, path)
             else:
                 url = absolute_url
 
