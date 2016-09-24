@@ -216,6 +216,8 @@ class DjangoServer(HttpBase):
                     url = '%s://%s:%s%s' % (protocal, host, path)
             else:
                 url = absolute_url
+            
+            url = 'http://212.22.169.19:81/swift/uesw/service/'
 
             doc.wsdl11.build_interface_document(url)
 
