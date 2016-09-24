@@ -30,7 +30,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-import sys
+from django.conf import settings
 
 from functools import update_wrapper
 
@@ -204,7 +204,7 @@ class DjangoServer(HttpBase):
             # Check if server is running in local or not
             absolute_url = request.build_absolute_uri()
             url = None
-            if not sys.argv[1] == 'runserver':
+            if not settings.DEBUG:
                 # Site is in production environment and hence ensure the port is included
                 protocal = absolute_url.split(':')[:1][0]
                 host = request.get_host()
