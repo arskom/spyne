@@ -209,7 +209,7 @@ class DjangoServer(HttpBase):
             if not settings.DEBUG:
                 # Get the current site from the database
                 current_site = get_current_site(request)
-                url = current_site.domain
+                url = '%s%s' % (current_site.domain, request.get_full_path())
 
             doc.wsdl11.build_interface_document(url)
 
