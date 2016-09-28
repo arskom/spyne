@@ -46,6 +46,7 @@ from spyne.util import _bytes_join
 
 from django.http import HttpResponse, HttpResponseNotAllowed, Http404
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.sites.shortcuts import get_current_site
 
 try:
     from django.http import StreamingHttpResponse
@@ -200,22 +201,15 @@ class DjangoServer(HttpBase):
             # section can be safely repeated in another concurrent thread.
             doc = AllYourInterfaceDocuments(self.app.interface)
             # doc.wsdl11.build_interface_document(request.build_absolute_uri())
-            # Factor in use of port in production environment i.e request.build_absolute_uri() seems to scrap it off
-            # Check if server is running in local or not
-            absolute_url = request.build_absolute_uri()
-            url = None
+            
+            # Allow specifying of domain full url and with ports e.g port 81 when needed in production
+            # The current request.build_absolute_uri() scrap it off
+            # We'll use the default django-sites to store our custom url
+            url = request.build_absolute_uri()
             if not settings.DEBUG:
-                # Site is in production environment and hence ensure the port is included
-                protocal = absolute_url.split(':')[:1][0]
-                host = request.get_host()
-                port = request.get_port()
-                path = request.get_full_path()
-                if port:
-                    url = '%s://%s:%s%s' % (protocal, host, port, path)
-                else:
-                    url = '%s://%s:%s%s' % (protocal, host, path)
-            else:
-                url = absolute_url
+                # Get the current site from the database
+                current_site = get_current_site(request)
+                url = current_site.domain
 
             doc.wsdl11.build_interface_document(url)
 
