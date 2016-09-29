@@ -254,19 +254,25 @@ class ToParentMixin(OutProtocolBase):
         if not self.ignore_uncap:
             raise NotImplementedError("Serializing %r not supported!" % cls)
 
-    def gen_anchor(self, cls, inst, name):
+    def gen_anchor(self, cls, inst, name, anchor_class=None):
         assert name is not None
+        cls_attrs = self.get_cls_attrs(cls)
+
         href = getattr(inst, 'href', None)
         if href is None: # this is not a AnyUri.Value instance.
             href = inst
-            text = getattr(cls.Attributes, 'text', name)
+
             content = None
+            text = cls_attrs.text
 
         else:
+            content = getattr(inst, 'content', None)
             text = getattr(inst, 'text', None)
             if text is None:
-                text = getattr(cls.Attributes, 'text', name)
-            content = getattr(inst, 'content', None)
+                text = cls_attrs.text
+
+        if anchor_class is None:
+            anchor_class = cls_attrs.anchor_class
 
         if text is None:
             text = name
@@ -275,6 +281,9 @@ class ToParentMixin(OutProtocolBase):
 
         if href is not None:
             retval.attrib['href'] = href
+
+        if anchor_class is not None:
+            retval.attrib['class'] = anchor_class
 
         if content is not None:
             retval.append(content)

@@ -124,7 +124,10 @@ class AnyUri(Unicode):
 
     class Attributes(String.Attributes):
         text = None
-        """The text shown in link. This is an object-wide constant."""
+        """The text shown in link."""
+
+        anchor_class = None
+        """The class of the generated <a> tag."""
 
     class Value(object):
         """A special object that is just a better way of carrying the
