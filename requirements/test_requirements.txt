@@ -3,7 +3,7 @@ pytest-twisted
 coverage
 junitxml
 werkzeug
-sqlalchemy
+sqlalchemy<1.0.99
 lxml>=2.3
 pyyaml
 pyzmq
