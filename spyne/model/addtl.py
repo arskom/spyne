@@ -51,11 +51,11 @@ class SegmentBase(object):
 
 class DateTimeSegment(ComplexModel, SegmentBase):
     _SEGMENT_RE = re.compile(
-        ur"([\[\]])"
-        ur"([0-9:\.T-]+)"
-        ur","
-        ur"([0-9:\.T-]+)"
-        ur"([\[\]])", re.DEBUG | re.UNICODE)
+        u"([\\[\\]])"
+        u"([0-9:\\.T-]+)"
+        u","
+        u"([0-9:\\.T-]+)"
+        u"([\\[\\]])", re.DEBUG | re.UNICODE)
 
     _type_info = [
         ('start_inclusive', M(Boolean(default=True))),
@@ -68,11 +68,11 @@ class DateTimeSegment(ComplexModel, SegmentBase):
 
 class DateSegment(ComplexModel, SegmentBase):
     _SEGMENT_RE = re.compile(
-        ur"([\[\]])"
-        ur"([0-9-]+)"
-        ur","
-        ur"([0-9-]+)"
-        ur"([\[\]])", re.DEBUG | re.UNICODE)
+        u"([\\[\\]])"
+        u"([0-9-]+)"
+        u","
+        u"([0-9-]+)"
+        u"([\\[\\]])", re.DEBUG | re.UNICODE)
 
     _type_info = [
         ('start_inclusive', M(Boolean(default=True))),
@@ -84,11 +84,11 @@ class DateSegment(ComplexModel, SegmentBase):
 
 class TimeSegment(ComplexModel, SegmentBase):
     _SEGMENT_RE = re.compile(
-        ur"([\[\]])"
-        ur"([0-9:\.]+)"
-        ur","
-        ur"([0-9:\.]+)"
-        ur"([\[\]])", re.DEBUG | re.UNICODE)
+        u"([\\[\\]])"
+        u"([0-9:\\.]+)"
+        u","
+        u"([0-9:\\.]+)"
+        u"([\\[\\]])", re.DEBUG | re.UNICODE)
 
     _type_info = [
         ('start_inclusive', M(Boolean(default=True))),
