@@ -5,7 +5,7 @@ coverage
 junitxml
 werkzeug
 sqlalchemy<1.0.99
-lxml>=2.3
+lxml>=3.6
 pyyaml
 pyzmq
 twisted
