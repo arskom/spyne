@@ -4,8 +4,8 @@ pytest-cov
 coverage
 junitxml
 werkzeug
-sqlalchemy
-lxml>=2.3
+sqlalchemy<1.0.99
+lxml>=3.6
 pyyaml
 pyzmq
 twisted
