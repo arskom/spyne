@@ -264,7 +264,7 @@ class RunPython3Tests(TestCommand):
             'protocol/test_soap11.py',
             'protocol/test_soap12.py',
         )
-        ret = call_tox_subprocess('py%s-dj1{7,8}' % PYVER) or ret
+        ret = call_tox_subprocess('py%s-dj1{8,9,10}' % PYVER) or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)
