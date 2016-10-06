@@ -29,6 +29,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import sys
+
 from functools import update_wrapper
 
 from spyne.application import get_fault_string_from_exception, Application
@@ -49,6 +51,7 @@ try:
 except ImportError as e:
     def StreamingHttpResponse(*args, **kwargs):
         raise e
+
 
 class DjangoApplication(WsgiApplication):
     """You should use this for regular RPC."""
@@ -80,9 +83,6 @@ class DjangoApplication(WsgiApplication):
         # the same buffer twice. If django read whole buffer spyne
         # would hang waiting for extra request data. Use DjangoServer instead
         # of monkeypatching wsgi.inpu.
-
-        #environ['wsgi.input'] = request
-        #environ['wsgi.multithread'] = False
 
         response = WsgiApplication.__call__(self, environ, start_response)
         self.set_response(retval, response)
@@ -198,7 +198,20 @@ class DjangoServer(HttpBase):
             # create and build interface documents in current thread. This
             # section can be safely repeated in another concurrent thread.
             doc = AllYourInterfaceDocuments(self.app.interface)
-            doc.wsdl11.build_interface_document(request.build_absolute_uri())
+            # doc.wsdl11.build_interface_document(request.build_absolute_uri())
+            # Factor in use of port in production environment i.e request.build_absolute_uri() seems to scrap it off
+            # Check if server is running in local or not
+            absolute_url = request.build_absolute_uri()
+            url = None
+            if not sys.argv[1] == 'runserver':
+                # Site is in production environment and hence ensure the port is included
+                url = '%s://%s:%s%s' % (
+                    absolute_url.split(':')[:1][0], request.get_host(), request.get_port(), request.get_full_path())
+            else:
+                url = absolute_url
+
+            doc.wsdl11.build_interface_document(url)
+
             wsdl = doc.wsdl11.get_interface_document()
 
             if self._cache_wsdl:
@@ -363,7 +376,7 @@ class DjangoView(object):
     def http_method_not_allowed(self, request, *args, **kwargs):
         logger.warning('Method Not Allowed (%s): %s', request.method,
                        request.path, extra={'status_code': 405, 'request':
-                                            self.request})
+                self.request})
         return HttpResponseNotAllowed(self._allowed_methods())
 
     def options(self, request, *args, **kwargs):
