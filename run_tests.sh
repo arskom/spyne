@@ -185,5 +185,8 @@ set
 
 "$PIP" install -rrequirements/test_requirements.txt || exit 1;
 
+[ -e .coverage ] && rm -v .coverage
+[ -e .coverage ] && rm -v coverage.xml
+
 # ignore return value -- result information is in the produced xml files
 "$PYTHON" setup.py test || true;

@@ -522,8 +522,51 @@ def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
             _type_info_alt[key] = v, k
 
 
+D_EXC = dict(exc=True)
+
+
 def _process_child_attrs(cls, retval, kwargs):
+    child_attrs = copy(kwargs.get('child_attrs', None))
     child_attrs_all = kwargs.get('child_attrs_all', None)
+    child_attrs_noexc = copy(kwargs.get('child_attrs_noexc', None))
+
+    # add exc=False to child_attrs_noexc
+    if child_attrs_noexc is not None:
+        # if there is _noexc, make sure that child_attrs_all is also used to
+        # exclude exclude everything else first
+        if child_attrs_all is None:
+            child_attrs_all = D_EXC
+
+        else:
+            if 'exc' in child_attrs_all and child_attrs_all['exc'] != D_EXC:
+                logger.warning("Overriding child_attrs_all['exc'] to True")
+
+            child_attrs_all.update(D_EXC)
+
+        # update child_attrs_noexc with exc=False
+        for k, v in child_attrs_noexc.items():
+            if 'exc' in v:
+                logger.warning("Overriding 'exc' for %s.%s from "
+                         "child_attrs_noexc with False", cls.get_type_name(), k)
+
+            v['exc'] = False
+
+        # update child_attrs with data from child_attrs_noexc
+        if child_attrs is None:
+            child_attrs = child_attrs_noexc
+
+        else:
+            # update with child_attrs_noexc with exc=False
+            if child_attrs is None:
+                child_attrs = dict()
+
+            for k, v in child_attrs_noexc.items():
+                if k in child_attrs:
+                    logger.warning("Overriding child_attrs for %s.%s from "
+                                   "child_attrs_noexc", cls.get_type_name(), k)
+
+                child_attrs[k] = v
+
     if child_attrs_all is not None:
         ti = retval._type_info
         logger.debug("processing child_attrs_all for %r", cls)
@@ -537,7 +580,6 @@ def _process_child_attrs(cls, retval, kwargs):
 
         retval.Attributes._delayed_child_attrs_all = child_attrs_all
 
-    child_attrs = copy(kwargs.get('child_attrs', None))
     if child_attrs is not None:
         ti = retval._type_info
         logger.debug("processing child_attrs for %r", cls)

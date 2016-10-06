@@ -1000,6 +1000,31 @@ class TestCustomize(unittest.TestCase):
         B3 = B2.customize(child_attrs=dict(d=dict(format="%y")))
         assert B3.get_flat_type_info(B3)['s'].Attributes.max_len == 10
 
+    def test_cust_all(self):
+        class A(ComplexModel):
+            s = Unicode
+            i = Unicode
+
+        class B(A):
+            d = DateTime
+
+        B2 = B.customize(child_attrs_all=dict(max_len=10))
+        assert B2.get_flat_type_info(B2)['s'].Attributes.max_len == 10
+        assert B2.get_flat_type_info(B2)['i'].Attributes.max_len == 10
+
+    def test_cust_noexc(self):
+        class A(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        class B(A):
+            d = DateTime
+
+        B2 = B.customize(child_attrs_noexc=dict(s=dict(max_len=10)))
+        assert B2.get_flat_type_info(B2)['s'].Attributes.max_len == 10
+        assert B2.get_flat_type_info(B2)['s'].Attributes.exc == False
+        assert B2.get_flat_type_info(B2)['i'].Attributes.exc == True
+
 
     def test_complex_type_name_clashes(self):
         class TestComplexModel(ComplexModel):
