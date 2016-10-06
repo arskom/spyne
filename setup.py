@@ -113,6 +113,7 @@ def run_tests_and_create_report(report_name, *tests, **kwargs):
         '--verbose',
         '--twisted',
         '--cov-report=', '--cov', 'spyne',
+        '--cov-append',
         '--tb=short',
         '--junitxml=%s' % report_name,
     ]
@@ -144,10 +145,12 @@ def call_pytest_subprocess(*tests, **kwargs):
     if os.path.isfile(file_name):
         os.unlink(file_name)
 
-    env = {'COVERAGE_FILE': '.coverage.%d' % _ctr}
+    # env = {'COVERAGE_FILE': '.coverage.%d' % _ctr}
+    env = {}
 
     args = [
         '--twisted',
+        '--cov-append',
         '--cov-report=', '--cov', 'spyne',
         '--tb=line',
         '--junitxml=%s' % file_name
@@ -166,8 +169,8 @@ def call_tox_subprocess(env):
 def call_coverage():
     import coverage.cmdline
 
-    coverage.cmdline.main(['combine'])
-    call_test(coverage.cmdline.main, ['combine'], [])
+    # coverage.cmdline.main(['combine'])
+    # call_test(coverage.cmdline.main, ['combine'], [])
     call_test(coverage.cmdline.main, ['xml', '-i'], [])
 
     return 0
