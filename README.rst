@@ -78,7 +78,7 @@ of Spyne:
   using ``HttpPattern``'s with ``spyne.protocol.http.HttpRpc``\.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for anything in
   ``spyne.server.twisted`` and ``spyne.client.twisted``.
-* `Django <http://djangoproject.com/>`_ (tested with 1.4 and up) is needed for
+* `Django <http://djangoproject.com/>`_ (tested with 1.7 and up) is needed for
   anything in ``spyne.server.django``.
 * `Pyramid <http://pylonsproject.org/>`_ is needed for
   ``spyne.server.pyramid.PyramidApplication``.

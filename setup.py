@@ -225,10 +225,10 @@ class RunTests(ExtendedTestCommand):
             ret = call_pytest_subprocess('interop/test_suds.py',
                                      capture=self.capture) or ret
 
-        if PYVER.startswith('2'):
-            ret = call_tox_subprocess('py%s-dj16' % PYVER) or ret
         ret = call_tox_subprocess('py%s-dj17' % PYVER) or ret
         ret = call_tox_subprocess('py%s-dj18' % PYVER) or ret
+        ret = call_tox_subprocess('py%s-dj19' % PYVER) or ret
+        ret = call_tox_subprocess('py%s-dj110' % PYVER) or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)

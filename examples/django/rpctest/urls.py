@@ -2,6 +2,7 @@
 # encoding: utf8
 #
 # Copyright © BJ Cardon <bj dot car dot don at gmail dot com>,
+#             Burak ARrslan <burak dot arslan at arskom dot com dot tr>,
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,14 +29,16 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
+
 from spyne.protocol.soap import Soap11
 from spyne.server.django import DjangoView
-from rpctest.core.views import app, HelloWorldService
+
+from rpctest.core.views import hello_world_service, app, HelloWorldService
 
 
-urlpatterns = patterns('',
-    url(r'^hello_world/','rpctest.core.views.hello_world_service'),
+urlpatterns = [
+    url(r'^hello_world/', hello_world_service),
     url(r'^say_hello/', DjangoView.as_view(
         services=[HelloWorldService], tns='spyne.examples.django',
         in_protocol=Soap11(validator='lxml'), out_protocol=Soap11())),
@@ -44,4 +47,4 @@ urlpatterns = patterns('',
         in_protocol=Soap11(validator='lxml'), out_protocol=Soap11(),
         cache_wsdl=False)),
     url(r'^api/', DjangoView.as_view(application=app)),
-)
+]
