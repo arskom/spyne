@@ -110,6 +110,7 @@ def run_tests_and_create_report(report_name, *tests, **kwargs):
     tests_dir = os.path.dirname(spyne.test.__file__)
 
     args = [
+        '--verbose',
         '--twisted',
         '--cov-report=', '--cov', 'spyne',
         '--tb=short',
