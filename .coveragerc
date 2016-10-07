@@ -1,3 +1,2 @@
 [run]
-omit = spyne/test
-
+omit = spyne/test/*
