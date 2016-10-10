@@ -338,7 +338,7 @@ class ToParentMixin(OutProtocolBase):
                     except StopIteration:
                         pass
 
-        for k, v in cls._type_info.items():
+        for k, v in self.sort_fields(cls):
             attr = self.get_cls_attrs(v)
             if attr.exc:
                 prot_name = self.__class__.__name__
