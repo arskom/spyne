@@ -149,6 +149,7 @@ def call_pytest_subprocess(*tests, **kwargs):
     env = {}
 
     args = [
+        '--verbose',
         '--twisted',
         '--cov-append',
         '--cov-report=',
