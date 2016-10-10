@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.model.complex import ComplexModel
 import unittest
 
 from pprint import pprint
@@ -26,6 +25,7 @@ from spyne.application import Application
 from spyne.const.xml_ns import xsd as _ns_xsd
 from spyne.interface.wsdl.wsdl11 import Wsdl11
 from spyne.model.complex import Array
+from spyne.model.complex import ComplexModel
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap.soap11 import Soap11
 
