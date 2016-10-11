@@ -18,7 +18,7 @@
 
 import unittest
 
-from webtest import TestApp
+from webtest import TestApp as _TestApp  # avoid confusing py.test
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -101,7 +101,7 @@ class TestOperationRequestSuffix(unittest.TestCase):
         )
         app = WsgiApplication(application)
 
-        testapp = TestApp(app)
+        testapp = _TestApp(app)
 
         # so that it doesn't interfere with other tests.
         spyne.const.REQUEST_SUFFIX = ''

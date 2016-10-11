@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.model.complex import ComplexModel
 import unittest
 
 from pprint import pprint
@@ -26,6 +25,7 @@ from spyne.application import Application
 from spyne.const.xml_ns import xsd as _ns_xsd
 from spyne.interface.wsdl.wsdl11 import Wsdl11
 from spyne.model.complex import Array
+from spyne.model.complex import ComplexModel
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap.soap11 import Soap11
 
@@ -58,17 +58,20 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum',
 )
 
-class TestService(ServiceBase):
+class SomeService(ServiceBase):
     @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
     def get_the_day(self, day):
         return DaysOfWeekEnum.Sunday
 
-class Test(ComplexModel):
+
+class SomeClass(ComplexModel):
     days = DaysOfWeekEnum(max_occurs=7)
+
 
 class TestEnum(unittest.TestCase):
     def setUp(self):
-        self.app = Application([TestService], 'tns', in_protocol=Soap11(), out_protocol=Soap11())
+        self.app = Application([SomeService], 'tns',
+                                    in_protocol=Soap11(), out_protocol=Soap11())
         self.app.transport = 'test'
 
         self.server = WsgiApplication(self.app)
@@ -138,7 +141,7 @@ class TestEnum(unittest.TestCase):
             elt.xpath('//tns:DaysOfWeekEnum', namespaces=self.app.interface.nsmap)]
 
     def test_serialize_simple_array(self):
-        t = Test(days=[
+        t = SomeClass(days=[
                 DaysOfWeekEnum.Monday,
                 DaysOfWeekEnum.Tuesday,
                 DaysOfWeekEnum.Wednesday,
@@ -148,15 +151,15 @@ class TestEnum(unittest.TestCase):
                 DaysOfWeekEnum.Sunday,
             ])
 
-        Test.resolve_namespace(Test, 'tns')
+        SomeClass.resolve_namespace(SomeClass, 'tns')
 
         elt = etree.Element('test')
-        XmlDocument().to_parent(None, Test, t, elt, 'test_namespace')
+        XmlDocument().to_parent(None, SomeClass, t, elt, 'test_namespace')
         elt = elt[0]
 
         print((etree.tostring(elt, pretty_print=True)))
 
-        ret = XmlDocument().from_element(None, Test, elt)
+        ret = XmlDocument().from_element(None, SomeClass, elt)
         self.assertEquals(t.days, ret.days)
 
 if __name__ == '__main__':

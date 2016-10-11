@@ -149,9 +149,11 @@ def call_pytest_subprocess(*tests, **kwargs):
     env = {}
 
     args = [
+        '--verbose',
         '--twisted',
         '--cov-append',
-        '--cov-report=', '--cov', 'spyne',
+        '--cov-report=',
+        '--cov', 'spyne',
         '--tb=line',
         '--junitxml=%s' % file_name
     ]
