@@ -410,6 +410,10 @@ class HtmlRowTable(HtmlTableBase):
             with parent.element('tbody'):
                 for k, v in self.sort_fields(cls):
                     sub_attrs = self.get_cls_attrs(v)
+                    if sub_attrs.exc:
+                        logger.debug("\tExclude table cell %r type %r for %r",
+                                                                      k, v, cls)
+                        continue
                     try:
                         sub_value = getattr(inst, k, None)
                     except:  # e.g. SQLAlchemy could throw NoSuchColumnError
