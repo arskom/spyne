@@ -427,14 +427,18 @@ class HtmlRowTable(HtmlTableBase):
                     tr_attrib = {}
                     if self.row_class is not None:
                         tr_attrib['class'] = self.row_class
+
                     with parent.element('tr', tr_attrib):
                         th_attrib = {}
                         if self.header_cell_class is not None:
                             th_attrib['class'] = self.header_cell_class
+
                         if self.field_name_attr is not None:
                             th_attrib[self.field_name_attr] = sub_name
+
                         if sub_attrs.hidden:
                             th_attrib['style'] = 'display:None'
+
                         if self.header:
                             parent.write(E.th(
                                 self.trc(v, ctx.locale, sub_name),
@@ -444,8 +448,10 @@ class HtmlRowTable(HtmlTableBase):
                         td_attrib = {}
                         if self.cell_class is not None:
                             td_attrib['class'] = self.cell_class
+
                         if self.field_name_attr is not None:
                             td_attrib[self.field_name_attr] = sub_name
+
                         if sub_attrs.hidden:
                             td_attrib['style'] = 'display:None'
 
