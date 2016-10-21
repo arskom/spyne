@@ -46,13 +46,13 @@ class Time(SimpleModel):
         """Customizable attributes of the :class:`spyne.model.primitive.Time`
         type."""
 
-        gt = datetime.time(0, 0, 0, 0)  # minExclusive
+        gt = None  # minExclusive
         """The time should be greater than this time."""
 
         ge = datetime.time(0, 0, 0, 0)  # minInclusive
         """The time should be greater than or equal to this time."""
 
-        lt = datetime.time(23, 59, 59, 999999)  # maxExclusive
+        lt = None  # maxExclusive
         """The time should be lower than this time."""
 
         le = datetime.time(23, 59, 59, 999999)  # maxInclusive
@@ -76,9 +76,9 @@ class Time(SimpleModel):
     def validate_native(cls, value):
         return SimpleModel.validate_native(cls, value) and (
             value is None or (
-                    value >  cls.Attributes.gt
+                (cls.Attributes.gt is None or value >  cls.Attributes.gt)
                 and value >= cls.Attributes.ge
-                and value <  cls.Attributes.lt
+                and (cls.Attributes.lt is None or value <  cls.Attributes.lt)
                 and value <= cls.Attributes.le
             ))
 
@@ -107,7 +107,7 @@ class DateTime(SimpleModel):
         """Customizable attributes of the :class:`spyne.model.primitive.DateTime`
         type."""
 
-        gt = _min_dt  # minExclusive
+        gt = None  # minExclusive
         """The datetime should be greater than this datetime. It must always
         have a timezone."""
 
@@ -115,7 +115,7 @@ class DateTime(SimpleModel):
         """The datetime should be greater than or equal to this datetime. It
         must always have a timezone."""
 
-        lt = _max_dt  # maxExclusive
+        lt = None  # maxExclusive
         """The datetime should be lower than this datetime. It must always have
         a timezone."""
 
@@ -185,10 +185,10 @@ class DateTime(SimpleModel):
         return SimpleModel.validate_native(cls, value) and (
             value is None or (
                 # min_dt is also a valid value if gt is intact.
-                    (cls.Attributes.gt is _min_dt or value > cls.Attributes.gt)
+                    (cls.Attributes.gt is None or value > cls.Attributes.gt)
                 and value >= cls.Attributes.ge
                 # max_dt is also a valid value if lt is intact.
-                and (cls.Attributes.lt is _max_dt or value < cls.Attributes.lt)
+                and (cls.Attributes.lt is None or value < cls.Attributes.lt)
                 and value <= cls.Attributes.le
             ))
 
@@ -208,16 +208,16 @@ class Date(DateTime):
         """Customizable attributes of the :class:`spyne.model.primitive.Date`
         type."""
 
-        gt = datetime.date(1, 1, 1) # minExclusive
+        gt = None  # minExclusive
         """The date should be greater than this date."""
 
-        ge = datetime.date(1, 1, 1) # minInclusive
+        ge = datetime.date(1, 1, 1)  # minInclusive
         """The date should be greater than or equal to this date."""
 
-        lt = datetime.date(datetime.MAXYEAR, 12, 31) # maxExclusive
+        lt = None  # maxExclusive
         """The date should be lower than this date."""
 
-        le = datetime.date(datetime.MAXYEAR, 12, 31) # maxInclusive
+        le = datetime.date(datetime.MAXYEAR, 12, 31)  # maxInclusive
         """The date should be lower than or equal to this date."""
 
         format = '%Y-%m-%d'
