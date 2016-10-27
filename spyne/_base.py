@@ -368,15 +368,18 @@ class MethodContext(object):
 
     def __repr__(self):
         retval = deque()
+
         for k, v in self.__dict__.items():
             if isinstance(v, dict):
                 ret = deque(['{'])
-                items = sorted(v.items())
-                for k2, v2 in items:
+
+                for k2, v2 in sorted(v.items()):
                     ret.append('\t\t%r: %r,' % (k2, v2))
+
                 ret.append('\t}')
                 ret = '\n'.join(ret)
                 retval.append("\n\t%s=%s" % (k, ret))
+
             else:
                 retval.append("\n\t%s=%r" % (k, v))
 

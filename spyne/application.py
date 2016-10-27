@@ -253,7 +253,7 @@ class Application(object):
                 args = []
 
             elif ctx.descriptor.body_style is BODY_STYLE_WRAPPED and \
-                                        len(in_cls.get_flat_type_info(in_cls)) <= 1:
+                                    len(in_cls.get_flat_type_info(in_cls)) <= 1:
                 args = []
 
             else:
