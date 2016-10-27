@@ -106,6 +106,24 @@ class HtmlCloth(XmlCloth):
     def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(str(inst))
 
+    @staticmethod
+    def add_html_attr(attr_name, attr_dict, class_name):
+        if attr_name in attr_dict:
+            attr_dict[attr_name] = ' '.join(
+                                       (attr_dict.get('class', ''), class_name))
+        else:
+            attr_dict[attr_name] = class_name
+
+    @staticmethod
+    def add_style(attr_dict, data):
+        style = attr_dict.get('style', None)
+
+        if style is not None:
+            attr_dict['style'] = ';'.join(style, data)
+
+        else:
+            attr_dict['style'] = data
+
 
 # FIXME: Deprecated
 HtmlBase = HtmlCloth
