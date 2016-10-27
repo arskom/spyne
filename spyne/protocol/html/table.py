@@ -39,8 +39,8 @@ class HtmlTableBase(HtmlBase):
             cloth=None, cloth_parser=None, header=True, table_name_attr='class',
                      table_name=None, table_class=None, field_name_attr='class',
               border=0, row_class=None, cell_class=None, header_cell_class=None,
-                 polymorphic=True, hier_delim='.', doctype=None, link_gen=None,
-                 mrpc_delim_text='|', table_width=None):
+                  polymorphic=True, hier_delim='.', doctype=None, link_gen=None,
+                                         mrpc_delim_text='|', table_width=None):
 
         super(HtmlTableBase, self).__init__(app=app,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
@@ -158,8 +158,8 @@ class HtmlColumnTable(HtmlTableBase):
 
         with parent.element('tr'):
             for k, v in self.sort_fields(cls):
-                attr = self.get_cls_attrs(v)
-                if attr.exc:
+                cls_attr = self.get_cls_attrs(v)
+                if cls_attr.exc:
                     logger.debug("\tExclude table cell %r type %r for %r",
                                                                       k, v, cls)
                     continue
@@ -169,7 +169,7 @@ class HtmlColumnTable(HtmlTableBase):
                 except:  # e.g. SQLAlchemy could throw NoSuchColumnError
                     sub_value = None
 
-                sub_name = attr.sub_name
+                sub_name = cls_attr.sub_name
                 if sub_name is None:
                     sub_name = k
 
@@ -185,8 +185,8 @@ class HtmlColumnTable(HtmlTableBase):
 
                 td_attrs = {}
                 if self.field_name_attr is not None:
-                    td_attrs[self.field_name_attr] = attr.sub_name or k
-                if attr.hidden:
+                    td_attrs[self.field_name_attr] = cls_attr.sub_name or k
+                if cls_attr.hidden:
                     td_attrs['style'] = 'display:None'
 
                 with parent.element('td', td_attrs):
@@ -218,7 +218,7 @@ class HtmlColumnTable(HtmlTableBase):
                             parent.write(" ")
                             parent.write(mrpc_delim_elt)
 
-                        pd = { }
+                        pd = {}
                         for k, v in self.sort_fields(cls):
                             if getattr(v.Attributes, 'primary_key', None):
                                 r = self.to_unicode(v, getattr(inst, k, None))
@@ -505,9 +505,10 @@ class HtmlRowTable(HtmlTableBase):
                             parent.write(E.th(self.trc(cls, ctx.locale,
                                                           cls.get_type_name())))
                         td_attrib = {}
-                        cls_attrs = self.get_cls_attrs(cls)
                         if self.cell_class is not None:
                             td_attrib['class'] = self.cell_class
+                        cls_attrs = self.get_cls_attrs(cls)
+
                         if cls_attrs.hidden:
                             td_attrib['style'] = 'display:None'
 
