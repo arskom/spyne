@@ -785,6 +785,9 @@ class SimpleModel(ModelBase):
         if not retval.is_default(retval):
             retval.__extends__ = cls
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
+            if 'type_name' in kwargs:
+                logger.debug("Type name for %r was overridden as '%s'",
+                                                   retval, retval.__type_name__)
 
         retval.resolve_namespace(retval, kwargs.get('__namespace__'))
 
