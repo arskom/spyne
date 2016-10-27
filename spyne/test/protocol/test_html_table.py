@@ -61,7 +61,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                 return [ccm] * 5
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                        out_protocol=HtmlColumnTable(field_name_attr='class'))
+                                                 out_protocol=HtmlColumnTable())
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server,
@@ -133,7 +133,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                 return [C(c=_link)]
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlColumnTable(field_name_attr='class'))
+                                                 out_protocol=HtmlColumnTable())
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -156,7 +156,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                 return [C(c=AnyUri.Value(_link, text=_text))]
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlColumnTable(field_name_attr='class'))
+                                                 out_protocol=HtmlColumnTable())
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -181,7 +181,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return C(c=_link)
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                        out_protocol=HtmlRowTable(field_name_attr='class'))
+                        out_protocol=HtmlRowTable())
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -204,7 +204,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return C(c=AnyUri.Value(_link, text=_text))
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                            out_protocol=HtmlRowTable(field_name_attr='class'))
+                            out_protocol=HtmlRowTable())
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -222,8 +222,8 @@ class TestHtmlRowTable(unittest.TestCase):
                 return ccm
 
         app = Application([SomeService], 'tns',
-                          in_protocol=HttpRpc(hier_delim="_"),
-                          out_protocol=HtmlRowTable(field_name_attr='class'))
+               in_protocol=HttpRpc(hier_delim="_"), out_protocol=HtmlRowTable())
+
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server, 'some_call',
