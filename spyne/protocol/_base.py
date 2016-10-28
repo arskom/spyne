@@ -32,7 +32,6 @@ from spyne.util import DefaultAttrDict, memoize_id_method
 from spyne.util.six import string_types
 
 
-
 class ProtocolMixin(object):
     mime_type = 'application/octet-stream'
 
