@@ -18,19 +18,24 @@
 #
 
 import gc, logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('spyne')
 
 from time import time
 from copy import copy
 from collections import deque, namedtuple, defaultdict
 
+from spyne.const import MIN_GC_INTERVAL
 from spyne.const.xml_ns import DEFAULT_NS
+
 from spyne.util.oset import oset
 
 class BODY_STYLE_WRAPPED: pass
 class BODY_STYLE_EMPTY: pass
 class BODY_STYLE_BARE: pass
 class BODY_STYLE_OUT_BARE: pass
+
+
+_LAST_GC_RUN = 0.0
 
 
 # When spyne.server.twisted gets imported, this type gets a static method named
@@ -377,6 +382,8 @@ class MethodContext(object):
         return ''.join((self.__class__.__name__, '(', ', '.join(retval), ')'))
 
     def close(self):
+        global _LAST_GC_RUN
+
         self.call_end = time()
         self.app.event_manager.fire_event("method_context_closed", self)
         for f in self.files:
@@ -385,7 +392,14 @@ class MethodContext(object):
         self.is_closed = True
 
         # this is important to have file descriptors returned in a timely manner
-        gc.collect()
+        t = time()
+        if (t - _LAST_GC_RUN) > MIN_GC_INTERVAL:
+            gc.collect()
+
+            dt = (time() - t)
+            _LAST_GC_RUN = t
+
+            logger.debug("gc.collect() took around %dms.", round(dt, 2) * 1000)
 
     def set_out_protocol(self, what):
         self._out_protocol = what
@@ -524,6 +538,7 @@ class MethodDescriptor(object):
         boolean value. If true, the object can process that action.
         """
 
+        # Method Customizations
         self.in_message_name_override = in_message_name_override
         """When False, no mangling of in message name will be performed by later
         stages of the interface generation. Naturally, it will be up to you to
