@@ -233,6 +233,9 @@ class ModelBase(object):
         # when skip_wrappers=True is passed to a protocol, these objects
         # are skipped. just for internal use.
 
+        _explicit_type_name = False
+        # set to true when type_name is passed to customize() call.
+
         default = None
         """The default value if the input is None.
 
@@ -585,7 +588,7 @@ class ModelBase(object):
             cls_dict['__orig__'] = cls.__orig__
 
         class Attributes(cls.Attributes):
-            pass
+            _explicit_type_name = False
 
         if cls.Attributes.translations is None:
             Attributes.translations = {}
@@ -688,6 +691,11 @@ class ModelBase(object):
                 setattr(Attributes, k, new_v)
                 _log_debug("setting max_occurs=%r", new_v)
 
+            elif k == 'type_name':
+                Attributes._explicit_type_name = True
+                _log_debug("setting _explicit_type_name=True because "
+                                                         " we have 'type_name'")
+
             else:
                 setattr(Attributes, k, v)
                 _log_debug("setting %s=%r", k, v)
@@ -785,6 +793,9 @@ class SimpleModel(ModelBase):
         if not retval.is_default(retval):
             retval.__extends__ = cls
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
+            if 'type_name' in kwargs:
+                logger.debug("Type name for %r was overridden as '%s'",
+                                                   retval, retval.__type_name__)
 
         retval.resolve_namespace(retval, kwargs.get('__namespace__'))
 

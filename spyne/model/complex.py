@@ -83,6 +83,7 @@ def _get_flat_type_info(cls, retval):
 class TypeInfo(odict):
     def __init__(self, *args, **kwargs):
         super(TypeInfo, self).__init__(*args, **kwargs)
+
         self.attributes = {}
         self.alt = {}
 

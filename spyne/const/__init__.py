@@ -64,6 +64,9 @@ MANDATORY_SUFFIX = ''
 DEFAULT_DECLARE_ORDER = 'random'
 """Order of complex type attrs of :class:`spyne.model.complex.ComplexModel`."""
 
+MIN_GC_INTERVAL = 1.0
+"""Minimum time in seconds between gc.collect() calls."""
+
 
 def add_request_suffix(string):
     """Concatenates REQUEST_SUFFIX to end of string"""
