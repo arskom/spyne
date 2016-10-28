@@ -7,7 +7,7 @@ spyne-2.13.0
 * Introduced internal keys for services and methods. Uniqueness is enforced
   during Application instantiation. If your server refuses to boot after
   migrating to 2.13 raising ``MethodAlreadyExistsError``, explicitly setting a
-  unique `__service_name__` in one of the offending ``ServiceBase``
+  unique ``__service_name__`` in one of the offending ``ServiceBase``
   subclasses should fix the problem.
 
   See 2fee1435c30dc50f7503f0915b5e56220dff34d0 for the change.
