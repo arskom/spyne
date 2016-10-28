@@ -2,13 +2,17 @@
 Changelog
 =========
 
-spyne-2.12.13
+spyne-2.12.14
 -------------
 * Fixed inclusive ranges for DateTime and friends.
 * Turns out SQLAlchemy 1.1 causes funky crashes. We're fixated on 1.0 until
   the issue can be investiaged. #506
 * Implemented MIN_GC_INTERVAL to prevent excessive calls to ``gc.collect()``
   See issue #472. PR: #515
+
+spyne-2.12.13
+-------------
+* Dang.
 
 spyne-2.12.12
 -------------
