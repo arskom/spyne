@@ -26,7 +26,6 @@ from inspect import isgenerator
 
 from lxml import etree
 from lxml.etree import LxmlSyntaxError
-from lxml.builder import E
 
 from spyne import ProtocolContext, BODY_STYLE_WRAPPED
 from spyne.util import Break, coroutine
@@ -44,7 +43,6 @@ class XmlClothProtocolContext(ProtocolContext):
         self.inst_stack = []
         self.prot_stack = []
         self.doctype_written = False
-        self.close_until = None
 
 
 class XmlCloth(ToParentMixin, ToClothMixin):

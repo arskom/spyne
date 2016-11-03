@@ -29,7 +29,6 @@ from copy import deepcopy
 from inspect import isgenerator
 
 from spyne.util import Break, coroutine
-from spyne.util.web import log_repr
 from spyne.util.oset import oset
 from spyne.util.six import string_types
 from spyne.util.color import R, B
@@ -390,16 +389,11 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
     def _close_cloth(self, ctx, parent):
         rootstack = ctx.protocol.rootstack
-        cureltstack = ctx.protocol.eltstack[rootstack.back]
-        curctxstack = ctx.protocol.ctxstack[rootstack.back]
+        close_until = rootstack.back
+        cureltstack = ctx.protocol.eltstack[close_until]
+        curctxstack = ctx.protocol.ctxstack[close_until]
 
         for elt, elt_ctx in reversed(tuple(zip(cureltstack, curctxstack))):
-            cu = ctx.protocol[self].close_until
-            if elt is cu:
-                logger_c.debug("closed until %r, breaking out", cu)
-                ctx.protocol[self].close_cloth = None
-                break
-
             if elt_ctx is not None:
                 self.event_manager.fire_event(("before_exit", elt), ctx, parent)
                 elt_ctx.__exit__(None, None, None)
@@ -413,18 +407,24 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 if sibl.tail is not None:
                     parent.write(sibl.tail)
 
-        rootstack.pop()
+            if elt is close_until:
+                logger_c.debug("closed until %r, breaking out", close_until)
+                break
+
+        del ctx.protocol.eltstack[close_until]
+        del ctx.protocol.ctxstack[close_until]
+
+        if len(rootstack) > 0:
+            rootstack.pop()
 
     @coroutine
     def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
                                                       from_arr=False, **kwargs):
-        if len(ctx.protocol.eltstack) > 0:
-            ctx.protocol[self].close_until = ctx.protocol.eltstack[-1]
-
         cls_cloth = self.get_class_cloth(cls)
         if cls_cloth is not None:
             logger_c.debug("%r to object cloth", cls)
             cloth = cls_cloth
+            ctx.protocol[self].rootstack.add(cloth)
 
         ret = self.to_cloth(ctx, cls, inst, cloth, parent, '')
         if isgenerator(ret):
@@ -441,7 +441,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
     @coroutine
     def to_root_cloth(self, ctx, cls, inst, cloth, parent, name):
         if len(ctx.protocol.eltstack) > 0:
-            ctx.protocol[self].close_until = ctx.protocol.eltstack[-1]
+            ctx.protocol[self].rootstack.add(cloth)
 
         self._enter_cloth(ctx, cloth, parent)
 

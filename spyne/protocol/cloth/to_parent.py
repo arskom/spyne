@@ -85,6 +85,8 @@ class ToParentMixin(OutProtocolBase):
     @coroutine
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
         pushed = False
+        has_cloth = False
+
         prot_name = self.__class__.__name__
 
         cls, switched = self.get_polymorphic_target(cls, inst)
@@ -183,12 +185,18 @@ class ToParentMixin(OutProtocolBase):
                     pass
 
                 finally:
+                    if has_cloth:
+                        self._close_cloth(ctx, parent)
+
                     if pushed:
                         logger.debug("%s %r popped %r %r", B("$"), self, cls,
                                                                            inst)
                         ctx.outprot_ctx.inst_stack.pop()
 
         else:
+            if has_cloth:
+                self._close_cloth(ctx, parent)
+
             if pushed:
                 logger.debug("%s %r popped %r %r", B("$"), self, cls, inst)
                 ctx.outprot_ctx.inst_stack.pop()
