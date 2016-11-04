@@ -62,7 +62,7 @@ class TestModelCloth(unittest.TestCase):
     def test_xml(self):
         class SomeObject(ComplexModel):
             class Attributes(ComplexModel.Attributes):
-                xml_cloth = html.fromstring('<html><body spyne_id="za"></body></html>')
+                xml_cloth = html.fromstring('<html><body foo="za"></body></html>')
 
         assert SomeObject.Attributes._xml_cloth is not None
         assert SomeObject.Attributes._xml_root_cloth is None
