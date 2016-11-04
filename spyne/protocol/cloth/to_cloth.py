@@ -41,6 +41,9 @@ from spyne.util.cdict import cdict
 _revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
 
 
+_NODATA = type("_NODATA", (object,), {})
+
+
 def _prevsibls(elt, since=None):
     return reversed(list(_prevsibls_since(elt, since)))
 
@@ -195,8 +198,10 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
     def _get_elts(self, elt, tag_id=None):
         if tag_id is None:
-            return elt.xpath('.//*[@%s]' % self.ID_ATTR_NAME)
-        return elt.xpath('.//*[@%s="%s"]' % (self.ID_ATTR_NAME, tag_id))
+            return elt.xpath('.//*[@*[starts-with(name(), "%s")]]' %
+                                                                 self.ID_PREFIX)
+        return elt.xpath('.//*[@*[starts-with(name(), "%s")]="%s"]' % (
+                                                        self.ID_PREFIX, tag_id))
 
     def _get_outmost_elts(self, tmpl, tag_id=None):
         ids = set()
@@ -257,7 +262,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             logger_c.warning("missing 'mrpc_template'")
             return
 
-        for elt in self._get_elts(template, "mrpc"):
+        for elt in self._get_elts(template, self.MRPC_ID):
             for k, v in self._methods(cls, inst):
                 href = v.in_message.get_type_name()
                 text = v.translate(ctx.locale, v.in_message.get_type_name())
@@ -626,14 +631,20 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             if ns is None:
                 ns = v.Attributes.sub_ns
 
+            sub_name = v.Attributes.sub_name
+            if sub_name is None:
+                sub_name = k
+
             val = getattr(inst, k, None)
-            k = _gen_tagname(ns, k)
+            sub_name = _gen_tagname(ns, sub_name)
 
             if val is not None:
                 if issubclass(v.type, (ByteArray, File)):
-                    attrs[k] = self.to_unicode(v.type, val, self.binary_encoding)
+                    valstr = self.to_unicode(v.type, val, self.binary_encoding)
                 else:
-                    attrs[k] = self.to_unicode(v.type, val)
+                    valstr = self.to_unicode(v.type, val)
+
+                attrs[sub_name] = valstr
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
 
@@ -681,43 +692,51 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             elts = self._get_outmost_elts(cloth)
 
         for i, elt in enumerate(elts):
-            k = elt.attrib[self.ID_ATTR_NAME]
-            v = fti.get(k, None)
-            fti_check.pop(k, None)
+            for k_attr in (self.ID_ATTR_NAME, self.ATTR_ATTR_NAME,
+                                                           self.DATA_ATTR_NAME):
+                k = elt.attrib.get(k_attr, None)
+                if k is None:
+                    logger_c.debug("No %s attribute found in tag. Ignoring",
+                                                                         k_attr)
+                    continue
 
-            if v is None:
-                logger_c.warning("elt id %r not in %r", k, cls)
-                never_found.add(k)
-                self._enter_cloth(ctx, elt, parent, skip=True)
-                continue
+                v = fti.get(k, None)
+                fti_check.pop(k, None)
 
-            if issubclass(v, XmlData):
-                v = v.type
+                if v is None:
+                    logger_c.warning("elt id %r not in %r", k, cls)
+                    never_found.add(k)
+                    self._enter_cloth(ctx, elt, parent, skip=True)
+                    continue
 
-            cls_attrs = self.get_cls_attrs(v)
-            if cls_attrs.exc:
-                logger_c.debug("Skipping elt id %r because excluded", k)
-                continue
+                if issubclass(v, XmlData):
+                    v = v.type
 
-            if issubclass(cls, Array):
-                # if cls is an array, inst should already be a sequence type
-                # (eg list), so there's no point in doing a getattr -- we will
-                # unwrap it and serialize it in the next round of to_cloth call.
-                val = inst
-            else:
-                val = getattr(inst, k, None)
+                cls_attrs = self.get_cls_attrs(v)
+                if cls_attrs.exc:
+                    logger_c.debug("Skipping elt id %r because "
+                                                           "it was excluded", k)
+                    continue
 
-            ret = self.to_cloth(ctx, v, val, elt, parent, name=k, **kwargs)
-            if isgenerator(ret):
-                try:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
-                except Break as e:
+                if issubclass(cls, Array):
+                    # if cls is an array, inst should already be a sequence type
+                    # (eg list), so there's no point in doing a getattr -- we will
+                    # unwrap it and serialize it in the next round of to_cloth call.
+                    val = inst
+                else:
+                    val = getattr(inst, k, None)
+
+                ret = self.to_cloth(ctx, v, val, elt, parent, name=k, **kwargs)
+                if isgenerator(ret):
                     try:
-                        ret.throw(e)
-                    except StopIteration:
-                        pass
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as e:
+                        try:
+                            ret.throw(e)
+                        except StopIteration:
+                            pass
 
         if len(fti_check) > 0:
             logger_s.debug("No element found for the following fields: %r",
