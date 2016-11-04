@@ -150,8 +150,7 @@ class TestXmlCloth(unittest.TestCase):
         class SomeObject(ComplexModel):
             d = XmlData(Unicode)
 
-        cloth = etree.fromstring(
-            '<a spyne-id="d" spyne-data="d"></a>')
+        cloth = etree.fromstring('<a spyne_id="d" spyne_data="d"></a>')
 
         elt = self._run(SomeObject(d='data'), cloth=cloth)
 
@@ -167,6 +166,17 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(SomeObject(s=v), cloth=cloth)
 
         assert elt.attrib['s'] == v
+
+    def test_simple_value_xmlattribute_subname(self):
+        v = 'punk.'
+
+        class SomeObject(ComplexModel):
+            s = XmlAttribute(Unicode(min_occurs=1, sub_name='foo'))
+
+        cloth = etree.fromstring("""<a></a>""")
+        elt = self._run(SomeObject(s=v), cloth=cloth)
+
+        assert elt.attrib['foo'] == v
 
     def test_non_tagbag(self):
         cloth = E.a(
