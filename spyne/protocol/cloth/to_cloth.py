@@ -720,12 +720,11 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         pass
 
         if len(fti_check) > 0:
-            if len(fti_check) > 0:
-                logger_s.debug("No element found for the following fields: %r",
+            logger_s.debug("No element found for the following fields: %r",
                                                          list(fti_check.keys()))
-            if len(never_found) > 0:
-                logger_s.debug("No field found for element the following "
-                               "elements: %r", list(never_found))
+        if len(never_found) > 0:
+            logger_s.debug("No field found for element the following "
+                                              "elements: %r", list(never_found))
 
     @coroutine
     def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
