@@ -34,14 +34,6 @@ from spyne.test import FakeContext
 from spyne.util.six import BytesIO
 
 
-### !!! WARNING !!! ### !!! WARNING !!! ###
-#
-#  This test uses spyne_id and spyne_tagbag instead of spyne-id and spyne-tagbag
-# for ease of testing. The real attributes are different from what you are going
-# to see in the wild. You have been warned !!!
-#
-### !!! WARNING !!! ### !!! WARNING !!! ###
-
 class TestModelCloth(unittest.TestCase):
     def test_root_html(self):
         class SomeObject(ComplexModel):
@@ -76,6 +68,14 @@ class TestModelCloth(unittest.TestCase):
         assert SomeObject.Attributes._xml_root_cloth is None
 
 
+
+### !!! WARNING !!! ### !!! WARNING !!! ###
+#
+#  This test uses spyne_id and spyne_tagbag instead of spyne-id and spyne-tagbag
+# for ease of testing. The real attributes are different from what you are going
+# to see in the wild. You have been warned !!!
+#
+### !!! WARNING !!! ### !!! WARNING !!! ###
 class TestXmlCloth(unittest.TestCase):
     def setUp(self):
         self.ctx = FakeContext()
