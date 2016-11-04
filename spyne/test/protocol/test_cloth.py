@@ -140,7 +140,7 @@ class TestXmlCloth(unittest.TestCase):
         class SomeObject(ComplexModel):
             d = XmlData(Unicode)
 
-        cloth = etree.fromstring('<a><spyne-data spyne_id="d"/></a>')
+        cloth = etree.fromstring('<a><spyne_data spyne_id="d"/></a>')
 
         elt = self._run(SomeObject(d='data'), cloth=cloth)
 
