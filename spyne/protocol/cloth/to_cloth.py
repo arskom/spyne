@@ -61,21 +61,47 @@ def _gen_tagname(ns, name):
     return name
 
 
+def _set_identifier_prefix(obj, prefix, mrpc_id='mrpc', id_attr='id',
+                            data_tag='data', data_attr='data', attr_attr='attr',
+                                        root_attr='root', tagbag_attr='tagbag'):
+    obj.ID_PREFIX = prefix
+
+    obj.MRPC_ID = '{}{}'.format(prefix, mrpc_id)
+    obj.ID_ATTR_NAME = '{}{}'.format(prefix, id_attr)
+    obj.DATA_TAG_NAME = '{}{}'.format(prefix, data_tag)
+    obj.DATA_ATTR_NAME = '{}{}'.format(prefix, data_attr)
+    obj.ATTR_ATTR_NAME = '{}{}'.format(prefix, attr_attr)
+    obj.ROOT_ATTR_NAME = '{}{}'.format(prefix, root_attr)
+    obj.TAGBAG_ATTR_NAME = '{}{}'.format(prefix, tagbag_attr)
+    # FIXME: get rid of this. We don't want logic creep inside cloths
+    obj.WRITE_CONTENTS_WHEN_NOT_NONE = '{}write-contents'.format(prefix)
+
+    obj.SPYNE_ATTRS = {
+        obj.ID_ATTR_NAME,
+        obj.DATA_ATTR_NAME,
+        obj.ATTR_ATTR_NAME,
+        obj.ROOT_ATTR_NAME,
+        obj.TAGBAG_ATTR_NAME,
+        obj.WRITE_CONTENTS_WHEN_NOT_NONE,
+    }
+
 class ClothParserMixin(object):
+    ID_PREFIX = 'spyne-'
+
+    # these are here for documentation purposes. The are all reinitialized with
+    # the call ta _set_identifier_prefix below the class definition
     ID_ATTR_NAME = 'spyne-id'
     DATA_TAG_NAME = 'spyne-data'
     DATA_ATTR_NAME = 'spyne-data'
+    ATTR_ATTR_NAME = 'spyne-attr'
     ROOT_ATTR_NAME = 'spyne-root'
     TAGBAG_ATTR_NAME = 'spyne-tagbag'
     WRITE_CONTENTS_WHEN_NOT_NONE = 'spyne-write-contents'
 
-    SPYNE_ATTRS = {
-        ID_ATTR_NAME,
-        DATA_TAG_NAME,
-        ROOT_ATTR_NAME,
-        TAGBAG_ATTR_NAME,
-        WRITE_CONTENTS_WHEN_NOT_NONE,
-    }
+
+    def set_identifier_prefix(self, what):
+        _set_identifier_prefix(self, what)
+        return self
 
     @classmethod
     def from_xml_cloth(cls, cloth, strip_comments=True):
@@ -148,6 +174,9 @@ class ClothParserMixin(object):
             return retval
 
 
+_set_identifier_prefix(ClothParserMixin, ClothParserMixin.ID_PREFIX)
+
+
 class ToClothMixin(OutProtocolBase, ClothParserMixin):
     def __init__(self, app=None, mime_type=None, ignore_uncap=False,
                                         ignore_wrappers=False, polymorphic=True):
@@ -206,9 +235,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         logger_c.debug("id=%r got %r", what, retval)
         return retval
 
-    @classmethod
-    def _is_tagbag(cls, elt):
-        return cls.TAGBAG_ATTR_NAME in elt.attrib
+    def _is_tagbag(self, elt):
+        return self.TAGBAG_ATTR_NAME in elt.attrib
 
     @staticmethod
     def _methods(cls, inst):
@@ -642,7 +670,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     if val is not None:
                         parent.write(self.to_unicode(v, val))
 
-        for elt in self._get_elts(cloth, "mrpc"):
+        for elt in self._get_elts(cloth, self.MRPC_ID):
             self._actions_to_cloth(ctx, cls, inst, elt)
 
         if self._is_tagbag(cloth):
