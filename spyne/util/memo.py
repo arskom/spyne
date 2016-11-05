@@ -24,15 +24,41 @@ reckless usage of the tools here.
 """
 
 
+import logging
+logger = logging.getLogger(__name__)
+
 import functools
+
+
+MEMOIZATION_STATS_LOG_INTERVAL = 60.0
+
+
+def _do_log():
+    logger.debug("%d memoizers", len(memoize.registry))
+    for memo in memoize.registry:
+        logger.debug("%r: %d entries.", memo.func, len(memo.memo))
+
+
+def start_memoization_stats_logger():
+    import threading
+
+    _do_log()
+
+    t = threading.Timer(MEMOIZATION_STATS_LOG_INTERVAL,
+                                                 start_memoization_stats_logger)
+    t.daemon = True
+    t.start()
 
 
 class memoize(object):
     """A memoization decorator that keeps caching until reset."""
 
+    registry = []
+
     def __init__(self, func):
         self.func = func
         self.memo = {}
+        memoize.registry.append(self)
 
     def __call__(self, *args, **kwargs):
         key = self.get_key(args, kwargs)
