@@ -694,8 +694,6 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
                 k = elt.attrib.get(k_attr, None)
                 if k is None:
-                    logger_c.debug("No %s attribute found in tag. Ignoring",
-                                                                         k_attr)
                     continue
 
                 v = fti.get(k, None)
