@@ -358,6 +358,32 @@ class TestComplex(unittest.TestCase):
         assert v.children == ['a', 'b']
         assert v.sub_category == 'aaa'
 
+    def test_flat_type_info(self):
+        class A(ComplexModel):
+            i = Integer
+
+        class B(A):
+            s = String
+
+        assert 's' in B.get_flat_type_info(B)
+        assert 'i' in B.get_flat_type_info(B)
+
+    def test_flat_type_info_attr(self):
+        class A(ComplexModel):
+            i = Integer
+            ia = XmlAttribute(Integer)
+
+        class B(A):
+            s = String
+            sa = XmlAttribute(String)
+
+        assert 's' in B.get_flat_type_info(B)
+        assert 'i' in B.get_flat_type_info(B)
+        assert 'sa' in B.get_flat_type_info(B)
+        assert 'ia' in B.get_flat_type_info(B)
+        assert 'sa' in B.get_flat_type_info(B).attrs
+        assert 'ia' in B.get_flat_type_info(B).attrs
+
 
 class TestXmlAttribute(unittest.TestCase):
     def assertIsNotNone(self, obj, msg=None):

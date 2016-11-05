@@ -78,7 +78,7 @@ def _get_flat_type_info(cls, retval):
     retval.update(cls._type_info)
     retval.alt.update(cls._type_info_alt) # FIXME: move to cls._type_info.alt
     retval.attrs.update({k: v for (k, v) in cls._type_info.items()
-                                                if isinstance(v, XmlAttribute)})
+                                                if issubclass(v, XmlAttribute)})
     return retval
 
 
