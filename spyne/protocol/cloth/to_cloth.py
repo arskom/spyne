@@ -630,6 +630,9 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                                                        as_attr=False, **kwargs):
         fti = cls.get_flat_type_info(cls)
 
+        # It's actually an odict but that's irrelevant here.
+        fti_check = dict(fti.items())
+        never_found = set()
         attrs = {}
         for k, v in fti.items():
             if not issubclass(v, XmlAttribute):
@@ -655,10 +658,6 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 attrs[sub_name] = valstr
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
-
-        # it's actually an odict but that's irrelevant here.
-        fti_check = dict(fti.items())
-        never_found = set()
 
         # This is a giant special case for the spyne-data attribute
         k = cloth.attrib.get(self.DATA_ATTR_NAME, None)
