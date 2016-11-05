@@ -27,6 +27,7 @@ logger_s = logging.getLogger("%s.serializer" % __name__)
 from lxml import html, etree
 from copy import deepcopy
 from inspect import isgenerator
+from itertools import chain
 
 from spyne.util import Break, coroutine
 from spyne.util.oset import oset
@@ -661,7 +662,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         fti_check = dict(fti.items())
         never_found = set()
 
-        # Check for attributes before entering the cloth.
+        # Check for xmlattribute before entering the cloth.
         attrs = {}
         for k, v in fti.attrs.items():
             ns = v._ns
@@ -694,6 +695,11 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         else:
             logger_c.debug("%r(%r) is NOT a tagbag", cloth, cloth.attrib)
             elts = self._get_outmost_elts(cloth)
+
+        # Check for xmldata after entering the cloth.
+        as_data_field = cloth.attrib.get(self.DATA_ATTR_NAME, None)
+        if as_data_field is not None:
+            elts = chain((cloth,), elts)
 
         for i, elt in enumerate(elts):
             for k_attr, as_attr, as_data in ((self.ID_ATTR_NAME, False, False),

@@ -150,7 +150,27 @@ class TestXmlCloth(unittest.TestCase):
         class SomeObject(ComplexModel):
             d = XmlData(Unicode)
 
-        cloth = etree.fromstring('<a spyne_id="d" spyne_data="d"></a>')
+        cloth = etree.fromstring('<a spyne_data="d"></a>')
+
+        elt = self._run(SomeObject(d='data'), cloth=cloth)
+
+        assert elt.text == 'data'
+
+    def test_xml_data_attr(self):
+        class SomeObject(ComplexModel):
+            d = XmlData(Unicode)
+
+        cloth = etree.fromstring('<a spyne_data="d"></a>')
+
+        elt = self._run(SomeObject(d='data'), cloth=cloth)
+
+        assert elt.text == 'data'
+
+    def test_xml_data_attr_undesignated(self):
+        class SomeObject(ComplexModel):
+            d = Unicode
+
+        cloth = etree.fromstring('<a spyne_data="d"></a>')
 
         elt = self._run(SomeObject(d='data'), cloth=cloth)
 
