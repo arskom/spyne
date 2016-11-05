@@ -490,12 +490,19 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 except (Break, StopIteration, GeneratorExit):
                     pass
 
-    @coroutine
     # TODO: Maybe DRY this with to_parent?
-    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None, from_arr=False,
-                                                                      **kwargs):
-
+    @coroutine
+    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
+                        from_arr=False, as_attr=False, as_data=False, **kwargs):
         prot_name = self.__class__.__name__
+
+        if isinstance(cls, XmlAttribute):
+            cls = cls.type
+            as_attr = True
+
+        elif isinstance(cls, XmlData):
+            cls = cls.type
+            as_data = True
 
         pushed = False
         if cloth is None:
@@ -585,7 +592,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 logger_c.debug("%s %r popped %r %r", B("#"), self, cls, inst)
                 ctx.outprot_ctx.inst_stack.pop()
 
-    def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+    def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name,
+                                                                      **kwargs):
         self._enter_cloth(ctx, cloth, parent)
 
         # FIXME: Does it make sense to do this in other types?
@@ -619,7 +627,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
     @coroutine
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
-                                                                      **kwargs):
+                                                       as_attr=False, **kwargs):
         fti = cls.get_flat_type_info(cls)
 
         attrs = {}
@@ -692,8 +700,10 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             elts = self._get_outmost_elts(cloth)
 
         for i, elt in enumerate(elts):
-            for k_attr in (self.ID_ATTR_NAME, self.ATTR_ATTR_NAME,
-                                                           self.DATA_ATTR_NAME):
+            for k_attr, as_attr, as_data in ((self.ID_ATTR_NAME, False, False),
+                                            (self.ATTR_ATTR_NAME, True, False),
+                                            (self.DATA_ATTR_NAME, False, True)):
+
                 k = elt.attrib.get(k_attr, None)
                 if k is None:
                     logger_c.debug("No %s attribute found in tag. Ignoring",
@@ -709,9 +719,6 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     self._enter_cloth(ctx, elt, parent, skip=True)
                     continue
 
-                if issubclass(v, XmlData):
-                    v = v.type
-
                 cls_attrs = self.get_cls_attrs(v)
                 if cls_attrs.exc:
                     logger_c.debug("Skipping elt id %r because "
@@ -726,7 +733,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 else:
                     val = getattr(inst, k, None)
 
-                ret = self.to_cloth(ctx, v, val, elt, parent, name=k, **kwargs)
+                ret = self.to_cloth(ctx, v, val, elt, parent, name=k,
+                                     as_attr=as_attr, as_data=as_data, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
