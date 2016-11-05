@@ -32,7 +32,7 @@ import decimal
 
 from copy import copy
 from weakref import WeakKeyDictionary
-from collections import deque
+from collections import deque, OrderedDict
 from inspect import isclass
 from itertools import chain
 
@@ -77,6 +77,8 @@ def _get_flat_type_info(cls, retval):
         _get_flat_type_info(parent, retval)
     retval.update(cls._type_info)
     retval.alt.update(cls._type_info_alt) # FIXME: move to cls._type_info.alt
+    retval.attrs.update({k: v for (k, v) in cls._type_info.items()
+                                                if isinstance(v, XmlAttribute)})
     return retval
 
 
@@ -85,7 +87,8 @@ class TypeInfo(odict):
         super(TypeInfo, self).__init__(*args, **kwargs)
 
         self.attributes = {}
-        self.alt = {}
+        self.alt = OrderedDict()
+        self.attrs = OrderedDict()
 
     def __setitem__(self, key, val):
         assert isinstance(key, string_types)

@@ -633,11 +633,10 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         # It's actually an odict but that's irrelevant here.
         fti_check = dict(fti.items())
         never_found = set()
-        attrs = {}
-        for k, v in fti.items():
-            if not issubclass(v, XmlAttribute):
-                continue
 
+        # Check for attributes before entering the cloth.
+        attrs = {}
+        for k, v in fti.attrs.items():
             ns = v._ns
             if ns is None:
                 ns = v.Attributes.sub_ns
