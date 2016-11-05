@@ -560,28 +560,35 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
                     return
 
-                # push the instance at hand to instance stack. this makes it
-                # easier for protocols to make decisions based on parents of
-                # instances at hand.
-                pushed = True
-                logger_c.debug("%s %r pushed %r %r", R("#"), self, cls, inst)
-                ctx.outprot_ctx.inst_stack.append((cls, inst, from_arr))
+                if as_data:
+                    # we only support XmlData of a primitive.,. is this a
+                    # problem?
+                    parent.write(self.to_unicode(cls, inst))
 
-                # try rendering the array value
-                if not from_arr and cls.Attributes.max_occurs > 1:
-                    ret = self.array_to_cloth(ctx, cls, inst, cloth, parent,
-                                                                      name=name)
                 else:
-                    # try rendering anything else
-                    handler = self.rendering_handlers[cls]
+                    # push the instance at hand to instance stack. this makes it
+                    # easier for protocols to make decisions based on parents of
+                    # instances at hand.
+                    pushed = True
+                    logger_c.debug("%s %r pushed %r %r", R("#"), self, cls, inst)
+                    ctx.outprot_ctx.inst_stack.append((cls, inst, from_arr))
 
-                    # disabled for performance reasons
-                    #identifier = "%s.%s" % (prot_name, handler.__name__)
-                    #logger_s.debug("Writing %s using %s for %s. Inst: %r",
-                    #                  name, identifier, cls.get_type_name(),
-                    #                  log_repr(inst, cls, from_array=from_arr))
+                    # try rendering the array value
+                    if not from_arr and cls.Attributes.max_occurs > 1:
+                        ret = self.array_to_cloth(ctx, cls, inst, cloth, parent,
+                                                     as_attr=as_attr, name=name)
+                    else:
+                        # try rendering anything else
+                        handler = self.rendering_handlers[cls]
 
-                    ret = handler(ctx, cls, inst, cloth, parent, name=name)
+                        # disabled for performance reasons
+                        #identifier = "%s.%s" % (prot_name, handler.__name__)
+                        #logger_s.debug("Writing %s using %s for %s. Inst: %r",
+                        #                  name, identifier, cls.get_type_name(),
+                        #                  log_repr(inst, cls, from_array=from_arr))
+
+                        ret = handler(ctx, cls, inst, cloth, parent, name=name,
+                                                                as_attr=as_attr)
 
         if isgenerator(ret):
             try:
@@ -669,35 +676,6 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 attrs[sub_name] = valstr
 
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
-
-        # This is a giant special case for the spyne-data attribute
-        k = cloth.attrib.get(self.DATA_ATTR_NAME, None)
-        if k is not None:
-            v = fti.get(k, None)
-            fti_check.pop(k, None)
-
-            if v is None:
-                logger_c.warning("elt id %r not in %r", k, cls)
-                never_found.add(k)
-
-            else:
-                if issubclass(v, XmlData):
-                    v = v.type
-
-                else:
-                    logger_c.warning("elt id %r not XmlData subclass but %r",
-                                                                         k, cls)
-
-                cls_attrs = self.get_cls_attrs(v)
-                if cls_attrs.exc:
-                    logger_c.debug("Skipping elt id %r because excluded", k)
-
-                else:
-                    val = getattr(inst, k, None)
-                    # we only support XmlData of a primitive.,. is this a
-                    # problem?
-                    if val is not None:
-                        parent.write(self.to_unicode(v, val))
 
         for elt in self._get_elts(cloth, self.MRPC_ID):
             self._actions_to_cloth(ctx, cls, inst, elt)
