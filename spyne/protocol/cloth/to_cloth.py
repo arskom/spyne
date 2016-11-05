@@ -542,7 +542,12 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 # try rendering the null value
                 if inst is None:
                     if cls.Attributes.min_occurs > 0:
-                        self._enter_cloth(ctx, cloth, parent)
+                        attrs = {}
+                        if as_attr:
+                            # FIXME: test needed
+                            attrs[name] = ''
+
+                        self._enter_cloth(ctx, cloth, parent, attrs=attrs)
                         identifier = "%s.%s" % (prot_name, "null_to_cloth")
                         logger_s.debug("Writing '%s' using %s type: %s.", name,
                                                 identifier, cls.get_type_name())
