@@ -525,10 +525,17 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             # if there's a subprotocol, switch to it
             subprot = cls_attrs.prot
             if subprot is not None and not (subprot is self):
+                # we can't do this because subprotocols don't accept cloths.
+                # so we need to enter the cloth, which make it too late to
+                # set attributes.
+                assert not as_attr, "No subprot supported for fields " \
+                    "to be serialized as attributes, use type casting with "  \
+                    "customized serializers in the current protocol instead."
+
                 self._enter_cloth(ctx, cloth, parent)
 
                 ret = subprot.subserialize(ctx, cls, inst, parent, name,
-                                                                       **kwargs)
+                                                      as_attr=as_attr, **kwargs)
 
             # if there is no subprotocol, try rendering the value
             else:
