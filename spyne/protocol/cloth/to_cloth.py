@@ -660,27 +660,28 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         # It's actually an odict but that's irrelevant here.
         fti_check = dict(fti.items())
-        never_found = set()
+        elt_check = set()
 
         # Check for xmlattribute before entering the cloth.
         attrs = {}
-        for k, v in fti.attrs.items():
-            ns = v._ns
+        for field_name, field_type in fti.attrs.items():
+            ns = field_type._ns
             if ns is None:
-                ns = v.Attributes.sub_ns
+                ns = field_type.Attributes.sub_ns
 
-            sub_name = v.Attributes.sub_name
+            sub_name = field_type.Attributes.sub_name
             if sub_name is None:
-                sub_name = k
+                sub_name = field_name
 
-            val = getattr(inst, k, None)
+            val = getattr(inst, field_name, None)
             sub_name = _gen_tagname(ns, sub_name)
 
             if val is not None:
-                if issubclass(v.type, (ByteArray, File)):
-                    valstr = self.to_unicode(v.type, val, self.binary_encoding)
+                if issubclass(field_type.type, (ByteArray, File)):
+                    valstr = self.to_unicode(field_type.type, val,
+                                                           self.binary_encoding)
                 else:
-                    valstr = self.to_unicode(v.type, val)
+                    valstr = self.to_unicode(field_type.type, val)
 
                 attrs[sub_name] = valstr
 
@@ -701,40 +702,17 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         if as_data_field is not None:
             elts = chain((cloth,), elts)
 
-        for i, elt in enumerate(elts):
+        for elt in elts:
             for k_attr, as_attr, as_data in ((self.ID_ATTR_NAME, False, False),
                                             (self.ATTR_ATTR_NAME, True, False),
                                             (self.DATA_ATTR_NAME, False, True)):
-
-                k = elt.attrib.get(k_attr, None)
-                if k is None:
+                field_name = elt.attrib.get(k_attr, None)
+                if field_name is None:
                     continue
 
-                v = fti.get(k, None)
-                fti_check.pop(k, None)
+                ret = self._process_field(ctx, cls, inst, parent, elt, fti,
+                     field_name, as_attr, as_data, fti_check, elt_check, kwargs)
 
-                if v is None:
-                    logger_c.warning("elt id %r not in %r", k, cls)
-                    never_found.add(k)
-                    self._enter_cloth(ctx, elt, parent, skip=True)
-                    continue
-
-                cls_attrs = self.get_cls_attrs(v)
-                if cls_attrs.exc:
-                    logger_c.debug("Skipping elt id %r because "
-                                                           "it was excluded", k)
-                    continue
-
-                if issubclass(cls, Array):
-                    # if cls is an array, inst should already be a sequence type
-                    # (eg list), so there's no point in doing a getattr -- we will
-                    # unwrap it and serialize it in the next round of to_cloth call.
-                    val = inst
-                else:
-                    val = getattr(inst, k, None)
-
-                ret = self.to_cloth(ctx, v, val, elt, parent, name=k,
-                                     as_attr=as_attr, as_data=as_data, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -745,13 +723,57 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                             ret.throw(e)
                         except StopIteration:
                             pass
+                        finally:
+                            # cf below
+                            if not (as_attr or as_data):
+                                break
+                else:
+                    # this is here so that attribute on complex model doesn't get
+                    # mixed with in-line attr inside complex model. if an element
+                    # has spyne-id, all other attrs are ignored and are processed
+                    # by the object's serializer not its parent.
+                    if not (as_attr or as_data):
+                        break
 
         if len(fti_check) > 0:
             logger_s.debug("No element found for the following fields: %r",
                                                          list(fti_check.keys()))
-        if len(never_found) > 0:
+        if len(elt_check) > 0:
             logger_s.debug("No field found for element the following "
-                                              "elements: %r", list(never_found))
+                                              "elements: %r", list(elt_check))
+
+    def _process_field(self, ctx, cls, inst, parent,
+                   elt, fti, field_name, as_attr, as_data, fti_check, elt_check,
+                                                                        kwargs):
+        field_type = fti.get(field_name, None)
+        fti_check.pop(field_name, None)
+
+        if field_type is None:
+            logger_c.warning("elt id %r not in %r", field_name, cls)
+            elt_check.add(field_name)
+            self._enter_cloth(ctx, elt, parent, skip=True)
+            return
+
+        cls_attrs = self.get_cls_attrs(field_type)
+        if cls_attrs.exc:
+            logger_c.debug("Skipping elt id %r because "
+                           "it was excluded", field_name)
+            return
+
+        sub_name = cls_attrs.sub_name
+        if sub_name is None:
+            sub_name = field_name
+
+        if issubclass(cls, Array):
+            # if cls is an array, inst should already be a sequence type
+            # (eg list), so there's no point in doing a getattr -- we will
+            # unwrap it and serialize it in the next round of to_cloth call.
+            val = inst
+        else:
+            val = getattr(inst, field_name, None)
+
+        return self.to_cloth(ctx, field_type, val, elt, parent,
+                      name=sub_name, as_attr=as_attr, as_data=as_data, **kwargs)
 
     @coroutine
     def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
