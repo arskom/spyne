@@ -207,7 +207,20 @@ class TestXmlCloth(unittest.TestCase):
         cloth = etree.fromstring("""<a><b spyne_attr="s"/></a>""")
         elt = self._run(SomeObject(s=v), cloth=cloth)
 
-        assert elt[0].attrib['s'] == v
+        assert elt.attrib['foo'] == v
+        assert elt[0].attrib['foo'] == v
+
+    def test_simple_value_xmlattribute_non_immediate_non_designated(self):
+        v = 'punk.'
+
+        class SomeObject(ComplexModel):
+            s = Unicode(min_occurs=1, sub_name='foo')
+
+        cloth = etree.fromstring("""<a><b spyne_attr="s"/></a>""")
+        elt = self._run(SomeObject(s=v), cloth=cloth)
+
+        assert not 'foo' in elt.attrib
+        assert elt[0].attrib['foo'] == v
 
     def test_non_tagbag(self):
         cloth = E.a(
