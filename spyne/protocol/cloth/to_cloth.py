@@ -700,7 +700,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         # Check for xmldata after entering the cloth.
         as_data_field = cloth.attrib.get(self.DATA_ATTR_NAME, None)
         if as_data_field is not None:
-            elts = chain((cloth,), elts)
+            self._process_field(ctx, cls, inst, parent, cloth, fti,
+                     as_data_field, as_attr, True, fti_check, elt_check, kwargs)
 
         for elt in elts:
             for k_attr, as_attr, as_data in ((self.ID_ATTR_NAME, False, False),
