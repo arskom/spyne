@@ -87,10 +87,6 @@ class ToParentMixin(OutProtocolBase):
             return subprot
         return None
 
-    @staticmethod
-    def check_subprot(ctx, cls_attrs, nosubprot=False):
-        return ToParentMixin.get_subprot(ctx, cls_attrs, nosubprot) is not None
-
     def to_subprot(self, ctx, cls, inst, parent, name, subprot, **kwargs):
         return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
@@ -220,6 +216,8 @@ class ToParentMixin(OutProtocolBase):
         if inst is None:
             inst = ()
 
+        ser_subprot = self.get_subprot(ctx, self.get_cls_attrs(cls))
+
         # FIXME: it's sad that this function has the same code twice.
 
         if isinstance(inst, PushBase):
@@ -235,6 +233,10 @@ class ToParentMixin(OutProtocolBase):
                     ctx.protocol.inst_stack.append(sv)
                     kwargs['from_arr'] = True
                     kwargs['array_index'] = i
+
+                    if ser_subprot is not None:
+                        ser_subprot.column_table_before_row(ctx, cls, inst,
+                                                         parent, name, **kwargs)
 
                     ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
 
@@ -254,10 +256,17 @@ class ToParentMixin(OutProtocolBase):
                         finally:
                             popped_val = ctx.protocol.inst_stack.pop()
                             assert popped_val is sv
+
+                            if ser_subprot is not None:
+                                ser_subprot.column_table_before_row(ctx, cls,
+                                                   inst, parent, name, **kwargs)
                     else:
                         popped_val = ctx.protocol.inst_stack.pop()
                         assert popped_val is sv
 
+                        if ser_subprot is not None:
+                            ser_subprot.column_table_after_row(ctx, cls, inst,
+                                                         parent, name, **kwargs)
 
             except Break:
                 # pusher is done with pushing
@@ -270,6 +279,11 @@ class ToParentMixin(OutProtocolBase):
                 ctx.protocol.inst_stack.append(sv)
                 kwargs['from_arr'] = True
                 kwargs['array_index'] = i
+
+                if ser_subprot is not None:
+                    ser_subprot.column_table_before_row(ctx, cls, inst, parent,
+                                                                 name, **kwargs)
+
                 ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
                 if isgenerator(ret):
                     try:
@@ -287,9 +301,17 @@ class ToParentMixin(OutProtocolBase):
                         popped_val = ctx.protocol.inst_stack.pop()
                         assert popped_val is sv
 
+                        if ser_subprot is not None:
+                            ser_subprot.column_table_after_row(ctx, cls, inst,
+                                                         parent, name, **kwargs)
+
                 else:
                     popped_val = ctx.protocol.inst_stack.pop()
                     assert popped_val is sv
+
+                    if ser_subprot is not None:
+                        ser_subprot.column_table_after_row(ctx, cls, inst,
+                                                         parent, name, **kwargs)
 
     def not_supported(self, ctx, cls, *args, **kwargs):
         if not self.ignore_uncap:

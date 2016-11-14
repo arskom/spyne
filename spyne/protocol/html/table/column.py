@@ -32,14 +32,27 @@ from spyne.util.oset import oset
 from spyne.protocol.html.table import HtmlTableBase
 
 
-class HtmlColumnTable(HtmlTableBase):
+class HtmlColumnTableRowProtocol(object):
+    def column_table_before_row(self, ctx, cls, inst, parent, name, **kwargs):
+        pass
+
+    def column_table_after_row(self, ctx, cls, inst, parent, name, **kwargs):
+        pass
+
+
+
+class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
     """Protocol that returns the response object as a html table.
 
     Returns one record per table row in a table that has as many columns as
     field names, just like a regular spreadsheet.
 
-    The simple flavour is like the HtmlMicroFormatprotocol, but returns data
+    This is not quite unlike the HtmlMicroFormatprotocol, but returns data
     as a html table using the <table> tag.
+
+    Generally used to serialize Array()'s of ComplexModel objects. If an
+    array has prot=HtmlColumnTable, its serializer (what's inside the Array( ))
+    must implement HtmlColumnTableRowProtocol interface.
 
     :param app: A spyne.application.Application instance.
     :param header: Boolean value to determine whether to show field
