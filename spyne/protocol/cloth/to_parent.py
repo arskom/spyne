@@ -220,18 +220,25 @@ class ToParentMixin(OutProtocolBase):
         if inst is None:
             inst = ()
 
+        # FIXME: it's sad that this function has the same code twice.
+
         if isinstance(inst, PushBase):
             # this will be popped by pusher_try_close
             ctx.pusher_stack.append(inst)
+
+            i = 0
 
             try:
                 while True:
                     sv = (yield)
 
                     ctx.protocol.inst_stack.append(sv)
+                    kwargs['from_arr'] = True
+                    kwargs['array_index'] = i
 
-                    ret = self.to_parent(ctx, cls, sv, parent, name,
-                                                        from_arr=True, **kwargs)
+                    ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
+
+                    i += 1
                     if isgenerator(ret):
                         try:
                             while True:
@@ -244,8 +251,13 @@ class ToParentMixin(OutProtocolBase):
                             except StopIteration:
                                 pass
 
-                    popped_val = ctx.protocol.inst_stack.pop()
-                    assert popped_val is sv
+                        finally:
+                            popped_val = ctx.protocol.inst_stack.pop()
+                            assert popped_val is sv
+                    else:
+                        popped_val = ctx.protocol.inst_stack.pop()
+                        assert popped_val is sv
+
 
             except Break:
                 # pusher is done with pushing
@@ -255,6 +267,7 @@ class ToParentMixin(OutProtocolBase):
             assert isinstance(inst, Iterable), ("%r is not iterable" % (inst,))
 
             for i, sv in enumerate(inst):
+                ctx.protocol.inst_stack.append(sv)
                 kwargs['from_arr'] = True
                 kwargs['array_index'] = i
                 ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
@@ -263,11 +276,20 @@ class ToParentMixin(OutProtocolBase):
                         while True:
                             sv2 = (yield)
                             ret.send(sv2)
+
                     except Break as e:
                         try:
                             ret.throw(e)
                         except StopIteration:
                             pass
+
+                    finally:
+                        popped_val = ctx.protocol.inst_stack.pop()
+                        assert popped_val is sv
+
+                else:
+                    popped_val = ctx.protocol.inst_stack.pop()
+                    assert popped_val is sv
 
     def not_supported(self, ctx, cls, *args, **kwargs):
         if not self.ignore_uncap:
