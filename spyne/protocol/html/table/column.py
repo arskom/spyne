@@ -33,6 +33,9 @@ from spyne.protocol.html.table import HtmlTableBase
 
 
 class HtmlColumnTableRowProtocol(object):
+    def column_table_gen_header(self, ctx, cls, parent, name, **kwargs):
+        return False
+
     def column_table_before_row(self, ctx, cls, inst, parent, name, **kwargs):
         pass
 
@@ -207,7 +210,7 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
             self.extend_data_row(ctx, cls, inst, parent, name,
                                               array_index=array_index, **kwargs)
 
-    def _gen_thead(self, ctx, cls, name, parent):
+    def _gen_thead(self, ctx, cls, parent, name):
         logger.debug("Generate header for %r", cls)
 
         with parent.element('thead'):
@@ -245,6 +248,7 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
     @coroutine
     def _gen_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
         logger.debug("Generate table for %r", cls)
+        cls_attrs = self.get_cls_attrs(cls)
 
         attrib = {}
         table_class = oset()
@@ -269,7 +273,14 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
 
         with parent.element('table', attrib):
             if self.header:
-                self._gen_thead(ctx, cls, name, parent)
+                ret = False
+
+                subprot = self.get_subprot(ctx, cls_attrs)
+                if subprot is not None:
+                    ret = subprot.column_table_gen_header(ctx, cls, parent,
+                                                                           name)
+                if not ret:
+                    self._gen_thead(ctx, cls, parent, name)
 
             with parent.element('tbody'):
                 ret = gen_rows(ctx, cls, inst, parent, name, **kwargs)
