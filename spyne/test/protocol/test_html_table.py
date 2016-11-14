@@ -173,6 +173,83 @@ class TestHtmlColumnTable(unittest.TestCase):
         assert elt.xpath('//td[@class="c"]')[0][0].text == _text
         assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
 
+    def test_row_subprot(self):
+        from lxml.html.builder import E
+        from spyne.protocol.html import HtmlBase
+        from spyne.util.six.moves.urllib.parse import urlencode
+        from spyne.protocol.html import HtmlMicroFormat
+
+        class SearchProtocol(HtmlBase):
+            def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+                s = self.to_unicode(cls._type_info['query'], inst.query)
+                q = urlencode({"q": s})
+
+                parent.write(E.a("Search %s" % inst.query,
+                                              href="{}?{}".format(inst.uri, q)))
+
+            def column_table_gen_header(self, ctx, cls, parent, name):
+                parent.write(E.thead(E.th("Search",
+                                                   **{'class': 'search-link'})))
+
+            def column_table_before_row(self, ctx, cls, inst, parent, name,**_):
+                ctxstack = getattr(ctx.protocol[self],
+                                                   'array_subprot_ctxstack', [])
+
+                tr_ctx = parent.element('tr')
+                tr_ctx.__enter__()
+                ctxstack.append(tr_ctx)
+
+                td_ctx = parent.element('td', **{'class': "search-link"})
+                td_ctx.__enter__()
+                ctxstack.append(td_ctx)
+
+                ctx.protocol[self].array_subprot_ctxstack = ctxstack
+
+            def column_table_after_row(self, ctx, cls, inst, parent, name,
+                                                                      **kwargs):
+                ctxstack = ctx.protocol[self].array_subprot_ctxstack
+
+                for elt_ctx in reversed(ctxstack):
+                    elt_ctx.__exit__(None, None, None)
+
+                del ctxstack[:]
+
+        class Search(ComplexModel):
+            query = Unicode
+            uri = Unicode
+
+        SearchTable = Array(
+            Search.customize(prot=SearchProtocol()),
+            prot=HtmlColumnTable(field_type_name_attr=None),
+        )
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=SearchTable)
+            def some_call():
+                return [
+                    Search(query='Arskom', uri='https://www.google.com/search'),
+                    Search(query='Spyne', uri='https://www.bing.com/search'),
+                ]
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                        out_protocol=HtmlMicroFormat())
+        server = WsgiApplication(app)
+
+        out_string = call_wsgi_app_kwargs(server)
+
+        elt = html.fromstring(out_string)
+        print(html.tostring(elt, pretty_print=True))
+
+        assert elt.xpath('//td[@class="search-link"]/a/text()') == \
+                                               ['Search Arskom', 'Search Spyne']
+
+        assert elt.xpath('//td[@class="search-link"]/a/@href') == [
+            'https://www.google.com/search?q=Arskom',
+            'https://www.bing.com/search?q=Spyne',
+        ]
+
+        assert elt.xpath('//th[@class="search-link"]/text()') == ["Search"]
+
 
 class TestHtmlRowTable(unittest.TestCase):
     def test_anyuri_string(self):
