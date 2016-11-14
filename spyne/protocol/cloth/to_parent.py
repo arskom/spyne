@@ -79,6 +79,18 @@ class ToParentMixin(OutProtocolBase):
 
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
+    @staticmethod
+    def get_subprot(ctx, cls_attrs, nosubprot=False):
+        subprot = cls_attrs.prot
+        if subprot is not None and not nosubprot and not \
+                                           (subprot in ctx.protocol.prot_stack):
+            return subprot
+        return None
+
+    @staticmethod
+    def check_subprot(ctx, cls_attrs, nosubprot=False):
+        return ToParentMixin.get_subprot(ctx, cls_attrs, nosubprot) is not None
+
     def to_subprot(self, ctx, cls, inst, parent, name, subprot, **kwargs):
         return subprot.subserialize(ctx, cls, inst, parent, name, **kwargs)
 
@@ -93,9 +105,8 @@ class ToParentMixin(OutProtocolBase):
         cls_attrs = self.get_cls_attrs(cls)
 
         # if there is a subprotocol, switch to it
-        subprot = cls_attrs.prot
-        if subprot is not None and not nosubprot and not \
-                                           (subprot in ctx.protocol.prot_stack):
+        subprot = self.get_subprot(ctx, cls_attrs, nosubprot)
+        if subprot is not None:
             logger.debug("Subprot from %r to %r", self, subprot)
             ret = self.to_subprot(ctx, cls, inst, parent, name, subprot,
                                                                        **kwargs)
