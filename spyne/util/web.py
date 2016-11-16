@@ -69,7 +69,8 @@ class WriterServiceBase(ServiceBase):
     pass
 
 
-def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False, tags=None, prot=None):
+def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
+                                                          tags=None, prot=None):
     """Use this function if you want to serialize a ComplexModelBase instance to
     logs. It will:
 
