@@ -77,10 +77,10 @@ class HtmlCloth(XmlCloth):
         return etree.htmlfile(*args, **kwargs)
 
     def write_doctype(self, ctx, parent, cloth=None):
-        if cloth is not None:
-            dt = cloth.getroottree().docinfo.doctype
-        elif self.doctype is not None:
+        if self.doctype is not None:
             dt = self.doctype
+        elif cloth is not None:
+            dt = cloth.getroottree().docinfo.doctype
         elif self._root_cloth is not None:
             dt = self._root_cloth.getroottree().docinfo.doctype
         elif self._cloth is not None:
