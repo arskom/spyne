@@ -222,7 +222,10 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 logger_c.debug("Don't send what's already been sent")
                 continue  # don't send what's already been sent
 
-            ids.add(id(elt))
+            if self.ID_ATTR_NAME in elt.attrib:
+                # Prevent primitive attrs like spyne-attr from interfering
+                # with elt descent
+                ids.add(id(elt))
             yield elt
 
     def _get_clean_elt(self, elt, what):
@@ -495,6 +498,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
     @coroutine
     def to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
                         from_arr=False, as_attr=False, as_data=False, **kwargs):
+
         prot_name = self.__class__.__name__
 
         if issubclass(cls, XmlAttribute):
