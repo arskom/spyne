@@ -304,6 +304,7 @@ def rpc(*params, **kparams):
             _when = kparams.pop("_when", None)
             _service_class = kparams.pop("_service_class", None)
             _href = kparams.pop("_href", None)
+            _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
 
             _substitute_self_reference(params, kparams, kwargs, _no_self)
 
@@ -382,6 +383,7 @@ def rpc(*params, **kparams):
                 in_message_name_override=_in_message_name_override,
                 out_message_name_override=_out_message_name_override,
                 service_class=_service_class, href=_href,
+                internal_key_suffix=_internal_key_suffix,
             )
 
             if _patterns is not None and _no_self:
