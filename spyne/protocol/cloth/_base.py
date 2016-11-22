@@ -213,7 +213,13 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         logger.debug("%s push prot %r. newlen: %d", R("%"), self, len(pstack))
 
         have_cloth = False
-        if self._root_cloth is not None:
+
+        cls_cloth = self.get_class_cloth(cls)
+        if cls_cloth is not None:
+            logger.debug("to object cloth")
+            ret = self.to_parent_cloth(ctx, cls, inst, cls_cloth, parent, name)
+
+        elif self._root_cloth is not None:
             logger.debug("to root cloth")
             ret = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
                                                                    parent, name)
