@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#encoding: utf8
+# encoding: utf8
 #
 # Copyright © Burak Arslan <burak at arskom dot com dot tr>,
 #             Arskom Ltd. http://www.arskom.com.tr
@@ -37,7 +37,10 @@ c = Client('http://localhost:8000/app/?wsdl')
 user_name = 'neo'
 
 session_id = c.service.authenticate(user_name, 'Wh1teR@bbit')
-print ('Authentication for %r successful. Session id: %r' % (user_name, session_id))
+
+print ('Authentication for %r successful. Session id: %r' %
+                                                        (user_name, session_id))
+
 
 request_header = c.factory.create('RequestHeader')
 request_header.session_id = session_id

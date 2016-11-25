@@ -37,7 +37,7 @@ from pyramid.view import view_config
 from wsgiref.simple_server import make_server
 
 from spyne.util.simple import pyramid_soap11_application
-from spyne.decorator import srpc
+from spyne.decorator import rpc
 from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
@@ -86,8 +86,8 @@ Service ( HelloWorldService ) tns="spyne.helloworld"
 class HelloWorldService(ServiceBase):
     __namespace__ = tns
     
-    @srpc(String, Integer, _returns=Iterable(String))
-    def say_hello(name, times):
+    @rpc(String, Integer, _returns=Iterable(String))
+    def say_hello(ctx, name, times):
         '''
         Docstrings for service methods appear as documentation in the wsdl
         <b>what fun</b>

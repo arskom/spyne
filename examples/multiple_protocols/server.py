@@ -57,111 +57,105 @@ You need python bindings for librsvg for svg & png protocols.
 along with every other otherwise optional Spyne dependency.
 """
 
-
 import logging
 
 from datetime import datetime
 
-from spyne.application import Application
-from spyne.decorator import rpc
-from spyne.decorator import srpc
-from spyne.service import ServiceBase
-from spyne.util.wsgi_wrapper import WsgiMounter
-
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import String
-
-from spyne.protocol.xml import XmlDocument
-from spyne.protocol.soap import Soap11
-from spyne.protocol.http import HttpRpc
-from spyne.protocol.http import HttpPattern
-from spyne.protocol.html import HtmlMicroFormat
-from spyne.protocol.json import JsonDocument
-from spyne.protocol.msgpack import MessagePackDocument
-from spyne.protocol.msgpack import MessagePackRpc
-from spyne.protocol.yaml import YamlDocument
-
 from protocol import PngClock
 from protocol import SvgClock
+
+from spyne import Application, rpc, srpc, DateTime, String, ServiceBase
+from spyne.protocol.html import HtmlMicroFormat
+from spyne.protocol.http import HttpPattern, HttpRpc
+from spyne.protocol.json import JsonDocument
+from spyne.protocol.msgpack import MessagePackDocument, MessagePackRpc
+from spyne.protocol.soap import Soap11
+from spyne.protocol.xml import XmlDocument
+from spyne.protocol.yaml import YamlDocument
+from spyne.util.wsgi_wrapper import WsgiMounter
 
 tns = 'spyne.examples.multiple_protocols'
 port = 9910
 host = '127.0.0.1'
+
 
 class MultiProtService(ServiceBase):
     @srpc(_returns=DateTime)
     def get_utc_time():
         return datetime.utcnow()
 
+
 def Tsetprot(prot):
     def setprot(ctx):
         ctx.out_protocol = prot
+
     return setprot
+
 
 class DynProtService(ServiceBase):
     protocols = {}
 
     @rpc(String(values=protocols.keys(), encoding='ascii'), _returns=DateTime,
-                                _patterns=[HttpPattern('/get_utc_time\\.<prot>')])
+        _patterns=[HttpPattern('/get_utc_time\\.<prot>')])
     def get_utc_time(ctx, prot):
         DynProtService.protocols[prot](ctx)
 
         return datetime.utcnow()
 
+
 def main():
     rest = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=HttpRpc())
+        in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     xml = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=XmlDocument())
+        in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
     soap = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=Soap11())
+        in_protocol=HttpRpc(), out_protocol=Soap11())
 
     html = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
+        in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
 
     png = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=PngClock())
+        in_protocol=HttpRpc(), out_protocol=PngClock())
 
     svg = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=SvgClock())
+        in_protocol=HttpRpc(), out_protocol=SvgClock())
 
     json = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonDocument())
+        in_protocol=HttpRpc(), out_protocol=JsonDocument())
 
     jsoni = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonDocument(
-                                                        ignore_wrappers=False))
+        in_protocol=HttpRpc(), out_protocol=JsonDocument(ignore_wrappers=False))
 
     jsonl = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonDocument(complex_as=list))
+        in_protocol=HttpRpc(), out_protocol=JsonDocument(complex_as=list))
 
     jsonil = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonDocument(
-                                       ignore_wrappers=False, complex_as=list))
+        in_protocol=HttpRpc(),
+        out_protocol=JsonDocument(ignore_wrappers=False, complex_as=list))
 
     msgpack_obj = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=MessagePackDocument())
+        in_protocol=HttpRpc(), out_protocol=MessagePackDocument())
 
     msgpack_rpc = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=MessagePackRpc())
+        in_protocol=HttpRpc(), out_protocol=MessagePackRpc())
 
     yaml = Application([MultiProtService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=YamlDocument())
+        in_protocol=HttpRpc(), out_protocol=YamlDocument())
 
     dyn = Application([DynProtService], tns=tns,
-            in_protocol=HttpRpc(validator='soft'), out_protocol=HttpRpc())
+        in_protocol=HttpRpc(validator='soft'), out_protocol=HttpRpc())
 
     DynProtService.protocols = {
-        'json':  Tsetprot(JsonDocument(dyn)),
-        'xml':  Tsetprot(XmlDocument(dyn)),
-        'yaml':  Tsetprot(YamlDocument(dyn)),
-        'soap':  Tsetprot(Soap11(dyn)),
-        'html':  Tsetprot(HtmlMicroFormat(dyn)),
-        'png':  Tsetprot(PngClock(dyn)),
-        'svg':  Tsetprot(SvgClock(dyn)),
-        'msgpack':  Tsetprot(MessagePackDocument(dyn)),
+        'json': Tsetprot(JsonDocument(dyn)),
+        'xml': Tsetprot(XmlDocument(dyn)),
+        'yaml': Tsetprot(YamlDocument(dyn)),
+        'soap': Tsetprot(Soap11(dyn)),
+        'html': Tsetprot(HtmlMicroFormat(dyn)),
+        'png': Tsetprot(PngClock(dyn)),
+        'svg': Tsetprot(SvgClock(dyn)),
+        'msgpack': Tsetprot(MessagePackDocument(dyn)),
     }
 
     root = WsgiMounter({
@@ -187,12 +181,14 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.info("listening to http://%s:%d" % (host, port))
     logging.info("navigate to e.g. http://%s:%d/json/get_utc_time" %
-                                                                  (host, port))
+                                                                   (host, port))
     logging.info("             or: http://%s:%d/xml/get_utc_time" %
-                                                                  (host, port))
+                                                                   (host, port))
 
     return server.serve_forever()
 
+
 if __name__ == '__main__':
     import sys
+
     sys.exit(main())

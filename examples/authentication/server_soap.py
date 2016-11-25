@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#encoding: utf8
+# encoding: utf8
 #
 # Copyright © Burak Arslan <burak at arskom dot com dot tr>,
 #             Arskom Ltd. http://www.arskom.com.tr
@@ -45,9 +45,8 @@ except ImportError:
     raise
 
 from spyne.application import Application
-from spyne.decorator import srpc
+from spyne.decorator import rpc
 from spyne.error import ArgumentError
-from spyne.error import ResourceNotFoundError
 from spyne.model.complex import ComplexModel
 from spyne.model.fault import Fault
 from spyne.model.primitive import Mandatory
@@ -62,8 +61,7 @@ class PublicKeyError(Fault):
 
     def __init__(self, value):
         super(PublicKeyError, self).__init__(
-                faultstring='Value %r not found' % value
-            )
+                                       faultstring='Value %r not found' % value)
 
 
 class AuthenticationError(Fault):
@@ -74,8 +72,7 @@ class AuthenticationError(Fault):
 
         super(AuthenticationError, self).__init__(
                 faultcode='Client.AuthenticationError',
-                faultstring='Invalid authentication request for %r' % user_name
-            )
+                faultstring='Invalid authentication request for %r' % user_name)
 
 
 class AuthorizationError(Fault):
@@ -85,9 +82,8 @@ class AuthorizationError(Fault):
         # TODO: self.transport.http.resp_code = HTTP_401
 
         super(AuthorizationError, self).__init__(
-                faultcode='Client.AuthorizationError',
-                faultstring='You are not authozied to access this resource.'
-            )
+                   faultcode='Client.AuthorizationError',
+                   faultstring='You are not authozied to access this resource.')
 
 
 class SpyneDict(dict):
@@ -127,19 +123,21 @@ preferences_db = SpyneDict({
 class AuthenticationService(ServiceBase):
     __tns__ = 'spyne.examples.authentication'
 
-    @srpc(Mandatory.String, Mandatory.String, _returns=String,
+    @rpc(Mandatory.String, Mandatory.String, _returns=String,
                                                     _throws=AuthenticationError)
-    def authenticate(user_name, password):
+    def authenticate(ctx, user_name, password):
         password_hash = user_db.get(user_name, None)
 
         if password_hash is None:
-           raise AuthenticationError(user_name)
+            raise AuthenticationError(user_name)
 
         if bcrypt.hashpw(password, password_hash) == password_hash:
-            session_id = (user_name, '%x' % random.randint(1<<124, (1<<128)-1))
+            session_id = (user_name,
+                                '%x' % random.randint(1 << 124, (1 << 128) - 1))
             session_db.add(session_id)
+
         else:
-           raise AuthenticationError(user_name)
+            raise AuthenticationError(user_name)
 
         return session_id[1]
 
@@ -148,8 +146,8 @@ class UserService(ServiceBase):
     __tns__ = 'spyne.examples.authentication'
     __in_header__ = RequestHeader
 
-    @srpc(Mandatory.String, _throws=PublicKeyError, _returns=Preferences)
-    def get_preferences(user_name):
+    @rpc(Mandatory.String, _throws=PublicKeyError, _returns=Preferences)
+    def get_preferences(ctx, user_name):
         if user_name == 'smith':
             raise AuthorizationError()
 
@@ -157,23 +155,24 @@ class UserService(ServiceBase):
 
         return retval
 
+
 def _on_method_call(ctx):
     if ctx.in_object is None:
         raise ArgumentError("RequestHeader is null")
     if not (ctx.in_header.user_name, ctx.in_header.session_id) in session_db:
         raise AuthenticationError(ctx.in_object.user_name)
 
+
 UserService.event_manager.add_listener('method_call', _on_method_call)
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     from spyne.util.wsgi_wrapper import run_twisted
 
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
     logging.getLogger('twisted').setLevel(logging.DEBUG)
 
-    application = Application([AuthenticationService,UserService],
+    application = Application([AuthenticationService, UserService],
         tns='spyne.examples.authentication',
         in_protocol=Soap11(validator='lxml'),
         out_protocol=Soap11()

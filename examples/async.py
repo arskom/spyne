@@ -43,26 +43,23 @@ management or scheduling mechanism, the service is responsible for the
 execution of the async process.
 """
 
+import logging
 import time
 from threading import Thread
 
-import logging
-
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.decorator import srpc
-from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.soap import Soap11
-from spyne.service import ServiceBase
-from spyne.model.primitive import String
 from spyne.model.primitive import Integer
-from spyne.util import get_callback_info
+from spyne.model.primitive import String
+from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
+from spyne.service import ServiceBase
+from spyne.util import get_callback_info
 
 
 class SleepingService(ServiceBase):
     @rpc(Integer, _is_async=True)
-    def sleep(self, seconds):
+    def sleep(ctx, seconds):
         msgid, replyto = get_callback_info()
 
         def run():
@@ -73,8 +70,8 @@ class SleepingService(ServiceBase):
 
         Thread(target=run).start()
 
-    @srpc(String, _is_callback=True)
-    def woke_up(message):
+    @rpc(String, _is_callback=True)
+    def woke_up(ctx, message):
         pass
 
 if __name__=='__main__':
@@ -84,7 +81,7 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
     except ImportError:
-        logger.error("Error: example server code requires Python >= 2.5")
+        logging.error("Error: example server code requires Python >= 2.5")
 
     application = Application([SleepingService], 'spyne.examples.async',
                                     in_protocol=Soap11(), out_protocol=Soap11())

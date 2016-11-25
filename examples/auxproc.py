@@ -35,7 +35,8 @@ import logging
 
 from wsgiref.simple_server import make_server
 
-from spyne import Application, srpc, Integer, HttpRpc, ServiceBase
+from spyne import Application, rpc, Integer, ServiceBase
+from spyne.protocol.http import HttpRpc
 
 from spyne.protocol.xml import XmlDocument
 from spyne.server.wsgi import WsgiApplication
@@ -50,18 +51,18 @@ port = 9753
 
 
 class SomeService(ServiceBase):
-    @srpc(Integer)
-    def block(seconds):
+    @rpc(Integer)
+    def block(ctx, seconds):
         """Blocks the reactor for given number of seconds."""
         logging.info("Primary sleeping for %d seconds." % seconds)
         time.sleep(seconds)
 
 
 class SomeAuxService(ServiceBase):
-    __aux__ = SyncAuxProc() # change this to SyncAuxProc to see the difference
+    __aux__ = ThreadAuxProc() # change this to SyncAuxProc to see the difference
 
-    @srpc(Integer)
-    def block(seconds):
+    @rpc(Integer)
+    def block(ctx, seconds):
         """Blocks the reactor for given number of seconds."""
         logging.info("Auxiliary sleeping for %d seconds." % (seconds * 2))
         time.sleep(seconds * 2)
@@ -73,7 +74,7 @@ def main():
 
     services = (SomeService, SomeAuxService)
     application = Application(services, 'spyne.examples.auxproc',
-                                in_protocol=HttpRpc(), out_protocol=XmlDocument())
+                              in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
     server = make_server(host, port, WsgiApplication(application))
 

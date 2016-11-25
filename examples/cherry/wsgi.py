@@ -42,7 +42,7 @@ $ curl http://localhost:8000/say_hello?name=Dave\&times=3
 import sys
 import logging
 
-from spyne import Application, srpc, ServiceBase, Iterable, UnsignedInteger, \
+from spyne import Application, rpc, ServiceBase, Iterable, UnsignedInteger, \
     String
 
 from spyne.protocol.json import JsonDocument
@@ -52,8 +52,8 @@ from spyne.util.cherry import cherry_graft_and_start
 
 
 class HelloWorldService(ServiceBase):
-    @srpc(String, UnsignedInteger, _returns=Iterable(String))
-    def say_hello(name, times):
+    @rpc(String, UnsignedInteger, _returns=Iterable(String))
+    def say_hello(ctx, name, times):
         """
         Docstrings for service methods do appear as documentation in the
         interface documents. <b>What fun!</b>

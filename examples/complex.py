@@ -39,7 +39,7 @@ dictionary to store the User objects.
 import logging
 import random
 
-from spyne import Application, srpc, Array, ComplexModel, Integer, String, \
+from spyne import Application, rpc, Array, ComplexModel, Integer, String, \
     ServiceBase, ResourceNotFoundError
 
 from spyne.interface.wsdl import Wsdl11
@@ -52,6 +52,7 @@ user_database = {}
 userid_seq = 1
 chars = [chr(i) for i in range(ord('a'), ord('z'))]
 
+
 def randchars(n):
     return ''.join(random.choice(chars) for _ in range(n))
 
@@ -60,7 +61,7 @@ class Permission(ComplexModel):
     __namespace__ = "permission"
 
     app = String(values=['library', 'delivery', 'accounting'])
-    perms = String(min_occurs=1, max_occurs=2, values=['read','write'])
+    perms = String(min_occurs=1, max_occurs=2, values=['read', 'write'])
 
 
 class User(ComplexModel):
@@ -81,9 +82,11 @@ all_permissions = (
     Permission(app='accounting', perms=['read', 'write']),
 )
 
+
 def randperms(n):
-    for p in random.sample(all_permissions, n   ):
-        yield Permission(app=p.app, perms=random.sample(p.perms, random.randint(1,2)))
+    for p in random.sample(all_permissions, n):
+        yield Permission(app=p.app,
+            perms=random.sample(p.perms, random.randint(1, 2)))
 
 
 user_database[0] = User(
@@ -103,31 +106,32 @@ def add_user(user):
     userid_seq = userid_seq + 1
     user_database[user.userid] = user
 
+
 class UserManager(ServiceBase):
-    @srpc(User, _returns=Integer)
-    def add_user(user):
+    @rpc(User, _returns=Integer)
+    def add_user(ctx, user):
         add_user(user)
         return user.userid
 
-    @srpc(_returns=User)
-    def super_user():
+    @rpc(_returns=User)
+    def super_user(ctx):
         return user_database[0]
 
-    @srpc(_returns=User)
-    def random_user():
+    @rpc(_returns=User)
+    def random_user(ctx):
         retval = User(
-            username=randchars(random.randrange(3,12)),
-            firstname=randchars(random.randrange(3,12)).title(),
-            lastname=randchars(random.randrange(3,12)).title(),
-            permissions=randperms(random.randint(1,len(all_permissions)))
+            username=randchars(random.randrange(3, 12)),
+            firstname=randchars(random.randrange(3, 12)).title(),
+            lastname=randchars(random.randrange(3, 12)).title(),
+            permissions=randperms(random.randint(1, len(all_permissions)))
         )
 
         add_user(retval)
 
         return retval
 
-    @srpc(Integer, _returns=User)
-    def get_user(userid):
+    @rpc(Integer, _returns=User)
+    def get_user(ctx, userid):
         global user_database
 
         # If you rely on dict lookup raising KeyError here, you'll return an
@@ -142,8 +146,8 @@ class UserManager(ServiceBase):
 
         return user_database[userid]
 
-    @srpc(User)
-    def modify_user(user):
+    @rpc(User)
+    def modify_user(ctx, user):
         global user_database
 
         if not (user.userid in user_database):
@@ -151,8 +155,8 @@ class UserManager(ServiceBase):
 
         user_database[user.userid] = user
 
-    @srpc(Integer)
-    def delete_user(userid):
+    @rpc(Integer)
+    def delete_user(ctx, userid):
         global user_database
 
         if not (userid in user_database):
@@ -160,13 +164,14 @@ class UserManager(ServiceBase):
 
         del user_database[userid]
 
-    @srpc(_returns=Array(User))
-    def list_users():
+    @rpc(_returns=Array(User))
+    def list_users(ctx):
         global user_database
 
         return user_database.values()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     from wsgiref.simple_server import make_server
 
     logging.basicConfig(level=logging.DEBUG)
