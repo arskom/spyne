@@ -238,9 +238,12 @@ class Interface(object):
 
         method_key = '{%s}%s' % (self.app.tns, method.name)
 
-        if issubclass(s, ComplexModelBase) and method.in_message_name_override:
+        if issubclass(s, ComplexModelBase) and \
+                            method.in_message_name_override and \
+                                               s.get_type_name() != method.name:
             method_key = '{%s}%s.%s' % (self.app.tns,
                                                  s.get_type_name(), method.name)
+
         key = _generate_method_id(s, method)
         if key in self.method_id_map:
             c = self.method_id_map[key].parent_class
