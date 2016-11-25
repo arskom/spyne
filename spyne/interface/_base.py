@@ -38,12 +38,18 @@ def _get_owner_name(cls):
 
 
 def _generate_method_id(cls, descriptor):
+    if issubclass(cls, ServiceBase):
+        # this is a regular service method decorated by @rpc
+        return '{}.{}.{}'.format(cls.__module__, _get_owner_name(cls),
+                                                                descriptor.name)
 
-    return '.'.join([
-            cls.__module__,
-            _get_owner_name(cls),
-            descriptor.name,
-        ])
+    # this is a member method decorated by @mrpc
+    retval = [cls.__module__, _get_owner_name(cls)]
+    dn = descriptor.name
+    if dn.split('.', 1) != retval[-1]:
+        retval.append(dn)
+
+    return '.'.join(retval)
 
 
 class Interface(object):
@@ -238,10 +244,11 @@ class Interface(object):
 
         method_key = '{%s}%s' % (self.app.tns, method.name)
 
-        if issubclass(s, ComplexModelBase) and \
-                            method.in_message_name_override and \
-                                               s.get_type_name() != method.name:
-            method_key = '{%s}%s.%s' % (self.app.tns,
+        if issubclass(s, ComplexModelBase) and method.in_message_name_override:
+            # changes in this logic needs to be reflected to _generate_method_id
+            method_object_name = method.name.split('.', 1)[0]
+            if s.get_type_name() != method_object_name:
+                method_key = '{%s}%s.%s' % (self.app.tns,
                                                  s.get_type_name(), method.name)
 
         key = _generate_method_id(s, method)
