@@ -151,7 +151,8 @@ distribution for starting points and general guidelines.
 Acknowledgments
 ===============
 
-.. image:: http://www.jetbrains.com/pycharm/docs/logo_pycharm.png
+.. image:: http://spyne.io/images/logo_pycharm.svg
+        :width: 400 px
         :target: http://www.jetbrains.com/pycharm/
 
 Spyne committers get a free license for PyCharm Professional Edition, courtesy
