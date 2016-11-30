@@ -345,7 +345,7 @@ class OutProtocolBase(ProtocolMixin):
         """Returns ISO formatted times."""
         return value.isoformat()
 
-    def datetime_to_bytes(self, cls, val):
+    def datetime_to_bytes(self, cls, val, **_):
         """Returns serialized datetimes. Somehow."""
         sa = self.get_cls_attrs(cls).serialize_as
 
