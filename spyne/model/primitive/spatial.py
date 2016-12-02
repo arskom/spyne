@@ -43,7 +43,7 @@ def _get_one_multipoint_pattern(dim):
     return _rinse_and_repeat % (one_point, one_point)
 
 def _get_multipoint_pattern(dim):
-    return r'MULTIPOINT\s*%s' % _get_one_multipoint_pattern(dim)
+    return r'MULTIPOINT%s' % _get_one_multipoint_pattern(dim)
 
 
 def _get_one_line_pattern(dim):
@@ -51,14 +51,14 @@ def _get_one_line_pattern(dim):
     return _rinse_and_repeat % (one_point, one_point)
 
 def _get_linestring_pattern(dim):
-    return r'LINESTRING\s*%s' % _get_one_line_pattern(dim)
+    return r'LINESTRING%s' % _get_one_line_pattern(dim)
 
 def _get_one_multilinestring_pattern(dim):
     one_line = _get_one_line_pattern(dim)
     return _rinse_and_repeat % (one_line, one_line)
 
 def _get_multilinestring_pattern(dim):
-    return r'MULTILINESTRING\s*%s' % _get_one_multilinestring_pattern(dim)
+    return r'MULTILINESTRING%s' % _get_one_multilinestring_pattern(dim)
 
 
 def _get_one_polygon_pattern(dim):
@@ -66,14 +66,14 @@ def _get_one_polygon_pattern(dim):
     return _rinse_and_repeat % (one_line, one_line)
 
 def _get_polygon_pattern(dim):
-    return r'POLYGON\s*%s' % _get_one_polygon_pattern(dim)
+    return r'POLYGON%s' % _get_one_polygon_pattern(dim)
 
 def _get_one_multipolygon_pattern(dim):
     one_line = _get_one_polygon_pattern(dim)
     return _rinse_and_repeat % (one_line, one_line)
 
 def _get_multipolygon_pattern(dim):
-    return r'MULTIPOLYGON\s*%s' % _get_one_multipolygon_pattern(dim)
+    return r'MULTIPOLYGON%s' % _get_one_multipolygon_pattern(dim)
 
 
 class Point(Unicode):
