@@ -808,7 +808,7 @@ class TestMemberRpc(unittest.TestCase):
         null = NullServer(Application([SomeService], tns='some_tns'))
 
         v = SomeComplexModel(i=5)
-        assert null.service['SomeComplexModel.SomeComplexModel.echo'](v) is v
+        assert null.service['SomeComplexModel.echo'](v) is v
 
     def test_order(self):
         class CM(ComplexModel):
