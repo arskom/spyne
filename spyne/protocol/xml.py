@@ -190,6 +190,8 @@ class XmlDocument(SubXmlBase):
         documents. The transport can override this.
     :param pretty_print: When ``True``, returns the document in a pretty-printed
         format.
+    :param parse_xsi_type: Set to ``False`` to disable parsing of ``xsi:type``
+        attribute, effectively disabling polymorphism. Defaults to True.
 
     The following are passed straight to the XMLParser() instance. Docs are
     plagiarized from the lxml documentation. Please note that some of the
@@ -220,8 +222,6 @@ class XmlDocument(SubXmlBase):
     :param huge_tree: disable security restrictions and support very deep trees
         and very long text content. (only affects libxml2 2.7+) Off by default.
     :param compact: use compact storage for short text content. On by default.
-    :param parse_xsi_type: Set to ``False`` to disable parsing of ``xsi:type``
-        attribute, effectively disabling polymorphism. Defaults to True.
     """
 
     SCHEMA_VALIDATION = type("Schema", (object,), {})
