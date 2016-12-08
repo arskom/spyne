@@ -108,6 +108,13 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
 
         assert val == ret
 
+    def test_bytearray(self):
+        val = b"\x00\x01\x02\x03\x04"
+        # suds doesn't support base64 encoding, so we do it manually
+        ret = self.client.service.echo_bytearray(b64encode(val))
+
+        assert val == b64decode(ret)
+
     def test_validation(self):
         non_nillable_class = self.client.factory.create(
                                                   "{hunk.sunk}NonNillableClass")

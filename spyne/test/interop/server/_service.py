@@ -225,6 +225,10 @@ class InteropPrimitive(ServiceBase):
     def echo_duration(dur):
         return dur
 
+    @srpc(ByteArray, _returns=ByteArray)
+    def echo_bytearray(data):
+        return data
+
 
 class InteropArray(ServiceBase):
     @srpc(Array(Integer), _returns=Array(Integer))
