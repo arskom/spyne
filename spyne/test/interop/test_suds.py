@@ -17,21 +17,23 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+suds_logger = logging.getLogger('suds')
+suds_logger.setLevel(logging.INFO)
+
 import unittest
 
-from spyne.util import six
+from datetime import datetime
+from base64 import b64encode, b64decode
+
 from suds.sax.parser import Parser
 from suds.client import Client
 from suds.plugin import MessagePlugin
 from suds import WebFault
 
-from datetime import datetime
+from spyne.util import six
 
 from spyne.test.interop._test_soap_client_base import SpyneClientTestBase
-
-import logging
-suds_logger = logging.getLogger('suds')
-suds_logger.setLevel(logging.INFO)
 
 
 class LastReceivedPlugin(MessagePlugin):

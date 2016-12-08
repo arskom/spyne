@@ -19,27 +19,10 @@
 
 
 from spyne.model.binary import Attachment
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import SelfReference
-from spyne.model.enum import Enum
-from spyne.model.fault import Fault
 
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import AnyDict
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import Time
-from spyne.model.primitive import Date
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Float
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Duration
-from spyne.model.primitive import String
-from spyne.model.primitive import Double
-
-from spyne.service import ServiceBase
-from spyne.decorator import rpc
-from spyne.decorator import srpc
+from spyne import Array, ByteArray, ComplexModel, SelfReference, Enum, Fault, \
+    AnyXml, AnyDict, Boolean, Time, Date, DateTime, Float, Integer, Duration, \
+    String, Double, ServiceBase, rpc, srpc
 
 from datetime import datetime
 
