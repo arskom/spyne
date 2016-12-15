@@ -35,7 +35,7 @@ in another thread, process or node.
 Classes from this package will have the ``AuxProc`` suffix, short for
 "Auxiliary Processor".
 
-This package is EXPERIMENTAL.
+This package is DEPRECATED. Get rid of this ASAP.
 """
 
 from spyne.auxproc._base import process_contexts

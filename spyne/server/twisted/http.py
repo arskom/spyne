@@ -35,8 +35,6 @@ memory for later requests. However, if you want to make sure you only have this
 url on the WSDL, this is how to do it. Note that if your client takes the
 information in wsdl seriously, all requests will go to the designated url above
 which can make testing a bit difficult. Use in moderation.
-
-This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 """
 
 from __future__ import absolute_import

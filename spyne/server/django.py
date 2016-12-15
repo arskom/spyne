@@ -20,8 +20,6 @@
 """The ``spyne.server.django`` module contains a Django-compatible Http
 transport. It's a thin wrapper around
 :class:`spyne.server.wsgi.WsgiApplication`.
-
-This module is EXPERIMENTAL. Tests and patches are welcome.
 """
 
 from __future__ import absolute_import

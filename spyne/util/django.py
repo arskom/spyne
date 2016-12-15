@@ -22,8 +22,6 @@
 * Django model <-> spyne type mapping
 * Service for common exception handling
 
-This module is EXPERIMENTAL. Tests and patches are welcome.
-
 """
 
 from __future__ import absolute_import

@@ -77,9 +77,6 @@ def _fill(inst_class, frequencies):
 class SimpleDictDocument(DictDocument):
     """This protocol contains logic for protocols that serialize and deserialize
     flat dictionaries. The only example as of now is Http.
-
-    This protocol is EXPERIMENTAL. You may not recognize the code here next time
-    you look at it.
     """
 
     def __init__(self, app=None, validator=None, mime_type=None,
