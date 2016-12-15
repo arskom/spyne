@@ -229,7 +229,7 @@ class RunTests(ExtendedTestCommand):
         # excluding PyPy as it chokes here on LXML
         if not IS_PYPY:
             ret = call_pytest_subprocess('interop/test_suds.py',
-                                     capture=self.capture) or ret
+                                                    capture=self.capture) or ret
             ret = call_pytest_subprocess('interop/test_zeep.py',
                                                     capture=self.capture) or ret
 
