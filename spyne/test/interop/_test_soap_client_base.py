@@ -78,6 +78,9 @@ class SpyneClientTestBase(object):
     def setUp(self, server_type):
         run_server(server_type)
 
+    def get_inst(self, what):
+        return self.client.factory.create(what)
+
     def test_echo_boolean(self):
         val = True
         ret = self.client.service.echo_boolean(val)
@@ -106,7 +109,7 @@ class SpyneClientTestBase(object):
         self.assertEquals(ret, val)
 
     def test_enum(self):
-        DaysOfWeekEnum = self.client.factory.create("DaysOfWeekEnum")
+        DaysOfWeekEnum = self.get_inst("DaysOfWeekEnum")
 
         val = DaysOfWeekEnum.Monday
         ret = self.client.service.echo_enum(val)
@@ -114,8 +117,7 @@ class SpyneClientTestBase(object):
         assert val == ret
 
     def test_validation(self):
-        non_nillable_class = self.client.factory.create(
-                                                "{hunk.sunk}NonNillableClass")
+        non_nillable_class = self.get_inst("{hunk.sunk}NonNillableClass")
         non_nillable_class.i = 6
         non_nillable_class.s = None
 
@@ -127,7 +129,7 @@ class SpyneClientTestBase(object):
             assert 'ValidationError' in e.faultcode
 
     def test_echo_in_header(self):
-        in_header = self.client.factory.create('{spyne.test.interop.server}InHeader')
+        in_header = self.get_inst('{spyne.test.interop.server}InHeader')
         in_header.s = 'a'
         in_header.i = 3
 
@@ -169,7 +171,7 @@ class SpyneClientTestBase(object):
 
 
     def test_echo_simple_class(self):
-        val = self.client.factory.create("{spyne.test.interop.server}SimpleClass")
+        val = self.get_inst("{spyne.test.interop.server}SimpleClass")
 
         val.i = 45
         val.s = "asd"
@@ -180,7 +182,7 @@ class SpyneClientTestBase(object):
         assert ret.s == val.s
 
     def test_echo_nested_class(self):
-        val = self.client.factory.create("{punk.tunk}NestedClass");
+        val = self.get_inst("{punk.tunk}NestedClass");
 
         val.i = 45
         val.s = "asd"
@@ -188,8 +190,8 @@ class SpyneClientTestBase(object):
         val.ai = [1, 2, 3, 45, 5, 3, 2, 1, 4]
 
         val.simple = [
-            self.client.factory.create("{spyne.test.interop.server}SimpleClass"),
-            self.client.factory.create("{spyne.test.interop.server}SimpleClass"),
+            self.get_inst("{spyne.test.interop.server}SimpleClass"),
+            self.get_inst("{spyne.test.interop.server}SimpleClass"),
         ]
 
         val.simple[0].i = 45
@@ -197,7 +199,7 @@ class SpyneClientTestBase(object):
         val.simple[1].i = 12
         val.simple[1].s = "qwe"
 
-        val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass");
+        val.other = self.get_inst("{spyne.test.interop.server}OtherClass");
         val.other.dt = datetime.now(pytz.utc)
         val.other.d = 123.456
         val.other.b = True
@@ -210,15 +212,15 @@ class SpyneClientTestBase(object):
         self.assertEqual(ret.other.dt, val.other.dt)
 
     def test_echo_extension_class(self):
-        val = self.client.factory.create("{bar}ExtensionClass");
+        val = self.get_inst("{bar}ExtensionClass");
 
         val.i = 45
         val.s = "asd"
         val.f = 12.34
 
         val.simple = [
-            self.client.factory.create("{spyne.test.interop.server}SimpleClass"),
-            self.client.factory.create("{spyne.test.interop.server}SimpleClass"),
+            self.get_inst("{spyne.test.interop.server}SimpleClass"),
+            self.get_inst("{spyne.test.interop.server}SimpleClass"),
         ]
 
         val.simple[0].i = 45
@@ -226,12 +228,12 @@ class SpyneClientTestBase(object):
         val.simple[1].i = 12
         val.simple[1].s = "qwe"
 
-        val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass");
+        val.other = self.get_inst("{spyne.test.interop.server}OtherClass");
         val.other.dt = datetime.now(pytz.utc)
         val.other.d = 123.456
         val.other.b = True
 
-        val.p = self.client.factory.create("{hunk.sunk}NonNillableClass");
+        val.p = self.get_inst("{hunk.sunk}NonNillableClass");
         val.p.dt = datetime(2010, 6, 2)
         val.p.i = 123
         val.p.s = "punk"
@@ -267,7 +269,7 @@ class SpyneClientTestBase(object):
             raise Exception("must fail")
 
     def test_complex_return(self):
-        roles = self.client.factory.create("RoleEnum")
+        roles = self.get_inst("RoleEnum")
         ret = self.client.service.complex_return()
 
         self.assertEquals(ret.resultCode, 1)
