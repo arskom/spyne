@@ -87,10 +87,8 @@
       <xs:element name="booleanArrayArray" type="tns:booleanArrayArray"/>
       <xs:element name="complex_return" type="tns:complex_return"/>
       <xs:element name="complex_returnResponse" type="tns:complex_returnResponse"/>
-      <xs:element name="custom_messages" type="tns:custom_messages"/>
-      <xs:element name="custom_messagesResponse" type="tns:custom_messagesResponse"/>
       <xs:element name="dateTimeArray" type="tns:dateTimeArray"/>
-      <xs:element name="do_something_else" type="tns:do_something_else"/>
+      <xs:element name="do_something" type="tns:do_something"/>
       <xs:element name="do_something_elseResponse" type="tns:do_something_elseResponse"/>
       <xs:element name="documented_exception" type="tns:documented_exception"/>
       <xs:element name="documented_exceptionResponse" type="tns:documented_exceptionResponse"/>
@@ -109,6 +107,8 @@
       <xs:element name="echo_booleanResponse" type="tns:echo_booleanResponse"/>
       <xs:element name="echo_boolean_array" type="tns:echo_boolean_array"/>
       <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse"/>
+      <xs:element name="echo_bytearray" type="tns:echo_bytearray"/>
+      <xs:element name="echo_bytearrayResponse" type="tns:echo_bytearrayResponse"/>
       <xs:element name="echo_class_with_self_reference" type="tns:echo_class_with_self_reference"/>
       <xs:element name="echo_class_with_self_referenceResponse" type="tns:echo_class_with_self_referenceResponse"/>
       <xs:element name="echo_complex_bare" type="tns:stringArray"/>
@@ -170,6 +170,8 @@
       <xs:element name="empty_output_bare" type="xs:string"/>
       <xs:element name="empty_output_bareResponse" type="tns:empty_output_bareResponse"/>
       <xs:element name="floatArray" type="tns:floatArray"/>
+      <xs:element name="getCustomMessagesMsgIn" type="tns:getCustomMessagesMsgIn"/>
+      <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut"/>
       <xs:element name="huge_number" type="tns:huge_number"/>
       <xs:element name="huge_numberResponse" type="tns:huge_numberResponse"/>
       <xs:element name="integerArray" type="tns:integerArray"/>
@@ -294,22 +296,12 @@
           <xs:element minOccurs="0" name="roles" nillable="true" type="tns:RoleEnumArray"/>
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="custom_messages">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="custom_messagesResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="CustomMessages" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="dateTimeArray">
         <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="0" name="dateTime" nillable="true" type="xs:dateTime"/>
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="do_something_else">
+      <xs:complexType name="do_something">
         <xs:sequence>
           <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
         </xs:sequence>
@@ -394,6 +386,16 @@
       <xs:complexType name="echo_boolean_arrayResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_boolean_arrayResult" nillable="true" type="tns:booleanArray"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_bytearray">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="data" nillable="true" type="xs:base64Binary"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_bytearrayResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_bytearrayResult" nillable="true" type="xs:base64Binary"/>
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_class_with_self_reference">
@@ -656,6 +658,16 @@
           <xs:element maxOccurs="unbounded" minOccurs="0" name="float" nillable="true" type="xs:float"/>
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="getCustomMessagesMsgIn">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="getCustomMessagesMsgOut">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="CustomMessages" nillable="true" type="xs:string"/>
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="huge_number"/>
       <xs:complexType name="huge_numberResponse">
         <xs:sequence>
@@ -754,14 +766,8 @@
   <wsdl:message name="complex_returnResponse">
     <wsdl:part element="tns:complex_returnResponse" name="complex_returnResponse"/>
   </wsdl:message>
-  <wsdl:message name="custom_messages">
-    <wsdl:part element="tns:custom_messages" name="custom_messages"/>
-  </wsdl:message>
-  <wsdl:message name="custom_messagesResponse">
-    <wsdl:part element="tns:custom_messagesResponse" name="custom_messagesResponse"/>
-  </wsdl:message>
-  <wsdl:message name="do_something_else">
-    <wsdl:part element="tns:do_something_else" name="do_something_else"/>
+  <wsdl:message name="do_something">
+    <wsdl:part element="tns:do_something" name="do_something"/>
   </wsdl:message>
   <wsdl:message name="do_something_elseResponse">
     <wsdl:part element="tns:do_something_elseResponse" name="do_something_elseResponse"/>
@@ -813,6 +819,12 @@
   </wsdl:message>
   <wsdl:message name="echo_boolean_arrayResponse">
     <wsdl:part element="tns:echo_boolean_arrayResponse" name="echo_boolean_arrayResponse"/>
+  </wsdl:message>
+  <wsdl:message name="echo_bytearray">
+    <wsdl:part element="tns:echo_bytearray" name="echo_bytearray"/>
+  </wsdl:message>
+  <wsdl:message name="echo_bytearrayResponse">
+    <wsdl:part element="tns:echo_bytearrayResponse" name="echo_bytearrayResponse"/>
   </wsdl:message>
   <wsdl:message name="echo_class_with_self_reference">
     <wsdl:part element="tns:echo_class_with_self_reference" name="echo_class_with_self_reference"/>
@@ -1002,6 +1014,12 @@
   <wsdl:message name="empty_output_bareResponse">
     <wsdl:part element="tns:empty_output_bareResponse" name="empty_output_bareResponse"/>
   </wsdl:message>
+  <wsdl:message name="getCustomMessagesMsgIn">
+    <wsdl:part element="tns:getCustomMessagesMsgIn" name="getCustomMessagesMsgIn"/>
+  </wsdl:message>
+  <wsdl:message name="getCustomMessagesMsgOut">
+    <wsdl:part element="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut"/>
+  </wsdl:message>
   <wsdl:message name="huge_number">
     <wsdl:part element="tns:huge_number" name="huge_number"/>
   </wsdl:message>
@@ -1127,12 +1145,12 @@
       <wsdl:input message="tns:complex_return" name="complex_return"/>
       <wsdl:output message="tns:complex_returnResponse" name="complex_returnResponse"/>
     </wsdl:operation>
-    <wsdl:operation name="custom_messages" parameterOrder="custom_messages">
-      <wsdl:input message="tns:custom_messages" name="custom_messages"/>
-      <wsdl:output message="tns:custom_messagesResponse" name="custom_messagesResponse"/>
+    <wsdl:operation name="custom_messages" parameterOrder="getCustomMessagesMsgIn">
+      <wsdl:input message="tns:getCustomMessagesMsgIn" name="getCustomMessagesMsgIn"/>
+      <wsdl:output message="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut"/>
     </wsdl:operation>
-    <wsdl:operation name="do_something_else" parameterOrder="do_something_else">
-      <wsdl:input message="tns:do_something_else" name="do_something_else"/>
+    <wsdl:operation name="do_something" parameterOrder="do_something">
+      <wsdl:input message="tns:do_something" name="do_something"/>
       <wsdl:output message="tns:do_something_elseResponse" name="do_something_elseResponse"/>
     </wsdl:operation>
     <wsdl:operation name="documented_exception" parameterOrder="documented_exception">
@@ -1167,6 +1185,10 @@
     <wsdl:operation name="echo_boolean_array" parameterOrder="echo_boolean_array">
       <wsdl:input message="tns:echo_boolean_array" name="echo_boolean_array"/>
       <wsdl:output message="tns:echo_boolean_arrayResponse" name="echo_boolean_arrayResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="echo_bytearray" parameterOrder="echo_bytearray">
+      <wsdl:input message="tns:echo_bytearray" name="echo_bytearray"/>
+      <wsdl:output message="tns:echo_bytearrayResponse" name="echo_bytearrayResponse"/>
     </wsdl:operation>
     <wsdl:operation name="echo_class_with_self_reference" parameterOrder="echo_class_with_self_reference">
       <wsdl:input message="tns:echo_class_with_self_reference" name="echo_class_with_self_reference"/>
@@ -1350,16 +1372,16 @@
     </wsdl:operation>
     <wsdl:operation name="custom_messages">
       <soap:operation soapAction="custom_messages" style="document"/>
-      <wsdl:input name="custom_messages">
+      <wsdl:input name="getCustomMessagesMsgIn">
         <soap:body use="literal"/>
       </wsdl:input>
-      <wsdl:output name="custom_messagesResponse">
+      <wsdl:output name="getCustomMessagesMsgOut">
         <soap:body use="literal"/>
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="do_something_else">
-      <soap:operation soapAction="do_something_else" style="document"/>
-      <wsdl:input name="do_something_else">
+    <wsdl:operation name="do_something">
+      <soap:operation soapAction="do_something" style="document"/>
+      <wsdl:input name="do_something">
         <soap:body use="literal"/>
       </wsdl:input>
       <wsdl:output name="do_something_elseResponse">
@@ -1438,6 +1460,15 @@
         <soap:body use="literal"/>
       </wsdl:input>
       <wsdl:output name="echo_boolean_arrayResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_bytearray">
+      <soap:operation soapAction="echo_bytearray" style="document"/>
+      <wsdl:input name="echo_bytearray">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="echo_bytearrayResponse">
         <soap:body use="literal"/>
       </wsdl:output>
     </wsdl:operation>
