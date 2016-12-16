@@ -192,13 +192,11 @@ class _FileValue(ComplexModel):
     """The class for values marked as ``File``.
 
     :param name: Original name of the file
-    :param path: Current path to the file.
     :param type: The mime type of the file's contents.
     :param data: Optional sequence of ``str`` or ``bytes`` instances
         that contain the file's data.
-    :param handle: :class:`file` object that contains the file's data.
-        It is ignored unless the ``path`` argument is ``None``.
     """
+    # ^ This is the public docstring.
 
     __type_name__ = "FileValue"
 
@@ -212,17 +210,36 @@ class _FileValue(ComplexModel):
                                             data=None, handle=None, move=False):
 
         self.name = name
+        """The file basename, no directory information here."""
+
         if self.name is not None:
             if not os.path.basename(self.name) == self.name:
                 raise ValidationError(self.name,
-                             "File name %r should not contain any '/' char")
+                    "File name %r should not contain any directory information")
 
         self.path = path
+        """Relative path of the file."""
+
         self.type = type
+        """Mime type of the file"""
+
         self.data = data
+        """The contents of the file. It's a sequence of str/bytes objects by
+        contract. It can contain the contents of a the file as a single
+        instance of `mmap.mmap()` object inside a tuple."""
+
         self.handle = handle
+        """The file handle."""
+
         self.move = move
+        """When True, Spyne can move the file (instead of copy) to its final
+        location where it will be persisted. Defaults to `False`. See PGFile*
+        objects to see how it's used."""
+
         self.abspath = None
+        """The absolute path of the file. It can be None even when the data is
+        file-backed."""
+
         if self.path is not None:
             self.abspath = abspath(self.path)
 
@@ -236,29 +253,32 @@ class _FileValue(ComplexModel):
         if self.data is not None:
             if self.path is None:
                 self.handle = tempfile.NamedTemporaryFile()
-                self.name = self.path = self.handle.name
+                self.abspath = self.path = self.handle.name
+                self.name = basename(self.abspath)
             else:
                 self.handle = open(self.path, 'wb')
+                # FIXME: abspath could be None here, how do we make sure it's
+                # the right value?
 
             # data is a ByteArray, so a sequence of str/bytes objects
             for d in self.data:
                 self.handle.write(d)
 
         elif self.handle is not None:
-            self.data = [mmap(self.handle.fileno(), 0)]  # 0 = whole file
+            self.data = (mmap(self.handle.fileno(), 0),)  # 0 = whole file
 
         elif self.path is not None:
             if not isfile(self.path):
                 logger.error("File path in %r not found", self)
 
             self.handle = open(self.path, 'rb')
-            self.data = [mmap(self.handle.fileno(), 0, access=ACCESS_READ)]
+            self.data = (mmap(self.handle.fileno(), 0, access=ACCESS_READ),)
             self.abspath = abspath(self.path)
             self.name = self.path = basename(self.path)
 
         else:
             raise ValueError("Invalid file object passed in. All of "
-                                   ".data, .handle and .path are None.")
+                                           ".data, .handle and .path are None.")
 
 
 class File(SimpleModel):

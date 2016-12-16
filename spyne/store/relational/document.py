@@ -269,9 +269,13 @@ class PGFileJson(PGObjectJson):
 
                         if value.move:
                             shutil.move(in_file_path, dest)
-                            print("move", in_file_path, dest)
+                            logger.debug("move '%s' => '%s'",
+                                                             in_file_path, dest)
+
                         else:
                             shutil.copy(in_file_path, dest)
+                            logger.debug("copy '%s' => '%s'",
+                                                             in_file_path, dest)
 
                         value.path = basename(dest)
                         value.abspath = dest
