@@ -365,38 +365,9 @@ class TestZeep(unittest.TestCase):
 
         assert ret == 'test'
 
-    #
-    # This test is disabled because zeep does not create the right request
-    # object. Opening the first <ns0:string> tag below is wrong.
-    #
-    #<SOAP-ENV:Envelope xmlns:ns0="spyne.test.interop.server"
-    #                   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    #                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    #                   xmlns:ns1="http://schemas.xmlsoap.org/soap/envelope/"
-    #                   xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-    #  <SOAP-ENV:Header/>
-    #  <ns1:Body>
-    #      <ns0:echo_complex_bare>
-    #         <ns0:string>
-    #            <ns0:string>abc</ns0:string>
-    #            <ns0:string>def</ns0:string>
-    #         </ns0:string>
-    #      </ns0:echo_complex_bare>
-    #  </ns1:Body>
-    #</SOAP-ENV:Envelope>
-    #
-    # The right request looks like this:
-    #
-    #      <ns0:echo_complex_bare>
-    #         <ns0:string>abc</ns0:string>
-    #         <ns0:string>def</ns0:string>
-    #      </ns0:echo_complex_bare>
-    #
-    def _test_echo_complex_bare(self):
+    def test_echo_complex_bare(self):
         val = ['abc','def']
-        ia = self.client.get_type('{%s}stringArray' % self.ns)()
-        ia.string.extend(val)
-        ret = self.client.service.echo_complex_bare(ia)
+        ret = self.client.service.echo_complex_bare(val)
 
         assert ret == val
 
