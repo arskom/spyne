@@ -47,15 +47,13 @@ class TestZeep(unittest.TestCase):
         return self.client.get_type(what)()
 
     def test_echo_datetime(self):
-        # ZEEP doesn't support microseconds
-        val = datetime.now().replace(microsecond=0)
+        val = datetime.now()
         ret = self.client.service.echo_datetime(val)
 
         assert val == ret
 
     def test_echo_datetime_with_invalid_format(self):
-        # ZEEP doesn't support microseconds
-        val = datetime.now().replace(microsecond=0)
+        val = datetime.now()
         ret = self.client.service.echo_datetime_with_invalid_format(val)
 
         assert val == ret
@@ -73,15 +71,13 @@ class TestZeep(unittest.TestCase):
         assert val == ret
 
     def test_echo_time(self):
-        # ZEEP doesnt support microseconds
-        val = datetime.now().replace(microsecond=0).time()
+        val = datetime.now().time()
         ret = self.client.service.echo_time(val)
 
         assert val == ret
 
     def test_echo_time_with_invalid_format(self):
-        # ZEEP doesnt support microseconds
-        val = datetime.now().replace(microsecond=0).time()
+        val = datetime.now().time()
         ret = self.client.service.echo_time_with_invalid_format(val)
 
         assert val == ret
@@ -269,8 +265,7 @@ class TestZeep(unittest.TestCase):
         val.simple.SimpleClass[1].s = "qwe"
 
         val.other = self.client.get_type("{%s}OtherClass" % self.ns)()
-        # ZEEP doesn't support microseconds
-        val.other.dt = datetime.now().replace(microsecond=0)
+        val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
 
@@ -312,8 +307,7 @@ class TestZeep(unittest.TestCase):
         val.simple.SimpleClass[1].s = "qwe"
 
         val.other = self.client.get_type("{%s}OtherClass" % self.ns)()
-        # ZEEP doesn't support microseconds
-        val.other.dt = datetime.now().replace(microsecond=0)
+        val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
 
