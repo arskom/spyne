@@ -126,23 +126,22 @@ class TestZeep(unittest.TestCase):
         ia.integer.extend([1, 2, 3, 4, 5])
         self.client.service.echo_integer_array(ia)
 
-    # FIXME: Figure how this is supposed to work
-    def _test_echo_in_header(self):
+    def test_echo_in_header(self):
         in_header = self.client.get_type('{%s}InHeader' % self.ns)()
         in_header.s = 'a'
         in_header.i = 3
 
-        self.client.set_options(soapheaders=in_header)
-        ret = self.client.service.echo_in_header()
-        self.client.set_options(soapheaders=None)
+        ret = self.client.service.echo_in_header(_soapheaders={
+            'InHeader': in_header,
+        })
 
         print(ret)
 
-        self.assertEquals(in_header.s, ret.s)
-        self.assertEquals(in_header.i, ret.i)
+        out_header = ret.body.echo_in_headerResult
+        self.assertEquals(in_header.s, out_header.s)
+        self.assertEquals(in_header.i, out_header.i)
 
-    # FIXME: Figure how this is supposed to work
-    def _test_echo_in_complex_header(self):
+    def test_echo_in_complex_header(self):
         in_header = self.client.get_type('{%s}InHeader' % self.ns)()
         in_header.s = 'a'
         in_header.i = 3
@@ -151,16 +150,20 @@ class TestZeep(unittest.TestCase):
         in_trace_header.callDate = datetime(year=2000, month=1, day=1, hour=0,
                                               minute=0, second=0, microsecond=0)
 
-        self.client.set_options(soapheaders=(in_header, in_trace_header))
-        ret = self.client.service.echo_in_complex_header()
-        self.client.set_options(soapheaders=None)
+        ret = self.client.service.echo_in_complex_header(_soapheaders={
+            'InHeader': in_header,
+            'InTraceHeader': in_trace_header
+        })
 
         print(ret)
 
-        self.assertEquals(in_header.s, ret[0].s)
-        self.assertEquals(in_header.i, ret[0].i)
-        self.assertEquals(in_trace_header.client, ret[1].client)
-        self.assertEquals(in_trace_header.callDate, ret[1].callDate)
+        out_header = ret.body.echo_in_complex_headerResult0
+        out_trace_header = ret.body.echo_in_complex_headerResult1
+
+        self.assertEquals(in_header.s, out_header.s)
+        self.assertEquals(in_header.i, out_header.i)
+        self.assertEquals(in_trace_header.client, out_trace_header.client)
+        self.assertEquals(in_trace_header.callDate, out_trace_header.callDate)
 
     def test_send_out_header(self):
         out_header = self.client.get_type('{%s}OutHeader' % self.ns)()
