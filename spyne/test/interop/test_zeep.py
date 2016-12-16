@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 import logging
-from copy import copy, deepcopy
 
 zeep_logger = logging.getLogger('zeep')
 zeep_logger.setLevel(logging.INFO)
@@ -223,9 +222,7 @@ class TestZeep(unittest.TestCase):
         val.i = 45
         val.s = "asd"
 
-        # why val loses all its data after being passed to service request?
-        # it doesn't work without deepcopy!
-        ret = self.client.service.echo_simple_class(deepcopy(val))
+        ret = self.client.service.echo_simple_class(val)
 
         assert ret.i == val.i
         assert ret.s == val.s
@@ -238,9 +235,7 @@ class TestZeep(unittest.TestCase):
         val.sr.i = 50
         val.sr.sr = None
 
-        # why val loses all its data after being passed to service request?
-        # it doesn't work without deepcopy!
-        ret = self.client.service.echo_class_with_self_reference(deepcopy(val))
+        ret = self.client.service.echo_class_with_self_reference(val)
 
         assert ret.i == val.i
         assert ret.sr.i == val.sr.i
@@ -269,9 +264,7 @@ class TestZeep(unittest.TestCase):
         val.other.d = 123.456
         val.other.b = True
 
-        # why val loses all its data after being passed to service request?
-        # it doesn't work without deepcopy!
-        ret = self.client.service.echo_nested_class(deepcopy(val))
+        ret = self.client.service.echo_nested_class(val)
 
         self.assertEquals(ret.i, val.i)
         self.assertEqual(ret.ai.integer, val.ai.integer)
@@ -319,9 +312,7 @@ class TestZeep(unittest.TestCase):
         val.l = datetime(2010, 7, 2)
         val.q = 5
 
-        # why val loses all its data after being passed to service request?
-        # it doesn't work without deepcopy!
-        ret = self.client.service.echo_extension_class(deepcopy(val))
+        ret = self.client.service.echo_extension_class(val)
         print(ret)
 
         self.assertEquals(ret.i, val.i)
