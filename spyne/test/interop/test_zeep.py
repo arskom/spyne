@@ -30,6 +30,7 @@ from base64 import b64encode, b64decode
 from spyne.util import six
 
 from zeep import Client
+from zeep.transports import Transport
 from zeep.exceptions import Error as ZeepError
 
 
@@ -38,7 +39,8 @@ class TestZeep(unittest.TestCase):
         from spyne.test.interop._test_soap_client_base import run_server
         run_server('http')
 
-        self.client = Client("http://localhost:9754/?wsdl")
+        transport = Transport(cache=False)
+        self.client = Client("http://localhost:9754/?wsdl", transport=transport)
         self.ns = "spyne.test.interop.server"
 
     def get_inst(self, what):
