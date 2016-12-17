@@ -637,17 +637,17 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         else:
             parent.write(self.to_unicode(cls, inst))
 
-    def xml_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+    def xml_to_cloth(self, ctx, cls, inst, cloth, parent, name, **_):
         self._enter_cloth(ctx, cloth, parent)
         if isinstance(inst, string_types):
             inst = etree.fromstring(inst)
         parent.write(inst)
 
-    def any_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+    def any_to_cloth(self, ctx, cls, inst, cloth, parent, name, **_):
         self._enter_cloth(ctx, cloth, parent)
         parent.write(inst)
 
-    def html_to_cloth(self, ctx, cls, inst, cloth, parent, name):
+    def html_to_cloth(self, ctx, cls, inst, cloth, parent, name, **_):
         self._enter_cloth(ctx, cloth, parent)
         if isinstance(inst, string_types):
             inst = html.fromstring(inst)
