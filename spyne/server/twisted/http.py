@@ -492,8 +492,8 @@ class TwistedWebResource(Resource):
         ret = p_ctx.out_object[0]
         retval = NOT_DONE_YET
         if isinstance(ret, Deferred):
-            ret.addCallback(_cb_deferred, request, p_ctx, others, self)
-            ret.addErrback(_eb_deferred, request, p_ctx, others, self)
+            ret.addCallback(_cb_deferred, request, p_ctx, others, resource=self)
+            ret.addErrback(_eb_deferred, request, p_ctx, others, resource=self)
 
         elif isinstance(ret, PushBase):
             self.http_transport.init_root_push(ret, p_ctx, others)
