@@ -499,8 +499,12 @@ class TwistedWebResource(Resource):
             self.http_transport.init_root_push(ret, p_ctx, others)
 
         else:
-            retval = _cb_deferred(p_ctx.out_object, request, p_ctx, others,
+            try:
+                retval = _cb_deferred(p_ctx.out_object, request, p_ctx, others,
                                                                  self, cb=False)
+            except Exception as e:
+                logger_server.exception(e)
+                _eb_deferred(Failure(), request, p_ctx, others, resource=self)
 
         return retval
 
@@ -610,7 +614,11 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
             producer.deferred.addCallback(_cb_request_finished, request, p_ctx)
             producer.deferred.addErrback(_eb_request_finished, request, p_ctx)
 
-            request.registerProducer(producer, False)
+            try:
+                request.registerProducer(producer, False)
+            except Exception as e:
+                logger_server.exception(e)
+                _eb_deferred(Failure(), request, p_ctx, others, resource)
 
         else:
             def _cb(ret):
