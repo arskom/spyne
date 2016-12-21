@@ -124,6 +124,11 @@ class HtmlCloth(XmlCloth):
         else:
             attr_dict['style'] = data
 
+    def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        cls_attrs = self.get_cls_attrs(cls)
+        if cls_attrs.min_occurs >= 1:
+            parent.write(E(name))
+
 
 # FIXME: Deprecated
 HtmlBase = HtmlCloth
