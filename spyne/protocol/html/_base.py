@@ -23,10 +23,12 @@ logger = logging.getLogger(__name__)
 from collections import defaultdict
 
 from lxml import etree, html
+from lxml.html.builder import E
 
+from spyne.util import coroutine, Break
+from spyne.util.oset import oset
 from spyne.protocol.cloth import XmlCloth
 from spyne.protocol.cloth._base import XmlClothProtocolContext
-from spyne.util.oset import oset
 
 
 def parse_html_fragment_file(T_FILES):
@@ -128,6 +130,27 @@ class HtmlCloth(XmlCloth):
         cls_attrs = self.get_cls_attrs(cls)
         if cls_attrs.min_occurs >= 1:
             parent.write(E(name))
+
+    @coroutine
+    def complex_to_parent(self, ctx, cls, inst, parent, name, use_ns=False,
+                                                                      **kwargs):
+        inst = cls.get_serialization_instance(inst)
+
+        # TODO: Put xml attributes as well in the below element() call.
+        with parent.element(name):
+            ret = self._write_members(ctx, cls, inst, parent, use_ns=False,
+                                                                       **kwargs)
+            if ret is not None:
+                try:
+                    while True:
+                        sv2 = (yield)  # may throw Break
+                        ret.send(sv2)
+
+                except Break:
+                    try:
+                        ret.throw(Break())
+                    except StopIteration:
+                        pass
 
 
 # FIXME: Deprecated
