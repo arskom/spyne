@@ -25,11 +25,9 @@ from inspect import isgenerator
 from spyne import EventManager
 from spyne.auxproc import process_contexts
 from spyne.interface import AllYourInterfaceDocuments
-from spyne.model import Fault
-from spyne.model import PushBase
+from spyne.model import Fault, PushBase
 from spyne.protocol import ProtocolBase
-from spyne.util import Break
-from spyne.util import coroutine
+from spyne.util import Break, coroutine
 
 
 class ServerBase(object):
@@ -163,7 +161,6 @@ class ServerBase(object):
 
         if ctx.out_string is None:
             ctx.out_string = (b'',)
-
 
     # for backwards compatibility
     get_out_string = get_out_string_pull

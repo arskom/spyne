@@ -41,7 +41,6 @@ from spyne.util.cdict import cdict
 
 _revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
 
-
 _NODATA = type("_NODATA", (object,), {})
 
 
@@ -89,6 +88,7 @@ def _set_identifier_prefix(obj, prefix, mrpc_id='mrpc', id_attr='id',
         obj.WRITE_CONTENTS_WHEN_NOT_NONE,
     }
 
+
 class ClothParserMixin(object):
     ID_PREFIX = 'spyne-'
 
@@ -101,7 +101,6 @@ class ClothParserMixin(object):
     ROOT_ATTR_NAME = 'spyne-root'
     TAGBAG_ATTR_NAME = 'spyne-tagbag'
     WRITE_CONTENTS_WHEN_NOT_NONE = 'spyne-write-contents'
-
 
     def set_identifier_prefix(self, what):
         _set_identifier_prefix(self, what)
@@ -131,7 +130,6 @@ class ClothParserMixin(object):
                         pass
                     else:
                         elt.getparent().remove(elt)
-
 
     def _parse_file(self, file_name, cloth_parser):
         cloth = etree.parse(file_name, parser=cloth_parser)
@@ -595,8 +593,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     handler = self.rendering_handlers[cls]
 
                     # disabled for performance reasons
-                    #identifier = "%s.%s" % (prot_name, handler.__name__)
-                    #logger_s.debug("Writing %s using %s for %s. Inst: %r",
+                    # identifier = "%s.%s" % (prot_name, handler.__name__)
+                    # logger_s.debug("Writing %s using %s for %s. Inst: %r",
                     #                  name, identifier, cls.get_type_name(),
                     #                  log_repr(inst, cls, from_array=from_arr))
 
@@ -781,7 +779,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                       name=sub_name, as_attr=as_attr, as_data=as_data, **kwargs)
 
     @coroutine
-    def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
+    def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
+                                                                      **kwargs):
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)

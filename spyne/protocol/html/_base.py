@@ -48,7 +48,7 @@ class HtmlClothProtocolContext(XmlClothProtocolContext):
         self.tags = set()
         self.objcache = dict()
 
-        # this is supposed to be for neurons.base.screen.ScreenBase subclasses
+        # these are supposed to be for neurons.base.screen.ScreenBase subclasses
         self.screen = None
         self.prev_view = None
         self.next_view = None

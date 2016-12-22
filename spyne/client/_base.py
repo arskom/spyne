@@ -137,11 +137,11 @@ class RemoteProcedureBase(object):
 
         # sets the ctx.in_body_doc and ctx.in_header_doc properties
         self.app.in_protocol.decompose_incoming_envelope(ctx,
-                                        message=self.app.in_protocol.RESPONSE)
+                                          message=self.app.in_protocol.RESPONSE)
 
         # this sets ctx.in_object
         self.app.in_protocol.deserialize(ctx,
-                                        message=self.app.in_protocol.RESPONSE)
+                                          message=self.app.in_protocol.RESPONSE)
 
         type_info = ctx.descriptor.out_message._type_info
 

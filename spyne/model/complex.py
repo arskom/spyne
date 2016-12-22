@@ -36,23 +36,17 @@ from collections import deque, OrderedDict
 from inspect import isclass
 from itertools import chain
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED
+from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, EventManager
 
 from spyne import const
 from spyne.const import xml_ns
 
-from spyne.model import Point
-from spyne.model import Unicode
-from spyne.model import PushBase
-from spyne.model import ModelBase
+from spyne.model import Point, Unicode, PushBase, ModelBase
 from spyne.model import json, xml, msgpack, table
 from spyne.model._base import apply_pssm
 from spyne.model.primitive import NATIVE_MAP
 
-from spyne.util import six
-from spyne.util import memoize
-from spyne.util import memoize_id
-from spyne.util import sanitize_args
+from spyne.util import six, memoize, memoize_id, sanitize_args
 from spyne.util.color import YEL
 from spyne.util.meta import Prepareable
 from spyne.util.odict import odict
@@ -649,17 +643,21 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
             if self.Attributes._subclasses is eattr._subclasses:
                 self.Attributes._subclasses = None
 
+        # sanitize fields
         for k, v in type_info.items():
+            # replace bare SelfRerefence
             if issubclass(v, SelfReference):
                 self._replace_field(k, self.customize(*v.customize_args,
                                                           **v.customize_kwargs))
 
+            # cache XmlData for easier access
             elif issubclass(v, XmlData):
                 if self.Attributes._xml_tag_body_as is None:
                     self.Attributes._xml_tag_body_as = [(k, v)]
                 else:
                     self.Attributes._xml_tag_body_as.append((k, v))
 
+            # replace SelfRerefence in arrays
             elif issubclass(v, XmlAttribute):
                 a_of = v.attribute_of
                 if a_of is not None:
@@ -674,6 +672,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
                 if issubclass(v2, SelfReference):
                     v._set_serializer(self)
 
+        # apply field order
         # FIXME: Implement this better
         new_type_info = []
         for k, v in self._type_info.items():
@@ -687,6 +686,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         assert len(self._type_info) == len(new_type_info)
         self._type_info.keys()[:] = new_type_info
 
+        # install checkers for validation on assignment
         for k, v in self._type_info.items():
             if not v.Attributes.validate_on_assignment:
                 continue
@@ -703,6 +703,9 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
             setattr(self, k, property(_get_prop, _set_prop))
 
+        # process member rpc methods
+        if self.Attributes.method_evmgr is None:
+            self.Attributes.method_evmgr = EventManager(self)
         methods = _gen_methods(self, cls_dict)
         if len(methods) > 0:
             self.Attributes.methods = methods
@@ -712,6 +715,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
             assert isinstance(methods, _MethodsDict)
             methods.sanitize(self)
 
+        # finalize sql table mapping
         tn = self.Attributes.table_name
         meta = self.Attributes.sqla_metadata
         t = self.Attributes.sqla_table

@@ -317,10 +317,13 @@ class Interface(object):
             for method in s.public_methods.values():
                 if method.in_header is None:
                     method.in_header = s.__in_header__
+
                 if method.out_header is None:
                     method.out_header = s.__out_header__
+
                 if method.aux is None:
                     method.aux = s.__aux__
+
                 if method.aux is not None:
                     method.aux.methods.append(_generate_method_id(s, method))
 
