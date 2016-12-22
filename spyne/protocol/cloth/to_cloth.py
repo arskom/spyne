@@ -799,7 +799,11 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                             pass
 
         else:
+            sv = _NODATA
+
             for sv in inst:
+                was_empty = False
+
                 ret = self.to_cloth(ctx, cls, sv, cloth, parent,
                                              from_arr=True, name=name, **kwargs)
                 if isgenerator(ret):
@@ -812,3 +816,9 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                             ret.throw(e)
                         except StopIteration:
                             pass
+
+            if sv is _NODATA:
+                # FIXME: what if min_occurs >= 1?
+                # fake entering the cloth to prevent it from being flushed as
+                # parent or sibling of another node later.
+                self._enter_cloth(ctx, cloth, parent, skip=True)
