@@ -24,32 +24,11 @@ from collections import deque, defaultdict
 
 import spyne.interface
 
-from spyne import EventManager, MethodDescriptor, ServiceBase
+from spyne import EventManager, MethodDescriptor
 from spyne.util import six
 from spyne.model import ModelBase, Array, Iterable, ComplexModelBase
 from spyne.model.complex import XmlModifier
 from spyne.const import xml_ns as namespace
-
-
-def _get_owner_name(cls):
-    if issubclass(cls, ServiceBase):
-        return cls.get_service_name()
-    return cls.__name__
-
-
-def _generate_method_id(cls, descriptor):
-    if issubclass(cls, ServiceBase):
-        # this is a regular service method decorated by @rpc
-        return '{}.{}.{}'.format(cls.__module__, _get_owner_name(cls),
-                                                                descriptor.name)
-
-    # this is a member method decorated by @mrpc
-    retval = [cls.__module__, _get_owner_name(cls)]
-    dn = descriptor.name
-    if dn.split('.', 1) != retval[-1]:
-        retval.append(dn)
-
-    return '.'.join(retval)
 
 
 class Interface(object):
@@ -245,19 +224,20 @@ class Interface(object):
         method_key = '{%s}%s' % (self.app.tns, method.name)
 
         if issubclass(s, ComplexModelBase) and method.in_message_name_override:
-            # changes in this logic needs to be reflected to _generate_method_id
             method_object_name = method.name.split('.', 1)[0]
             if s.get_type_name() != method_object_name:
-                method_key = '{%s}%s.%s' % (self.app.tns,
-                                                 s.get_type_name(), method.name)
+                method_key = '{%s}%s' % (self.app.tns,
+                                                    method.gen_interface_key(s))
 
-        key = _generate_method_id(s, method)
+        key = method.gen_interface_key(s)
         if key in self.method_id_map:
             c = self.method_id_map[key].parent_class
             if c is None:
                 pass
+
             elif c is s:
                 pass
+
             elif c.__orig__ is None:
                 assert c is s.__orig__, "%r.%s conflicts with %r.%s" % \
                                         (c, key, s.__orig__, key)
@@ -270,7 +250,7 @@ class Interface(object):
             return
 
         logger.debug('  adding method %s.%s to match %r tag.',
-                    _get_owner_name(s), six.get_function_name(method.function),
+               method.get_owner_name(s), six.get_function_name(method.function),
                                                                      method_key)
 
         self.method_id_map[key] = method
@@ -325,7 +305,7 @@ class Interface(object):
                     method.aux = s.__aux__
 
                 if method.aux is not None:
-                    method.aux.methods.append(_generate_method_id(s, method))
+                    method.aux.methods.append(method.gen_interface_key(s))
 
                 if not self.check_method(method):
                     logger.debug("method %s' discarded by check_method",
