@@ -109,23 +109,17 @@ class RemoteProcedureBase(object):
 
         ctx.out_protocol.serialize(ctx, ctx.out_protocol.REQUEST)
 
-        if ctx.service_class != None:
-            if ctx.out_error is None:
-                ctx.service_class.event_manager.fire_event(
-                                        'method_return_document', ctx)
-            else:
-                ctx.service_class.event_manager.fire_event(
-                                        'method_exception_document', ctx)
+        if ctx.out_error is None:
+            ctx.fire_event('method_return_document')
+        else:
+            ctx.fire_event('method_exception_document')
 
         ctx.out_protocol.create_out_string(ctx, string_encoding)
 
-        if ctx.service_class != None:
-            if ctx.out_error is None:
-                ctx.service_class.event_manager.fire_event(
-                                            'method_return_string', ctx)
-            else:
-                ctx.service_class.event_manager.fire_event(
-                                            'method_exception_string', ctx)
+        if ctx.out_error is None:
+            ctx.fire_event('method_return_string')
+        else:
+            ctx.fire_event('method_exception_string')
 
         if ctx.out_string is None:
             ctx.out_string = [""]
@@ -139,9 +133,7 @@ class RemoteProcedureBase(object):
         assert ctx.in_document is None
 
         self.app.in_protocol.create_in_document(ctx)
-        if ctx.service_class != None:
-            ctx.service_class.event_manager.fire_event(
-                                            'method_accept_document', ctx)
+        ctx.fire_event('method_accept_document')
 
         # sets the ctx.in_body_doc and ctx.in_header_doc properties
         self.app.in_protocol.decompose_incoming_envelope(ctx,

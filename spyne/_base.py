@@ -143,6 +143,19 @@ class MethodContext(object):
 
         return retval
 
+    def fire_event(self, event):
+        self.app.event_manager.fire_event(event, self)
+
+        desc = self.descriptor
+        if desc is not None:
+            sc = desc.service_class
+            if sc is not None:
+                sc.event_manager.fire_event(event, self)
+
+            pc = desc.parent_class
+            if pc is not None:
+                pc.Attributes.method_evmgr.fire_event(event, self)
+
     @property
     def method_name(self):
         """The public name of the method the ``method_request_string`` was
@@ -341,7 +354,7 @@ class MethodContext(object):
         instance. This is mostly for internal use.
         """
 
-        self.app.event_manager.fire_event("method_context_created", self)
+        self.fire_event("method_context_created")
 
     def get_descriptor(self):
         return self.__descriptor

@@ -137,10 +137,7 @@ class Application(object):
         """
 
         try:
-            # fire events
-            self.event_manager.fire_event('method_call', ctx)
-            if ctx.service_class is not None:
-                ctx.service_class.event_manager.fire_event('method_call', ctx)
+            ctx.fire_event('method_call')
 
             # in object is always a sequence of incoming values. We need to fix
             # that for bare mode.
@@ -164,11 +161,8 @@ class Application(object):
             # point ctx.protocol to ctx.out_protocol
             ctx.protocol = ctx.outprot_ctx
 
-            # fire events
-            self.event_manager.fire_event('method_return_object', ctx)
-            if ctx.service_class is not None:
-                ctx.service_class.event_manager.fire_event(
-                                                    'method_return_object', ctx)
+            ctx.fire_event('method_return_object')
+
         except Redirect as e:
             try:
                 e.do_redirect()
@@ -179,22 +173,14 @@ class Application(object):
                 # point ctx.protocol to ctx.out_protocol
                 ctx.protocol = ctx.outprot_ctx
 
-                # fire events
-                self.event_manager.fire_event('method_redirect', ctx)
-                if ctx.service_class is not None:
-                    ctx.service_class.event_manager.fire_event(
-                                                         'method_redirect', ctx)
+                ctx.fire_event('method_redirect')
 
             except Exception as e:
                 logger_server.exception(e)
                 ctx.out_error = Fault('Server',
                                              get_fault_string_from_exception(e))
 
-                # fire events
-                self.event_manager.fire_event('method_redirect_exception', ctx)
-                if ctx.service_class is not None:
-                    ctx.service_class.event_manager.fire_event(
-                                               'method_redirect_exception', ctx)
+                ctx.fire_event('method_redirect_exception')
 
         except Fault as e:
             if e.faultcode == 'Client' or e.faultcode.startswith('Client.'):
@@ -204,11 +190,7 @@ class Application(object):
 
             ctx.out_error = e
 
-            # fire events
-            self.event_manager.fire_event('method_exception_object', ctx)
-            if ctx.service_class is not None:
-                ctx.service_class.event_manager.fire_event(
-                                               'method_exception_object', ctx)
+            ctx.fire_event('method_exception_object')
 
         # we don't catch BaseException because we actually don't want to catch
         # "system-exiting" exceptions. See:
@@ -218,11 +200,7 @@ class Application(object):
 
             ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
 
-            # fire events
-            self.event_manager.fire_event('method_exception_object', ctx)
-            if ctx.service_class is not None:
-                ctx.service_class.event_manager.fire_event(
-                                                'method_exception_object', ctx)
+            ctx.fire_event('method_exception_object')
 
     def call_wrapper(self, ctx):
         """This method calls the call_wrapper method in the service definition.

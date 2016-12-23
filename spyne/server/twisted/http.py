@@ -652,32 +652,20 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
 
             _cb_deferred(None, request, p_ctx, others, resource, cb=False)
 
-            # fire events
-            app.event_manager.fire_event('method_redirect', p_ctx)
-            if p_ctx.service_class is not None:
-                p_ctx.service_class.event_manager.fire_event(
-                    'method_redirect', p_ctx)
+            p_ctx.fire_event('method_redirect')
 
         except Exception as e:
             logger_server.exception(e)
             p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
 
-            # fire events
-            app.event_manager.fire_event('method_redirect_exception', p_ctx)
-            if p_ctx.service_class is not None:
-                p_ctx.service_class.event_manager.fire_event(
-                    'method_redirect_exception', p_ctx)
+            p_ctx.fire_event('method_redirect_exception')
 
     elif issubclass(ret.type, Fault):
         p_ctx.out_error = ret.value
 
         ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
 
-        # fire events
-        app.event_manager.fire_event('method_exception_object', p_ctx)
-        if p_ctx.service_class is not None:
-            p_ctx.service_class.event_manager.fire_event(
-                                               'method_exception_object', p_ctx)
+        p_ctx.fire_event('method_exception_object')
 
         request.write(ret)
 
@@ -686,10 +674,6 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
         ret.printTraceback()
         p_ctx.out_error = InternalError(ret.value)
 
-        # fire events
-        app.event_manager.fire_event('method_exception_object', p_ctx)
-        if p_ctx.service_class is not None:
-            p_ctx.service_class.event_manager.fire_event(
-                                               'method_exception_object', p_ctx)
+        p_ctx.fire_event('method_exception_object')
 
     request.finish()

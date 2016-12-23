@@ -843,7 +843,10 @@ class ComplexModelBase(ModelBase):
         """FIXME: document me yo."""
 
         methods = None
-        """FIXME: document me yo."""
+        """A dict of member RPC methods (typically marked with @mrpc)."""
+
+        method_evmgr = None
+        """The event manager for member methods."""
 
         _variants = None
         _xml_tag_body_as = None
