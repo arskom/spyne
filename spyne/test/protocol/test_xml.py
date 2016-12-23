@@ -33,7 +33,7 @@ from base64 import b64encode
 from lxml import etree
 
 from spyne import MethodContext, rpc, ByteArray, File
-from spyne._base import FakeContext
+from spyne.context import FakeContext
 from spyne.const import RESULT_SUFFIX
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
