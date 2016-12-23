@@ -843,6 +843,14 @@ class ComplexModelBase(ModelBase):
         method_evmgr = None
         """The event manager for member methods."""
 
+        method_in_header = None
+        """The header class or a tuple of header classes for incoming requests
+        for member methods."""
+
+        method_out_header = None
+        """The header class or a tuple of header classes for outgoing responses
+        for member methods."""
+
         _variants = None
         _xml_tag_body_as = None
         _delayed_child_attrs = None

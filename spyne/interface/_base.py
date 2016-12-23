@@ -326,8 +326,14 @@ class Interface(object):
                 self.process_method(s, method)
 
         # populate call routes for member methods
-        for cls, descriptor in self.member_methods:
-            self.process_method(cls.__orig__ or cls, descriptor)
+        for cls, method in self.member_methods:
+            if method.in_header is None:
+                method.in_header = cls.Attributes.method_in_header
+
+            if method.out_header is None:
+                method.out_header = cls.Attributes.method_out_header
+
+            self.process_method(cls.__orig__ or cls, method)
 
         # populate method descriptor id to method key map
         self.method_descriptor_id_to_key = dict(((id(v[0]), k)
