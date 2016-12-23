@@ -24,20 +24,24 @@ from decimal import Decimal as D
 
 DEFAULT_LANGUAGE = 'en'
 
-from spyne._base import BODY_STYLE_WRAPPED
-from spyne._base import BODY_STYLE_BARE
-from spyne._base import BODY_STYLE_OUT_BARE
-from spyne._base import BODY_STYLE_EMPTY
-from spyne._base import BODY_STYLE_EMPTY_OUT_BARE
-from spyne._base import AuxMethodContext
-from spyne._base import TransportContext
-from spyne._base import ProtocolContext
-from spyne._base import EventContext
-from spyne._base import MethodContext
-from spyne._base import MethodDescriptor
-from spyne._base import EventManager
 from spyne._base import Address
 
+from spyne.context import AuxMethodContext
+from spyne.context import TransportContext
+from spyne.context import ProtocolContext
+from spyne.context import EventContext
+from spyne.context import MethodContext
+
+from spyne.evmgr import EventManager
+
+from spyne.descriptor import MethodDescriptor
+from spyne.descriptor import BODY_STYLE_WRAPPED
+from spyne.descriptor import BODY_STYLE_BARE
+from spyne.descriptor import BODY_STYLE_OUT_BARE
+from spyne.descriptor import BODY_STYLE_EMPTY
+from spyne.descriptor import BODY_STYLE_EMPTY_OUT_BARE
+
+# decorator imports descriptor, so this needs to come after
 from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.decorator import mrpc

@@ -19,7 +19,7 @@
 
 """Contains the ClientBase class and its helper objects."""
 
-from spyne._base import MethodContext
+from spyne.context import MethodContext
 from spyne.model.primitive import string_encoding
 
 
