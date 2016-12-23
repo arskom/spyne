@@ -144,7 +144,6 @@ class TestXmlSchema(unittest.TestCase):
 
             id = XmlAttribute(Uuid)
             edition = Unicode
-            edition_id = XmlAttribute(Uuid, attribute_of='edition')
 
         class SomeService(ServiceBase):
             @rpc(Product, _returns=Product)

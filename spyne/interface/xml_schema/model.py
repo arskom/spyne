@@ -267,40 +267,13 @@ def complex_add(document, cls, tags):
 
     _ext_elements = dict()
     for k,v in deferred:
-        ao = v.attribute_of
-        if ao is None:
-            attribute = etree.Element(XSD('attribute'))
-            xml_attribute_add(v, k, attribute, document)
-            if cls.Attributes._xml_tag_body_as is None:
-                sequence_parent.append(attribute)
-            else:
-                xtba_ext.append(attribute)
-            continue
-
-        elts = complex_type.xpath("//xsd:element[@name='%s']" % ao,
-                                                    namespaces={'xsd': _ns_xsd})
-
-        if len(elts) == 0:
-            raise ValueError("Element %r not found for XmlAttribute %r." %
-                                                                        (ao, k))
-        elif len(elts) > 1:
-            raise Exception("Xpath returned more than one element %r "
-                          "for %r. Not sure what's going on here." % (elts, ao))
-
-        else:
-            elt = elts[0]
-
-        _ext = _ext_elements.get(ao, None)
-        if _ext is None:
-            _ct = etree.SubElement(elt, XSD('complexType'))
-            _sc = etree.SubElement(_ct, XSD('simpleContent'))
-            _ext = etree.SubElement(_sc, XSD('extension'))
-            _ext_elements[ao] = _ext
-            _ext.attrib['base'] = elt.attrib['type']
-            del elt.attrib['type']
-
-        attribute = etree.SubElement(_ext, XSD('attribute'))
+        attribute = etree.Element(XSD('attribute'))
         xml_attribute_add(v, k, attribute, document)
+
+        if cls.Attributes._xml_tag_body_as is None:
+            sequence_parent.append(attribute)
+        else:
+            xtba_ext.append(attribute)
 
     document.add_complex_type(cls, complex_type)
 
