@@ -178,17 +178,13 @@ class XmlData(XmlModifier):
 
 
 class XmlAttribute(XmlModifier):
-    """Items which are marshalled as attributes of the parent element. If
-    ``attribute_of`` is passed, it's marshalled as the attribute of the element
-    with given name.
-    """
+    """Items which are marshalled as attributes of the parent element."""
 
-    def __new__(cls, type_, use=None, ns=None, attribute_of=None):
+    def __new__(cls, type_, use=None, ns=None):
         retval = super(XmlAttribute, cls).__new__(cls, type_, ns)
         retval._use = use
         if retval.type.Attributes.min_occurs > 0 and retval._use is None:
             retval._use = 'required'
-        retval.attribute_of = attribute_of
         return retval
 
 
@@ -658,11 +654,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
                     self.Attributes._xml_tag_body_as.append((k, v))
 
             # replace SelfRerefence in arrays
-            elif issubclass(v, XmlAttribute):
-                a_of = v.attribute_of
-                if a_of is not None:
-                    type_info.attributes[k] = type_info[a_of]
-
             elif issubclass(v, Array):
                 v2, = v._type_info.values()
                 while issubclass(v2, Array):
