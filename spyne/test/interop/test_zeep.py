@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 import logging
-from copy import copy, deepcopy
 
 zeep_logger = logging.getLogger('zeep')
 zeep_logger.setLevel(logging.INFO)
@@ -30,6 +29,7 @@ from base64 import b64encode, b64decode
 from spyne.util import six
 
 from zeep import Client
+from zeep.transports import Transport
 from zeep.exceptions import Error as ZeepError
 
 
@@ -38,22 +38,21 @@ class TestZeep(unittest.TestCase):
         from spyne.test.interop._test_soap_client_base import run_server
         run_server('http')
 
-        self.client = Client("http://localhost:9754/?wsdl")
+        transport = Transport(cache=False)
+        self.client = Client("http://localhost:9754/?wsdl", transport=transport)
         self.ns = "spyne.test.interop.server"
 
     def get_inst(self, what):
         return self.client.get_type(what)()
 
     def test_echo_datetime(self):
-        # ZEEP doesn't support microseconds
-        val = datetime.now().replace(microsecond=0)
+        val = datetime.now()
         ret = self.client.service.echo_datetime(val)
 
         assert val == ret
 
     def test_echo_datetime_with_invalid_format(self):
-        # ZEEP doesn't support microseconds
-        val = datetime.now().replace(microsecond=0)
+        val = datetime.now()
         ret = self.client.service.echo_datetime_with_invalid_format(val)
 
         assert val == ret
@@ -71,15 +70,13 @@ class TestZeep(unittest.TestCase):
         assert val == ret
 
     def test_echo_time(self):
-        # ZEEP doesnt support microseconds
-        val = datetime.now().replace(microsecond=0).time()
+        val = datetime.now().time()
         ret = self.client.service.echo_time(val)
 
         assert val == ret
 
     def test_echo_time_with_invalid_format(self):
-        # ZEEP doesnt support microseconds
-        val = datetime.now().replace(microsecond=0).time()
+        val = datetime.now().time()
         ret = self.client.service.echo_time_with_invalid_format(val)
 
         assert val == ret
@@ -129,23 +126,22 @@ class TestZeep(unittest.TestCase):
         ia.integer.extend([1, 2, 3, 4, 5])
         self.client.service.echo_integer_array(ia)
 
-    # FIXME: Figure how this is supposed to work
-    def _test_echo_in_header(self):
+    def test_echo_in_header(self):
         in_header = self.client.get_type('{%s}InHeader' % self.ns)()
         in_header.s = 'a'
         in_header.i = 3
 
-        self.client.set_options(soapheaders=in_header)
-        ret = self.client.service.echo_in_header()
-        self.client.set_options(soapheaders=None)
+        ret = self.client.service.echo_in_header(_soapheaders={
+            'InHeader': in_header,
+        })
 
         print(ret)
 
-        self.assertEquals(in_header.s, ret.s)
-        self.assertEquals(in_header.i, ret.i)
+        out_header = ret.body.echo_in_headerResult
+        self.assertEquals(in_header.s, out_header.s)
+        self.assertEquals(in_header.i, out_header.i)
 
-    # FIXME: Figure how this is supposed to work
-    def _test_echo_in_complex_header(self):
+    def test_echo_in_complex_header(self):
         in_header = self.client.get_type('{%s}InHeader' % self.ns)()
         in_header.s = 'a'
         in_header.i = 3
@@ -154,16 +150,20 @@ class TestZeep(unittest.TestCase):
         in_trace_header.callDate = datetime(year=2000, month=1, day=1, hour=0,
                                               minute=0, second=0, microsecond=0)
 
-        self.client.set_options(soapheaders=(in_header, in_trace_header))
-        ret = self.client.service.echo_in_complex_header()
-        self.client.set_options(soapheaders=None)
+        ret = self.client.service.echo_in_complex_header(_soapheaders={
+            'InHeader': in_header,
+            'InTraceHeader': in_trace_header
+        })
 
         print(ret)
 
-        self.assertEquals(in_header.s, ret[0].s)
-        self.assertEquals(in_header.i, ret[0].i)
-        self.assertEquals(in_trace_header.client, ret[1].client)
-        self.assertEquals(in_trace_header.callDate, ret[1].callDate)
+        out_header = ret.body.echo_in_complex_headerResult0
+        out_trace_header = ret.body.echo_in_complex_headerResult1
+
+        self.assertEquals(in_header.s, out_header.s)
+        self.assertEquals(in_header.i, out_header.i)
+        self.assertEquals(in_trace_header.client, out_trace_header.client)
+        self.assertEquals(in_trace_header.callDate, out_trace_header.callDate)
 
     def test_send_out_header(self):
         out_header = self.client.get_type('{%s}OutHeader' % self.ns)()
@@ -225,9 +225,7 @@ class TestZeep(unittest.TestCase):
         val.i = 45
         val.s = "asd"
 
-        # why val loses all its data after being passed to service request?
-        # it doesn't work without deepcopy!
-        ret = self.client.service.echo_simple_class(deepcopy(val))
+        ret = self.client.service.echo_simple_class(val)
 
         assert ret.i == val.i
         assert ret.s == val.s
@@ -240,9 +238,7 @@ class TestZeep(unittest.TestCase):
         val.sr.i = 50
         val.sr.sr = None
 
-        # why val loses all its data after being passed to service request?
-        # it doesn't work without deepcopy!
-        ret = self.client.service.echo_class_with_self_reference(deepcopy(val))
+        ret = self.client.service.echo_class_with_self_reference(val)
 
         assert ret.i == val.i
         assert ret.sr.i == val.sr.i
@@ -267,14 +263,11 @@ class TestZeep(unittest.TestCase):
         val.simple.SimpleClass[1].s = "qwe"
 
         val.other = self.client.get_type("{%s}OtherClass" % self.ns)()
-        # ZEEP doesn't support microseconds
-        val.other.dt = datetime.now().replace(microsecond=0)
+        val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
 
-        # why val loses all its data after being passed to service request?
-        # it doesn't work without deepcopy!
-        ret = self.client.service.echo_nested_class(deepcopy(val))
+        ret = self.client.service.echo_nested_class(val)
 
         self.assertEquals(ret.i, val.i)
         self.assertEqual(ret.ai.integer, val.ai.integer)
@@ -310,8 +303,7 @@ class TestZeep(unittest.TestCase):
         val.simple.SimpleClass[1].s = "qwe"
 
         val.other = self.client.get_type("{%s}OtherClass" % self.ns)()
-        # ZEEP doesn't support microseconds
-        val.other.dt = datetime.now().replace(microsecond=0)
+        val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
 
@@ -323,9 +315,7 @@ class TestZeep(unittest.TestCase):
         val.l = datetime(2010, 7, 2)
         val.q = 5
 
-        # why val loses all its data after being passed to service request?
-        # it doesn't work without deepcopy!
-        ret = self.client.service.echo_extension_class(deepcopy(val))
+        ret = self.client.service.echo_extension_class(val)
         print(ret)
 
         self.assertEquals(ret.i, val.i)
@@ -375,38 +365,9 @@ class TestZeep(unittest.TestCase):
 
         assert ret == 'test'
 
-    #
-    # This test is disabled because zeep does not create the right request
-    # object. Opening the first <ns0:string> tag below is wrong.
-    #
-    #<SOAP-ENV:Envelope xmlns:ns0="spyne.test.interop.server"
-    #                   xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    #                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    #                   xmlns:ns1="http://schemas.xmlsoap.org/soap/envelope/"
-    #                   xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-    #  <SOAP-ENV:Header/>
-    #  <ns1:Body>
-    #      <ns0:echo_complex_bare>
-    #         <ns0:string>
-    #            <ns0:string>abc</ns0:string>
-    #            <ns0:string>def</ns0:string>
-    #         </ns0:string>
-    #      </ns0:echo_complex_bare>
-    #  </ns1:Body>
-    #</SOAP-ENV:Envelope>
-    #
-    # The right request looks like this:
-    #
-    #      <ns0:echo_complex_bare>
-    #         <ns0:string>abc</ns0:string>
-    #         <ns0:string>def</ns0:string>
-    #      </ns0:echo_complex_bare>
-    #
-    def _test_echo_complex_bare(self):
+    def test_echo_complex_bare(self):
         val = ['abc','def']
-        ia = self.client.get_type('{%s}stringArray' % self.ns)()
-        ia.string.extend(val)
-        ret = self.client.service.echo_complex_bare(ia)
+        ret = self.client.service.echo_complex_bare(val)
 
         assert ret == val
 
