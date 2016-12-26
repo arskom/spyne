@@ -35,11 +35,11 @@ from spyne import MethodDescriptor
 
 # Empty means empty input, bare output. Doesn't say anything about response
 # being empty
-from spyne._base import BODY_STYLE_EMPTY
-from spyne._base import BODY_STYLE_WRAPPED
-from spyne._base import BODY_STYLE_BARE
-from spyne._base import BODY_STYLE_OUT_BARE
-from spyne._base import BODY_STYLE_EMPTY_OUT_BARE
+from spyne import BODY_STYLE_EMPTY
+from spyne import BODY_STYLE_WRAPPED
+from spyne import BODY_STYLE_BARE
+from spyne import BODY_STYLE_OUT_BARE
+from spyne import BODY_STYLE_EMPTY_OUT_BARE
 
 from spyne.model import ModelBase, ComplexModel
 from spyne.model.complex import TypeInfo

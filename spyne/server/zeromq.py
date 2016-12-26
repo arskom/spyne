@@ -24,7 +24,7 @@ import threading
 import zmq
 
 from spyne.auxproc import process_contexts
-from spyne._base import MethodContext
+from spyne.context import MethodContext
 from spyne.server import ServerBase
 
 

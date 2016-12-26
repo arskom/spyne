@@ -718,7 +718,7 @@ class TestMemberRpc(unittest.TestCase):
 
         app = Application([SomeService], 'some_ns')
 
-        mmm = __name__ + '.SomeComplexModel.SomeComplexModel.member_method'
+        mmm = __name__ + '.SomeComplexModel.member_method'
         assert mmm in app.interface.method_id_map
 
     def test_interface_mult(self):
@@ -742,7 +742,7 @@ class TestMemberRpc(unittest.TestCase):
 
         app = Application([SomeService], 'some_ns')
 
-        mmm = __name__ + '.SomeComplexModel.SomeComplexModel.member_method'
+        mmm = __name__ + '.SomeComplexModel.member_method'
         assert mmm in app.interface.method_id_map
 
     def test_remote_call_error(self):

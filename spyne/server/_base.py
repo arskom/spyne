@@ -25,11 +25,9 @@ from inspect import isgenerator
 from spyne import EventManager
 from spyne.auxproc import process_contexts
 from spyne.interface import AllYourInterfaceDocuments
-from spyne.model import Fault
-from spyne.model import PushBase
+from spyne.model import Fault, PushBase
 from spyne.protocol import ProtocolBase
-from spyne.util import Break
-from spyne.util import coroutine
+from spyne.util import Break, coroutine
 
 
 class ServerBase(object):
@@ -149,27 +147,20 @@ class ServerBase(object):
         self.finalize_context(ctx)
 
     def finalize_context(self, ctx):
-        if ctx.service_class != None:
-            if ctx.out_error is None:
-                ctx.service_class.event_manager.fire_event(
-                                            'method_return_document', ctx)
-            else:
-                ctx.service_class.event_manager.fire_event(
-                                            'method_exception_document', ctx)
+        if ctx.out_error is None:
+            ctx.fire_event('method_return_document')
+        else:
+            ctx.fire_event('method_exception_document')
 
         ctx.out_protocol.create_out_string(ctx)
 
-        if ctx.service_class != None:
-            if ctx.out_error is None:
-                ctx.service_class.event_manager.fire_event(
-                                            'method_return_string', ctx)
-            else:
-                ctx.service_class.event_manager.fire_event(
-                                            'method_exception_string', ctx)
+        if ctx.out_error is None:
+            ctx.fire_event('method_return_string')
+        else:
+            ctx.fire_event('method_exception_string')
 
         if ctx.out_string is None:
             ctx.out_string = (b'',)
-
 
     # for backwards compatibility
     get_out_string = get_out_string_pull
@@ -208,10 +199,7 @@ class ServerBase(object):
         # the machinery in ServerBase can initialize them using this function.
 
         # fire events
-        p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
-        if p_ctx.service_class is not None:
-            p_ctx.service_class.event_manager.fire_event(
-                                                    'method_return_push', p_ctx)
+        p_ctx.fire_event('method_return_push')
 
         def _cb_push_finish():
             process_contexts(self, (), p_ctx)
@@ -239,10 +227,7 @@ class ServerBase(object):
         p_ctx.pusher_stack.append(ret)
 
         # fire events
-        p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
-        if p_ctx.service_class is not None:
-            p_ctx.service_class.event_manager.fire_event(
-                                           'method_return_push', p_ctx)
+        p_ctx.fire_event('method_return_push')
 
         # start push serialization
         gen = self.get_out_string_push(p_ctx)

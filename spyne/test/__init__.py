@@ -27,4 +27,4 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.util.appreg').setLevel(logging.INFO)
 
-from spyne._base import FakeContext
+from spyne.context import FakeContext

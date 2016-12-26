@@ -241,30 +241,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         assert len(elts) > 0
         assert elts[0].attrib['type'] == 'tns:string%s' % ARRAY_SUFFIX
 
-    def test_attribute_of(self):
-        class SomeObject(ComplexModel):
-            c = String
-            a = XmlAttribute(Integer, attribute_of='c')
-
-        class SomeService(ServiceBase):
-            @srpc(SomeObject)
-            def echo_simple_bare(ss):
-                pass
-
-        app = Application([SomeService], tns='tns',
-                                    in_protocol=Soap11(), out_protocol=Soap11())
-        app.transport = 'None'
-
-        wsdl = Wsdl11(app.interface)
-        wsdl.build_interface_document('url')
-
-        wsdl = etree.fromstring(wsdl.get_interface_document())
-        print(etree.tostring(wsdl, pretty_print=True))
-        assert len(wsdl.xpath(
-            "/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace='%s']"
-            "/xs:complexType[@name='SomeObject']/xs:sequence/xs:element[@name='c']"
-            '/xs:complexType/xs:simpleContent/xs:extension/xs:attribute[@name="a"]'
-            % (SomeObject.get_namespace()), namespaces=const_nsmap)) > 0
 
 if __name__ == '__main__':
     unittest.main()

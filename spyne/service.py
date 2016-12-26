@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 import collections
 
-from spyne import EventManager
+from spyne.evmgr import EventManager
 from spyne.util import six
 from spyne.util.oset import oset
 

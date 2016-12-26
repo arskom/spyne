@@ -71,7 +71,10 @@ class Fault(ComplexModelBase, Exception):
         return repr(self)
 
     def __repr__(self):
-        return "Fault(%s: %r)" % (self.faultcode, self.faultstring)
+        if self.detail is None:
+            return "Fault(%s: %r)" % (self.faultcode, self.faultstring)
+        return "Fault(%s: %r for %r)" % (self.faultcode, self.faultstring,
+                                                                    self.detail)
 
     @staticmethod
     def to_dict(cls, value):
