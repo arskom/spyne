@@ -214,7 +214,7 @@ class SelfReference(object):
 
     @classmethod
     def customize(cls, *args, **kwargs):
-        args = chain(args, cls.customize_args)
+        args = list(chain(args, cls.customize_args))
         kwargs = dict(chain(kwargs.items(), cls.customize_kwargs.items()))
         if cls.__orig__ is None:
             cls.__orig__ = cls
@@ -595,6 +595,16 @@ def _process_child_attrs(cls, retval, kwargs):
                 retval.Attributes._delayed_child_attrs[k] = v
 
 
+def recust_selfref(selfref, cls):
+    if len(selfref.customize_args) > 0 or len(selfref.customize_kwargs) > 0:
+        logger.debug("Replace self reference with %r with *%r and **%r",
+                          cls, selfref.customize_args, selfref.customize_kwargs)
+        return cls.customize(*selfref.customize_args,
+                                                     **selfref.customize_kwargs)
+    logger.debug("Replace self reference with %r", cls)
+    return cls
+
+
 class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
     """This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
@@ -643,8 +653,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         for k, v in type_info.items():
             # replace bare SelfRerefence
             if issubclass(v, SelfReference):
-                self._replace_field(k, self.customize(*v.customize_args,
-                                                          **v.customize_kwargs))
+                self._replace_field(k, recust_selfref(v, self))
 
             # cache XmlData for easier access
             elif issubclass(v, XmlData):
@@ -661,7 +670,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
                     v2, = v2._type_info.values()
 
                 if issubclass(v2, SelfReference):
-                    v._set_serializer(self)
+                    v._set_serializer(recust_selfref(v2, self))
 
         # apply field order
         # FIXME: Implement this better
