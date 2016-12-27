@@ -594,6 +594,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
                     # disabled for performance reasons
                     # identifier = "%s.%s" % (prot_name, handler.__name__)
+                    # from spyne.util.web import log_repr
                     # logger_s.debug("Writing %s using %s for %s. Inst: %r",
                     #                  name, identifier, cls.get_type_name(),
                     #                  log_repr(inst, cls, from_array=from_arr))

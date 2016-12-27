@@ -168,10 +168,11 @@ class ToParentMixin(OutProtocolBase):
                     logger.debug("%s %r pushed %r %r", R("$"), self, cls, inst)
 
                     # disabled for performance reasons
-                    #identifier = "%s.%s" % (prot_name, handler.__name__)
-                    #log_str = log_repr(inst, cls,
+                    # from spyne.util.web import log_repr
+                    # identifier = "%s.%s" % (prot_name, handler.__name__)
+                    # log_str = log_repr(inst, cls,
                     #                   from_array=kwargs.get('from_arr', None))
-                    #logger.debug("Writing %s using %s for %s. Inst: %r", name,
+                    # logger.debug("Writing %s using %s for %s. Inst: %r", name,
                     #                  identifier, cls.get_type_name(), log_str)
 
                     # finally, serialize the value. retval is the coroutine

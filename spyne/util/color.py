@@ -51,6 +51,7 @@ except ImportError:
     MAG = lambda s: s
     CYA = lambda s: s
 
+
 if __name__ == '__main__':
     print(R("RED"))
     print(G("GREEN"))
