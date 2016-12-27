@@ -1,6 +1,7 @@
 #!/bin/bash -x
 #
 # Sets up a Python testing environment from scratch. Mainly written for Jenkins.
+# Works for CPython. Not working for Jython, IronPython and PyPy.
 #
 # Requirements:
 #   A working build environment inside the container with OpenSSL, bzip2,

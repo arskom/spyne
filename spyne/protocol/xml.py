@@ -825,7 +825,7 @@ class XmlDocument(SubXmlBase):
     def _fault_to_parent_impl(self, ctx, cls, inst, parent, ns, subelts, **_):
         tag_name = "{%s}Fault" % self.ns_soap_env
 
-        # Accepting raw lxml objects as detail is deprecated. It's also not
+        # Accepting raw lxml objects as detail is DEPRECATED. It's also not
         # documented. It's kept for backwards-compatibility purposes.
         if isinstance(inst.detail, string_types + (etree._Element,)):
             _append(subelts, E('detail', inst.detail))
