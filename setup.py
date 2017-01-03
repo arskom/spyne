@@ -233,7 +233,6 @@ class RunTests(ExtendedTestCommand):
             ret = call_pytest_subprocess('interop/test_zeep.py',
                                                     capture=self.capture) or ret
 
-        ret = call_tox_subprocess('py%s-dj17' % PYVER) or ret
         ret = call_tox_subprocess('py%s-dj18' % PYVER) or ret
         ret = call_tox_subprocess('py%s-dj19' % PYVER) or ret
         ret = call_tox_subprocess('py%s-dj110' % PYVER) or ret
