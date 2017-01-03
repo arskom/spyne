@@ -29,6 +29,7 @@ import pytz
 
 from datetime import timedelta
 
+import spyne
 from lxml import etree
 
 from spyne.util import six, total_seconds
@@ -283,6 +284,58 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(dt.year, 2007)
         self.assertEquals(dt.month, 5)
         self.assertEquals(dt.day, 15)
+
+    def test_date_exclusive_boundaries(self):
+        test_model = Date.customize(gt=datetime.date(2016, 1, 1), lt=datetime.date(2016, 2, 1))
+        self.assertFalse(test_model.validate_native(test_model, datetime.date(2016, 1, 1)))
+        self.assertFalse(test_model.validate_native(test_model, datetime.date(2016, 2, 1)))
+
+    def test_date_inclusive_boundaries(self):
+        test_model = Date.customize(ge=datetime.date(2016, 1, 1), le=datetime.date(2016, 2, 1))
+        self.assertTrue(test_model.validate_native(test_model, datetime.date(2016, 1, 1)))
+        self.assertTrue(test_model.validate_native(test_model, datetime.date(2016, 2, 1)))
+
+    def test_datetime_exclusive_boundaries(self):
+        test_model = DateTime.customize(
+            gt=datetime.datetime(2016, 1, 1, 12, 00).replace(tzinfo=spyne.LOCAL_TZ),
+            lt=datetime.datetime(2016, 2, 1, 12, 00).replace(tzinfo=spyne.LOCAL_TZ))
+        self.assertFalse(test_model.validate_native(test_model,
+                                                    datetime.datetime(2016, 1, 1, 12, 00)))
+        self.assertFalse(test_model.validate_native(test_model,
+                                                    datetime.datetime(2016, 2, 1, 12, 00)))
+
+    def test_datetime_inclusive_boundaries(self):
+        test_model = DateTime.customize(
+            ge=datetime.datetime(2016, 1, 1, 12, 00).replace(tzinfo=spyne.LOCAL_TZ),
+            le=datetime.datetime(2016, 2, 1, 12, 00).replace(tzinfo=spyne.LOCAL_TZ))
+        self.assertTrue(test_model.validate_native(test_model,
+                                                   datetime.datetime(2016, 1, 1, 12, 00)))
+        self.assertTrue(test_model.validate_native(test_model,
+                                                   datetime.datetime(2016, 2, 1, 12, 00)))
+
+    def test_time_exclusive_boundaries(self):
+        test_model = Time.customize(gt=datetime.time(12, 00),
+                                    lt=datetime.time(13, 00))
+        self.assertFalse(test_model.validate_native(test_model, datetime.time(12, 00)))
+        self.assertFalse(test_model.validate_native(test_model, datetime.time(13, 00)))
+
+    def test_time_inclusive_boundaries(self):
+        test_model = Time.customize(ge=datetime.time(12, 00),
+                                    le=datetime.time(13, 00))
+        self.assertTrue(test_model.validate_native(test_model, datetime.time(12, 00)))
+        self.assertTrue(test_model.validate_native(test_model, datetime.time(13, 00)))
+
+    def test_datetime_extreme_boundary(self):
+        self.assertTrue(DateTime.validate_native(DateTime, datetime.datetime.min))
+        self.assertTrue(DateTime.validate_native(DateTime, datetime.datetime.max))
+
+    def test_time_extreme_boundary(self):
+        self.assertTrue(Time.validate_native(Time, datetime.time(0,0,0,0)))
+        self.assertTrue(Time.validate_native(Time, datetime.time(23, 59, 59, 999999)))
+
+    def test_date_extreme_boundary(self):
+        self.assertTrue(Date.validate_native(Date, datetime.date.min))
+        self.assertTrue(Date.validate_native(Date, datetime.date.max))
 
     def test_integer(self):
         i = 12
