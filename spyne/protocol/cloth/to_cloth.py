@@ -58,12 +58,6 @@ def _prevsibls_since(elt, since):
         yield prevsibl
 
 
-def _gen_tagname(ns, name):
-    if ns is not None:
-        name = "{%s}%s" % (ns, name)
-    return name
-
-
 def _set_identifier_prefix(obj, prefix, mrpc_id='mrpc', id_attr='id',
                             data_tag='data', data_attr='data', attr_attr='attr',
                                         root_attr='root', tagbag_attr='tagbag'):
@@ -594,6 +588,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
                     # disabled for performance reasons
                     # identifier = "%s.%s" % (prot_name, handler.__name__)
+                    # from spyne.util.web import log_repr
                     # logger_s.debug("Writing %s using %s for %s. Inst: %r",
                     #                  name, identifier, cls.get_type_name(),
                     #                  log_repr(inst, cls, from_array=from_arr))
@@ -664,29 +659,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         fti_check = dict(fti.items())
         elt_check = set()
 
-        # Check for xmlattribute before entering the cloth.
-        attrs = {}
-        for field_name, field_type in fti.attrs.items():
-            ns = field_type._ns
-            if ns is None:
-                ns = field_type.Attributes.sub_ns
-
-            sub_name = field_type.Attributes.sub_name
-            if sub_name is None:
-                sub_name = field_name
-
-            val = getattr(inst, field_name, None)
-            sub_name = _gen_tagname(ns, sub_name)
-
-            if val is not None:
-                if issubclass(field_type.type, (ByteArray, File)):
-                    valstr = self.to_unicode(field_type.type, val,
-                                                           self.binary_encoding)
-                else:
-                    valstr = self.to_unicode(field_type.type, val)
-
-                attrs[sub_name] = valstr
-
+        attrs = self._gen_attr_dict(inst, fti)
         self._enter_cloth(ctx, cloth, parent, attrs=attrs)
 
         for elt in self._get_elts(cloth, self.MRPC_ID):

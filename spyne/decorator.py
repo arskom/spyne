@@ -42,7 +42,7 @@ from spyne import BODY_STYLE_OUT_BARE
 from spyne import BODY_STYLE_EMPTY_OUT_BARE
 
 from spyne.model import ModelBase, ComplexModel
-from spyne.model.complex import TypeInfo
+from spyne.model.complex import TypeInfo, recust_selfref
 
 from spyne.const import add_request_suffix
 
@@ -205,8 +205,7 @@ def _substitute_self_reference(params, kparams, kwargs, _no_self):
         if isclass(v) and issubclass(v, SelfReference):
             if _no_self:
                 raise ValueError("SelfReference can't be used in @rpc")
-            else:
-                params[i] = kwargs['_self_ref_replacement']
+            params[i] = recust_selfref(v, kwargs['_self_ref_replacement'])
         else:
             params[i] = v
 
@@ -214,8 +213,7 @@ def _substitute_self_reference(params, kparams, kwargs, _no_self):
         if isclass(v) and issubclass(v, SelfReference):
             if _no_self:
                 raise ValueError("SelfReference can't be used in @rpc")
-            else:
-                kparams[k] = kwargs['_self_ref_replacement']
+            kparams[k] = recust_selfref(v, kwargs['_self_ref_replacement'])
         else:
             kparams[k] = v
 

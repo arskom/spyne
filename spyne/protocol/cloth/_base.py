@@ -27,7 +27,7 @@ from inspect import isgenerator
 from lxml import etree
 from lxml.etree import LxmlSyntaxError
 
-from spyne import ProtocolContext, BODY_STYLE_WRAPPED
+from spyne import ProtocolContext, BODY_STYLE_WRAPPED, ByteArray, File
 from spyne.util import Break, coroutine
 
 from spyne.protocol.cloth.to_parent import ToParentMixin
@@ -262,6 +262,38 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         if len(ctx.protocol.prot_stack) == 1 and len(ctx.protocol.eltstack) > 0:
             self._close_cloth(ctx, parent)
             return
+
+    @staticmethod
+    def _gen_tagname(ns, name):
+        if ns is not None:
+            name = "{%s}%s" % (ns, name)
+        return name
+
+    def _gen_attr_dict(self, inst, fti):
+        # Check for xmlattribute before entering the cloth.
+        attrs = {}
+        for field_name, field_type in fti.attrs.items():
+            ns = field_type._ns
+            if ns is None:
+                ns = field_type.Attributes.sub_ns
+
+            sub_name = field_type.Attributes.sub_name
+            if sub_name is None:
+                sub_name = field_name
+
+            val = getattr(inst, field_name, None)
+            sub_name = self._gen_tagname(ns, sub_name)
+
+            if val is not None:
+                if issubclass(field_type.type, (ByteArray, File)):
+                    valstr = self.to_unicode(field_type.type, val,
+                                                           self.binary_encoding)
+                else:
+                    valstr = self.to_unicode(field_type.type, val)
+
+                attrs[sub_name] = valstr
+
+        return attrs
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")

@@ -30,7 +30,8 @@ from lxml.builder import E
 
 from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
-    AnyHtml, ModelBase, ByteArray, XmlData, Any, AnyUri, ImageUri
+    AnyHtml, ModelBase, ByteArray, XmlData, Any, AnyUri, ImageUri, XmlAttribute
+
 from spyne.model.enum import EnumBase
 from spyne.protocol import OutProtocolBase
 from spyne.protocol.xml import SchemaValidationError
@@ -168,10 +169,11 @@ class ToParentMixin(OutProtocolBase):
                     logger.debug("%s %r pushed %r %r", R("$"), self, cls, inst)
 
                     # disabled for performance reasons
-                    #identifier = "%s.%s" % (prot_name, handler.__name__)
-                    #log_str = log_repr(inst, cls,
+                    # from spyne.util.web import log_repr
+                    # identifier = "%s.%s" % (prot_name, handler.__name__)
+                    # log_str = log_repr(inst, cls,
                     #                   from_array=kwargs.get('from_arr', None))
-                    #logger.debug("Writing %s using %s for %s. Inst: %r", name,
+                    # logger.debug("Writing %s using %s for %s. Inst: %r", name,
                     #                  identifier, cls.get_type_name(), log_str)
 
                     # finally, serialize the value. retval is the coroutine
@@ -388,7 +390,8 @@ class ToParentMixin(OutProtocolBase):
         parent_cls = getattr(cls, '__extends__', None)
 
         if not (parent_cls is None):
-            ret = self._write_members(ctx, parent_cls, inst, parent, **kwargs)
+            ret = self._write_members(ctx, parent_cls, inst, parent,
+                                                        use_ns=use_ns, **kwargs)
             if ret is not None:
                 try:
                     while True:
@@ -406,6 +409,9 @@ class ToParentMixin(OutProtocolBase):
             if attr.exc:
                 prot_name = self.__class__.__name__
                 logger.debug("%s: excluded for %s.", k, prot_name)
+                continue
+
+            if issubclass(v, XmlAttribute):
                 continue
 
             try:  # e.g. SqlAlchemy could throw NoSuchColumnError
@@ -451,8 +457,10 @@ class ToParentMixin(OutProtocolBase):
     def complex_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         inst = cls.get_serialization_instance(inst)
 
-        # TODO: Put xml attributes as well in the below element() call.
-        with parent.element(name):
+        attrs = self._gen_attr_dict(inst, cls.get_flat_type_info(cls))
+
+        with parent.element(name, attrib=attrs):
+            parent.write(" ")
             ret = self._write_members(ctx, cls, inst, parent, **kwargs)
             if ret is not None:
                 try:

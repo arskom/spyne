@@ -26,6 +26,7 @@ import datetime
 import unittest
 
 import pytz
+import spyne
 
 from datetime import timedelta
 
@@ -64,6 +65,7 @@ class TestPrimitive(unittest.TestCase):
 
     def test_nillable_quirks(self):
         assert ModelBase.Attributes.nillable == True
+
         class Attributes(ModelBase.Attributes):
             nillable = False
             nullable = False
@@ -97,8 +99,10 @@ class TestPrimitive(unittest.TestCase):
 
         class Attributes(ModelBase.Attributes):
             nullable = False
+
         class Attributes(Attributes):
             pass
+
         assert Attributes.nullable == False
 
     def test_nillable_inheritance_quirks(self):
@@ -107,26 +111,30 @@ class TestPrimitive(unittest.TestCase):
 
         class AttrMixin:
             pass
+
         class NewAttributes(Attributes, AttrMixin):
             pass
+
         assert NewAttributes.nullable is False
 
         class AttrMixin:
             pass
+
         class NewAttributes(AttrMixin, Attributes):
             pass
 
         assert NewAttributes.nullable is False
 
     def test_decimal(self):
-        assert Decimal(10,4).Attributes.total_digits == 10
-        assert Decimal(10,4).Attributes.fraction_digits == 4
+        assert Decimal(10, 4).Attributes.total_digits == 10
+        assert Decimal(10, 4).Attributes.fraction_digits == 4
 
     def test_decimal_format(self):
         f = 123456
-        str_format='${0}'
+        str_format = '${0}'
         element = etree.Element('test')
-        XmlDocument().to_parent(None, Decimal(str_format=str_format), f, element, ns_test)
+        XmlDocument().to_parent(None, Decimal(str_format=str_format), f,
+                                                               element, ns_test)
         element = element[0]
 
         self.assertEquals(element.text, '$123456')
@@ -135,7 +143,7 @@ class TestPrimitive(unittest.TestCase):
         s = String()
         element = etree.Element('test')
         XmlDocument().to_parent(None, String, 'value', element, ns_test)
-        element=element[0]
+        element = element[0]
 
         self.assertEquals(element.text, 'value')
         value = XmlDocument().from_element(None, String, element)
@@ -157,7 +165,8 @@ class TestPrimitive(unittest.TestCase):
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, DateTime(format=format), n, element, ns_test)
+        XmlDocument().to_parent(None, DateTime(format=format), n, element,
+                                                                        ns_test)
         element = element[0]
 
         assert element.text == datetime.datetime.strftime(n, format)
@@ -255,7 +264,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(datetime.time(12, 12, 12, 999999), t)
 
     def test_date(self):
-        n = datetime.date(2011,12,13)
+        n = datetime.date(2011, 12, 13)
 
         ret = ProtocolBase().to_unicode(Date, n)
         self.assertEquals(ret, n.isoformat())
@@ -284,6 +293,80 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(dt.month, 5)
         self.assertEquals(dt.day, 15)
 
+    def test_date_exclusive_boundaries(self):
+        test_model = Date.customize(gt=datetime.date(2016, 1, 1),
+            lt=datetime.date(2016, 2, 1))
+        self.assertFalse(
+              test_model.validate_native(test_model, datetime.date(2016, 1, 1)))
+        self.assertFalse(
+              test_model.validate_native(test_model, datetime.date(2016, 2, 1)))
+
+    def test_date_inclusive_boundaries(self):
+        test_model = Date.customize(ge=datetime.date(2016, 1, 1),
+            le=datetime.date(2016, 2, 1))
+        self.assertTrue(
+              test_model.validate_native(test_model, datetime.date(2016, 1, 1)))
+        self.assertTrue(
+              test_model.validate_native(test_model, datetime.date(2016, 2, 1)))
+
+    def test_datetime_exclusive_boundaries(self):
+        test_model = DateTime.customize(
+            gt=datetime.datetime(2016, 1, 1, 12, 00)
+                                                .replace(tzinfo=spyne.LOCAL_TZ),
+            lt=datetime.datetime(2016, 2, 1, 12, 00)
+                                                .replace(tzinfo=spyne.LOCAL_TZ),
+        )
+        self.assertFalse(test_model.validate_native(test_model,
+                                         datetime.datetime(2016, 1, 1, 12, 00)))
+        self.assertFalse(test_model.validate_native(test_model,
+                                         datetime.datetime(2016, 2, 1, 12, 00)))
+
+    def test_datetime_inclusive_boundaries(self):
+        test_model = DateTime.customize(
+            ge=datetime.datetime(2016, 1, 1, 12, 00)
+                                                .replace(tzinfo=spyne.LOCAL_TZ),
+            le=datetime.datetime(2016, 2, 1, 12, 00)
+                                                .replace(tzinfo=spyne.LOCAL_TZ)
+        )
+
+        self.assertTrue(test_model.validate_native(test_model,
+                                         datetime.datetime(2016, 1, 1, 12, 00)))
+        self.assertTrue(test_model.validate_native(test_model,
+                                         datetime.datetime(2016, 2, 1, 12, 00)))
+
+    def test_time_exclusive_boundaries(self):
+        test_model = Time.customize(gt=datetime.time(12, 00),
+                                                       lt=datetime.time(13, 00))
+
+        self.assertFalse(
+            test_model.validate_native(test_model, datetime.time(12, 00)))
+        self.assertFalse(
+            test_model.validate_native(test_model, datetime.time(13, 00)))
+
+    def test_time_inclusive_boundaries(self):
+        test_model = Time.customize(ge=datetime.time(12, 00),
+                                                       le=datetime.time(13, 00))
+
+        self.assertTrue(
+                  test_model.validate_native(test_model, datetime.time(12, 00)))
+        self.assertTrue(
+                  test_model.validate_native(test_model, datetime.time(13, 00)))
+
+    def test_datetime_extreme_boundary(self):
+        self.assertTrue(
+                      DateTime.validate_native(DateTime, datetime.datetime.min))
+        self.assertTrue(
+                      DateTime.validate_native(DateTime, datetime.datetime.max))
+
+    def test_time_extreme_boundary(self):
+        self.assertTrue(Time.validate_native(Time, datetime.time(0, 0, 0, 0)))
+        self.assertTrue(
+                  Time.validate_native(Time, datetime.time(23, 59, 59, 999999)))
+
+    def test_date_extreme_boundary(self):
+        self.assertTrue(Date.validate_native(Date, datetime.date.min))
+        self.assertTrue(Date.validate_native(Date, datetime.date.max))
+
     def test_integer(self):
         i = 12
         integer = Integer()
@@ -298,13 +381,15 @@ class TestPrimitive(unittest.TestCase):
 
     def test_limits(self):
         try:
-            ProtocolBase().from_string(Integer, "1" * (Integer.__max_str_len__ + 1))
+            ProtocolBase() \
+                      .from_string(Integer, "1" * (Integer.__max_str_len__ + 1))
         except:
             pass
         else:
             raise Exception("must fail.")
 
-        ProtocolBase().from_string(UnsignedInteger, "-1") # This is not supposed to fail.
+        ProtocolBase().from_string(UnsignedInteger, "-1")
+                                                 # This is not supposed to fail.
 
         assert not UnsignedInteger.validate_native(UnsignedInteger, -1)
 
@@ -407,14 +492,14 @@ class TestPrimitive(unittest.TestCase):
         print(etree.tostring(element))
 
         element = element[0]
-        self.assertTrue( bool(element.attrib.get('{%s}nil' % ns.xsi)) )
+        self.assertTrue(bool(element.attrib.get('{%s}nil' % ns.xsi)))
         value = XmlDocument().from_element(None, Null, element)
         self.assertEquals(None, value)
 
     def test_point(self):
         from spyne.model.primitive.spatial import _get_point_pattern
 
-        a=re.compile(_get_point_pattern(2))
+        a = re.compile(_get_point_pattern(2))
         assert a.match('POINT (10 40)') is not None
         assert a.match('POINT(10 40)') is not None
 
@@ -424,34 +509,35 @@ class TestPrimitive(unittest.TestCase):
     def test_multipoint(self):
         from spyne.model.primitive.spatial import _get_multipoint_pattern
 
-        a=re.compile(_get_multipoint_pattern(2))
+        a = re.compile(_get_multipoint_pattern(2))
         assert a.match('MULTIPOINT (10 40, 40 30, 20 20, 30 10)') is not None
         # FIXME:
-        #assert a.match('MULTIPOINT ((10 40), (40 30), (20 20), (30 10))') is not None
+        # assert a.match('MULTIPOINT ((10 40), (40 30), (20 20), (30 10))') is not None
 
     def test_linestring(self):
         from spyne.model.primitive.spatial import _get_linestring_pattern
 
-        a=re.compile(_get_linestring_pattern(2))
+        a = re.compile(_get_linestring_pattern(2))
         assert a.match('LINESTRING (30 10, 10 30, 40 40)') is not None
 
     def test_multilinestring(self):
         from spyne.model.primitive.spatial import _get_multilinestring_pattern
 
-        a=re.compile(_get_multilinestring_pattern(2))
+        a = re.compile(_get_multilinestring_pattern(2))
         assert a.match('''MULTILINESTRING ((10 10, 20 20, 10 40),
                                 (40 40, 30 30, 40 20, 30 10))''') is not None
 
     def test_polygon(self):
         from spyne.model.primitive.spatial import _get_polygon_pattern
 
-        a=re.compile(_get_polygon_pattern(2))
-        assert a.match('POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))') is not None
+        a = re.compile(_get_polygon_pattern(2))
+        assert a.match(
+                    'POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))') is not None
 
     def test_multipolygon(self):
         from spyne.model.primitive.spatial import _get_multipolygon_pattern
 
-        a=re.compile(_get_multipolygon_pattern(2))
+        a = re.compile(_get_multipolygon_pattern(2))
         assert a.match('''MULTIPOLYGON (((30 20, 10 40, 45 40, 30 20)),
                             ((15 5, 40 10, 10 20, 5 10, 15 5)))''') is not None
         assert a.match('''MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),
@@ -516,7 +602,8 @@ class TestPrimitive(unittest.TestCase):
 
     def test_anydict_customization(self):
         from spyne.model import json
-        assert isinstance(AnyDict.customize(store_as='json').Attributes.store_as, json)
+        assert isinstance(
+                   AnyDict.customize(store_as='json').Attributes.store_as, json)
 
     def test_uuid_serialize(self):
         value = uuid.UUID('12345678123456781234567812345678')
@@ -607,7 +694,7 @@ class TestPrimitive(unittest.TestCase):
 
     def test_custom_strftime(self):
         s = ProtocolBase.strftime(datetime.date(1800, 9, 23),
-                     "%Y has the same days as 1980 and 2008")
+                                        "%Y has the same days as 1980 and 2008")
         if s != "1800 has the same days as 1980 and 2008":
             raise AssertionError(s)
 
@@ -619,7 +706,7 @@ class TestPrimitive(unittest.TestCase):
             days.append(datetime.date(2000, 1, i).strftime("%A"))
         nextday = {}
         for i in range(8):
-            nextday[days[i]] = days[i+1]
+            nextday[days[i]] = days[i + 1]
 
         startdate = datetime.date(1, 1, 1)
         enddate = datetime.date(2000, 8, 1)
@@ -629,7 +716,7 @@ class TestPrimitive(unittest.TestCase):
         testdate = startdate + one_day
         while testdate < enddate:
             if (testdate.day == 1 and testdate.month == 1 and
-                (testdate.year % 100 == 0)):
+                                                    (testdate.year % 100 == 0)):
                 print("Testing century", testdate.year)
             day = ProtocolBase.strftime(testdate, "%A")
             if nextday[prevday] != day:
@@ -641,25 +728,31 @@ class TestPrimitive(unittest.TestCase):
         # see the comments on time test for why the rounding here is weird
 
         # rounding 0.1 µsec down
-        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.0000001")
+        dt = ProtocolBase().from_unicode(DateTime,
+                                                  "2015-01-01 12:12:12.0000001")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
 
         # rounding 1.5 µsec up. 0.5 is rounded down by python 3 and up by
         # python 2 so we test with 1.5 µsec instead. frikkin' nonsense.
-        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.0000015")
+        dt = ProtocolBase().from_unicode(DateTime,
+                                                  "2015-01-01 12:12:12.0000015")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 2), dt)
 
         # rounding 999998.8 µsec up
-        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.9999988")
+        dt = ProtocolBase().from_unicode(DateTime,
+                                                  "2015-01-01 12:12:12.9999988")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
         # rounding 999999.1 µsec down
-        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.9999991")
+        dt = ProtocolBase().from_unicode(DateTime,
+                                                  "2015-01-01 12:12:12.9999991")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
         # rounding 999999.8 µsec down, not up.
-        dt = ProtocolBase().from_unicode(DateTime, "2015-01-01 12:12:12.9999998")
+        dt = ProtocolBase().from_unicode(DateTime,
+                                                  "2015-01-01 12:12:12.9999998")
         self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
+
 
 ### Duration Data Type
 ## http://www.w3schools.com/schema/schema_dtypes_date.asp
@@ -678,6 +771,7 @@ class TestPrimitive(unittest.TestCase):
 class SomeBlob(ComplexModel):
     __namespace__ = 'myns'
     howlong = Duration()
+
 
 class TestDurationPrimitive(unittest.TestCase):
     def test_onehour_oneminute_onesecond(self):
@@ -700,7 +794,7 @@ class TestDurationPrimitive(unittest.TestCase):
 
     def test_4suite(self):
         # borrowed from 4Suite
-        tests_seconds =  [
+        tests_seconds = [
             (0, u'PT0S'),
             (1, u'PT1S'),
             (59, u'PT59S'),
@@ -709,8 +803,8 @@ class TestDurationPrimitive(unittest.TestCase):
             (3600, u'PT1H'),
             (86399, u'PT23H59M59S'),
             (86400, u'P1D'),
-            (86400*60, u'P60D'),
-            (86400*400, u'P400D')
+            (86400 * 60, u'P60D'),
+            (86400 * 400, u'P400D')
         ]
 
         for secs, answer in tests_seconds:
@@ -718,7 +812,8 @@ class TestDurationPrimitive(unittest.TestCase):
             gg.howlong = timedelta(seconds=secs)
 
             element = etree.Element('test')
-            XmlDocument().to_parent(None, SomeBlob, gg, element, gg.get_namespace())
+            XmlDocument()\
+                     .to_parent(None, SomeBlob, gg, element, gg.get_namespace())
             element = element[0]
 
             print(gg.howlong)
@@ -738,7 +833,8 @@ class TestDurationPrimitive(unittest.TestCase):
                 gg.howlong = timedelta(seconds=secs)
 
                 element = etree.Element('test')
-                XmlDocument().to_parent(None, SomeBlob, gg, element, gg.get_namespace())
+                XmlDocument()\
+                     .to_parent(None, SomeBlob, gg, element, gg.get_namespace())
                 element = element[0]
 
                 print(gg.howlong)
@@ -815,7 +911,7 @@ class TestDurationPrimitive(unittest.TestCase):
         self.assertEquals(dur, ProtocolBase().from_unicode(Duration, str2))
 
         self.assertEquals(dur, ProtocolBase().from_unicode(Duration,
-                               ProtocolBase().to_unicode(Duration, dur)))
+                                      ProtocolBase().to_unicode(Duration, dur)))
 
 
 if __name__ == '__main__':
