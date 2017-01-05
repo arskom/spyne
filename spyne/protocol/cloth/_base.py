@@ -49,9 +49,10 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     mime_type = 'text/xml'
     HtmlMicroFormat = None
 
-    def __init__(self, app=None, mime_type=None, ignore_uncap=False,
-                        ignore_wrappers=False, cloth=None, cloth_parser=None,
-                                         polymorphic=True, strip_comments=True):
+    def __init__(self, app=None, encoding='utf8', doctype=None,
+                      mime_type=None, ignore_uncap=False, ignore_wrappers=False,
+                                cloth=None, cloth_parser=None, polymorphic=True,
+                                                           strip_comments=True):
 
         super(XmlCloth, self).__init__(app=app, mime_type=mime_type,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
@@ -59,6 +60,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         self._init_cloth(cloth, cloth_parser, strip_comments)
         self.developer_mode = False
+        self.encoding = encoding
 
     def get_context(self, parent, transport):
         return XmlClothProtocolContext(parent, transport)
@@ -91,7 +93,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
                 retval = self._incgen(ctx, cls, inst, name)
             else:
-                with self.docfile(ctx.out_stream) as xf:
+                with self.docfile(ctx.out_stream, encoding=self.encoding) as xf:
                     retval = self.to_parent(ctx, cls, inst, xf, name)
 
         else:
@@ -144,7 +146,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             name = cls.get_type_name()
 
         try:
-            with self.docfile(ctx.out_stream) as xf:
+            with self.docfile(ctx.out_stream, encoding=self.encoding) as xf:
                 ctx.protocol.doctype_written = False
                 ctx.protocol.prot_stack = []
                 ret = self.subserialize(ctx, cls, inst, xf, name)
@@ -168,6 +170,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                 raise
 
     def docfile(self, *args, **kwargs):
+        logger.debug("Starting file with %r %r", args, kwargs)
         return etree.xmlfile(*args, **kwargs)
 
     def write_doctype(self, ctx, parent, cloth=None):

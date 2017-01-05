@@ -57,13 +57,16 @@ class HtmlClothProtocolContext(XmlClothProtocolContext):
 class HtmlCloth(XmlCloth):
     mime_type = 'text/html; charset=UTF-8'
 
-    def __init__(self, app=None, mime_type=None, ignore_uncap=False,
-                           ignore_wrappers=False, cloth=None, cloth_parser=None,
-                                polymorphic=True, hier_delim='.', doctype=None):
+    def __init__(self, app=None, encoding='utf8',
+                      mime_type=None, ignore_uncap=False, ignore_wrappers=False,
+                                cloth=None, cloth_parser=None, polymorphic=True,
+                             strip_comments=True, hier_delim='.', doctype=None):
 
-        super(HtmlCloth, self).__init__(app=app, mime_type=mime_type,
-                ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
-                cloth=cloth, cloth_parser=cloth_parser, polymorphic=polymorphic)
+        super(HtmlCloth, self).__init__(app=app, encoding=encoding,
+                                 mime_type=mime_type, ignore_uncap=ignore_uncap,
+                                   ignore_wrappers=ignore_wrappers, cloth=cloth,
+                             cloth_parser=cloth_parser, polymorphic=polymorphic,
+                                                  strip_comments=strip_comments)
 
         self.hier_delim = hier_delim
         self.doctype = doctype
@@ -76,6 +79,7 @@ class HtmlCloth(XmlCloth):
         return cloth.getroot()
 
     def docfile(self, *args, **kwargs):
+        logger.debug("Starting file with %r %r", args, kwargs)
         return etree.htmlfile(*args, **kwargs)
 
     def write_doctype(self, ctx, parent, cloth=None):
