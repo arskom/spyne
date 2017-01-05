@@ -135,6 +135,10 @@ class HtmlCloth(XmlCloth):
         if cls_attrs.min_occurs >= 1:
             parent.write(E(name))
 
+    @staticmethod
+    def selsafe(s):
+        return s.replace('[', '').replace(']', '').replace('.', '__')
+
     @coroutine
     def complex_to_parent(self, ctx, cls, inst, parent, name, use_ns=False,
                                                                       **kwargs):
