@@ -437,11 +437,13 @@ class ToParentMixin(OutProtocolBase):
 
             if issubclass(v, XmlData):
                 if subvalue is not None:
-                    self.to_parent(ctx, v, inst, parent, name=name, **kwargs)
+                    self.to_parent(ctx, v, inst, parent, name=name,
+                                                        use_ns=use_ns, **kwargs)
                 continue
 
             if subvalue is not None or attr.min_occurs > 0:
-                ret = self.to_parent(ctx, v, subvalue, parent, name, **kwargs)
+                ret = self.to_parent(ctx, v, subvalue, parent, name,
+                                                        use_ns=use_ns, **kwargs)
                 if ret is not None:
                     try:
                         while True:
