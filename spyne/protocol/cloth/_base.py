@@ -61,6 +61,8 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         self._init_cloth(cloth, cloth_parser, strip_comments)
         self.developer_mode = False
         self.encoding = encoding
+        self.default_method = 'xml'
+        self.doctype = doctype
 
     def get_context(self, parent, transport):
         return XmlClothProtocolContext(parent, transport)
@@ -273,7 +275,6 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         return name
 
     def _gen_attr_dict(self, inst, fti):
-        # Check for xmlattribute before entering the cloth.
         attrs = {}
         for field_name, field_type in fti.attrs.items():
             ns = field_type._ns

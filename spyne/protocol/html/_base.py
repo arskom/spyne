@@ -70,6 +70,7 @@ class HtmlCloth(XmlCloth):
 
         self.hier_delim = hier_delim
         self.doctype = doctype
+        self.default_method = 'html'
 
     def _parse_file(self, file_name, cloth_parser):
         if cloth_parser is None:

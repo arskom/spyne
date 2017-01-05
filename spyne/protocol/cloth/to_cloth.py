@@ -275,13 +275,13 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
                 elt.append(mrpc_template)
                                            # mutable default ok because readonly
-    def _enter_cloth(self, ctx, cloth, parent, attrs={}, skip=False):
+    def _enter_cloth(self, ctx, cloth, parent, attrs={}, skip=False, method=None):
         """There is no _exit_cloth because exiting from tags is done
         automatically with subsequent calls to _enter_cloth and finally to
         _close_cloth."""
 
-        logger_c.debug("entering %s %r nsmap=%r attrs=%r skip=%s",
-                              cloth.tag, cloth.attrib, cloth.nsmap, attrs, skip)
+        logger_c.debug("entering %s %r nsmap=%r attrs=%r skip=%s method=%s",
+                      cloth.tag, cloth.attrib, cloth.nsmap, attrs, skip, method)
 
         if not ctx.protocol.doctype_written:
             self.write_doctype(ctx, parent, cloth)
@@ -351,14 +351,17 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 parent.write(elt)
 
             # enter the ancestor node
+            kwargs = {}
             if len(cureltstack) == 0:
                 # if this is the first node ever, initialize namespaces as well
-                anc_ctx = parent.element(anc.tag, anc.attrib, nsmap=anc.nsmap)
-            else:
-                anc_ctx = parent.element(anc.tag, anc.attrib)
+                kwargs['nsmap'] = anc.nsmap
+            if method is not None:
+                kwargs['method'] = method
+
+            anc_ctx = parent.element(anc.tag, anc.attrib, **kwargs)
             anc_ctx.__enter__()
-            logger_c.debug("\tenter norm %s %r 0x%x", anc.tag,
-                                                            anc.attrib, id(anc))
+            logger_c.debug("\tenter norm %s %r 0x%x method: %r", anc.tag,
+                                                    anc.attrib, id(anc), method)
             if anc.text is not None:
                 parent.write(anc.text)
 
@@ -387,7 +390,11 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         if skip:
             tags.add(id(cloth))
-            curtag = None
+            if method is not None:
+                curtag = parent.method(method)
+                curtag.__enter__()
+            else:
+                curtag = None
 
         else:
             # finally, enter the target node.
@@ -399,10 +406,13 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             self.event_manager.fire_event(("before_entry", cloth), ctx,
                                                                  parent, attrib)
 
+            kwargs = {}
             if len(cureltstack) == 0:
-                curtag = parent.element(cloth.tag, attrib, nsmap=cloth.nsmap)
-            else:
-                curtag = parent.element(cloth.tag, attrib)
+                # if this is the first node ever, initialize namespaces as well
+                kwargs['nsmap'] = cloth.nsmap
+            if method is not None:
+                kwargs['method'] = method
+            curtag = parent.element(cloth.tag, attrib, **kwargs)
             curtag.__enter__()
             if cloth.text is not None:
                 parent.write(cloth.text)
@@ -472,7 +482,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         if len(ctx.protocol.eltstack) > 0:
             ctx.protocol[self].rootstack.add(cloth)
 
-        self._enter_cloth(ctx, cloth, parent)
+        cls_attrs = self.get_cls_attrs(cls)
+        self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
 
         ret = self.start_to_parent(ctx, cls, inst, parent, name)
         if isgenerator(ret):
@@ -529,7 +540,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     "to be serialized as attributes, use type casting with "  \
                     "customized serializers in the current protocol instead."
 
-                self._enter_cloth(ctx, cloth, parent)
+                self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
 
                 ret = subprot.subserialize(ctx, cls, inst, parent, name,
                                                       as_attr=as_attr, **kwargs)
@@ -538,13 +549,14 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             else:
                 # try rendering the null value
                 if inst is None:
-                    if cls.Attributes.min_occurs > 0:
+                    if cls_attrs.min_occurs > 0:
                         attrs = {}
                         if as_attr:
                             # FIXME: test needed
                             attrs[name] = ''
 
-                        self._enter_cloth(ctx, cloth, parent, attrs=attrs)
+                        self._enter_cloth(ctx, cloth, parent, attrs=attrs,
+                                                        method=cls_attrs.method)
                         identifier = "%s.%s" % (prot_name, "null_to_cloth")
                         logger_s.debug("Writing '%s' using %s type: %s.", name,
                                                 identifier, cls.get_type_name())
@@ -553,7 +565,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     else:
                         logger_s.debug("Skipping '%s' type: %s because empty.",
                                                       name, cls.get_type_name())
-                        self._enter_cloth(ctx, cloth, parent, skip=True)
+                        self._enter_cloth(ctx, cloth, parent, skip=True,
+                                                        method=cls_attrs.method)
 
                     return
 
@@ -567,7 +580,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 if as_attr:
                     attrs = {name: self.to_unicode(cls, inst)}
 
-                    self._enter_cloth(ctx, cloth, parent, attrs=attrs)
+                    self._enter_cloth(ctx, cloth, parent, attrs=attrs,
+                                                        method=cls_attrs.method)
 
                     return
 
@@ -619,7 +633,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
     def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name,
                                                                       **kwargs):
-        self._enter_cloth(ctx, cloth, parent)
+        cls_attrs = self.get_cls_attrs(cls)
+        self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
 
         # FIXME: Does it make sense to do this in other types?
         if self.WRITE_CONTENTS_WHEN_NOT_NONE in cloth.attrib:
@@ -631,36 +646,42 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             parent.write(self.to_unicode(cls, inst))
 
     def xml_to_cloth(self, ctx, cls, inst, cloth, parent, name, **_):
-        self._enter_cloth(ctx, cloth, parent)
+        cls_attrs = self.get_cls_attrs(cls)
+        self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
         if isinstance(inst, string_types):
             inst = etree.fromstring(inst)
         parent.write(inst)
 
     def any_to_cloth(self, ctx, cls, inst, cloth, parent, name, **_):
-        self._enter_cloth(ctx, cloth, parent)
+        cls_attrs = self.get_cls_attrs(cls)
+        self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
         parent.write(inst)
 
     def html_to_cloth(self, ctx, cls, inst, cloth, parent, name, **_):
-        self._enter_cloth(ctx, cloth, parent)
+        cls_attrs = self.get_cls_attrs(cls)
+        self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
         if isinstance(inst, string_types):
             inst = html.fromstring(inst)
         parent.write(inst)
 
     def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
-        self._enter_cloth(ctx, cloth, parent)
+        cls_attrs = self.get_cls_attrs(cls)
+        self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
         self.anyuri_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     @coroutine
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
                                                        as_attr=False, **kwargs):
         fti = cls.get_flat_type_info(cls)
+        cls_attrs = self.get_cls_attrs(cls)
 
         # It's actually an odict but that's irrelevant here.
         fti_check = dict(fti.items())
         elt_check = set()
 
         attrs = self._gen_attr_dict(inst, fti)
-        self._enter_cloth(ctx, cloth, parent, attrs=attrs)
+        self._enter_cloth(ctx, cloth, parent, attrs=attrs,
+                                                        method=cls_attrs.method)
 
         for elt in self._get_elts(cloth, self.MRPC_ID):
             self._actions_to_cloth(ctx, cls, inst, elt)
