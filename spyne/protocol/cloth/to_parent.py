@@ -40,8 +40,6 @@ from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
 from spyne.util.color import R, B
 
-
-# FIXME: Serialize xml attributes!!!
 from spyne.util.six import string_types
 
 
@@ -462,7 +460,9 @@ class ToParentMixin(OutProtocolBase):
         attrs = self._gen_attr_dict(inst, cls.get_flat_type_info(cls))
 
         with parent.element(name, attrib=attrs):
-            parent.write(" ")
+            # parent.write(u"\u200c")  # zero-width non-joiner
+            parent.write(" ")  # FIXME: to force empty tags to be sent as
+                               # <a></a> instead of <a/>
             ret = self._write_members(ctx, cls, inst, parent, **kwargs)
             if ret is not None:
                 try:

@@ -69,13 +69,14 @@ class TestModelCloth(unittest.TestCase):
 
 
 
-### !!! WARNING !!! ### !!! WARNING !!! ###
+### !!! WARNING !!! ### !!! WARNING !!! ### !!! WARNING !!! ### !!! WARNING !!!
 #
 #  This test uses spyne_id and spyne_tagbag instead of spyne-id and spyne-tagbag
-# for ease of testing. The real attributes are different from what you are going
-# to see in the wild. You have been warned !!!
+# for ease of testing. The attributes used here are different from what you are
+# going to see in the real-world uses of this functionality.
+# You have been warned !!!
 #
-### !!! WARNING !!! ### !!! WARNING !!! ###
+### !!! WARNING !!! ### !!! WARNING !!! ### !!! WARNING !!! ### !!! WARNING !!!
 class TestXmlCloth(unittest.TestCase):
     def setUp(self):
         self.ctx = FakeContext()
