@@ -27,14 +27,13 @@ logger_s = logging.getLogger("%s.serializer" % __name__)
 from lxml import html, etree
 from copy import deepcopy
 from inspect import isgenerator
-from itertools import chain
 
 from spyne.util import Break, coroutine
 from spyne.util.oset import oset
 from spyne.util.six import string_types
 from spyne.util.color import R, B
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
-    PushBase, XmlAttribute, File, ByteArray, AnyUri, XmlData, Any
+    PushBase, XmlAttribute, AnyUri, XmlData, Any
 
 from spyne.protocol import OutProtocolBase
 from spyne.util.cdict import cdict
@@ -545,6 +544,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
             # if there is no subprotocol, try rendering the value
             else:
+                ret = None
+
                 # try rendering the null value
                 if inst is None:
                     if cls_attrs.min_occurs > 0:
@@ -566,46 +567,44 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         self._enter_cloth(ctx, cloth, parent, skip=True,
                                                         method=cls_attrs.method)
 
-                    return
-
-                if as_data:
+                elif as_data:
                     # we only support XmlData of a primitive.,. is this a
                     # problem?
                     parent.write(self.to_unicode(cls, inst))
 
-                    return
-
-                if as_attr:
-                    attrs = {name: self.to_unicode(cls, inst)}
+                elif as_attr:
+                    sub_name = cls_attrs.sub_name
+                    if sub_name is None:
+                        sub_name = name
+                    attrs = {sub_name: self.to_unicode(cls, inst)}
 
                     self._enter_cloth(ctx, cloth, parent, attrs=attrs,
                                                         method=cls_attrs.method)
 
-                    return
-
-                # push the instance at hand to instance stack. this makes it
-                # easier for protocols to make decisions based on parents of
-                # instances at hand.
-                pushed = True
-                logger_c.debug("%s %r pushed %r %r", R("#"), self, cls, inst)
-                ctx.outprot_ctx.inst_stack.append((cls, inst, from_arr))
-
-                # try rendering the array value
-                if not from_arr and cls.Attributes.max_occurs > 1:
-                    ret = self.array_to_cloth(ctx, cls, inst, cloth, parent,
-                                                 as_attr=as_attr, name=name)
                 else:
-                    # try rendering anything else
-                    handler = self.rendering_handlers[cls]
+                    # push the instance at hand to instance stack. this makes it
+                    # easier for protocols to make decisions based on parents of
+                    # instances at hand.
+                    pushed = True
+                    logger_c.debug("%s %r pushed %r %r", R("#"), self, cls, inst)
+                    ctx.outprot_ctx.inst_stack.append((cls, inst, from_arr))
 
-                    # disabled for performance reasons
-                    # identifier = "%s.%s" % (prot_name, handler.__name__)
-                    # from spyne.util.web import log_repr
-                    # logger_s.debug("Writing %s using %s for %s. Inst: %r",
-                    #                  name, identifier, cls.get_type_name(),
-                    #                  log_repr(inst, cls, from_array=from_arr))
+                    # try rendering the array value
+                    if not from_arr and cls.Attributes.max_occurs > 1:
+                        ret = self.array_to_cloth(ctx, cls, inst, cloth, parent,
+                                                     as_attr=as_attr, name=name)
+                    else:
+                        # try rendering anything else
+                        handler = self.rendering_handlers[cls]
 
-                    ret = handler(ctx, cls, inst, cloth, parent, name=name,
+                        # disabled for performance reasons
+                        # identifier = "%s.%s" % (prot_name, handler.__name__)
+                        # from spyne.util.web import log_repr
+                        # logger_s.debug("Writing %s using %s for %s. Inst: %r",
+                        #              name, identifier, cls.get_type_name(),
+                        #              log_repr(inst, cls, from_array=from_arr))
+
+                        ret = handler(ctx, cls, inst, cloth, parent, name=name,
                                                                 as_attr=as_attr)
 
         if isgenerator(ret):
