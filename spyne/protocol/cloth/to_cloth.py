@@ -355,8 +355,6 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             if len(cureltstack) == 0:
                 # if this is the first node ever, initialize namespaces as well
                 kwargs['nsmap'] = anc.nsmap
-            if method is not None:
-                kwargs['method'] = method
 
             anc_ctx = parent.element(anc.tag, anc.attrib, **kwargs)
             anc_ctx.__enter__()
