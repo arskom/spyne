@@ -275,7 +275,17 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 elt.append(mrpc_template)
                                            # mutable default ok because readonly
     def _enter_cloth(self, ctx, cloth, parent, attrs={}, skip=False, method=None):
-        """There is no _exit_cloth because exiting from tags is done
+        """Enters the given tag in the document by using the shortest path from
+        current tag.
+
+        1. Moves up the tree by writing all tags so that the set of ancestors
+           of the current tag are a subset of the ancestors of the parent tag
+        2. Writes all tags until hitting a direct ancestor, enters it, and
+           keeps writing previous siblings of ancestor tags and entering
+           ancestor tags until hitting the target tag.
+        3. Enters the target tag and returns
+
+        There is no _exit_cloth because exiting from tags is done
         automatically with subsequent calls to _enter_cloth and finally to
         _close_cloth."""
 
