@@ -349,10 +349,6 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             if ancestors[:len(cureltstack)] != cureltstack:
                 # write following siblings before closing parent node
                 for sibl in elt.itersiblings(preceding=False):
-                    if self.strip_comments and \
-                                            isinstance(sibl, etree.CommentBase):
-                        continue
-
                     logger_c.debug("\twrite exit sibl %s %r %d",
                                                 sibl.tag, sibl.attrib, id(sibl))
                     parent.write(sibl)
@@ -460,9 +456,6 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     parent.write(elt.tail)
 
             for sibl in elt.itersiblings(preceding=False):
-                if self.strip_comments and isinstance(sibl, etree.CommentBase):
-                    continue
-
                 logger_c.debug("write %s nextsibl", sibl.tag)
                 parent.write(sibl)
                 if sibl.tail is not None:
