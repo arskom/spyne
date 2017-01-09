@@ -56,7 +56,10 @@ def _prevsibls_since(elt, strip_comments, since):
             break
 
         if isinstance(elt, etree.CommentBase) and strip_comments:
-            continue
+            if elt.text.startswith('[if ') and elt.text.endswith('[endif]'):
+                pass
+            else:
+                continue
 
         yield prevsibl
 

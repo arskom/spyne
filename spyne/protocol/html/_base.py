@@ -74,7 +74,7 @@ class HtmlCloth(XmlCloth):
 
     def _parse_file(self, file_name, cloth_parser):
         if cloth_parser is None:
-            cloth_parser = html.HTMLParser(remove_comments=self.strip_comments)
+            cloth_parser = html.HTMLParser()
 
         cloth = html.parse(file_name, parser=cloth_parser)
         return cloth.getroot()
