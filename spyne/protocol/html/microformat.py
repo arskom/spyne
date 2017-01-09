@@ -126,7 +126,8 @@ class HtmlMicroFormat(HtmlBase):
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def complex_model_to_parent(self, ctx, cls, inst, parent, name,
+                                                        use_ns=False, **kwargs):
         attrs = {self.field_name_attr: name}
 
         if not getattr(ctx.protocol, 'before_first_root', False):

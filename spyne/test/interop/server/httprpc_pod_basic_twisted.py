@@ -29,7 +29,7 @@ from spyne.test.interop.server._service import services
 from spyne.protocol.http import HttpRpc
 from spyne.server.twisted import TwistedWebResource
 
-httprpc_soap_application = Application(services, 
+httprpc_soap_application = Application(services,
                                 'spyne.test.interop.server.httprpc.pod',
                                 in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
@@ -37,9 +37,7 @@ host = '127.0.0.1'
 port = 9752
 
 def main(argv):
-    from twisted.python import log
     from twisted.web.server import Site
-    from twisted.web.static import File
     from twisted.internet import reactor
     from twisted.python import log
 

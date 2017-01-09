@@ -377,6 +377,32 @@ def _has_fd(istr):
         return True
 
 
+def get_twisted_child_with_default(res, path, request):
+    # this hack is necessary because twisted takes the slash character in
+    # http requests too seriously. i.e. it insists that a leaf node can only
+    # handle the last path fragment.
+    if res.prepath is None:
+        request.realprepath = '/' + '/'.join(request.prepath)
+    else:
+        if not res.prepath.startswith('/'):
+            request.realprepath = '/' + res.prepath
+        else:
+            request.realprepath = res.prepath
+
+    if path in res.children:
+        retval = res.children[path]
+    else:
+        retval = res.getChild(path, request)
+
+    if isinstance(retval, NoResource):
+        retval = res
+    else:
+        request.realpostpath = request.path[
+                               len(path) + (0 if path.startswith('/') else 1):]
+
+    return retval
+
+
 class TwistedWebResource(Resource):
     """A server transport that exposes the application as a twisted web
     Resource.
@@ -393,28 +419,7 @@ class TwistedWebResource(Resource):
         self.prepath = prepath
 
     def getChildWithDefault(self, path, request):
-        # this hack is necessary because twisted takes the slash character in
-        # http requests too seriously. i.e. it insists that a leaf node can only
-        # handle the last path fragment.
-        if self.prepath is None:
-            request.realprepath = '/' + '/'.join(request.prepath)
-        else:
-            if not self.prepath.startswith('/'):
-                request.realprepath = '/' + self.prepath
-            else:
-                request.realprepath = self.prepath
-
-        if path in self.children:
-            retval = self.children[path]
-        else:
-            retval = self.getChild(path, request)
-
-        if isinstance(retval, NoResource):
-            retval = self
-        else:
-            request.realpostpath = request.path[len(request.realprepath):]
-
-        return retval
+        return get_twisted_child_with_default(self, path, request)
 
     def render(self, request):
         if request.method == 'GET' and (
