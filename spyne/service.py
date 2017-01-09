@@ -203,6 +203,12 @@ class ServiceBase(object):
         return False
 
     @classmethod
+    def get_context(cls):
+        """Returns a user defined context. Override this in your ServiceBase
+        subclass to customize context generation."""
+        return None
+
+    @classmethod
     def call_wrapper(cls, ctx):
         """Called in place of the original method call. You can override this to
         do your own exception handling.
