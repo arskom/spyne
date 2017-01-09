@@ -104,7 +104,7 @@ def _produce_input_message(f, params, in_message_name,
             from spyne.model import ComplexModelBase
             if issubclass(message, ComplexModelBase) and not message._type_info:
                 raise Exception("body_style='bare' does not allow empty "
-                                "model as param")
+                                                               "model as param")
 
             # there can't be multiple arguments here.
             if message.__type_name__ is ModelBase.Empty:

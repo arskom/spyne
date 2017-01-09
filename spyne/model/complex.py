@@ -964,8 +964,8 @@ class ComplexModelBase(ModelBase):
 
         Null values are omitted from dict representation to support optional
         not nullable attributes.
-
         """
+
         return dict((
             (k, getattr(self, k)) for k in self.get_flat_type_info(self)
             if getattr(self, k) is not None
