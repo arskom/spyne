@@ -123,7 +123,7 @@ class ClothParserMixin(object):
     @staticmethod
     def _strip_comments(root):
         for elt in root.iter():
-            if isinstance(elt, etree._Comment):
+            if isinstance(elt, etree.CommentBase):
                 if elt.getparent() is not None:
                     if elt.text.startswith('[if ') \
                                                and elt.text.endswith('[endif]'):
