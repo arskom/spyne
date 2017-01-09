@@ -43,17 +43,21 @@ _revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
 _NODATA = type("_NODATA", (object,), {})
 
 
-def _prevsibls(elt, since=None):
-    return reversed(list(_prevsibls_since(elt, since)))
+def _prevsibls(elt, strip_comments, since=None):
+    return reversed(list(_prevsibls_since(elt, strip_comments, since)))
 
 
-def _prevsibls_since(elt, since):
+def _prevsibls_since(elt, strip_comments, since):
     if since is elt:
         return
 
     for prevsibl in elt.itersiblings(preceding=True):
         if prevsibl is since:
             break
+
+        if isinstance(elt, etree.CommentBase) and strip_comments:
+            continue
+
         yield prevsibl
 
 
@@ -134,13 +138,14 @@ class ClothParserMixin(object):
 
         self._cloth = None
         self._root_cloth = None
+        self.strip_comments = strip_comments
 
         self._mrpc_cloth = self._root_cloth = None
 
         if cloth is None:
             return
 
-        elif isinstance(cloth, string_types):
+        if isinstance(cloth, string_types):
             cloth = self._parse_file(cloth, cloth_parser)
 
         if strip_comments:
@@ -341,6 +346,10 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             if ancestors[:len(cureltstack)] != cureltstack:
                 # write following siblings before closing parent node
                 for sibl in elt.itersiblings(preceding=False):
+                    if self.strip_comments and \
+                                            isinstance(sibl, etree.CommentBase):
+                        continue
+
                     logger_c.debug("\twrite exit sibl %s %r %d",
                                                 sibl.tag, sibl.attrib, id(sibl))
                     parent.write(sibl)
@@ -348,7 +357,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         # write remaining ancestors of the target node.
         for anc in ancestors[len(cureltstack):]:
             # write previous siblings of ancestors (if any)
-            prevsibls = _prevsibls(anc, since=last_elt)
+            prevsibls = _prevsibls(anc, self.strip_comments, since=last_elt)
             for elt in prevsibls:
                 if id(elt) in tags:
                     logger_c.debug("\tskip  anc prevsibl %s %r",
@@ -380,7 +389,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         # now that at the same level as the target node,
         # write its previous siblings
-        prevsibls = _prevsibls(cloth, since=last_elt)
+        prevsibls = _prevsibls(cloth, self.strip_comments, since=last_elt)
         for elt in prevsibls:
             if elt is last_elt:
                 continue
@@ -448,6 +457,9 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     parent.write(elt.tail)
 
             for sibl in elt.itersiblings(preceding=False):
+                if self.strip_comments and isinstance(sibl, etree.CommentBase):
+                    continue
+
                 logger_c.debug("write %s nextsibl", sibl.tag)
                 parent.write(sibl)
                 if sibl.tail is not None:
