@@ -125,6 +125,7 @@ class HierDictDocument(DictDocument):
 
         ctx.out_document = self._object_to_doc(out_type, out_instance),
 
+        logger.debug("Retval: %r", ctx.out_document)
         self.event_manager.fire_event('after_serialize', ctx)
 
     def validate(self, key, cls, inst):
