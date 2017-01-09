@@ -80,7 +80,7 @@ class HierDictDocument(DictDocument):
             class_name = self.get_class_name(body_class)
             if self.ignore_wrappers:
                 doc = doc.get(class_name, None)
-            result_message = self._doc_to_object(body_class, doc,
+            result_message = self._doc_to_object(ctx, body_class, doc,
                                                                  self.validator)
             ctx.in_object = result_message
 
@@ -136,7 +136,7 @@ class HierDictDocument(DictDocument):
                                                                six.binary_type)):
             raise ValidationError([key, inst])
 
-    def _from_dict_value(self, key, cls, inst, validator):
+    def _from_dict_value(self, ctx, key, cls, inst, validator):
         if validator is self.SOFT_VALIDATION:
             self.validate(key, cls, inst)
 
@@ -148,10 +148,10 @@ class HierDictDocument(DictDocument):
 
         # get native type
         elif issubclass(cls, File) and isinstance(inst, complex_as):
-            retval = self._doc_to_object(cls.Attributes.type, inst, validator)
+            retval = self._doc_to_object(ctx, cls.Attributes.type, inst, validator)
 
         elif issubclass(cls, ComplexModelBase):
-            retval = self._doc_to_object(cls, inst, validator)
+            retval = self._doc_to_object(ctx, cls, inst, validator)
 
         else:
             if cls.Attributes.empty_is_none and inst in (u'', b''):
@@ -174,7 +174,7 @@ class HierDictDocument(DictDocument):
 
         return retval
 
-    def _doc_to_object(self, cls, doc, validator=None):
+    def _doc_to_object(self, ctx, cls, doc, validator=None):
         if doc is None:
             return []
 
@@ -189,7 +189,7 @@ class HierDictDocument(DictDocument):
                 raise ValidationError(doc)
 
             for i, child in enumerate(doc):
-                retval.append(self._from_dict_value(i, serializer, child,
+                retval.append(self._from_dict_value(ctx, i, serializer, child,
                                                                      validator))
 
             return retval
@@ -225,7 +225,7 @@ class HierDictDocument(DictDocument):
                                                             cls.get_type_name())
                 cls = subcls
 
-        inst = cls.get_deserialization_instance()
+        inst = cls.get_deserialization_instance(ctx)
 
         # get all class attributes, including the ones coming from parent classes.
         flat_type_info = cls.get_flat_type_info(cls)
@@ -265,10 +265,11 @@ class HierDictDocument(DictDocument):
                     subinst = []
 
                 for a in v:
-                    subinst.append(self._from_dict_value(k, member, a, validator))
+                    subinst.append(
+                            self._from_dict_value(ctx, k, member, a, validator))
 
             else:
-                subinst = self._from_dict_value(k, member, v, validator)
+                subinst = self._from_dict_value(ctx, k, member, v, validator)
 
             inst._safe_set(k, subinst, member)
 

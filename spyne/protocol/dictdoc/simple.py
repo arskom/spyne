@@ -142,7 +142,7 @@ class SimpleDictDocument(DictDocument):
 
         return value
 
-    def simple_dict_to_object(self, doc, cls, validator=None, req_enc=None):
+    def simple_dict_to_object(self, ctx, doc, cls, validator=None, req_enc=None):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -162,7 +162,7 @@ class SimpleDictDocument(DictDocument):
         if validator is self.SOFT_VALIDATION:
             _fill(cls, frequencies)
 
-        retval = cls.get_deserialization_instance()
+        retval = cls.get_deserialization_instance(ctx)
         simple_type_info = cls.get_simple_type_info(cls,
                                                      hier_delim=self.hier_delim)
 
@@ -189,7 +189,7 @@ class SimpleDictDocument(DictDocument):
                 elif self.get_cls_attrs(member.type).max_occurs > 1:
                     value = []
                 else:
-                    value = [member.type.get_deserialization_instance()]
+                    value = [member.type.get_deserialization_instance(ctx)]
                     # do we have to ignore later assignments? they're illegal
                     # but not harmful.
             else:
@@ -227,7 +227,7 @@ class SimpleDictDocument(DictDocument):
 
                     if self.strict_arrays:
                         if len(ninst) == 0:
-                            newval = ncls.get_deserialization_instance()
+                            newval = ncls.get_deserialization_instance(ctx)
                             ninst.append(newval)
                             frequencies[cfreq_key][pkey] += 1
 
@@ -235,7 +235,7 @@ class SimpleDictDocument(DictDocument):
                             raise ValidationError(orig_k,
                                             "%%r Invalid array index %d." % idx)
                         if nidx == len(ninst):
-                            ninst.append(ncls.get_deserialization_instance())
+                            ninst.append(ncls.get_deserialization_instance(ctx))
                             frequencies[cfreq_key][pkey] += 1
 
                         cinst = ninst[nidx]
@@ -245,7 +245,7 @@ class SimpleDictDocument(DictDocument):
                         cidx = _m.get(nidx, None)
                         if cidx is None:
                             cidx = _s2cmi(_m, nidx)
-                            newval = ncls.get_deserialization_instance()
+                            newval = ncls.get_deserialization_instance(ctx)
                             ninst.insert(cidx, newval)
                             frequencies[cfreq_key][pkey] += 1
                         cinst = ninst[cidx]
@@ -254,7 +254,7 @@ class SimpleDictDocument(DictDocument):
 
                 else:
                     if ninst is None:
-                        ninst = ncls.get_deserialization_instance()
+                        ninst = ncls.get_deserialization_instance(ctx)
                         cinst._safe_set(pkey, ninst, ncls)
                         frequencies[cfreq_key][pkey] += 1
 

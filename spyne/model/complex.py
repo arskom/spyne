@@ -1023,7 +1023,7 @@ class ComplexModelBase(ModelBase):
         return inst
 
     @classmethod
-    def get_deserialization_instance(cls):
+    def get_deserialization_instance(cls, ctx):
         """Get an empty native type so that the deserialization logic can set
         its attributes.
         """
@@ -1457,7 +1457,7 @@ class Array(ComplexModelBase):
         return inst
 
     @classmethod
-    def get_deserialization_instance(cls):
+    def get_deserialization_instance(cls, ctx):
         return []
 
 

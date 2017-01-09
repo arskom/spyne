@@ -891,7 +891,7 @@ class XmlDocument(SubXmlBase):
         _append(parent, elt)
 
     def complex_from_element(self, ctx, cls, elt):
-        inst = cls.get_deserialization_instance()
+        inst = cls.get_deserialization_instance(ctx)
 
         flat_type_info = cls.get_flat_type_info(cls)
 

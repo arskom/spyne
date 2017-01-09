@@ -275,7 +275,7 @@ class _SpyneJsonRpc1(JsonDocument):
 
         if ctx.protocol.error:
             ctx.in_object = None
-            ctx.in_error = self._doc_to_object(Fault, ctx.in_body_doc)
+            ctx.in_error = self._doc_to_object(ctx, Fault, ctx.in_body_doc)
 
         else:
             if message is self.REQUEST:
@@ -292,7 +292,8 @@ class _SpyneJsonRpc1(JsonDocument):
                 for i, (header_doc, head_class) in enumerate(
                                           zip(ctx.in_header_doc, header_class)):
                     if header_doc is not None and i < len(header_doc):
-                        headers[i] = self._doc_to_object(head_class, header_doc)
+                        headers[i] = self._doc_to_object(ctx, head_class,
+                                                                     header_doc)
 
                 if len(headers) == 1:
                     ctx.in_header = headers[0]
@@ -302,7 +303,8 @@ class _SpyneJsonRpc1(JsonDocument):
             if ctx.in_body_doc is None:
                 ctx.in_object = [None] * len(body_class._type_info)
             else:
-                ctx.in_object = self._doc_to_object(body_class, ctx.in_body_doc)
+                ctx.in_object = self._doc_to_object(ctx, body_class,
+                                                                ctx.in_body_doc)
 
         self.event_manager.fire_event('after_deserialize', ctx)
 

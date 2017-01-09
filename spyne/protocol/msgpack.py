@@ -261,7 +261,8 @@ class MessagePackRpc(MessagePackDocument):
             ctx.in_error = Fault(**ctx.in_error)
 
         elif body_class:
-            ctx.in_object = self._doc_to_object(body_class, ctx.in_body_doc, self.validator)
+            ctx.in_object = self._doc_to_object(ctx,
+                                    body_class, ctx.in_body_doc, self.validator)
 
         else:
             ctx.in_object = []

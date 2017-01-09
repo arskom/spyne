@@ -72,7 +72,7 @@ class _UtilProtocol(HierDictDocument):
 def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list,
                                                         protocol=_UtilProtocol):
     return protocol(ignore_wrappers=ignore_wrappers,
-                                   complex_as=complex_as)._doc_to_object(cls, d)
+                             complex_as=complex_as)._doc_to_object(None, cls, d)
 
 
 def get_object_as_dict(o, cls=None, ignore_wrappers=True, complex_as=dict,
@@ -139,7 +139,8 @@ def json_loads(s, cls, protocol=JsonDocument, **kwargs):
     prot = protocol(**kwargs)
     ctx = FakeContext(in_string=[s])
     prot.create_in_document(ctx)
-    return prot._doc_to_object(cls, ctx.in_document, validator=prot.validator)
+    return prot._doc_to_object(None, cls, ctx.in_document,
+                                                       validator=prot.validator)
 
 
 get_json_as_object = json_loads
@@ -153,7 +154,8 @@ def yaml_loads(s, cls, protocol=YamlDocument, ignore_wrappers=False, **kwargs):
     prot = protocol(ignore_wrappers=ignore_wrappers, **kwargs)
     ctx = FakeContext(in_string=[s])
     prot.create_in_document(ctx)
-    retval = prot._doc_to_object(cls, ctx.in_document, validator=prot.validator)
+    retval = prot._doc_to_object(None, cls, ctx.in_document,
+                                                       validator=prot.validator)
     return retval
 
 

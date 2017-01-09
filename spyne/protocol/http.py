@@ -187,11 +187,11 @@ class HttpRpc(SimpleDictDocument):
         if ctx.descriptor.in_header is not None:
             # HttpRpc supports only one header class
             in_header_class = ctx.descriptor.in_header[0]
-            ctx.in_header = self.simple_dict_to_object(ctx.in_header_doc,
+            ctx.in_header = self.simple_dict_to_object(ctx, ctx.in_header_doc,
                             in_header_class, self.validator, req_enc=req_enc)
 
         if ctx.descriptor.in_message is not None:
-            ctx.in_object = self.simple_dict_to_object(ctx.in_body_doc,
+            ctx.in_object = self.simple_dict_to_object(ctx, ctx.in_body_doc,
                     ctx.descriptor.in_message, self.validator, req_enc=req_enc)
 
         self.event_manager.fire_event('after_deserialize', ctx)
