@@ -231,7 +231,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             have_cloth = True
 
         elif self._cloth is not None:
-            logger.debug("to parent cloth")
+            logger.debug("to parent protocol cloth")
             ret = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                            name)
             have_cloth = True
