@@ -525,8 +525,15 @@ class ToParentMixin(OutProtocolBase):
         parent.write(inst)
 
     def any_html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        if isinstance(inst, str) or isinstance(inst, six.text_type):
-            inst = html.fromstring(inst)
+        cls_attrs = self.get_cls_attrs(cls)
+        if cls_attrs.as_string:
+            if not (isinstance(inst, str) or isinstance(inst, six.text_type)):
+                inst = html.tostring(inst)
+
+        else:
+            if isinstance(inst, str) or isinstance(inst, six.text_type):
+                inst = html.fromstring(inst)
+
 
         parent.write(inst)
 
