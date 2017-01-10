@@ -192,7 +192,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             AnyXml: self.xml_to_cloth,
             Any: self.any_to_cloth,
             AnyHtml: self.html_to_cloth,
-            AnyUri: self.anyuri_to_cloth,
+            AnyUri: self.any_uri_to_cloth,
             ComplexModelBase: self.complex_to_cloth,
         })
 
@@ -679,10 +679,10 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             inst = html.fromstring(inst)
         parent.write(inst)
 
-    def anyuri_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
+    def any_uri_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
         cls_attrs = self.get_cls_attrs(cls)
         self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
-        self.anyuri_to_parent(ctx, cls, inst, parent, name, **kwargs)
+        self.any_uri_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     @coroutine
     def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None,

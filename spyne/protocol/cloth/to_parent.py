@@ -55,11 +55,11 @@ class ToParentMixin(OutProtocolBase):
         self.serialization_handlers = cdict({
             ModelBase: self.base_to_parent,
 
-            AnyXml: self.xml_to_parent,
-            AnyUri: self.anyuri_to_parent,
+            AnyXml: self.any_xml_to_parent,
+            AnyUri: self.any_uri_to_parent,
             ImageUri: self.imageuri_to_parent,
-            AnyDict: self.dict_to_parent,
-            AnyHtml: self.html_to_parent,
+            AnyDict: self.any_dict_to_parent,
+            AnyHtml: self.any_html_to_parent,
             Any: self.any_to_parent,
 
             Fault: self.fault_to_parent,
@@ -353,7 +353,7 @@ class ToParentMixin(OutProtocolBase):
 
         return retval
 
-    def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def any_uri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         retval = self.gen_anchor(cls, inst, name)
         parent.write(retval)
 
@@ -518,13 +518,13 @@ class ToParentMixin(OutProtocolBase):
     def enum_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         self.base_to_parent(ctx, cls, str(inst), parent, name)
 
-    def xml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def any_xml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         if isinstance(inst, string_types):
             inst = etree.fromstring(inst)
 
         parent.write(inst)
 
-    def html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def any_html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         if isinstance(inst, str) or isinstance(inst, six.text_type):
             inst = html.fromstring(inst)
 

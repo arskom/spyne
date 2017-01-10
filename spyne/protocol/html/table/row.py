@@ -65,7 +65,7 @@ class HtmlRowTable(HtmlTableBase):
 
         self.serialization_handlers = cdict({
             ModelBase: self.model_base_to_parent,
-            AnyUri: self.anyuri_to_parent,
+            AnyUri: self.any_uri_to_parent,
             ImageUri: self.imageuri_to_parent,
             ByteArray: self.not_supported,
             ComplexModelBase: self.complex_model_to_parent,

@@ -273,18 +273,18 @@ class XmlDocument(SubXmlBase):
         self.parse_xsi_type = parse_xsi_type
 
         self.serialization_handlers = cdict({
-            AnyXml: self.xml_to_parent,
-            Any: self.xml_to_parent,
+            Any: self.any_to_parent,
             Fault: self.fault_to_parent,
-            AnyDict: self.dict_to_parent,
-            AnyHtml: self.html_to_parent,
             EnumBase: self.enum_to_parent,
+            AnyXml: self.any_xml_to_parent,
             XmlData: self.xmldata_to_parent,
+            AnyDict: self.any_dict_to_parent,
+            AnyHtml: self.any_html_to_parent,
             ModelBase: self.modelbase_to_parent,
             ByteArray: self.byte_array_to_parent,
             Attachment: self.attachment_to_parent,
-            XmlAttribute: self.xmlattribute_to_parent,
             ComplexModelBase: self.complex_to_parent,
+            XmlAttribute: self.xmlattribute_to_parent,
             SchemaValidationError: self.schema_validation_error_to_parent,
         })
 
@@ -869,7 +869,7 @@ class XmlDocument(SubXmlBase):
     def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval', **kwargs):
         self.modelbase_to_parent(ctx, cls, str(inst), parent, ns, name, **kwargs)
 
-    def xml_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
+    def any_xml_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         if isinstance(inst, str) or isinstance(inst, unicode):
             inst = etree.fromstring(inst)
 
@@ -878,13 +878,13 @@ class XmlDocument(SubXmlBase):
     def any_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         _append(parent, E(_gen_tagname(ns, name), inst))
 
-    def html_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
+    def any_html_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         if isinstance(inst, string_types) and len(inst) > 0:
             inst = html.fromstring(inst)
 
         _append(parent, E(_gen_tagname(ns, name), inst))
 
-    def dict_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
+    def any_dict_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         elt = E(_gen_tagname(ns, name))
         dict_to_etree(inst, elt)
 
