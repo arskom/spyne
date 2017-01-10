@@ -420,6 +420,7 @@ def _gen_methods(cls, cls_dict):
     methods = _MethodsDict()
     for k, v in cls_dict.items():
         if not k.startswith('_') and hasattr(v, '_is_rpc'):
+            logger.debug("Registering %s as member method for %r", k, cls)
             descriptor = v(_default_function_name=k, _self_ref_replacement=cls)
             setattr(cls, k, descriptor.function)
             methods[k] = descriptor
@@ -958,6 +959,16 @@ class ComplexModelBase(ModelBase):
                                                    (self.__class__, key, value))
 
         return True
+
+    @classmethod
+    def get_identifiers(cls):
+        for k, v in cls.get_flat_type_info(cls).items():
+            if getattr(v.Attributes, 'primary_key', None):
+                yield k, v
+
+    @classmethod
+    def get_primary_keys(cls):
+        return cls.get_identifiers()
 
     def as_dict(self):
         """Represent object as dict.
