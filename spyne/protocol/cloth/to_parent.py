@@ -522,7 +522,7 @@ class ToParentMixin(OutProtocolBase):
         if isinstance(inst, string_types):
             inst = etree.fromstring(inst)
 
-        parent.write(inst)
+        parent.write(E(name, inst))
 
     def any_html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         cls_attrs = self.get_cls_attrs(cls)
@@ -534,13 +534,13 @@ class ToParentMixin(OutProtocolBase):
             if isinstance(inst, str) or isinstance(inst, six.text_type):
                 inst = html.fromstring(inst)
 
+        parent.write(E(name, inst))
 
-        parent.write(inst)
 
     def any_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(inst)
+        parent.write(E(name, inst))
 
-    def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def any_dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         elt = E(name)
         dict_to_etree(inst, elt)
-        parent.write(elt)
+        parent.write(E(name, elt))
