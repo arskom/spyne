@@ -295,11 +295,8 @@ class HttpBase(ServerBase):
 
             d = patt.endpoint
             assert isinstance(d, MethodDescriptor)
-            if d.parent_class is not None and d.in_message_name_override:
-                ctx.method_request_string = '%s.%s' % (
-                                           d.in_message.get_type_name(), d.name)
-            else:
-                ctx.method_request_string = patt.endpoint.name
+            ctx.method_request_string = d.name
+
             break
 
         return params

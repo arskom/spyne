@@ -46,7 +46,6 @@ class MethodDescriptor(object):
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
                  operation_name=None, no_self=None, translations=None, when=None,
-                 in_message_name_override=True, out_message_name_override=True,
                  service_class=None, href=None, internal_key_suffix=''):
 
         self.__real_function = function
@@ -163,20 +162,14 @@ class MethodDescriptor(object):
         """None or a dict of locale-translation pairs."""
 
         self.when = when
-        """None or a callable that takes the object instance and returns a
+        """None or a callable that takes object instance and returns a
         boolean value. If true, the object can process that action.
         """
 
-        # Method Customizations
-        self.in_message_name_override = in_message_name_override
-        """When False, no mangling of in message name will be performed by later
-        stages of the interface generation. Naturally, it will be up to you to
-        resolve name clashes."""
-
-        self.out_message_name_override = out_message_name_override
-        """When False, no mangling of out message name will be performed by
-        later stages of the interface generation. Naturally, it will be up to
-        you to resolve name clashes."""
+        self.static_when = static_when
+        """None or a callable that takes the object instance and returns a
+        boolean value. If true, the object can process that action.
+        """
 
     def translate(self, locale, default):
         """

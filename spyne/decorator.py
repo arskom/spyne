@@ -160,12 +160,12 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
 
     _returns = kparams.pop('_returns', None)
 
-    _out_message_name_override = not ('_out_message_name' in kparams)
+    _is_out_message_name_overridden = not ('_out_message_name' in kparams)
     _out_message_name = kparams.pop('_out_message_name', '%s%s' %
                                        (func_name, spyne.const.RESPONSE_SUFFIX))
 
     if _no_self is False and \
-                    (body_style_str == 'wrapped' or _out_message_name_override):
+               (body_style_str == 'wrapped' or _is_out_message_name_overridden):
         _out_message_name = '%s.%s' % \
                                (self_ref_cls.get_type_name(), _out_message_name)
 
@@ -314,6 +314,7 @@ def rpc(*params, **kparams):
             _args = kparams.pop("_args", None)
             _translations = kparams.pop("_translations", None)
             _when = kparams.pop("_when", None)
+            _static_when = kparams.pop("_static_when", None)
             _service_class = kparams.pop("_service_class", None)
             _href = kparams.pop("_href", None)
             _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
@@ -331,10 +332,10 @@ def rpc(*params, **kparams):
             elif '_throws' in kparams:
                 _faults = kparams.pop('_throws')
 
-            _in_message_name_override = not ('_in_message_name' in kparams)
+            _is_in_message_name_overridden = not ('_in_message_name' in kparams)
             _in_message_name = kparams.pop('_in_message_name', function_name)
 
-            if _no_self is False and _in_message_name_override:
+            if _no_self is False and _is_in_message_name_overridden:
                 _in_message_name = '%s.%s' % \
                         (self_ref_replacement.get_type_name(), _in_message_name)
 
@@ -373,7 +374,6 @@ def rpc(*params, **kparams):
                     _in_message_name, _in_arg_names, _no_ctx, _no_self,
                                     _args, body_style_str, self_ref_replacement)
 
-            _out_message_name_override = not ('_out_message_name' in kparams)
             out_message = _produce_output_message(function_name,
                         body_style_str, self_ref_replacement, _no_self, kparams)
 
@@ -407,9 +407,8 @@ def rpc(*params, **kparams):
                 class_key=function_name, aux=_aux, patterns=_patterns,
                 body_style=body_style, args=_args,
                 operation_name=_operation_name, no_self=_no_self,
-                translations=_translations, when=_when,
-                in_message_name_override=_in_message_name_override,
-                out_message_name_override=_out_message_name_override,
+                translations=_translations,
+                when=_when, static_when=_static_when,
                 service_class=_service_class, href=_href,
                 internal_key_suffix=_internal_key_suffix,
             )
