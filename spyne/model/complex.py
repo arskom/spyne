@@ -1337,7 +1337,7 @@ class ComplexModelBase(ModelBase):
         return retval
 
     @classmethod
-    def __respawn__(cls, ctx=None):
+    def __respawn__(cls, ctx=None, filters=None):
         if ctx is not None and ctx.in_object is not None and \
                                                          len(ctx.in_object) > 0:
             return ctx.in_object[0]

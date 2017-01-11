@@ -220,10 +220,11 @@ class Application(object):
             if cls.__orig__ is not None:
                 cls = cls.__orig__
 
-            inst = cls.__respawn__(ctx)
+            filters = {}
+            inst = cls.__respawn__(ctx, filters)
             if inst is None:
-                raise RespawnError('{%s}%s' %
-                                     (cls.get_namespace(), cls.get_type_name()))
+                raise RespawnError('{%s}%s with params %r' %
+                            (cls.get_namespace(), cls.get_type_name(), filters))
             in_cls = ctx.descriptor.in_message
 
             args = ctx.in_object
