@@ -257,3 +257,39 @@ class MethodDescriptor(object):
         if val != None:
             self.__real_function = val
         self.function = self.__real_function
+
+    @property
+    def in_header(self):
+        return self.__in_header
+
+    @in_header.setter
+    def in_header(self, in_header):
+        from spyne.model._base import ModelBase
+        try:
+            is_model = issubclass(in_header, ModelBase)
+        except TypeError:
+            is_model = False
+
+        if is_model:
+            in_header = (in_header,)
+
+        assert in_header is None or isinstance(in_header, tuple)
+        self.__in_header = in_header
+
+    @property
+    def out_header(self):
+        return self.__out_header
+
+    @out_header.setter
+    def out_header(self, out_header):
+        from spyne.model._base import ModelBase
+        try:
+            is_model = issubclass(out_header, ModelBase)
+        except TypeError:
+            is_model = False
+
+        if is_model:
+            out_header = (out_header,)
+
+        assert out_header is None or isinstance(out_header, tuple)
+        self.__out_header = out_header

@@ -398,6 +398,7 @@ def rpc(*params, **kparams):
                     else:
                         body_style = BODY_STYLE_EMPTY
 
+            assert _in_header is None or isinstance(_in_header, tuple)
             retval = MethodDescriptor(f,
                 in_message, out_message, doc,
                 is_callback=_is_callback, is_async=_is_async, mtom=_mtom,
