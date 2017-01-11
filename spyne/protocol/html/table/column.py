@@ -180,7 +180,7 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
                 with parent.element('td', td_attrs):
                     first = True
 
-                    for mn, md in self._methods(cls, inst):
+                    for mn, md in self._methods(ctx, cls, inst):
                         if first:
                             first = False
                         elif mrpc_delim_elt is not None:

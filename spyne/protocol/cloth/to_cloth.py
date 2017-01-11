@@ -247,7 +247,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         return self.TAGBAG_ATTR_NAME in elt.attrib
 
     @staticmethod
-    def _methods(cls, inst):
+    def _methods(ctx, cls, inst):
         while cls.Attributes._wrapper and len(cls._type_info) > 0:
             cls, = cls._type_info.values()
 
@@ -255,7 +255,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             for k, v in cls.Attributes.methods.items():
                 is_shown = True
                 if v.when is not None:
-                    is_shown = v.when(inst)
+                    is_shown = v.when(ctx, inst)
 
                 if is_shown:
                     yield k, v
@@ -266,7 +266,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             return
 
         for elt in self._get_elts(template, self.MRPC_ID):
-            for k, v in self._methods(cls, inst):
+            for k, v in self._methods(ctx, cls, inst):
                 href = v.in_message.get_type_name()
                 text = v.translate(ctx.locale, v.in_message.get_type_name())
 
