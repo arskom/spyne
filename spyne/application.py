@@ -30,6 +30,12 @@ from spyne.util import six
 from spyne.util.appreg import register_application
 
 
+class MethodAlreadyExistsError(Exception):
+    def __init__(self, what):
+        super(MethodAlreadyExistsError, self) \
+                                 .__init__("Method key %r already exists", what)
+
+
 def get_fault_string_from_exception(e):
     # haha.
     return "Internal Error"
@@ -278,11 +284,6 @@ class Application(object):
         return hash(tuple((id(s) for s in self.services)))
 
     def check_unique_method_keys(self):
-        class MethodAlreadyExistsError(Exception):
-            def __init__(self, what):
-                super(MethodAlreadyExistsError, self).__init__(
-                                           "Method key %r already exists", what)
-
         keys = {}
         for s in self.services:
             for mdesc in s.public_methods.values():
