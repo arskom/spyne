@@ -46,6 +46,8 @@ spyne-2.13.0
   `spyne.server.django` are not experimental anymore.
 * No major changes otherwise but we paid a lot of technical debt. e.g. We
   revamped the test infrastructure.
+* ``_in_variable_names`` argument to ``@rpc`` was deprecated in favour of 
+  ``_in_arg_names``
 * Usual bug fixes.
 
 spyne-2.12.14

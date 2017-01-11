@@ -349,7 +349,17 @@ def rpc(*params, **kparams):
             if _in_message_name == function_name:
                 _in_message_name = add_request_suffix(_operation_name)
 
-            _in_variable_names = kparams.pop('_in_variable_names', {})
+            if '_in_arg_names' in kparams and '_in_variable_names' in kparams:
+                raise Exception("Use either '_in_arg_names' or "
+                                              "'_in_variable_names', not both.")
+            elif '_in_arg_names' in kparams:
+                _in_arg_names = kparams.pop('_in_arg_names')
+
+            elif '_in_variable_names' in kparams:
+                _in_arg_names = kparams.pop('_in_variable_names')
+
+            else:
+                _in_arg_names = {}
 
             body_style = BODY_STYLE_WRAPPED
             body_style_str = _validate_body_style(kparams)
