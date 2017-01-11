@@ -365,62 +365,13 @@ class _MethodsDict(dict):
 
         self._processed = False
 
-    def sanitize(self, cls):
-        # sanitize is called on every customization, so we make sure it's run
-        # only once in this class' lifetime.
-        if self._processed:
-            return
-
-        self._processed = True
-
-        for d in self.values():
-            d.parent_class = cls
-
-            if d.in_message_name_override:
-                d.in_message.__type_name__ = '%s.%s' % \
-                          (cls.get_type_name(), d.in_message.get_type_name())
-
-            if d.body_style is BODY_STYLE_WRAPPED or d.out_message_name_override:
-                d.out_message.__type_name__ = '%s.%s' % \
-                          (cls.get_type_name(), d.out_message.get_type_name())
-
-            if d.is_out_bare():
-                # The method only needs the primary key(s) and shouldn't
-                # complain when other mandatory fields are missing.
-                d.in_message = cls.novalidate_freq()
-                d.body_style = BODY_STYLE_BARE
-
-            else:
-                d.in_message.insert_field(0, 'self', cls.novalidate_freq())
-                d.body_style = BODY_STYLE_WRAPPED
-
-                if issubclass(d.in_message, ComplexModelBase):
-                    for k, v in d.in_message._type_info.items():
-                        # SelfReference is replaced by descriptor.in_message
-                        # itself. However, in the context of mrpc, SelfReference
-                        # means parent class. here, we do that substitution.
-                        # It's a safe hack but a hack nevertheless.
-                        if v is d.in_message:
-                            d.in_message._type_info[k] = cls
-
-            # Same as above, for the output type.
-            if issubclass(d.out_message, ComplexModelBase):
-                for k, v in d.out_message._type_info.items():
-                    if v is d.out_message:
-                        d.out_message._type_info[k] = cls
-
-            if d.patterns is not None and not d.no_self:
-                d.name = '.'.join((cls.get_type_name(), d.name))
-                for p in d.patterns:
-                    if p.address is None:
-                        p.address = d.name
-
 
 def _gen_methods(cls, cls_dict):
     methods = _MethodsDict()
     for k, v in cls_dict.items():
         if not k.startswith('_') and hasattr(v, '_is_rpc'):
             logger.debug("Registering %s as member method for %r", k, cls)
+            assert cls is not None
             descriptor = v(_default_function_name=k, _self_ref_replacement=cls)
             setattr(cls, k, descriptor.function)
             methods[k] = descriptor
@@ -710,11 +661,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         methods = _gen_methods(self, cls_dict)
         if len(methods) > 0:
             self.Attributes.methods = methods
-
-        methods = self.Attributes.methods
-        if methods is not None:
-            assert isinstance(methods, _MethodsDict)
-            methods.sanitize(self)
 
         # finalize sql table mapping
         tn = self.Attributes.table_name

@@ -41,24 +41,24 @@ from spyne import BODY_STYLE_BARE
 from spyne import BODY_STYLE_OUT_BARE
 from spyne import BODY_STYLE_EMPTY_OUT_BARE
 
-from spyne.model import ModelBase, ComplexModel
+from spyne.model import ModelBase, ComplexModel, ComplexModelBase
 from spyne.model.complex import TypeInfo, recust_selfref
 
 from spyne.const import add_request_suffix
 
 
-def _produce_input_message(f, params, in_message_name,
-                      in_variable_names, no_ctx, no_self, args, body_style_str):
+def _produce_input_message(f, params, in_message_name, in_variable_names,
+                       no_ctx, no_self, argnames, body_style_str, self_ref_cls):
     arg_start = 0
     if no_ctx is False:
         arg_start += 1
     if no_self is False:
         arg_start += 1
 
-    if args is None:
+    if argnames is None:
         try:
             argcount = f.__code__.co_argcount
-            args = f.__code__.co_varnames[arg_start:argcount]
+            argnames = f.__code__.co_varnames[arg_start:argcount]
 
         except AttributeError:
             raise TypeError(
@@ -68,19 +68,23 @@ def _produce_input_message(f, params, in_message_name,
                 "function accepts."
             )
 
-        if len(params) != len(args):
+        if no_self is False:
+            params = [self_ref_cls.novalidate_freq()] + params
+            argnames = ('self',) + argnames
+
+        if len(params) != len(argnames):
             raise Exception("%r function has %d argument(s) but its decorator "
-                            "has %d." % (f.__name__, len(args), len(params)))
+                            "has %d." % (f.__name__, len(argnames), len(params)))
 
     else:
-        args = copy(args)
-        if len(params) != len(args):
+        argnames = copy(argnames)
+        if len(params) != len(argnames):
             raise Exception("%r function has %d argument(s) but the _args "
                             "argument has %d." % (
-                            f.__name__, len(args), len(params)))
+                                f.__name__, len(argnames), len(params)))
 
     in_params = TypeInfo()
-    for k, v in zip(args, params):
+    for k, v in zip(argnames, params):
         k = in_variable_names.get(k, k)
         in_params[k] = v
 
@@ -101,7 +105,6 @@ def _produce_input_message(f, params, in_message_name,
             message, = in_params.values()
             message = message.customize(sub_name=in_message_name, sub_ns=ns)
 
-            from spyne.model import ComplexModelBase
             if issubclass(message, ComplexModelBase) and not message._type_info:
                 raise Exception("body_style='bare' does not allow empty "
                                                                "model as param")
@@ -126,6 +129,7 @@ def _validate_body_style(kparams):
     allowed_body_styles = ('wrapped', 'bare', 'out_bare')
     if _body_style is None:
         _body_style = 'wrapped'
+
     elif not (_body_style in allowed_body_styles):
         raise ValueError("body_style must be one of %r" %
                                                          (allowed_body_styles,))
@@ -147,7 +151,8 @@ def _validate_body_style(kparams):
     return _body_style
 
 
-def _produce_output_message(func_name, body_style_str, kparams):
+def _produce_output_message(func_name, body_style_str, self_ref_cls,
+                                                             _no_self, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
@@ -155,8 +160,14 @@ def _produce_output_message(func_name, body_style_str, kparams):
 
     _returns = kparams.pop('_returns', None)
 
+    _out_message_name_override = not ('_out_message_name' in kparams)
     _out_message_name = kparams.pop('_out_message_name', '%s%s' %
                                        (func_name, spyne.const.RESPONSE_SUFFIX))
+
+    if _no_self is False and \
+                    (body_style_str == 'wrapped' or _out_message_name_override):
+        _out_message_name = '%s.%s' % \
+                               (self_ref_cls.get_type_name(), _out_message_name)
 
     out_params = TypeInfo()
 
@@ -198,14 +209,14 @@ def _produce_output_message(func_name, body_style_str, kparams):
     return message
 
 
-def _substitute_self_reference(params, kparams, kwargs, _no_self):
+def _substitute_self_reference(params, kparams, self_ref_replacement, _no_self):
     from spyne.model import SelfReference
 
     for i, v in enumerate(params):
         if isclass(v) and issubclass(v, SelfReference):
             if _no_self:
                 raise ValueError("SelfReference can't be used in @rpc")
-            params[i] = recust_selfref(v, kwargs['_self_ref_replacement'])
+            params[i] = recust_selfref(v, self_ref_replacement)
         else:
             params[i] = v
 
@@ -213,7 +224,7 @@ def _substitute_self_reference(params, kparams, kwargs, _no_self):
         if isclass(v) and issubclass(v, SelfReference):
             if _no_self:
                 raise ValueError("SelfReference can't be used in @rpc")
-            kparams[k] = recust_selfref(v, kwargs['_self_ref_replacement'])
+            kparams[k] = recust_selfref(v, self_ref_replacement)
         else:
             kparams[k] = v
 
@@ -248,8 +259,10 @@ def rpc(*params, **kparams):
         Default is: ``_operation_name + REQUEST_SUFFIX``.
     :param _out_message_name: The public name of the function's output message.
         Default is: ``_operation_name + RESPONSE_SUFFIX``.
-    :param _in_variable_names: The public names of the function arguments. It's
+    :param _in_arg_names: The public names of the function arguments. It's
         a dict that maps argument names in the code to public ones.
+    :param _in_variable_names: **DEPRECATED** Same as _in_arg_names, kept for
+        backwards compatibility.
     :param _out_variable_name: The public name of the function response object.
         It's a string. Ignored when ``_body_style != 'wrapped'`` or ``_returns``
         is a sequence.
@@ -283,6 +296,7 @@ def rpc(*params, **kparams):
     def explain(f):
         def explain_method(**kwargs):
             function_name = kwargs['_default_function_name']
+            self_ref_replacement = kwargs.pop('_self_ref_replacement', None)
 
             # this block is passed straight to the descriptor
             _is_callback = kparams.pop('_is_callback', False)
@@ -304,7 +318,7 @@ def rpc(*params, **kparams):
             _href = kparams.pop("_href", None)
             _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
 
-            _substitute_self_reference(params, kparams, kwargs, _no_self)
+            _substitute_self_reference(params, kparams, self_ref_replacement, _no_self)
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
@@ -319,6 +333,10 @@ def rpc(*params, **kparams):
 
             _in_message_name_override = not ('_in_message_name' in kparams)
             _in_message_name = kparams.pop('_in_message_name', function_name)
+
+            if _no_self is False and _in_message_name_override:
+                _in_message_name = '%s.%s' % \
+                        (self_ref_replacement.get_type_name(), _in_message_name)
 
             _operation_name = kparams.pop('_operation_name', function_name)
 
@@ -342,12 +360,12 @@ def rpc(*params, **kparams):
                     body_style = BODY_STYLE_BARE
 
             in_message = _produce_input_message(f, params,
-                                           _in_message_name, _in_variable_names,
-                                       _no_ctx, _no_self, _args, body_style_str)
+                    _in_message_name, _in_arg_names, _no_ctx, _no_self,
+                                    _args, body_style_str, self_ref_replacement)
 
             _out_message_name_override = not ('_out_message_name' in kparams)
-            out_message = _produce_output_message(function_name, body_style_str,
-                                                                        kparams)
+            out_message = _produce_output_message(function_name,
+                        body_style_str, self_ref_replacement, _no_self, kparams)
 
             doc = getattr(f, '__doc__')
 
@@ -371,8 +389,10 @@ def rpc(*params, **kparams):
                         body_style = BODY_STYLE_EMPTY
 
             retval = MethodDescriptor(f,
-                in_message, out_message, doc, _is_callback, _is_async,
-                _mtom, _in_header, _out_header, _faults,
+                in_message, out_message, doc,
+                is_callback=_is_callback, is_async=_is_async, mtom=_mtom,
+                in_header=_in_header, out_header=_out_header, faults=_faults,
+                parent_class=self_ref_replacement,
                 port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
                 class_key=function_name, aux=_aux, patterns=_patterns,
                 body_style=body_style, args=_args,

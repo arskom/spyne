@@ -40,8 +40,9 @@ class MethodDescriptor(object):
     """
 
     def __init__(self, function, in_message, out_message, doc,
-                 is_callback=False, is_async=False, mtom=False, in_header=None,
-                 out_header=None, faults=None,
+                 is_callback=False, is_async=False, mtom=False,
+                 in_header=None, out_header=None, faults=None,
+                 parent_class=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
                  operation_name=None, no_self=None, translations=None, when=None,
@@ -150,7 +151,7 @@ class MethodDescriptor(object):
         self.service_class = service_class
         """The ServiceBase subclass the method belongs to, if there's any."""
 
-        self.parent_class = None
+        self.parent_class = parent_class
         """The ComplexModel subclass the method belongs to. Only set for @mrpc
         methods."""
 
