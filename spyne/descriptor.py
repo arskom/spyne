@@ -45,7 +45,8 @@ class MethodDescriptor(object):
                  parent_class=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
-                 operation_name=None, no_self=None, translations=None, when=None,
+                 operation_name=None, no_self=None, translations=None,
+                 when=None, static_when=None,
                  service_class=None, href=None, internal_key_suffix=''):
 
         self.__real_function = function

@@ -110,27 +110,34 @@ class Application(object):
         self.event_manager = EventManager(self)
         self.error_handler = None
 
-        self.interface = Interface(self)
         self.in_protocol = in_protocol
         self.out_protocol = out_protocol
 
         if self.in_protocol is None:
             from spyne.protocol import ProtocolBase
             self.in_protocol = ProtocolBase()
+
+        if self.out_protocol is None:
+            from spyne.protocol import ProtocolBase
+            self.out_protocol = ProtocolBase()
+
+        self.check_unique_method_keys()  # is this really necessary nowadays?
+
+        # this needs to be after protocol assignments to give _static_when
+        # functions as much info as possible about the application
+        self.interface = Interface(self)
+
+        # set_app needs to be after interface init because the protocols use it.
         self.in_protocol.set_app(self)
         # FIXME: this normally is another parameter to set_app but it's kept
         # separate for backwards compatibility reasons.
         self.in_protocol.message = self.in_protocol.REQUEST
 
-        if self.out_protocol is None:
-            from spyne.protocol import ProtocolBase
-            self.out_protocol = ProtocolBase()
         self.out_protocol.set_app(self)
         # FIXME: this normally is another parameter to set_app but it's kept
         # separate for backwards compatibility reasons.
         self.out_protocol.message = self.out_protocol.RESPONSE
 
-        self.check_unique_method_keys()
         register_application(self)
 
     def process_request(self, ctx):

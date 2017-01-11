@@ -333,7 +333,14 @@ class Interface(object):
             if method.out_header is None:
                 method.out_header = cls.Attributes.method_out_header
 
-            self.process_method(cls.__orig__ or cls, method)
+            should_we = True
+            if method.static_when is not None:
+                should_we = method.static_when(self.app)
+                logger.debug("static_when returned %r for %s "
+                     "while populating methods", should_we, method.internal_key)
+
+            if should_we:
+                self.process_method(cls.__orig__ or cls, method)
 
         # populate method descriptor id to method key map
         self.method_descriptor_id_to_key = dict(((id(v[0]), k)
@@ -457,9 +464,17 @@ class Interface(object):
                 for method_key, descriptor in cls.Attributes.methods.items():
                     assert hasattr(cls, method_key)
 
-                    self.member_methods.append((cls, descriptor))
-                    for c in self.add_method(descriptor):
-                        self.add_class(c)
+                    should_we = True
+                    if descriptor.static_when is not None:
+                        should_we = descriptor.static_when(self.app)
+                        logger.debug("static_when returned %r for %s "
+                            "while populating classes",
+                                             should_we, descriptor.internal_key)
+
+                    if should_we:
+                        self.member_methods.append((cls, descriptor))
+                        for c in self.add_method(descriptor):
+                            self.add_class(c)
 
             if cls.Attributes._subclasses is not None:
                 logger.debug("    adding subclasses of '%s.%s'...",
