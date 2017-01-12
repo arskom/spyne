@@ -434,7 +434,7 @@ class ToParentMixin(OutProtocolBase):
                 name = sub_name
 
             if issubclass(v, XmlData):
-                subvalstr = self.to_unicode(v, subvalue)
+                subvalstr = self.to_unicode(v.type, subvalue)
                 if subvalstr is not None:
                     parent.write(subvalstr)
                 continue
@@ -523,6 +523,12 @@ class ToParentMixin(OutProtocolBase):
             inst = etree.fromstring(inst)
 
         parent.write(E(name, inst))
+
+    def any_html_to_unicode(self, cls, inst, **_):
+        if isinstance(inst, (str, six.text_type)):
+            inst = html.fromstring(inst)
+
+        return inst
 
     def any_html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         cls_attrs = self.get_cls_attrs(cls)
