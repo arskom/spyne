@@ -133,11 +133,11 @@ class OutProtocolBase(ProtocolMixin):
             AnyXml: self.any_xml_to_unicode,
             AnyUri: self.any_uri_to_unicode,
             AnyDict: self.any_dict_to_unicode,
+            AnyHtml: self.any_html_to_unicode,
             Unicode: self.unicode_to_unicode,
             Boolean: self.boolean_to_bytes,
             Decimal: self.decimal_to_bytes,
             Integer: self.integer_to_bytes,
-            AnyHtml: self.any_html_to_unicode,
             # FIXME: Would we need a to_unicode for localized dates?
             DateTime: self.datetime_to_bytes,
             Duration: self.duration_to_bytes,
