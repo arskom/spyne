@@ -48,6 +48,8 @@ spyne-2.13.0
   revamped the test infrastructure.
 * ``_in_variable_names`` argument to ``@rpc`` was deprecated in favour of 
   ``_in_arg_names``
+* ``_udp`` argument to ``@rpc`` was deprecated in favour of ``_udd``. UDP is
+  too well known as user datagram protocol which could be confusing.
 * Usual bug fixes.
 
 spyne-2.12.14

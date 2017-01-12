@@ -280,8 +280,9 @@ def rpc(*params, **kparams):
     :param _no_ctx: Don't pass implicit ctx object to the user method.
     :param _no_self: This method does not get an implicit 'self' argument
         (before any other argument, including ctx).
-    :param _udp: Short for UserDefinedProperties, you can use this to mark the
+    :param _udd: Short for User Defined Data, you can use this to mark the
         method with arbitrary metadata.
+    :param _udp: **DEPRECATED** synonym of ``_udd``.
     :param _aux: The auxiliary backend to run this method. ``None`` if primary.
     :param _throws: A sequence of exceptions that this function can throw. This
         has no real functionality besides publishing this information in
@@ -307,7 +308,6 @@ def rpc(*params, **kparams):
             _port_type = kparams.pop('_soap_port_type', None)
             _no_ctx = kparams.pop('_no_ctx', False)
             _no_self = kparams.pop('_no_self', True)
-            _udp = kparams.pop('_udp', None)
             _aux = kparams.pop('_aux', None)
             _pattern = kparams.pop("_pattern", None)
             _patterns = kparams.pop("_patterns", [])
@@ -362,6 +362,17 @@ def rpc(*params, **kparams):
             else:
                 _in_arg_names = {}
 
+            if '_udd' in kparams and '_udp' in kparams:
+                raise Exception("Use either '_udd' or '_udp', not both.")
+            elif '_udd' in kparams:
+                _udd = kparams.pop('_udd')
+
+            elif '_udp' in kparams:
+                _udd = kparams.pop('_udp')
+
+            else:
+                _udd = {}
+
             body_style = BODY_STYLE_WRAPPED
             body_style_str = _validate_body_style(kparams)
             if body_style_str.endswith('bare'):
@@ -404,7 +415,7 @@ def rpc(*params, **kparams):
                 is_callback=_is_callback, is_async=_is_async, mtom=_mtom,
                 in_header=_in_header, out_header=_out_header, faults=_faults,
                 parent_class=self_ref_replacement,
-                port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
+                port_type=_port_type, no_ctx=_no_ctx, udd=_udd,
                 class_key=function_name, aux=_aux, patterns=_patterns,
                 body_style=body_style, args=_args,
                 operation_name=_operation_name, no_self=_no_self,

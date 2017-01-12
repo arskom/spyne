@@ -23,6 +23,7 @@ logger = logging.getLogger('spyne')
 from spyne.const.xml_ns import DEFAULT_NS
 
 from spyne.util import six
+from spyne.util import DefaultAttrDict
 
 from spyne.service import ServiceBase
 
@@ -111,9 +112,9 @@ class MethodDescriptor(object):
         """no_ctx: Boolean flag to denote whether the user code gets an
         implicit :class:`spyne.MethodContext` instance as first argument."""
 
-        self.udp = udp
-        """Short for "User Defined Properties", this is just an arbitrary python
-        object set by the user to pass arbitrary metadata via the ``@srpc``
+        self.udd = DefaultAttrDict(**udd)
+        """Short for "User Defined Data", this is an empty DefaultAttrDict that
+        can be updated by the user to pass arbitrary metadata via the ``@rpc``
         decorator."""
 
         self.class_key = class_key
