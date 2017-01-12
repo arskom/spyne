@@ -41,14 +41,10 @@ class MethodDescriptor(object):
     """
 
     def __init__(self, function, in_message, out_message, doc,
-                 is_callback=False, is_async=False, mtom=False,
-                 in_header=None, out_header=None, faults=None,
-                 parent_class=None,
-                 port_type=None, no_ctx=False, udp=None, class_key=None,
-                 aux=None, patterns=None, body_style=None, args=None,
-                 operation_name=None, no_self=None, translations=None,
-                 when=None, static_when=None,
-                 service_class=None, href=None, internal_key_suffix=''):
+                 is_callback, is_async, mtom, in_header, out_header, faults,
+                 parent_class, port_type, no_ctx, udd, class_key, aux, patterns,
+                 body_style, args, operation_name, no_self, translations,
+                 when, static_when, service_class, href, internal_key_suffix):
 
         self.__real_function = function
         """The original callable for the user code."""
