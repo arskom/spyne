@@ -385,23 +385,6 @@ class ToParentMixin(OutProtocolBase):
 
     @coroutine
     def _write_members(self, ctx, cls, inst, parent, use_ns=True, **kwargs):
-        parent_cls = getattr(cls, '__extends__', None)
-
-        if not (parent_cls is None):
-            ret = self._write_members(ctx, parent_cls, inst, parent,
-                                                        use_ns=use_ns, **kwargs)
-            if ret is not None:
-                try:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
-
-                except Break:
-                    try:
-                        ret.throw(Break())
-                    except StopIteration:
-                        pass
-
         for k, v in self.sort_fields(cls):
             attr = self.get_cls_attrs(v)
             if attr.exc:
