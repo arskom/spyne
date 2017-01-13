@@ -952,7 +952,8 @@ class ComplexModelBase(ModelBase):
 
             if not len(value) <= len(keys):
                 logger.error("\n\tcls: %r" "\n\tvalue: %r" "\n\tkeys: %r",
-                raise Exception("Invalid operation")
+                                                               cls, value, keys)
+                raise LogicError("Impossible sequence to instance conversion")
 
             cls_orig = cls
             if cls.__orig__ is not None:

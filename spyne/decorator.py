@@ -35,6 +35,7 @@ from spyne import MethodDescriptor
 
 # Empty means empty input, bare output. Doesn't say anything about response
 # being empty
+from spyne import LogicError
 from spyne import BODY_STYLE_EMPTY
 from spyne import BODY_STYLE_WRAPPED
 from spyne import BODY_STYLE_BARE
@@ -73,13 +74,13 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
             argnames = ('self',) + argnames
 
         if len(params) != len(argnames):
-            raise Exception("%r function has %d argument(s) but its decorator "
+            raise LogicError("%r function has %d argument(s) but its decorator "
                             "has %d." % (f.__name__, len(argnames), len(params)))
 
     else:
         argnames = copy(argnames)
         if len(params) != len(argnames):
-            raise Exception("%r function has %d argument(s) but the _args "
+            raise LogicError("%r function has %d argument(s) but the _args "
                             "argument has %d." % (
                                 f.__name__, len(argnames), len(params)))
 

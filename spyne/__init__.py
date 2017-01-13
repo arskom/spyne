@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
+class LogicError(Exception):
+    pass
+
 __version__ = '2.13.1'
 
 from pytz import utc as LOCAL_TZ
