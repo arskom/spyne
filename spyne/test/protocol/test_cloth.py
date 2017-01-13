@@ -68,6 +68,56 @@ class TestModelCloth(unittest.TestCase):
         assert SomeObject.Attributes._xml_root_cloth is None
 
 
+class TestXmlClothToParent(unittest.TestCase):
+    def setUp(self):
+        self.ctx = FakeContext()
+        self.stream = BytesIO()
+        logging.basicConfig(level=logging.DEBUG)
+
+    def _run(self, inst, cls=None):
+        if cls is None:
+            cls = inst.__class__
+
+        with etree.xmlfile(self.stream) as parent:
+            XmlCloth().subserialize(self.ctx, cls, inst, parent,
+                                                              name=cls.__name__)
+
+        elt = etree.fromstring(self.stream.getvalue())
+
+        print(etree.tostring(elt, pretty_print=True))
+        return elt
+
+    def test_simple(self):
+        v = 'punk.'
+        elt = self._run(v, Unicode)
+
+        assert elt.text == v
+
+    def test_complex_primitive(self):
+        class SomeObject(ComplexModel):
+            s = Unicode
+
+        v = 'punk.'
+        elt = self._run(SomeObject(s=v))
+
+        assert elt[0].text == v
+
+    def test_complex_inheritance(self):
+        class A(ComplexModel):
+            i = Integer
+
+        class B(A):
+            s = Unicode
+
+        i = 42
+        s = 'punk.'
+        elt = self._run(B(i=i, s=s))
+
+        # order is important
+        assert len(elt) == 2
+        assert elt[0].text == str(i)
+        assert elt[1].text == s
+
 
 ### !!! WARNING !!! ### !!! WARNING !!! ### !!! WARNING !!! ### !!! WARNING !!!
 #
