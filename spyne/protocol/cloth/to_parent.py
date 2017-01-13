@@ -384,7 +384,10 @@ class ToParentMixin(OutProtocolBase):
         parent.write(E(name, **{'{%s}nil' % NS_XSI: 'true'}))
 
     @coroutine
-    def _write_members(self, ctx, cls, inst, parent, use_ns=True, **kwargs):
+    def _write_members(self, ctx, cls, inst, parent, use_ns=None, **kwargs):
+        if self.use_ns is not None and use_ns is None:
+            use_ns = self.use_ns
+
         for k, v in self.sort_fields(cls):
             attr = self.get_cls_attrs(v)
             if attr.exc:

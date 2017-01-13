@@ -52,7 +52,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
     def __init__(self, app=None, encoding='utf8', doctype=None,
                       mime_type=None, ignore_uncap=False, ignore_wrappers=False,
                                 cloth=None, cloth_parser=None, polymorphic=True,
-                                                           strip_comments=True):
+                                              strip_comments=True, use_ns=None):
 
         super(XmlCloth, self).__init__(app=app, mime_type=mime_type,
                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
@@ -63,6 +63,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         self.encoding = encoding
         self.default_method = 'xml'
         self.doctype = doctype
+        self.use_ns = use_ns
 
     def get_context(self, parent, transport):
         return XmlClothProtocolContext(parent, transport)
