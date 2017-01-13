@@ -454,27 +454,38 @@ class ToParentMixin(OutProtocolBase):
                             pass
 
     @coroutine
-    def complex_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def _complex_to_parent_do(self, ctx, cls, inst, parent, name, **kwargs):
+        # parent.write(u"\u200c")  # zero-width non-joiner
+        parent.write(" ")  # FIXME: to force empty tags to be sent as
+        # <a></a> instead of <a/>
+        ret = self._write_members(ctx, cls, inst, parent, **kwargs)
+        if ret is not None:
+            try:
+                while True:
+                    sv2 = (yield)  # may throw Break
+                    ret.send(sv2)
+
+            except Break:
+                try:
+                    ret.throw(Break())
+                except StopIteration:
+                    pass
+
+    def complex_to_parent(self, ctx, cls, inst, parent, name, as_data=False,
+                                                                      **kwargs):
         inst = cls.get_serialization_instance(inst)
 
         attrs = self._gen_attr_dict(inst, cls.get_flat_type_info(cls))
 
-        with parent.element(name, attrib=attrs):
-            # parent.write(u"\u200c")  # zero-width non-joiner
-            parent.write(" ")  # FIXME: to force empty tags to be sent as
-                               # <a></a> instead of <a/>
-            ret = self._write_members(ctx, cls, inst, parent, **kwargs)
-            if ret is not None:
-                try:
-                    while True:
-                        sv2 = (yield)  # may throw Break
-                        ret.send(sv2)
+        if as_data:
+            logger.debug("as_data=True, rendering to stream directly.")
+            self._complex_to_parent_do(ctx, cls, inst, parent, name, **kwargs)
 
-                except Break:
-                    try:
-                        ret.throw(Break())
-                    except StopIteration:
-                        pass
+        else:
+            with parent.element(name, attrib=attrs):
+                self._complex_to_parent_do(ctx, cls, inst, parent, name,
+                                                                       **kwargs)
+
 
     def fault_to_parent(self, ctx, cls, inst, parent, name):
         PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP_ENV]

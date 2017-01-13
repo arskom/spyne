@@ -555,10 +555,11 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     "to be serialized as attributes, use type casting with "  \
                     "customized serializers in the current protocol instead."
 
-                self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
+                self._enter_cloth(ctx, cloth, parent,
+                                          method=cls_attrs.method, skip=as_data)
 
                 ret = subprot.subserialize(ctx, cls, inst, parent, name,
-                                                      as_attr=as_attr, **kwargs)
+                                     as_attr=as_attr, as_data=as_data, **kwargs)
 
             # if there is no subprotocol, try rendering the value
             else:
@@ -712,7 +713,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         as_data_field = cloth.attrib.get(self.DATA_ATTR_NAME, None)
         if as_data_field is not None:
             self._process_field(ctx, cls, inst, parent, cloth, fti,
-                     as_data_field, as_attr, True, fti_check, elt_check, kwargs)
+                   as_data_field, as_attr, True, fti_check, elt_check, **kwargs)
 
         for elt in elts:
             for k_attr, as_attr, as_data in ((self.ID_ATTR_NAME, False, False),
@@ -722,8 +723,12 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 if field_name is None:
                     continue
 
+                if elt.tag == self.DATA_TAG_NAME:
+                    as_data = True
+
                 ret = self._process_field(ctx, cls, inst, parent, elt, fti,
-                     field_name, as_attr, as_data, fti_check, elt_check, kwargs)
+                     field_name, as_attr=as_attr, as_data=as_data,
+                             fti_check=fti_check, elt_check=elt_check, **kwargs)
 
                 if isgenerator(ret):
                     try:
@@ -756,7 +761,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
     def _process_field(self, ctx, cls, inst, parent,
                    elt, fti, field_name, as_attr, as_data, fti_check, elt_check,
-                                                                        kwargs):
+                                                                      **kwargs):
         field_type = fti.get(field_name, None)
         fti_check.pop(field_name, None)
 
