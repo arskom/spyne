@@ -948,7 +948,11 @@ class ComplexModelBase(ModelBase):
         # (as the members are declared and passed around as sequences of
         # arguments, unlike dictionaries in a regular class definition).
         if isinstance(value, list) or isinstance(value, tuple):
-            assert len(value) <= len(cls._type_info)
+            keys = cls.get_flat_type_info(cls).keys()
+
+            if not len(value) <= len(keys):
+                logger.error("\n\tcls: %r" "\n\tvalue: %r" "\n\tkeys: %r",
+                raise Exception("Invalid operation")
 
             cls_orig = cls
             if cls.__orig__ is not None:
@@ -961,7 +965,6 @@ class ComplexModelBase(ModelBase):
                 logger.error("Error instantiating %r: %r", cls_orig, e)
                 raise
 
-            keys = cls.get_flat_type_info(cls).keys()
             for i in range(len(value)):
                 setattr(inst, keys[i], value[i])
 
