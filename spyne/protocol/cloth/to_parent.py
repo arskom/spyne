@@ -440,7 +440,7 @@ class ToParentMixin(OutProtocolBase):
                             pass
 
     @coroutine
-    def _complex_to_parent_do(self, ctx, cls, inst, parent, name, **kwargs):
+    def _complex_to_parent_do(self, ctx, cls, inst, parent, **kwargs):
         # parent.write(u"\u200c")  # zero-width non-joiner
         parent.write(" ")  # FIXME: to force empty tags to be sent as
         # <a></a> instead of <a/>
@@ -457,24 +457,27 @@ class ToParentMixin(OutProtocolBase):
                 except StopIteration:
                     pass
 
-    def complex_to_parent(self, ctx, cls, inst, parent, name, as_data=False,
-                                                                      **kwargs):
-        inst = cls.get_serialization_instance(inst)
+    def complex_to_parent(self, ctx, cls, inst, parent, name,
+                                       as_data=False, from_arr=False, **kwargs):
+        if not from_arr:
+            inst = cls.get_serialization_instance(inst)
 
         attrs = self._gen_attr_dict(inst, cls.get_flat_type_info(cls))
 
         if as_data:
             logger.debug("as_data=True, rendering to stream directly.")
-            self._complex_to_parent_do(ctx, cls, inst, parent, name, **kwargs)
+            self._complex_to_parent_do(ctx, cls, inst, parent,
+                                                    from_arr=from_arr, **kwargs)
 
         elif name is None or name == '':
             logger.debug("name is empty, rendering to stream directly.")
-            self._complex_to_parent_do(ctx, cls, inst, parent, name, **kwargs)
+            self._complex_to_parent_do(ctx, cls, inst, parent,
+                                                    from_arr=from_arr, **kwargs)
 
         else:
             with parent.element(name, attrib=attrs):
-                self._complex_to_parent_do(ctx, cls, inst, parent, name,
-                                                                       **kwargs)
+                self._complex_to_parent_do(ctx, cls, inst, parent,
+                                                    from_arr=from_arr, **kwargs)
 
 
     def fault_to_parent(self, ctx, cls, inst, parent, name):
