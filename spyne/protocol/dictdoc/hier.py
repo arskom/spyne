@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -123,7 +125,7 @@ class HierDictDocument(DictDocument):
                 attr_name = k
                 out_instance._safe_set(attr_name, ctx.out_object[i], v)
 
-        ctx.out_document = self._object_to_doc(out_type, out_instance),
+        ctx.out_document = self._object_to_doc(out_type, out_instance, set()),
 
         logger.debug("Retval: %r", ctx.out_document)
         self.event_manager.fire_event('after_serialize', ctx)
@@ -281,7 +283,12 @@ class HierDictDocument(DictDocument):
 
         return inst
 
-    def _object_to_doc(self, cls, inst):
+    def _object_to_doc(self, cls, inst, tags=None):
+        if inst is None:
+            return None
+
+        if tags is None:
+            tags = set()
         retval = None
 
         if self.ignore_wrappers:
@@ -299,19 +306,34 @@ class HierDictDocument(DictDocument):
         # transform the results into a dict:
         if cls.Attributes.max_occurs > 1:
             if inst is not None:
-                retval = [self._to_dict_value(cls, inst) for inst in inst]
+                retval = []
+
+                for subinst in inst:
+                    if id(subinst) in tags:
+                        # even when there is ONE already-serialized instance,
+                        # we throw the whole thing away.
+                        logger.debug("Throwing the whole array away because "
+                                    "found %d", id(subinst))
+
+                        # enabling this is DANGEROUS
+                        logger.debug("Said array: %r", inst)
+
+                        return None
+
+                    retval.append(self._to_dict_value(cls, subinst, tags))
+
         else:
-            retval = self._to_dict_value(cls, inst)
+            retval = self._to_dict_value(cls, inst, tags)
 
         return retval
 
-    def _get_member_pairs(self, cls, inst):
-        parent_cls = getattr(cls, '__extends__', None)
-        if parent_cls is not None:
-            for r in self._get_member_pairs(parent_cls, inst):
-                yield r
+    def _get_member_pairs(self, cls, inst, tags):
+        old_len = len(tags)
+        tags = tags | {id(inst)}
+        print("  " * len(tags), cls, id(inst), tags)
+        assert len(tags) > old_len, ("Offending instance: %r" % inst)
 
-        for k, v in cls._type_info.items():
+        for k, v in self.sort_fields(cls):
             attr = self.get_cls_attrs(v)
 
             if attr.exc:
@@ -319,6 +341,7 @@ class HierDictDocument(DictDocument):
 
             try:
                 subinst = getattr(inst, k, None)
+
             # to guard against e.g. sqlalchemy throwing NoSuchColumnError
             except Exception as e:
                 logger.error("Error getting %r: %r" % (k, e))
@@ -326,8 +349,12 @@ class HierDictDocument(DictDocument):
 
             if subinst is None:
                 subinst = attr.default
+            else:
+                if id(subinst) in tags:
+                    continue
 
-            val = self._object_to_doc(v, subinst)
+            print("  " * len(tags), k, v)
+            val = self._object_to_doc(v, subinst, tags)
             min_o = attr.min_occurs
 
             complex_as = self.get_complex_as(attr)
@@ -338,7 +365,7 @@ class HierDictDocument(DictDocument):
 
                 yield (sub_name, val)
 
-    def _to_dict_value(self, cls, inst):
+    def _to_dict_value(self, cls, inst, tags):
         cls, switched = self.get_polymorphic_target(cls, inst)
 
         if issubclass(cls, (Any, AnyDict)):
@@ -346,13 +373,13 @@ class HierDictDocument(DictDocument):
 
         if issubclass(cls, Array):
             st, = cls._type_info.values()
-            return self._object_to_doc(st, inst)
+            return self._object_to_doc(st, inst, tags)
 
         if issubclass(cls, ComplexModelBase):
-            return self._complex_to_doc(cls, inst)
+            return self._complex_to_doc(cls, inst, tags)
 
         if issubclass(cls, File) and isinstance(inst, cls.Attributes.type):
-            retval = self._complex_to_doc(cls.Attributes.type, inst)
+            retval = self._complex_to_doc(cls.Attributes.type, inst, tags)
 
             cls_attr = self.get_cls_attrs(cls)
             complex_as = self.get_complex_as(cls_attr)
@@ -367,7 +394,7 @@ class HierDictDocument(DictDocument):
 
         return self.to_serstr(cls, inst)
 
-    def _complex_to_doc(self, cls, inst):
+    def _complex_to_doc(self, cls, inst, tags):
         cls_attrs = self.get_cls_attrs(cls)
         sf = cls_attrs.simple_field
         if sf is not None:
@@ -385,23 +412,22 @@ class HierDictDocument(DictDocument):
         complex_as = self.get_complex_as(cls_attr)
         if complex_as is list or \
                         getattr(cls.Attributes, 'serialize_as', False) is list:
-            return list(self._complex_to_list(cls, inst))
-        else:
-            return self._complex_to_dict(cls, inst)
+            return list(self._complex_to_list(cls, inst, tags))
+        return self._complex_to_dict(cls, inst, tags)
 
-    def _complex_to_dict(self, cls, inst):
+    def _complex_to_dict(self, cls, inst, tags):
         inst = cls.get_serialization_instance(inst)
         cls_attr = self.get_cls_attrs(cls)
         complex_as = self.get_complex_as(cls_attr)
 
-        d = complex_as(self._get_member_pairs(cls, inst))
+        d = complex_as(self._get_member_pairs(cls, inst, tags))
         if self.ignore_wrappers:
             return d
         else:
             return {cls.get_type_name(): d}
 
-    def _complex_to_list(self, cls, inst):
+    def _complex_to_list(self, cls, inst, tags):
         inst = cls.get_serialization_instance(inst)
 
-        for k, v in self._get_member_pairs(cls, inst):
+        for k, v in self._get_member_pairs(cls, inst, tags):
             yield v
