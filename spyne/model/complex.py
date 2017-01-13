@@ -1290,7 +1290,12 @@ class ComplexModelBase(ModelBase):
     def __respawn__(cls, ctx=None, filters=None):
         if ctx is not None and ctx.in_object is not None and \
                                                          len(ctx.in_object) > 0:
-            return ctx.in_object[0]
+            retval = next(iter(ctx.in_object))
+            if retval is not None:
+                return retval
+
+        if ctx.descriptor.default_on_null:
+            return cls.get_deserialization_instance(ctx)
 
 
 @add_metaclass(ComplexModelMeta)

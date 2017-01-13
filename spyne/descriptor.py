@@ -20,12 +20,11 @@
 import logging
 logger = logging.getLogger('spyne')
 
-from spyne.const.xml_ns import DEFAULT_NS
-
+from spyne import LogicError
 from spyne.util import six
 from spyne.util import DefaultAttrDict
-
 from spyne.service import ServiceBase
+from spyne.const.xml_ns import DEFAULT_NS
 
 
 class BODY_STYLE_WRAPPED: pass
@@ -44,7 +43,8 @@ class MethodDescriptor(object):
                  is_callback, is_async, mtom, in_header, out_header, faults,
                  parent_class, port_type, no_ctx, udd, class_key, aux, patterns,
                  body_style, args, operation_name, no_self, translations,
-                 when, static_when, service_class, href, internal_key_suffix):
+                 when, static_when, service_class, href, internal_key_suffix,
+                 default_on_null):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -151,6 +151,10 @@ class MethodDescriptor(object):
         self.parent_class = parent_class
         """The ComplexModel subclass the method belongs to. Only set for @mrpc
         methods."""
+
+        self.default_on_null = default_on_null
+        if default_on_null is not None and parent_class is None:
+            raise LogicError("default_on_null is only to be used inside @mrpc")
 
         # HATEOAS Stuff
         self.translations = translations

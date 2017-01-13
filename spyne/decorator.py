@@ -298,7 +298,7 @@ def rpc(*params, **kparams):
     def explain(f):
         def explain_method(**kwargs):
             function_name = kwargs['_default_function_name']
-            self_ref_replacement = kwargs.pop('_self_ref_replacement', None)
+            self_ref_replacement = None
 
             # this block is passed straight to the descriptor
             _is_callback = kparams.pop('_is_callback', False)
@@ -308,7 +308,6 @@ def rpc(*params, **kparams):
             _out_header = kparams.pop('_out_header', None)
             _port_type = kparams.pop('_soap_port_type', None)
             _no_ctx = kparams.pop('_no_ctx', False)
-            _no_self = kparams.pop('_no_self', True)
             _aux = kparams.pop('_aux', None)
             _pattern = kparams.pop("_pattern", None)
             _patterns = kparams.pop("_patterns", [])
@@ -320,7 +319,17 @@ def rpc(*params, **kparams):
             _href = kparams.pop("_href", None)
             _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
 
-            _substitute_self_reference(params, kparams, self_ref_replacement, _no_self)
+            _no_self = kparams.pop('_no_self', True)
+
+            # mrpc-specific
+            _default_on_null = None
+            if _no_self is False:
+                self_ref_replacement = kwargs.pop('_self_ref_replacement')
+
+                _substitute_self_reference(params, kparams,
+                                                 self_ref_replacement, _no_self)
+                _default_on_null = kparams.pop('_default_on_null', False)
+
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
@@ -424,6 +433,7 @@ def rpc(*params, **kparams):
                 when=_when, static_when=_static_when,
                 service_class=_service_class, href=_href,
                 internal_key_suffix=_internal_key_suffix,
+                default_on_null=_default_on_null,
             )
 
             if _patterns is not None and _no_self:
