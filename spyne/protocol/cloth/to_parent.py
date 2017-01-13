@@ -383,6 +383,25 @@ class ToParentMixin(OutProtocolBase):
     def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, **{'{%s}nil' % NS_XSI: 'true'}))
 
+    def _gen_sub_name(self, cls, cls_attrs, k, use_ns=None):
+        if self.use_ns is not None and use_ns is None:
+            use_ns = self.use_ns
+
+        sub_ns = cls_attrs.sub_ns
+        if sub_ns is None:
+            sub_ns = cls.get_namespace()
+
+        sub_name = cls_attrs.sub_name
+        if sub_name is None:
+            sub_name = k
+
+        if use_ns:
+            name = "{%s}%s" % (sub_ns, sub_name)
+        else:
+            name = sub_name
+
+        return name
+
     @coroutine
     def _write_members(self, ctx, cls, inst, parent, use_ns=None, **kwargs):
         if self.use_ns is not None and use_ns is None:
@@ -406,18 +425,7 @@ class ToParentMixin(OutProtocolBase):
             # This is a tight loop, so enable this only when necessary.
             # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
-            sub_ns = attr.sub_ns
-            if sub_ns is None:
-                sub_ns = cls.get_namespace()
-
-            sub_name = attr.sub_name
-            if sub_name is None:
-                sub_name = k
-
-            if use_ns:
-                name = "{%s}%s" % (sub_ns, sub_name)
-            else:
-                name = sub_name
+            sub_name = self._gen_sub_name(cls, attr, k, use_ns)
 
             if issubclass(v, XmlData):
                 subvalstr = self.to_unicode(v.type, subvalue)
@@ -426,7 +434,7 @@ class ToParentMixin(OutProtocolBase):
                 continue
 
             if subvalue is not None or attr.min_occurs > 0:
-                ret = self.to_parent(ctx, v, subvalue, parent, name,
+                ret = self.to_parent(ctx, v, subvalue, parent, sub_name,
                                                         use_ns=use_ns, **kwargs)
                 if ret is not None:
                     try:
@@ -458,27 +466,26 @@ class ToParentMixin(OutProtocolBase):
                     pass
 
     def complex_to_parent(self, ctx, cls, inst, parent, name,
-                                       as_data=False, from_arr=False, **kwargs):
+                                         from_arr=False, use_ns=None, **kwargs):
         if not from_arr:
             inst = cls.get_serialization_instance(inst)
 
         attrs = self._gen_attr_dict(inst, cls.get_flat_type_info(cls))
 
-        if as_data:
-            logger.debug("as_data=True, rendering to stream directly.")
-            self._complex_to_parent_do(ctx, cls, inst, parent,
-                                                    from_arr=from_arr, **kwargs)
-
-        elif name is None or name == '':
-            logger.debug("name is empty, rendering to stream directly.")
+        if self.skip_root_tag:
             self._complex_to_parent_do(ctx, cls, inst, parent,
                                                     from_arr=from_arr, **kwargs)
 
         else:
+            if name is None or name == '':
+                name = self._gen_sub_name(cls, self.get_cls_attrs(cls),
+                                                    cls.get_type_name(), use_ns)
+                logger.debug("name is empty, long live name: %s, cls: %r",
+                                                                      name, cls)
+
             with parent.element(name, attrib=attrs):
                 self._complex_to_parent_do(ctx, cls, inst, parent,
                                                     from_arr=from_arr, **kwargs)
-
 
     def fault_to_parent(self, ctx, cls, inst, parent, name):
         PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP_ENV]
