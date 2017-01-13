@@ -464,6 +464,10 @@ class ToParentMixin(OutProtocolBase):
             logger.debug("as_data=True, rendering to stream directly.")
             self._complex_to_parent_do(ctx, cls, inst, parent, name, **kwargs)
 
+        elif name is None or name == '':
+            logger.debug("name is empty, rendering to stream directly.")
+            self._complex_to_parent_do(ctx, cls, inst, parent, name, **kwargs)
+
         else:
             with parent.element(name, attrib=attrs):
                 self._complex_to_parent_do(ctx, cls, inst, parent, name,
