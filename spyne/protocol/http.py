@@ -276,7 +276,7 @@ class HttpRpc(SimpleDictDocument):
                 out_header = ctx.out_header[0]
 
             ctx.out_header_doc = self.object_to_simple_dict(header_class,
-                out_header, subvalue_eater=_header_to_bytes)
+                out_header, subinst_eater=_header_to_bytes)
 
         return retval
 

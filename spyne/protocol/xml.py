@@ -61,21 +61,9 @@ from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap11_env
 from spyne.const.xml_ns import const_prefmap, DEFAULT_NS
 
-from spyne.model import Any
-from spyne.model import ModelBase
-from spyne.model import Array
-from spyne.model import Iterable
-from spyne.model import ComplexModelBase
-from spyne.model import AnyHtml
-from spyne.model import AnyXml
-from spyne.model import AnyDict
-from spyne.model import Unicode
-from spyne.model import PushBase
-from spyne.model import File
-from spyne.model import ByteArray
-from spyne.model import XmlData
-from spyne.model import XmlAttribute
-from spyne.model.binary import Attachment  # deprecated
+from spyne.model import Any, ModelBase, Array, Iterable, ComplexModelBase, \
+    AnyHtml, AnyXml, AnyDict, Unicode, PushBase, File, ByteArray, XmlData, \
+    XmlAttribute
 from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.enum import EnumBase
 
@@ -899,6 +887,7 @@ class XmlDocument(SubXmlBase):
                                                         self.binary_encoding)
                 else:
                     value = self.from_unicode(xtba_type.type, elt.text)
+
                 setattr(inst, xtba_key, value)
 
         # parse input to set incoming data to related attributes.

@@ -297,6 +297,13 @@ def rpc(*params, **kparams):
 
     def explain(f):
         def explain_method(**kwargs):
+            # params and kparams are passed by the user to the @rpc family
+            # of decorators.
+
+            # kwargs is passed by spyne while sanitizing methods. it mainly
+            # contains information about the method context like the service
+            # class that contains the method at hand.
+
             function_name = kwargs['_default_function_name']
             self_ref_replacement = None
 

@@ -276,8 +276,9 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             name = "{%s}%s" % (ns, name)
         return name
 
-    def _gen_attr_dict(self, inst, fti):
+    def _gen_attrib_dict(self, inst, fti):
         attrs = {}
+
         for field_name, field_type in fti.attrs.items():
             ns = field_type._ns
             if ns is None:

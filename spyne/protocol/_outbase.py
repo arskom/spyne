@@ -194,12 +194,12 @@ class OutProtocolBase(ProtocolMixin):
 
         self.validator = None
 
-    def to_bytes(self, class_, value, *args, **kwargs):
+    def to_bytes(self, cls, value, *args, **kwargs):
         if value is None:
             return None
 
-        handler = self._to_bytes_handlers[class_]
-        retval = handler(class_, value, *args, **kwargs)
+        handler = self._to_bytes_handlers[cls]
+        retval = handler(cls, value, *args, **kwargs)
 
         # enable this only for testing. we're not as strict for performance
         # reasons
@@ -208,12 +208,14 @@ class OutProtocolBase(ProtocolMixin):
         #                       (type(retval), six.binary_type, retval, handler)
         return retval
 
-    def to_unicode(self, class_, value, *args, **kwargs):
+    def to_unicode(self, cls, value, *args, **kwargs):
+        cls_attrs = self.get_cls_attrs(cls)
+
         if value is None:
             return None
 
-        handler = self._to_unicode_handlers[class_]
-        retval = handler(class_, value, *args, **kwargs)
+        handler = self._to_unicode_handlers[cls]
+        retval = handler(cls, value, *args, **kwargs)
 
         # enable this only for testing. we're not as strict for performance
         # reasons
@@ -222,12 +224,12 @@ class OutProtocolBase(ProtocolMixin):
         #                       (type(retval), six.binary_type, retval, handler)
         return retval
 
-    def to_bytes_iterable(self, class_, value):
+    def to_bytes_iterable(self, cls, value):
         if value is None:
             return []
 
-        handler = self._to_bytes_iterable_handlers[class_]
-        return handler(class_, value)
+        handler = self._to_bytes_iterable_handlers[cls]
+        return handler(cls, value)
 
     def null_to_bytes(self, cls, value, **_):
         return ""

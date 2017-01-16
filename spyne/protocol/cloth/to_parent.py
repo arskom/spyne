@@ -470,7 +470,7 @@ class ToParentMixin(OutProtocolBase):
         if not from_arr:
             inst = cls.get_serialization_instance(inst)
 
-        attrs = self._gen_attr_dict(inst, cls.get_flat_type_info(cls))
+        attrib = self._gen_attrib_dict(inst, cls.get_flat_type_info(cls))
 
         if self.skip_root_tag:
             self._complex_to_parent_do(ctx, cls, inst, parent,
@@ -483,7 +483,7 @@ class ToParentMixin(OutProtocolBase):
                 logger.debug("name is empty, long live name: %s, cls: %r",
                                                                       name, cls)
 
-            with parent.element(name, attrib=attrs):
+            with parent.element(name, attrib=attrib):
                 self._complex_to_parent_do(ctx, cls, inst, parent,
                                                     from_arr=from_arr, **kwargs)
 

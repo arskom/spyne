@@ -330,13 +330,12 @@ class HierDictDocument(DictDocument):
     def _get_member_pairs(self, cls, inst, tags):
         old_len = len(tags)
         tags = tags | {id(inst)}
-        print("  " * len(tags), cls, id(inst), tags)
         assert len(tags) > old_len, ("Offending instance: %r" % inst)
 
         for k, v in self.sort_fields(cls):
-            attr = self.get_cls_attrs(v)
+            subattr = self.get_cls_attrs(v)
 
-            if attr.exc:
+            if subattr.exc:
                 continue
 
             try:
@@ -348,18 +347,18 @@ class HierDictDocument(DictDocument):
                 subinst = None
 
             if subinst is None:
-                subinst = attr.default
+                subinst = subattr.default
             else:
                 if id(subinst) in tags:
                     continue
 
             print("  " * len(tags), k, v)
             val = self._object_to_doc(v, subinst, tags)
-            min_o = attr.min_occurs
+            min_o = subattr.min_occurs
 
-            complex_as = self.get_complex_as(attr)
+            complex_as = self.get_complex_as(subattr)
             if val is not None or min_o > 0 or complex_as is list:
-                sub_name = attr.sub_name
+                sub_name = subattr.sub_name
                 if sub_name is None:
                     sub_name = k
 

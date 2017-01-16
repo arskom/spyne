@@ -148,7 +148,8 @@ class MessagePackDocument(HierDictDocument):
 
     def integer_from_string(self, cls, value):
         if isinstance(value, (six.text_type, six.binary_type)):
-            return super(MessagePackDocument, self).integer_from_string(cls, value)
+            return super(MessagePackDocument, self) \
+                                                .integer_from_string(cls, value)
         else:
             return value
 

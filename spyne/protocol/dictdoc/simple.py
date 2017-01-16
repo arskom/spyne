@@ -214,7 +214,8 @@ class SimpleDictDocument(DictDocument):
                 if issubclass(ncls, Array):
                     ncls, = ncls._type_info.values()
 
-                mo = ncls.Attributes.max_occurs
+                ncls_attrs = self.get_cls_attrs(ncls)
+                mo = ncls_attrs.max_occurs
                 if mo > 1:
                     if len(indexes) == 0:
                         nidx = 0
@@ -300,8 +301,8 @@ class SimpleDictDocument(DictDocument):
 
         return retval
 
-    def object_to_simple_dict(self, inst_cls, value, retval=None,
-                   prefix=None, subvalue_eater=lambda prot, v, t: v, tags=None):
+    def object_to_simple_dict(self, cls, inst, retval=None,
+                   prefix=None, subinst_eater=lambda prot, v, t: v, tags=None):
         """Converts a native python object to a flat dict.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -313,25 +314,25 @@ class SimpleDictDocument(DictDocument):
         if prefix is None:
             prefix = []
 
-        if value is None and inst_cls.Attributes.min_occurs == 0:
+        if inst is None and self.get_cls_attrs(cls).min_occurs == 0:
             return retval
 
         if tags is None:
-            tags = set([id(value)])
+            tags = set([id(inst)])
         else:
-            if id(value) in tags:
+            if id(inst) in tags:
                 return retval
 
-        if issubclass(inst_cls, ComplexModelBase):
-            fti = inst_cls.get_flat_type_info(inst_cls)
+        if issubclass(cls, ComplexModelBase):
+            fti = cls.get_flat_type_info(cls)
 
             for k, v in fti.items():
                 new_prefix = list(prefix)
                 new_prefix.append(k)
-                subvalue = getattr(value, k, None)
+                subinst = getattr(inst, k, None)
 
                 if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
-                                                           subvalue is not None:
+                                                            subinst is not None:
                     if issubclass(v, Array):
                         subtype, = v._type_info.values()
                     else:
@@ -342,35 +343,35 @@ class SimpleDictDocument(DictDocument):
                     if issubclass(subtype, SimpleModel):
                         key = self.hier_delim.join(new_prefix)
                         l = []
-                        for ssv in subvalue:
-                            l.append(subvalue_eater(self, ssv, subtype))
+                        for ssv in subinst:
+                            l.append(subinst_eater(self, ssv, subtype))
                         retval[key] = l
 
                     else:
                         # for complex types, brackets are used for each value.
                         last_prefix = new_prefix[-1]
                         i = -1
-                        for i, ssv in enumerate(subvalue):
+                        for i, ssv in enumerate(subinst):
                             new_prefix[-1] = '%s[%d]' % (last_prefix, i)
                             self.object_to_simple_dict(subtype, ssv,
-                                   retval, new_prefix,
-                                   subvalue_eater=subvalue_eater, tags=tags)
+                                    retval, new_prefix,
+                                         subinst_eater=subinst_eater, tags=tags)
 
                         if i == -1:
                             key = self.hier_delim.join(new_prefix)
                             retval[key] = 'empty'
 
                 else:
-                    self.object_to_simple_dict(v, subvalue, retval, new_prefix,
-                                       subvalue_eater=subvalue_eater, tags=tags)
+                    self.object_to_simple_dict(v, subinst, retval, new_prefix,
+                                         subinst_eater=subinst_eater, tags=tags)
 
         else:
             key = self.hier_delim.join(prefix)
 
             if key in retval:
                 raise ValueError("%r.%s conflicts with previous value %r" %
-                                                    (inst_cls, key, retval[key]))
+                                                        (cls, key, retval[key]))
 
-            retval[key] = subvalue_eater(self, value, inst_cls)
+            retval[key] = subinst_eater(self, inst, cls)
 
         return retval

@@ -282,7 +282,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
                 elt.append(mrpc_template)
                                            # mutable default ok because readonly
-    def _enter_cloth(self, ctx, cloth, parent, attrs={}, skip=False, method=None):
+    def _enter_cloth(self, ctx, cloth, parent, attrib={}, skip=False, method=None):
         """Enters the given tag in the document by using the shortest path from
         current tag.
 
@@ -297,8 +297,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         automatically with subsequent calls to _enter_cloth and finally to
         _close_cloth."""
 
-        logger_c.debug("entering %s %r nsmap=%r attrs=%r skip=%s method=%s",
-                      cloth.tag, cloth.attrib, cloth.nsmap, attrs, skip, method)
+        logger_c.debug("entering %s %r nsmap=%r attrib=%r skip=%s method=%s",
+                     cloth.tag, cloth.attrib, cloth.nsmap, attrib, skip, method)
 
         if not ctx.protocol.doctype_written:
             self.write_doctype(ctx, parent, cloth)
@@ -413,13 +413,13 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         else:
             # finally, enter the target node.
-            attrib = dict([(k, v) for k, v in cloth.attrib.items()
+            cloth_attrib = dict([(k, v) for k, v in cloth.attrib.items()
                                                   if not k in self.SPYNE_ATTRS])
 
-            attrib.update(attrs)
+            cloth_attrib.update(attrib)
 
             self.event_manager.fire_event(("before_entry", cloth), ctx,
-                                                                 parent, attrib)
+                                                           parent, cloth_attrib)
 
             kwargs = {}
             if len(cureltstack) == 0:
@@ -427,7 +427,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 kwargs['nsmap'] = cloth.nsmap
             if method is not None:
                 kwargs['method'] = method
-            curtag = parent.element(cloth.tag, attrib, **kwargs)
+            curtag = parent.element(cloth.tag, cloth_attrib, **kwargs)
             curtag.__enter__()
             if cloth.text is not None:
                 parent.write(cloth.text)
@@ -573,7 +573,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                             # FIXME: test needed
                             attrs[name] = ''
 
-                        self._enter_cloth(ctx, cloth, parent, attrs=attrs,
+                        self._enter_cloth(ctx, cloth, parent, attrib=attrs,
                                                         method=cls_attrs.method)
                         identifier = "%s.%s" % (prot_name, "null_to_cloth")
                         logger_s.debug("Writing '%s' using %s type: %s.", name,
@@ -597,7 +597,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         sub_name = name
                     attrs = {sub_name: self.to_unicode(cls, inst)}
 
-                    self._enter_cloth(ctx, cloth, parent, attrs=attrs,
+                    self._enter_cloth(ctx, cloth, parent, attrib=attrs,
                                                         method=cls_attrs.method)
 
                 else:
@@ -695,8 +695,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         fti_check = dict(fti.items())
         elt_check = set()
 
-        attrs = self._gen_attr_dict(inst, fti)
-        self._enter_cloth(ctx, cloth, parent, attrs=attrs,
+        attrib = self._gen_attrib_dict(inst, fti)
+        self._enter_cloth(ctx, cloth, parent, attrib=attrib,
                                                         method=cls_attrs.method)
 
         for elt in self._get_elts(cloth, self.MRPC_ID):
