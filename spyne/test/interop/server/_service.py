@@ -18,8 +18,6 @@
 #
 
 
-from spyne.model.binary import Attachment
-
 from spyne import Array, ByteArray, ComplexModel, SelfReference, Enum, Fault, \
     AnyXml, AnyDict, Boolean, Time, Date, DateTime, Float, Integer, Duration, \
     String, Double, ServiceBase, rpc, srpc
@@ -289,15 +287,6 @@ class InteropClass(ServiceBase):
     def echo_class_with_self_reference(sr):
         return sr
 
-    @srpc(Attachment, _returns=Attachment)
-    def echo_attachment(a):
-        assert isinstance(a, Attachment)
-        return a
-
-    @srpc(Array(Attachment), _returns=Array(Attachment))
-    def echo_attachment_array(aa):
-        return aa
-
 
 class InteropBare(ServiceBase):
     @srpc(String, _returns=String, _body_style='bare')
@@ -377,10 +366,6 @@ class InteropMisc(ServiceBase):
     def return_other_class_array(num):
         for i in range(num):
             yield OtherClass(dt=datetime(2010, 12, 6), d=3.0, b=True)
-
-    @srpc(_returns=Attachment)
-    def return_binary_data():
-        return Attachment(data=''.join([chr(i) for i in range(256)]))
 
     @srpc(_returns=Integer)
     def return_invalid_data():

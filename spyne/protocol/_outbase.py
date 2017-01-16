@@ -56,7 +56,6 @@ from spyne.model.binary import binary_encoding_handlers, \
     BINARY_ENCODING_USE_DEFAULT
 
 from spyne.util import six
-from spyne.model.binary import Attachment  # DEPRECATED
 
 from spyne.util.cdict import cdict
 
@@ -118,7 +117,6 @@ class OutProtocolBase(ProtocolMixin):
             DateTime: self.datetime_to_bytes,
             Duration: self.duration_to_bytes,
             ByteArray: self.byte_array_to_bytes,
-            Attachment: self.attachment_to_bytes,
             XmlAttribute: self.xmlattribute_to_bytes,
             ComplexModelBase: self.complex_model_base_to_bytes,
         })
@@ -549,22 +547,6 @@ class OutProtocolBase(ProtocolMixin):
         if self.ignore_uncap:
             return tuple()
         raise TypeError("This protocol can only serialize primitives.")
-
-    def attachment_to_bytes(self, cls, value, **_):
-        if not (value.data is None):
-            # the data has already been loaded, just encode
-            # and return the element
-            data = value.data
-
-        elif not (value.file_name is None):
-            # the data hasn't been loaded, but a file has been
-            # specified
-            data = open(value.file_name, 'rb').read()
-
-        else:
-            raise ValueError("Neither data nor a file_name has been specified")
-
-        return data
 
     def complex_model_base_to_bytes(self, cls, value, **_):
         raise TypeError("Only primitives can be serialized to string.")

@@ -282,7 +282,6 @@ class XmlDocument(SubXmlBase):
             AnyHtml: self.any_html_to_parent,
             ModelBase: self.modelbase_to_parent,
             ByteArray: self.byte_array_to_parent,
-            Attachment: self.attachment_to_parent,
             ComplexModelBase: self.complex_to_parent,
             XmlAttribute: self.xmlattribute_to_parent,
             SchemaValidationError: self.schema_validation_error_to_parent,
@@ -300,7 +299,6 @@ class XmlDocument(SubXmlBase):
             Unicode: self.unicode_from_element,
             Iterable: self.iterable_from_element,
             ByteArray: self.byte_array_from_element,
-            Attachment: self.attachment_from_element,
             ComplexModelBase: self.complex_from_element,
         })
 
@@ -662,10 +660,6 @@ class XmlDocument(SubXmlBase):
                                                  self.binary_encoding))
             else:
                 parent.set(name, self.to_unicode(cls.type, inst))
-
-    def attachment_to_parent(self, cls, inst, ns, parent, name='retval', **_):
-        _append(parent, E(_gen_tagname(ns, name),
-                    ''.join([b.decode('ascii') for b in cls.to_base64(inst)])))
 
     @coroutine
     def gen_members_parent(self, ctx, cls, inst, parent, tag_name, subelts,
@@ -1083,6 +1077,3 @@ class XmlDocument(SubXmlBase):
             raise ValidationError(retval)
 
         return retval
-
-    def attachment_from_element(self, ctx, cls, element):
-        return cls.from_base64([element.text])

@@ -50,6 +50,7 @@ spyne-2.13.0
   ``_in_arg_names``
 * ``_udp`` argument to ``@rpc`` was deprecated in favour of ``_udd``. UDP is
   too well known as user datagram protocol which could be confusing.
+* Attachment is removed. It's been deprecated since ages.
 * Usual bug fixes.
 
 spyne-2.12.14

@@ -39,8 +39,7 @@ from email.encoders import encode_7or8bit
 
 from email import message_from_string
 
-from spyne.model.binary import Attachment
-from spyne.model.binary import ByteArray
+from spyne.model.binary import ByteArray, File
 
 import spyne.const.xml_ns
 _ns_xop = spyne.const.xml_ns.xop
@@ -263,8 +262,8 @@ def apply_mtom(headers, envelope, params, paramvals):
     for i in range(len(params)):
         name, typ = params[i]
 
-        if typ in (ByteArray, Attachment):
-            id = "spyneAttachment_%s" % (len(mtompkg.get_payload()), )
+        if issubclass(typ, (ByteArray, File)):
+            id = "SpyneAttachment_%s" % (len(mtompkg.get_payload()), )
 
             param = message[i]
             param.text = ""
@@ -275,7 +274,7 @@ def apply_mtom(headers, envelope, params, paramvals):
             if paramvals[i].fileName and not paramvals[i].data:
                 paramvals[i].load_from_file()
 
-            if type == Attachment:
+            if issubclass(type, File):
                 data = paramvals[i].data
             else:
                 data = ''.join(paramvals[i])

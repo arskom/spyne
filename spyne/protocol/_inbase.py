@@ -51,7 +51,6 @@ from spyne.model.binary import binary_decoding_handlers, BINARY_ENCODING_USE_DEF
 
 from spyne.util import six
 from spyne.model.enum import EnumBase
-from spyne.model.binary import Attachment  # DEPRECATED
 from spyne.model.primitive.datetime import TIME_PATTERN, DATE_PATTERN
 
 from spyne.util.cdict import cdict
@@ -129,7 +128,6 @@ class InProtocolBase(ProtocolMixin):
             ByteArray: self.byte_array_from_string,
             EnumBase: self.enum_base_from_string,
             ModelBase: self.model_base_from_string,
-            Attachment: self.attachment_from_string,
             XmlAttribute: self.xmlattribute_from_string,
             ComplexModelBase: self.complex_model_base_from_string
         }
@@ -533,9 +531,6 @@ class InProtocolBase(ProtocolMixin):
             encoding = suggested_encoding
 
         return File.Value(data=binary_decoding_handlers[encoding](value))
-
-    def attachment_from_string(self, cls, value):
-        return Attachment(data=value)
 
     def complex_model_base_from_string(self, cls, string, **_):
         raise TypeError("Only primitives can be deserialized from string.")
