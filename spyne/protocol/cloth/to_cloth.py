@@ -589,7 +589,9 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 elif as_data:
                     # we only support XmlData of a primitive.,. is this a
                     # problem?
-                    parent.write(self.to_unicode(cls, inst))
+                    ret = self.to_unicode(cls, inst)
+                    if ret is not None:
+                        parent.write(ret)
 
                 elif as_attr:
                     sub_name = cls_attrs.sub_name
