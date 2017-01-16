@@ -393,13 +393,16 @@ class XmlDocument(SubXmlBase):
         self.validate_body(ctx, message)
 
     def from_element(self, ctx, cls, element):
+        cls_attrs = self.get_cls_attrs(cls)
+
         if bool(element.get('{%s}nil' % _ns_xsi)):
             if self.validator is self.SOFT_VALIDATION and not \
-                                                        cls.Attributes.nillable:
+                                                             cls_attrs.nillable:
                 raise ValidationError('')
 
             if self.replace_null_with_default:
-                return cls.Attributes.default
+                return cls_attrs.default
+
             return None
 
         # if present, use the xsi:type="ns0:ObjectName"
@@ -440,7 +443,7 @@ class XmlDocument(SubXmlBase):
         handler = self.serialization_handlers[cls]
 
         if inst is None:
-            inst = cls.Attributes.default
+            inst = cls_attrs.default
 
         if inst is None:
             return self.null_to_parent(ctx, cls, inst, parent, ns,
@@ -624,9 +627,11 @@ class XmlDocument(SubXmlBase):
 
     def xmldata_to_parent(self, ctx, cls, inst, parent, ns, name,
                                                       add_type=False, **_):
+        cls_attrs = self.get_cls_attrs(cls)
+
         ns = cls._ns
         if ns is None:
-            ns = cls.Attributes.sub_ns
+            ns = cls_attrs.sub_ns
 
         name = _gen_tagname(ns, name)
 
@@ -637,8 +642,9 @@ class XmlDocument(SubXmlBase):
 
     def xmlattribute_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
         ns = cls._ns
+        cls_attrs = self.get_cls_attrs(cls)
         if ns is None:
-            ns = cls.Attributes.sub_ns
+            ns = cls_attrs.sub_ns
 
         name = _gen_tagname(ns, name)
 
@@ -787,13 +793,15 @@ class XmlDocument(SubXmlBase):
 
     def complex_to_parent(self, ctx, cls, inst, parent, ns, name=None,
                                                            add_type=False, **_):
-        sub_name = cls.Attributes.sub_name
+        cls_attrs = self.get_cls_attrs(cls)
+
+        sub_name = cls_attrs.sub_name
         if sub_name is not None:
             name = sub_name
         if name is None:
             name = cls.get_type_name()
 
-        sub_ns = cls.Attributes.sub_ns
+        sub_ns = cls_attrs.sub_ns
         if not sub_ns in (None, DEFAULT_NS):
             ns = sub_ns
 
@@ -879,9 +887,10 @@ class XmlDocument(SubXmlBase):
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(int)
+        cls_attrs = self.get_cls_attrs(cls)
 
-        if cls.Attributes._xml_tag_body_as is not None:
-            for xtba_key, xtba_type in cls.Attributes._xml_tag_body_as:
+        if cls_attrs._xml_tag_body_as is not None:
+            for xtba_key, xtba_type in cls_attrs._xml_tag_body_as:
                 if issubclass(xtba_type.type, (ByteArray, File)):
                     value = self.from_unicode(xtba_type.type, elt.text,
                                                         self.binary_encoding)
