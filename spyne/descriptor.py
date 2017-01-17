@@ -153,7 +153,7 @@ class MethodDescriptor(object):
         methods."""
 
         self.default_on_null = default_on_null
-        if default_on_null is not None and parent_class is None:
+        if parent_class is None and not (default_on_null is False):
             raise LogicError("default_on_null is only to be used inside @mrpc")
 
         # HATEOAS Stuff

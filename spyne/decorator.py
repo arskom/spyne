@@ -43,7 +43,7 @@ from spyne import BODY_STYLE_OUT_BARE
 from spyne import BODY_STYLE_EMPTY_OUT_BARE
 
 from spyne.model import ModelBase, ComplexModel, ComplexModelBase
-from spyne.model.complex import TypeInfo, recust_selfref
+from spyne.model.complex import TypeInfo, recust_selfref, SelfReference
 
 from spyne.const import add_request_suffix
 
@@ -85,7 +85,18 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
                                 f.__name__, len(argnames), len(params)))
 
     in_params = TypeInfo()
+    from spyne import SelfReference
     for k, v in zip(argnames, params):
+        try:
+            is_self_ref = issubclass(v, SelfReference)
+        except TypeError:
+            is_self_ref = False
+
+        if is_self_ref:
+            if no_self is False:
+                raise LogicError("SelfReference can't be used in @rpc")
+            v = recust_selfref(v, self_ref_cls)
+
         k = in_variable_names.get(k, k)
         in_params[k] = v
 
@@ -153,7 +164,7 @@ def _validate_body_style(kparams):
 
 
 def _produce_output_message(func_name, body_style_str, self_ref_cls,
-                                                             _no_self, kparams):
+                                                              no_self, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
@@ -161,11 +172,22 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
 
     _returns = kparams.pop('_returns', None)
 
+    try:
+        is_self_ref = issubclass(_returns, SelfReference)
+    except TypeError:
+        is_self_ref = False
+
+    if is_self_ref:
+        if no_self is False:
+            raise LogicError("SelfReference can't be used in @rpc")
+
+        _returns = recust_selfref(_returns, self_ref_cls)
+
     _is_out_message_name_overridden = not ('_out_message_name' in kparams)
     _out_message_name = kparams.pop('_out_message_name', '%s%s' %
                                        (func_name, spyne.const.RESPONSE_SUFFIX))
 
-    if _no_self is False and \
+    if no_self is False and \
                (body_style_str == 'wrapped' or _is_out_message_name_overridden):
         _out_message_name = '%s.%s' % \
                                (self_ref_cls.get_type_name(), _out_message_name)
@@ -305,7 +327,7 @@ def rpc(*params, **kparams):
             # class that contains the method at hand.
 
             function_name = kwargs['_default_function_name']
-            self_ref_replacement = None
+            _self_ref_replacement = None
 
             # this block is passed straight to the descriptor
             _is_callback = kparams.pop('_is_callback', False)
@@ -333,11 +355,6 @@ def rpc(*params, **kparams):
             _default_on_null = kparams.pop('_default_on_null', False)
             _substitute_self_reference(params, kparams, _self_ref_replacement,
                                                                        _no_self)
-            if _no_self is False:
-                self_ref_replacement = kwargs.pop('_self_ref_replacement')
-
-                _default_on_null = kparams.pop('_default_on_null', False)
-
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
@@ -355,7 +372,7 @@ def rpc(*params, **kparams):
 
             if _no_self is False and _is_in_message_name_overridden:
                 _in_message_name = '%s.%s' % \
-                        (self_ref_replacement.get_type_name(), _in_message_name)
+                       (_self_ref_replacement.get_type_name(), _in_message_name)
 
             _operation_name = kparams.pop('_operation_name', function_name)
 
@@ -401,10 +418,10 @@ def rpc(*params, **kparams):
 
             in_message = _produce_input_message(f, params,
                     _in_message_name, _in_arg_names, _no_ctx, _no_self,
-                                    _args, body_style_str, self_ref_replacement)
+                                    _args, body_style_str, _self_ref_replacement)
 
             out_message = _produce_output_message(function_name,
-                        body_style_str, self_ref_replacement, _no_self, kparams)
+                        body_style_str, _self_ref_replacement, _no_self, kparams)
 
             doc = getattr(f, '__doc__')
 
@@ -432,7 +449,7 @@ def rpc(*params, **kparams):
                 in_message, out_message, doc,
                 is_callback=_is_callback, is_async=_is_async, mtom=_mtom,
                 in_header=_in_header, out_header=_out_header, faults=_faults,
-                parent_class=self_ref_replacement,
+                parent_class=_self_ref_replacement,
                 port_type=_port_type, no_ctx=_no_ctx, udd=_udd,
                 class_key=function_name, aux=_aux, patterns=_patterns,
                 body_style=body_style, args=_args,
