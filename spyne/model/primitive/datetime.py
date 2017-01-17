@@ -235,8 +235,8 @@ class Date(DateTime):
         le = datetime.date(datetime.MAXYEAR, 12, 31)  # maxInclusive
         """The date should be lower than or equal to this date."""
 
-        format = '%Y-%m-%d'
-        """DateTime format fed to the ``strftime`` function. See:
+        date_format = None
+        """Date format fed to the ``strftime`` function. See:
         http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior
         Ignored by protocols like SOAP which have their own ideas about how
         Date objects should be serialized."""
