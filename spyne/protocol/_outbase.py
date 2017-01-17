@@ -579,6 +579,13 @@ class OutProtocolBase(ProtocolMixin):
 
         return dt_format
 
+    def _get_time_format(self, cls_attrs):
+        time_format = cls_attrs.time_format
+        if time_format is None:
+            time_format = cls_attrs.format
+
+        return time_format
+
     def _datetime_to_bytes(self, cls, value, **_):
         """Returns ISO formatted datetimes."""
         cls_attrs = self.get_cls_attrs(cls)

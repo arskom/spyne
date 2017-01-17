@@ -62,6 +62,12 @@ class Time(SimpleModel):
         """A regular expression that matches the whole time. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
+        time_format = None
+        """Time format fed to the ``strftime`` function. See:
+        http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior
+        Ignored by protocols like SOAP which have their own ideas about how
+        Date objects should be serialized."""
+
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
