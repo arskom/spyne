@@ -569,7 +569,9 @@ class OutProtocolBase(ProtocolMixin):
         return cls.to_unicode(value, **kwargs)
 
     def _get_datetime_format(self, cls_attrs):
-        dt_format = cls_attrs.dt_format
+        dt_format = cls_attrs.datetime_format
+        if dt_format is None:
+            dt_format = cls_attrs.dt_format
         if dt_format is None:
             dt_format = cls_attrs.date_format
         if dt_format is None:
