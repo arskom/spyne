@@ -243,7 +243,7 @@ class HttpBase(ServerBase):
         # addresses with wildcards, which puts the more specific addresses to
         # the front.
         self._http_patterns = list(reversed(sorted(self._http_patterns,
-                                          key=lambda x: (x.address, x.host) )))
+                                           key=lambda x: (x.address, x.host) )))
 
     def match_pattern(self, ctx, method='', path='', host=''):
         """Sets ctx.method_request_string if there's a match. It's O(n) which
@@ -283,15 +283,20 @@ class HttpBase(ServerBase):
                 for k, v in match.groupdict().items():
                     params[k].append(v)
 
-            assert patt.address is not None
+            if patt.address is None:
+                if path.split('/')[-1] != patt.endpoint.name:
+                    continue
 
-            match = patt.address_re.match(path)
-            if match is None:
-                continue
-            if not (match.span() == (0, len(path))):
-                continue
-            for k,v in match.groupdict().items():
-                params[k].append(v)
+            else:
+                match = patt.address_re.match(path)
+                if match is None:
+                    continue
+
+                if not (match.span() == (0, len(path))):
+                    continue
+
+                for k,v in match.groupdict().items():
+                    params[k].append(v)
 
             d = patt.endpoint
             assert isinstance(d, MethodDescriptor)
