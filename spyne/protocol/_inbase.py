@@ -462,9 +462,14 @@ class InProtocolBase(ProtocolMixin):
         return self._datetime_dsmap[serialize_as](cls, string)
 
     def date_from_string(self, cls, string):
+        date_format = self._get_date_format(self.get_cls_attrs(cls))
         try:
-            d = datetime.strptime(string, self.get_cls_attrs(cls).format)
-            return date(d.year, d.month, d.day)
+            if date_format is not None:
+                dt = datetime.strptime(string, date_format)
+                return date(dt.year, dt.month, dt.day)
+
+            return self.date_from_unicode_iso(cls, string)
+
         except ValueError as e:
             match = cls._offset_re.match(string)
             if match:

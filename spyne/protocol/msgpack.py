@@ -311,9 +311,10 @@ class MessagePackRpc(MessagePackDocument):
 
         # transform the results into a dict:
         if out_type.Attributes.max_occurs > 1:
-            params = (self._to_dict_value(out_type, inst) for inst in out_instance)
+            params = (self._to_dict_value(out_type, inst, set())
+                                                       for inst in out_instance)
         else:
-            params = self._to_dict_value(out_type, out_instance)
+            params = self._to_dict_value(out_type, out_instance, set())
 
         ctx.out_document = [[msgtype, 0, method_name_or_error, params]]
 
