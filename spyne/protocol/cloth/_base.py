@@ -291,13 +291,13 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             val = getattr(inst, field_name, None)
             sub_name = self._gen_tagname(ns, sub_name)
 
-            if val is not None:
-                if issubclass(field_type.type, (ByteArray, File)):
-                    valstr = self.to_unicode(field_type.type, val,
-                                                           self.binary_encoding)
-                else:
-                    valstr = self.to_unicode(field_type.type, val)
+            if issubclass(field_type.type, (ByteArray, File)):
+                valstr = self.to_unicode(field_type.type, val,
+                                                       self.binary_encoding)
+            else:
+                valstr = self.to_unicode(field_type.type, val)
 
+            if valstr is not None:
                 attrs[sub_name] = valstr
 
         return attrs
