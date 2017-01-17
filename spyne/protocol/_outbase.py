@@ -581,6 +581,13 @@ class OutProtocolBase(ProtocolMixin):
 
         return dt_format
 
+    def _get_date_format(self, cls_attrs):
+        date_format = cls_attrs.date_format
+        if date_format is None:
+            date_format = cls_attrs.format
+
+        return date_format
+
     def _get_time_format(self, cls_attrs):
         time_format = cls_attrs.time_format
         if time_format is None:
