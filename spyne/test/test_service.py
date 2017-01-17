@@ -30,6 +30,7 @@ from spyne.util.six import BytesIO
 
 from lxml import etree
 
+from spyne import LogicError
 from spyne.const import RESPONSE_SUFFIX
 from spyne.model.primitive import NATIVE_MAP
 
@@ -420,7 +421,7 @@ class TestBodyStyle(unittest.TestCase):
                 @rpc(_returns=SelfReference)
                 def method(ctx):
                     pass
-        except ValueError:
+        except LogicError:
             pass
         else:
             raise Exception("Must fail with: "

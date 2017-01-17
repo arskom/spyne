@@ -96,7 +96,7 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
     message = None
     if body_style_str == 'bare':
         if len(in_params) > 1:
-            raise Exception("body_style='bare' can handle at most one function "
+            raise LogicError("body_style='bare' can handle at most one function "
                             "argument.")
 
         if len(in_params) == 0:
@@ -107,7 +107,7 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
             message = message.customize(sub_name=in_message_name, sub_ns=ns)
 
             if issubclass(message, ComplexModelBase) and not message._type_info:
-                raise Exception("body_style='bare' does not allow empty "
+                raise LogicError("body_style='bare' does not allow empty "
                                                                "model as param")
 
             # there can't be multiple arguments here.
@@ -216,7 +216,7 @@ def _substitute_self_reference(params, kparams, self_ref_replacement, _no_self):
     for i, v in enumerate(params):
         if isclass(v) and issubclass(v, SelfReference):
             if _no_self:
-                raise ValueError("SelfReference can't be used in @rpc")
+                raise LogicError("SelfReference can't be used in @rpc")
             params[i] = recust_selfref(v, self_ref_replacement)
         else:
             params[i] = v
@@ -224,7 +224,7 @@ def _substitute_self_reference(params, kparams, self_ref_replacement, _no_self):
     for k, v in kparams.items():
         if isclass(v) and issubclass(v, SelfReference):
             if _no_self:
-                raise ValueError("SelfReference can't be used in @rpc")
+                raise LogicError("SelfReference can't be used in @rpc")
             kparams[k] = recust_selfref(v, self_ref_replacement)
         else:
             kparams[k] = v
@@ -329,12 +329,13 @@ def rpc(*params, **kparams):
             _no_self = kparams.pop('_no_self', True)
 
             # mrpc-specific
-            _default_on_null = None
+            _self_ref_replacement = kwargs.pop('_self_ref_replacement', None)
+            _default_on_null = kparams.pop('_default_on_null', False)
+            _substitute_self_reference(params, kparams, _self_ref_replacement,
+                                                                       _no_self)
             if _no_self is False:
                 self_ref_replacement = kwargs.pop('_self_ref_replacement')
 
-                _substitute_self_reference(params, kparams,
-                                                 self_ref_replacement, _no_self)
                 _default_on_null = kparams.pop('_default_on_null', False)
 
 
@@ -368,7 +369,7 @@ def rpc(*params, **kparams):
                 _in_message_name = add_request_suffix(_operation_name)
 
             if '_in_arg_names' in kparams and '_in_variable_names' in kparams:
-                raise Exception("Use either '_in_arg_names' or "
+                raise LogicError("Use either '_in_arg_names' or "
                                               "'_in_variable_names', not both.")
             elif '_in_arg_names' in kparams:
                 _in_arg_names = kparams.pop('_in_arg_names')
@@ -380,7 +381,7 @@ def rpc(*params, **kparams):
                 _in_arg_names = {}
 
             if '_udd' in kparams and '_udp' in kparams:
-                raise Exception("Use either '_udd' or '_udp', not both.")
+                raise LogicError("Use either '_udd' or '_udp', not both.")
             elif '_udd' in kparams:
                 _udd = kparams.pop('_udd')
 
@@ -448,7 +449,7 @@ def rpc(*params, **kparams):
                     p.hello(retval)
 
             if len(kparams) > 0:
-                raise Exception("Unknown kwarg(s) %r passed.", kparams)
+                raise ValueError("Unknown kwarg(s) %r passed.", kparams)
             return retval
 
         explain_method.__doc__ = f.__doc__
