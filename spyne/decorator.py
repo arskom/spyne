@@ -388,8 +388,6 @@ def rpc(*params, **kparams):
                 for p in _patterns:
                     p.hello(retval)
 
-            if len(kparams) > 0:
-                raise Exception("Unknown kwarg(s) %r passed.", kparams)
             return retval
 
         explain_method.__doc__ = f.__doc__
