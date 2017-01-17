@@ -66,7 +66,6 @@ class _Schema(object):
 
 # FIXME: Needs to emit delayed assignment of recursive structures instead of
 # lousy ellipses.
-@memoize
 def Thier_repr(with_ns=False):
     """Template for ``hier_repr``, a ``repr`` variant that shows spyne
     ``ComplexModel``s in a hierarchical format.

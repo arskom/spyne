@@ -1457,7 +1457,6 @@ class Iterable(Array):
         pass
 
 
-@memoize
 def TTableModelBase():
     from spyne.store.relational import add_column
 
@@ -1488,7 +1487,6 @@ def TTableModelBase():
 
 
 # this has docstring repeated in the documentation at reference/model/complex.rst
-@memoize_id
 def TTableModel(metadata=None):
     """A TableModel template that generates a new TableModel class for each
     call. If metadata is not supplied, a new one is instantiated.

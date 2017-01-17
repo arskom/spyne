@@ -332,7 +332,7 @@ def unicode_get_restriction_tag(document, cls):
 
 prot = XmlDocument()
 
-@memoize
+
 def Tget_range_restriction_tag(T):
     """The get_range_restriction template function. Takes a primitive, returns
     a function that generates range restriction tags.

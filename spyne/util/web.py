@@ -277,7 +277,6 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
     return retval
 
 
-@memoize
 def TReaderService(T, T_name):
     class ReaderService(ReaderServiceBase):
         @rpc(M(UnsignedInteger32), _returns=T,
@@ -294,7 +293,6 @@ def TReaderService(T, T_name):
     return ReaderService
 
 
-@memoize
 def TWriterService(T, T_name, put_not_found='raise'):
     assert put_not_found in ('raise', 'fix')
 

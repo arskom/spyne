@@ -237,7 +237,6 @@ class PositiveInteger(NonNegativeInteger):
                 and (value is None or value > 0))
 
 
-@memoize
 def TBoundedInteger(num_bits, type_name):
     _min_b = -(0x8<<(num_bits-4))     # 0x8 is 4 bits.
     _max_b =  (0x8<<(num_bits-4)) - 1 # -1? c'est la vie
@@ -260,7 +259,6 @@ def TBoundedInteger(num_bits, type_name):
     return _BoundedInteger
 
 
-@memoize
 def TBoundedUnsignedInteger(num_bits, type_name):
     _min_b = 0
     _max_b = 2 ** num_bits - 1 # -1? c'est la vie ;)
