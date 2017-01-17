@@ -1487,17 +1487,17 @@ def TTableModelBase():
 
 
 # this has docstring repeated in the documentation at reference/model/complex.rst
-def TTableModel(metadata=None):
+def TTableModel(metadata=None, base=None, metaclass=None):
     """A TableModel template that generates a new TableModel class for each
     call. If metadata is not supplied, a new one is instantiated.
     """
 
     from sqlalchemy import MetaData
 
-    @add_metaclass(ComplexModelMeta)
-    class TableModel(TTableModelBase()):
+    @add_metaclass(metaclass if metaclass is not None else ComplexModelMeta)
+    class TableModel(base if base is not None else TTableModelBase()):
         class Attributes(ComplexModelBase.Attributes):
-            sqla_metadata = metadata or MetaData()
+            sqla_metadata = metadata if metadata is not None else MetaData()
 
     return TableModel
 
