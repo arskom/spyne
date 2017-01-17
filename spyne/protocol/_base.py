@@ -107,6 +107,33 @@ class ProtocolMixin(object):
             logger.error("Invalid value %r", value)
             raise
 
+    def _get_datetime_format(self, cls_attrs):
+        dt_format = cls_attrs.datetime_format
+        if dt_format is None:
+            dt_format = cls_attrs.dt_format
+        if dt_format is None:
+            dt_format = cls_attrs.date_format
+        if dt_format is None:
+            dt_format = cls_attrs.out_format
+        if dt_format is None:
+            dt_format = cls_attrs.format
+
+        return dt_format
+
+    def _get_date_format(self, cls_attrs):
+        date_format = cls_attrs.date_format
+        if date_format is None:
+            date_format = cls_attrs.format
+
+        return date_format
+
+    def _get_time_format(self, cls_attrs):
+        time_format = cls_attrs.time_format
+        if time_format is None:
+            time_format = cls_attrs.format
+
+        return time_format
+
     @property
     def app(self):
         return self.__app

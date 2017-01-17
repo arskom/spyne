@@ -174,12 +174,16 @@ class OutProtocolBase(ProtocolMixin):
 
         if isinstance(fault, RequestTooLongError):
             return HTTP_413
+
         if isinstance(fault, ResourceNotFoundError):
             return HTTP_404
+
         if isinstance(fault, RequestNotAllowed):
             return HTTP_405
+
         if isinstance(fault, InvalidCredentialsError):
             return HTTP_401
+
         if isinstance(fault, Fault) and (fault.faultcode.startswith('Client.')
                                                 or fault.faultcode == 'Client'):
             return HTTP_400
@@ -568,38 +572,14 @@ class OutProtocolBase(ProtocolMixin):
     def model_base_to_unicode(self, cls, value, **kwargs):
         return cls.to_unicode(value, **kwargs)
 
-    def _get_datetime_format(self, cls_attrs):
-        dt_format = cls_attrs.datetime_format
-        if dt_format is None:
-            dt_format = cls_attrs.dt_format
-        if dt_format is None:
-            dt_format = cls_attrs.date_format
-        if dt_format is None:
-            dt_format = cls_attrs.out_format
-        if dt_format is None:
-            dt_format = cls_attrs.format
-
-        return dt_format
-
-    def _get_date_format(self, cls_attrs):
-        date_format = cls_attrs.date_format
-        if date_format is None:
-            date_format = cls_attrs.format
-
-        return date_format
-
-    def _get_time_format(self, cls_attrs):
-        time_format = cls_attrs.time_format
-        if time_format is None:
-            time_format = cls_attrs.format
-
-        return time_format
-
     def _datetime_to_bytes(self, cls, value, **_):
         """Returns ISO formatted datetimes."""
+
         cls_attrs = self.get_cls_attrs(cls)
+
         if cls_attrs.as_timezone is not None and value.tzinfo is not None:
             value = value.astimezone(cls_attrs.as_timezone)
+
         if not cls_attrs.timezone:
             value = value.replace(tzinfo=None)
 
@@ -609,8 +589,10 @@ class OutProtocolBase(ProtocolMixin):
 
         if dt_format is None:
             retval = value.isoformat()
+
         elif six.PY2 and isinstance(dt_format, unicode):
             retval = self.strftime(value, dt_format.encode('utf8')).decode('utf8')
+
         else:
             retval = self.strftime(value, dt_format)
 
@@ -627,7 +609,6 @@ class OutProtocolBase(ProtocolMixin):
             return interp_format.format(value)
 
         return retval
-
 
     # Format a datetime through its full proleptic Gregorian date range.
     # http://code.activestate.com/recipes/306860-proleptic-gregorian-dates-and-strftime-before-1900/
