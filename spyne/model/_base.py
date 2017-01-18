@@ -121,7 +121,7 @@ class AttributesMeta(type(object)):
 
     def get_nullable(self):
         return (self._nullable if self._nullable is not None else
-                self.NULLABLE_DEFAULT)
+                                                          self.NULLABLE_DEFAULT)
 
     def set_nullable(self, what):
         self._nullable = what

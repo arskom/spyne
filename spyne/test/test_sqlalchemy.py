@@ -43,6 +43,9 @@ from spyne.model.binary import HybridFileStore
 from spyne.model.complex import xml
 from spyne.model.complex import table
 
+from spyne.store.relational import get_pk_columns
+
+
 TableModel = TTableModel()
 
 
@@ -742,9 +745,11 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             s = Unicode(32)
 
+        TableModel.Attributes.sqla_metadata.create_all()
+
         # create a new table model with empty metadata
         TM2 = TTableModel()
-        TM2.bind = self.engine
+        TM2.Attributes.sqla_metadata.bind = self.engine
 
         # fill it with information from the db
         TM2.Attributes.sqla_metadata.reflect()
@@ -755,6 +760,13 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         pprint(dict(Reflected._type_info).items())
         assert issubclass(Reflected._type_info['id'], Integer)
+
+        # this looks at spyne attrs
+        assert [k for k, v in get_pk_columns(Reflected)] == ['id']
+
+        # this looks at sqla attrs
+        assert [k for k, v in Reflected.get_primary_keys()] == ['id']
+
         assert issubclass(Reflected._type_info['s'], Unicode)
         assert Reflected._type_info['s'].Attributes.max_len == 32
 

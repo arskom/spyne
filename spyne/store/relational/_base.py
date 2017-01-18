@@ -1050,36 +1050,63 @@ def gen_sqla_info(cls, cls_bases=()):
 def _get_spyne_type(v):
     """Map sqlalchemy types to spyne types."""
 
+    cust = {}
+    if v.primary_key:
+        cust['primary_key'] = True
+
+    if not v.nullable:
+        cust['nullable'] = False
+        cust['min_occurs'] = 1
+
     if isinstance(v.type, sqlalchemy.Enum):
         if v.type.convert_unicode:
-            return Unicode(values=v.type.enums)
+            return Unicode(values=v.type.enums, **cust)
         else:
-            return Enum(*v.type.enums, **{'type_name': v.type.name})
+            cust['type_name'] = v.type.name
+            return Enum(*v.type.enums, **cust)
 
     if isinstance(v.type, (sqlalchemy.UnicodeText, sqlalchemy.Text)):
-        return Unicode
+        return Unicode(**cust)
 
     if isinstance(v.type, (sqlalchemy.Unicode, sqlalchemy.String,
                                                            sqlalchemy.VARCHAR)):
-        return Unicode(v.type.length)
+        return Unicode(v.type.length, **cust)
 
     if isinstance(v.type, sqlalchemy.Numeric):
-        return Decimal(v.type.precision, v.type.scale)
+        return Decimal(v.type.precision, v.type.scale, **cust)
 
     if isinstance(v.type, PGXml):
-        return AnyXml
+        if len(cust) > 0:
+            return AnyXml(**cust)
+        else:
+            return AnyXml
 
     if isinstance(v.type, PGHtml):
-        return AnyHtml
+        if len(cust) > 0:
+            return AnyHtml(**cust)
+        else:
+            return AnyHtml
 
     if type(v.type) in _sq2sp_type_map:
-        return _sq2sp_type_map[type(v.type)]
+        retval = _sq2sp_type_map[type(v.type)]
+        if len(cust) > 0:
+            return retval.customize(**cust)
+        else:
+            return retval
 
     if isinstance(v.type, (PGObjectJson, PGObjectXml)):
-        return v.type.cls
+        retval = v.type.cls
+        if len(cust) > 0:
+            return retval.customize(**cust)
+        else:
+            return retval
 
     if isinstance(v.type, PGFileJson):
-        return v.FileData
+        retval = v.FileData
+        if len(cust) > 0:
+            return v.FileData.customize(**cust)
+        else:
+            return retval
 
     raise Exception("Spyne type was not found. Probably _sq2sp_type_map "
                     "needs a new entry. %r" % v)
