@@ -24,7 +24,7 @@ logger_server = logging.getLogger('.'.join([__name__, 'server']))
 
 from spyne import BODY_STYLE_EMPTY, BODY_STYLE_BARE, BODY_STYLE_WRAPPED, \
     EventManager
-from spyne.error import Fault, Redirect, RespawnError
+from spyne.error import Fault, Redirect, RespawnError, InvalidRequestError
 from spyne.interface import Interface
 from spyne.util import six
 from spyne.util.appreg import register_application
@@ -253,6 +253,11 @@ class Application(object):
         else:
             args = args[1:]
 
+        # check whether this is a valid request according to the prerequisite
+        # function (the callable that was passed in the _when argument to @mrpc)
+        if ctx.descriptor.when is not None:
+            if not ctx.descriptor.when(inst, ctx):
+                raise InvalidRequestError("Invalid object state for request")
 
         if ctx.descriptor.no_ctx:
             retval = ctx.function(inst, *args)
