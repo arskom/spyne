@@ -156,6 +156,8 @@ class MethodDescriptor(object):
         self.default_on_null = default_on_null
         if parent_class is None and not (default_on_null is False):
             raise LogicError("default_on_null is only to be used inside @mrpc")
+        if parent_class is not None and service_class is not None:
+            raise LogicError("There is no service_class for @mrpc")
 
         # HATEOAS Stuff
         self.translations = translations
