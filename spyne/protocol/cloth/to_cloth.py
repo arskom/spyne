@@ -255,7 +255,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             for k, v in cls.Attributes.methods.items():
                 is_shown = True
                 if v.when is not None:
-                    is_shown = v.when(ctx, inst)
+                    is_shown = v.when(inst, ctx)
 
                 if is_shown:
                     yield k, v

@@ -50,6 +50,8 @@ spyne-2.13.0
   ``_in_arg_names``
 * ``_udp`` argument to ``@rpc`` was deprecated in favour of ``_udd``. UDP is
   too well known as user datagram protocol which could be confusing.
+* ``_when`` argument to ``@mrpc`` now needs to be a callable that satisfies
+  the ``f(self, ctx)`` signature. It was ``f(self)`` before.
 * Attachment is removed. It's been deprecated since ages.
 * Usual bug fixes.
 
