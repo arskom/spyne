@@ -220,49 +220,44 @@ class Application(object):
         management.
         """
 
-        retval = None
+        # no function
+        if ctx.function is None:
+            logger.debug("Skipping user code call as ctx.function is None.")
+            return None
 
-        # service rpc
+        # @rpc inside service class
         if ctx.descriptor.no_self:
-            retval = ctx.descriptor.service_class.call_wrapper(ctx)
+            return ctx.descriptor.service_class.call_wrapper(ctx)
 
-        # class rpc
-        else:
-            cls = ctx.descriptor.parent_class
-            if cls.__orig__ is not None:
-                cls = cls.__orig__
+        # from here on out it's @mrpc in a (parent) class
+        cls = ctx.descriptor.parent_class
+        if cls.__orig__ is not None:
+            cls = cls.__orig__
 
-            filters = {}
-            inst = cls.__respawn__(ctx, filters)
-            if inst is None:
-                raise RespawnError('{%s}%s with params %r' %
+        filters = {}
+        inst = cls.__respawn__(ctx, filters)
+        if inst is None:
+            raise RespawnError('{%s}%s with params %r' %
                             (cls.get_namespace(), cls.get_type_name(), filters))
-            in_cls = ctx.descriptor.in_message
 
-            args = ctx.in_object
-            if args is None:
-                args = []
+        in_cls = ctx.descriptor.in_message
 
-            elif ctx.descriptor.body_style is BODY_STYLE_WRAPPED and \
-                                    len(in_cls.get_flat_type_info(in_cls)) <= 1:
-                args = []
+        args = ctx.in_object
+        if args is None:
+            args = []
 
-            else:
-                args = args[1:]
+        elif ctx.descriptor.body_style is BODY_STYLE_WRAPPED and \
+                                len(in_cls.get_flat_type_info(in_cls)) <= 1:
+            args = []
 
-            if ctx.descriptor.service_class is not None:
-                ctx.in_object = [inst, ctx]
-                ctx.in_object.extend(args)
+        else:
+            args = args[1:]
 
-                # hack to make sure inst goes first
-                ctx.descriptor.no_ctx = True
-                retval = ctx.descriptor.service_class.call_wrapper(ctx)
 
-            elif ctx.function is not None:
-                if ctx.descriptor.no_ctx:
-                    retval = ctx.function(inst, *args)
-                else:
-                    retval = ctx.function(inst, ctx, *args)
+        if ctx.descriptor.no_ctx:
+            retval = ctx.function(inst, *args)
+        else:
+            retval = ctx.function(inst, ctx, *args)
 
         return retval
 
