@@ -146,11 +146,12 @@ class MethodDescriptor(object):
         """FIXME: docstring yo."""
 
         self.service_class = service_class
-        """The ServiceBase subclass the method belongs to, if there's any."""
+        """The ServiceBase subclass the method belongs to. Must be None for
+        ``@mrpc`` methods, a ServiceBase subclass for anything else."""
 
         self.parent_class = parent_class
-        """The ComplexModel subclass the method belongs to. Only set for @mrpc
-        methods."""
+        """The ComplexModel subclass the method belongs to. Only set for
+        ``@mrpc`` methods."""
 
         self.default_on_null = default_on_null
         if parent_class is None and not (default_on_null is False):
@@ -164,13 +165,15 @@ class MethodDescriptor(object):
         """None or a dict of locale-translation pairs."""
 
         self.when = when
-        """None or a callable that takes object instance and returns a
-        boolean value. If true, the object can process that action.
+        """None or a callable that takes an object instance and a
+        :class:`MethodContext` and returns a boolean value. If this callable
+        returns ``True``, the object can process that action.
         """
 
         self.static_when = static_when
-        """None or a callable that takes the object instance and returns a
-        boolean value. If true, the object can process that action.
+        """None or a callable that takes an :class:`Application` instance and
+        returns a boolean value. If true, the object can have that action
+        registered in the interface document.
         """
 
     def translate(self, locale, default):
