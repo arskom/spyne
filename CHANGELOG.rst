@@ -42,11 +42,11 @@ spyne-2.13.0
   ``spyne.BODY_STYLE_EMPTY`` before. This hould not break anything unless you
   are doing some REAL fancy stuff in the method decorators or service events.
 * Auxproc is DEPRECATED. Just get rid of it.
-* `spyne.protocol.dictdoc.simple`, `spyne.server.twisted.http` and
-  `spyne.server.django` are not experimental anymore.
+* ``spyne.protocol.dictdoc.simple``, ``spyne.server.twisted.http`` and
+  ``spyne.server.django`` are not experimental anymore.
 * No major changes otherwise but we paid a lot of technical debt. e.g. We
   revamped the test infrastructure.
-* ``_in_variable_names`` argument to ``@rpc`` was deprecated in favour of 
+* ``_in_variable_names`` argument to ``@rpc`` was deprecated in favour of
   ``_in_arg_names``
 * ``_udp`` argument to ``@rpc`` was deprecated in favour of ``_udd``. UDP is
   too well known as user datagram protocol which could be confusing.
