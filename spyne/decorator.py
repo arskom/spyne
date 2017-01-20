@@ -252,6 +252,35 @@ def _substitute_self_reference(params, kparams, self_ref_replacement, _no_self):
             kparams[k] = v
 
 
+def _get_event_managers(kparams):
+    _evmgr = kparams.pop("_evmgr", None)
+    _evmgrs = kparams.pop("_evmgrs", None)
+
+    if _evmgr is not None and _evmgrs is not None:
+        raise LogicError("Pass one of _evmgr or _evmgrs but not both")
+
+    if _evmgr is not None:
+        _evmgrs = [_evmgr]
+
+    _event_manager = kparams.pop("_event_manager", None)
+    _event_managers = kparams.pop("_event_managers", None)
+
+    if _event_manager is not None and _event_managers is not None:
+        raise LogicError("Pass one of _event_manager or "
+                         "_event_managers but not both")
+
+    if _event_manager is not None:
+        _event_managers = [_event_manager]
+
+    if _evmgrs is not None and _event_managers is not None:
+        raise LogicError("You must pass at most one of _evmgr* "
+                         "arguments or _event_manager* arguments")
+    elif _evmgrs is not None:
+        _event_managers = _evmgrs
+
+    return _event_managers if _event_managers is not None else []
+
+
 def rpc(*params, **kparams):
     """Method decorator to tag a method as a remote procedure call in a
     :class:`spyne.service.ServiceBase` subclass.
@@ -349,6 +378,7 @@ def rpc(*params, **kparams):
             _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
 
             _no_self = kparams.pop('_no_self', True)
+            _event_managers = _get_event_managers(kparams)
 
             # mrpc-specific
             _self_ref_replacement = kwargs.pop('_self_ref_replacement', None)
@@ -459,6 +489,7 @@ def rpc(*params, **kparams):
                 service_class=_service_class, href=_href,
                 internal_key_suffix=_internal_key_suffix,
                 default_on_null=_default_on_null,
+                event_managers=_event_managers,
             )
 
             if _patterns is not None and _no_self:

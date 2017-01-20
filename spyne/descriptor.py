@@ -44,7 +44,7 @@ class MethodDescriptor(object):
                  parent_class, port_type, no_ctx, udd, class_key, aux, patterns,
                  body_style, args, operation_name, no_self, translations,
                  when, static_when, service_class, href, internal_key_suffix,
-                 default_on_null):
+                 default_on_null, event_managers):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -177,6 +177,16 @@ class MethodDescriptor(object):
         returns a boolean value. If true, the object can have that action
         registered in the interface document.
         """
+
+        self.event_managers = event_managers
+        """Event managers registered with this method."""
+
+        if self.parent_class is not None:
+            self.event_managers.append(
+                                      self.parent_class.Attributes.method_evmgr)
+
+        if self.service_class is not None:
+            self.event_managers.append(self.service_class.event_manager)
 
     def translate(self, locale, default):
         """

@@ -123,13 +123,8 @@ class MethodContext(object):
 
         desc = self.descriptor
         if desc is not None:
-            sc = desc.service_class
-            if sc is not None:
-                sc.event_manager.fire_event(event, self)
-
-            pc = desc.parent_class
-            if pc is not None:
-                pc.Attributes.method_evmgr.fire_event(event, self)
+            for evmgr in desc.event_managers:
+                evmgr.fire_event(event, self)
 
     @property
     def method_name(self):
