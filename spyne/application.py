@@ -227,6 +227,7 @@ class Application(object):
 
         # @rpc inside service class
         if ctx.descriptor.no_self:
+            assert ctx.descriptor.service_class is not None
             return ctx.descriptor.service_class.call_wrapper(ctx)
 
         # from here on out it's @mrpc in a (parent) class

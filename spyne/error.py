@@ -1,3 +1,4 @@
+
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -30,8 +31,9 @@ class InvalidCredentialsError(Fault):
     STR = "You do not have permission to access this resource."
 
     def __init__(self, fault_string=STR, params=None):
-        super(InvalidCredentialsError, self).__init__(
-            'Client.InvalidCredentialsError', fault_string, detail=params)
+        super(InvalidCredentialsError, self) \
+            .__init__('Client.InvalidCredentialsError',
+                                                    fault_string, detail=params)
 
 
 class RequestTooLongError(Fault):
@@ -46,8 +48,8 @@ class RequestNotAllowed(Fault):
     """Raised when request is incomplete."""
 
     def __init__(self, faultstring=""):
-        super(RequestNotAllowed, self).__init__(
-            'Client.RequestNotAllowed', faultstring)
+        super(RequestNotAllowed, self) \
+                              .__init__('Client.RequestNotAllowed', faultstring)
 
 
 class ArgumentError(Fault):
@@ -61,8 +63,8 @@ class InvalidInputError(Fault):
     """Raised when there is a general problem with input data."""
 
     def __init__(self, faultstring="", data=""):
-        super(InvalidInputError, self).__init__(
-            'Client.InvalidInput', repr((faultstring, data)))
+        super(InvalidInputError, self) \
+                     .__init__('Client.InvalidInput', repr((faultstring, data)))
 
 
 InvalidRequestError = InvalidInputError
@@ -104,9 +106,9 @@ class ResourceNotFoundError(Fault):
     """Raised when requested resource is not found."""
 
     def __init__(self, fault_object,
-            fault_string="Requested resource %r not found"):
-        super(ResourceNotFoundError, self).__init__(
-            'Client.ResourceNotFound', fault_string % (fault_object,))
+                                fault_string="Requested resource %r not found"):
+        super(ResourceNotFoundError, self) \
+            .__init__('Client.ResourceNotFound', fault_string % (fault_object,))
 
 
 class RespawnError(ResourceNotFoundError):
@@ -119,14 +121,15 @@ class ResourceAlreadyExistsError(Fault):
     def __init__(self, fault_object,
             fault_string="Resource %r already exists"):
 
-        super(ResourceAlreadyExistsError, self).__init__(
-            'Client.ResourceAlreadyExists', fault_string % fault_object)
+        super(ResourceAlreadyExistsError, self) \
+            .__init__('Client.ResourceAlreadyExists',
+                                                    fault_string % fault_object)
 
 
 class Redirect(Fault):
     def __init__(self, ctx, location, orig_exc=None):
-        super(Redirect, self).__init__(
-            'Client.MustBeRedirected', faultstring=location)
+        super(Redirect, self) \
+                      .__init__('Client.MustBeRedirected', faultstring=location)
 
         self.ctx = ctx
         self.location = location
