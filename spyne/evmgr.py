@@ -25,16 +25,10 @@ class EventManager(object):
     """Spyne supports a simple event system that can be used to have repetitive
     boilerplate code that has to run for every method call nicely tucked away
     in one or more event handlers. The popular use-cases include things like
-    database transaction management, logging and measuring performance.
+    database transaction management, logging and performance measurements.
 
     Various Spyne components support firing events at various stages during the
     request handling process, which are documented in the relevant classes.
-
-    The classes that support events are:
-        * :class:`spyne.application.Application`
-        * :class:`spyne.service.ServiceBase`
-        * :class:`spyne.protocol._base.ProtocolBase`
-        * :class:`spyne.server.wsgi.WsgiApplication`
 
     The events are stored in an ordered set. This means that the events are ran
     in the order they were added and adding a handler twice does not cause it to
@@ -42,6 +36,16 @@ class EventManager(object):
     """
 
     def __init__(self, parent, handlers={}):
+        """Initializer for the ``EventManager`` instance.
+
+        :param parent: The owner of this event manager. As of Spyne 2.13, event
+        managers can be owned by multiple objects, in which case this property
+        will be none.
+
+        :param handlers: A dict of event name (string)/callable pairs. The dict
+        shallow-copied to the ``EventManager`` instance.
+        """
+
         self.parent = parent
         self.handlers = dict(handlers)
 
