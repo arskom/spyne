@@ -29,6 +29,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import decimal
+import traceback
 
 from copy import copy
 from weakref import WeakKeyDictionary
@@ -822,6 +823,7 @@ class ComplexModelBase(ModelBase):
             logger.warning("%r(0x%X) seems to be a customized class. It is not "
                     "supposed to be instantiated. You have been warned.",
                                                                    cls, id(cls))
+            logger.debug(traceback.print_stack())
 
         if cls_attr._xml_tag_body_as is not None:
             for arg, (xtba_key, xtba_type) in \
