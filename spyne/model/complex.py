@@ -372,8 +372,14 @@ def _gen_methods(cls, cls_dict):
         if not k.startswith('_') and hasattr(v, '_is_rpc'):
             logger.debug("Registering %s as member method for %r", k, cls)
             assert cls is not None
+
+            # generate method descriptor from information in the decorator
             descriptor = v(_default_function_name=k, _self_ref_replacement=cls)
+
+            # strip the decorator and put the original function in the class
             setattr(cls, k, descriptor.function)
+
+            # modify the descriptor with user-supplied class
             if cls.Attributes.method_config_do is not None:
                 descriptor = cls.Attributes.method_config_do(descriptor)
 
@@ -1488,8 +1494,13 @@ def TTableModel(metadata=None, base=None, metaclass=None):
 
     from sqlalchemy import MetaData
 
-    @add_metaclass(metaclass if metaclass is not None else ComplexModelMeta)
-    class TableModel(base if base is not None else TTableModelBase()):
+    if base is None:
+        base = TTableModelBase()
+    if metaclass is None:
+        metaclass = ComplexModelMeta
+
+    @add_metaclass(metaclass)
+    class TableModel(base):
         class Attributes(ComplexModelBase.Attributes):
             sqla_metadata = metadata if metadata is not None else MetaData()
 

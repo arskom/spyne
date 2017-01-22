@@ -159,14 +159,15 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
                     self.add_style(td_attrs, 'display:None')
 
                 with parent.element('td', td_attrs):
-                    ret = self.to_parent(ctx, v, sub_value, parent,
-                                              sub_name, from_arr=from_arr,
-                                              array_index=array_index, **kwargs)
+                    ret = self.to_parent(ctx, v, sub_value, parent, sub_name,
+                           from_arr=from_arr, array_index=array_index, **kwargs)
+
                     if isgenerator(ret):
                         try:
                             while True:
                                 sv2 = (yield)
                                 ret.send(sv2)
+
                         except Break as b:
                             try:
                                 ret.throw(b)
@@ -314,12 +315,17 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
     def wrap_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
         return self._gen_table(ctx, cls, inst, parent, name, gen_rows, **kwargs)
 
-    # FIXME: These three should be events as well.
     def extend_table(self, ctx, cls, parent, name, **kwargs):
-        pass
+        """This is called as the last operation during the table body generation
+        after all the <tr> tags are generated before exiting the <table> tag
+        which in turn is inside a <tbody> tag."""
 
     def extend_data_row(self, ctx, cls, inst, parent, name, **kwargs):
-        pass
+        """This is called as the last operation during the row generation
+        after all the <td> tags are generated before exiting the <tr> tag which
+        in turn is inside a <tbody> tag."""
 
     def extend_header_row(self, ctx, cls, parent, name, **kwargs):
-        pass
+        """This is called once as the last operation during the table header
+        generation after all the <th> tags are generated before exiting the <tr>
+        tag which in turn is inside a <thead> tag."""
