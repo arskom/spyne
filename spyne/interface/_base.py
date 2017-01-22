@@ -327,12 +327,6 @@ class Interface(object):
 
         # populate call routes for member methods
         for cls, method in self.member_methods:
-            if method.in_header is None:
-                method.in_header = cls.Attributes.method_in_header
-
-            if method.out_header is None:
-                method.out_header = cls.Attributes.method_out_header
-
             should_we = True
             if method.static_when is not None:
                 should_we = method.static_when(self.app)

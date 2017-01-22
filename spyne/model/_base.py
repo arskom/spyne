@@ -79,6 +79,8 @@ class AttributesMeta(type(object)):
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         # you will probably want to look at ModelBase._s_customize as well.
+        if not hasattr(self, '_method_config_do'):
+            self._method_config_do = None
 
         nullable = cls_dict.get('nullable', None)
         nillable = cls_dict.get('nillable', None)
@@ -116,6 +118,11 @@ class AttributesMeta(type(object)):
 
         if 'xml_root_cloth' in cls_dict:
             self.set_xml_cloth(cls_dict.pop('xml_root_cloth'))
+
+        if 'method_config_do' in cls_dict and \
+                                       cls_dict['method_config_do'] is not None:
+            cls_dict['method_config_do'] = \
+                                      staticmethod(cls_dict['method_config_do'])
 
         super(AttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
@@ -177,6 +184,15 @@ class AttributesMeta(type(object)):
     def get_xml_root_cloth(self):
         return self._xml_root_cloth
     xml_root_cloth = property(get_xml_root_cloth)
+
+    def get_method_config_do(self):
+        return self._method_config_do
+    def set_method_config_do(self, what):
+        if what is None:
+            self._method_config_do = None
+        else:
+            self._method_config_do = staticmethod(what)
+    method_config_do = property(get_method_config_do, set_method_config_do)
 
 
 class ModelBaseMeta(type(object)):
@@ -694,7 +710,7 @@ class ModelBase(object):
             elif k == 'type_name':
                 Attributes._explicit_type_name = True
                 _log_debug("setting _explicit_type_name=True because "
-                                                         " we have 'type_name'")
+                                                          "we have 'type_name'")
 
             else:
                 setattr(Attributes, k, v)

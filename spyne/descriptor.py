@@ -181,10 +181,6 @@ class MethodDescriptor(object):
         self.event_managers = event_managers
         """Event managers registered with this method."""
 
-        if self.parent_class is not None:
-            self.event_managers.append(
-                                      self.parent_class.Attributes.method_evmgr)
-
         if self.service_class is not None:
             self.event_managers.append(self.service_class.event_manager)
 

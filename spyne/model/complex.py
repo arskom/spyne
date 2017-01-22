@@ -374,6 +374,9 @@ def _gen_methods(cls, cls_dict):
             assert cls is not None
             descriptor = v(_default_function_name=k, _self_ref_replacement=cls)
             setattr(cls, k, descriptor.function)
+            if cls.Attributes.method_config_do is not None:
+                descriptor = cls.Attributes.method_config_do(descriptor)
+
             methods[k] = descriptor
 
     return methods
@@ -656,8 +659,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
             setattr(self, k, property(_get_prop, _set_prop))
 
         # process member rpc methods
-        if self.Attributes.method_evmgr is None:
-            self.Attributes.method_evmgr = EventManager(self)
         methods = _gen_methods(self, cls_dict)
         if len(methods) > 0:
             self.Attributes.methods = methods
@@ -796,16 +797,9 @@ class ComplexModelBase(ModelBase):
         methods = None
         """A dict of member RPC methods (typically marked with @mrpc)."""
 
-        method_evmgr = None
-        """The event manager for member methods."""
-
-        method_in_header = None
-        """The header class or a tuple of header classes for incoming requests
-        for member methods."""
-
-        method_out_header = None
-        """The header class or a tuple of header classes for outgoing responses
-        for member methods."""
+        method_config_do = None
+        """When not None, it's a callable that accepts a ``@mrpc`` method
+        descriptor and returns a modified version."""
 
         _variants = None
         _xml_tag_body_as = None
