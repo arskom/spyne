@@ -50,7 +50,7 @@ class ServiceBaseMeta(type):
             if not hasattr(v, '_is_rpc'):
                 continue
 
-            descriptor = v(_default_function_name=k)
+            descriptor = v(_default_function_name=k, _service_class=self)
 
             # these two lines are needed for staticmethod wrapping to work
             setattr(self, k, staticmethod(descriptor.function))
@@ -62,7 +62,6 @@ class ServiceBaseMeta(type):
                 pass
                 # FIXME: this fails with builtins. Temporary hack while we
                 # investigate whether we really need this or not
-            descriptor.service_class = self
 
             self.public_methods[k] = descriptor
             if descriptor.aux is None and self.__aux__ is None:

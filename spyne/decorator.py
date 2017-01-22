@@ -356,6 +356,7 @@ def rpc(*params, **kparams):
             # class that contains the method at hand.
 
             function_name = kwargs['_default_function_name']
+            _service_class = kwargs.pop("_service_class", None)
             _self_ref_replacement = None
 
             # this block is passed straight to the descriptor
@@ -373,9 +374,10 @@ def rpc(*params, **kparams):
             _translations = kparams.pop("_translations", None)
             _when = kparams.pop("_when", None)
             _static_when = kparams.pop("_static_when", None)
-            _service_class = kparams.pop("_service_class", None)
             _href = kparams.pop("_href", None)
             _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
+            if '_service_class' in kparams:
+                _service_class = kparams.pop("_service_class")
 
             _no_self = kparams.pop('_no_self', True)
             _event_managers = _get_event_managers(kparams)
