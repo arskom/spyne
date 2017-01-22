@@ -53,7 +53,7 @@ class ToParentMixin(OutProtocolBase):
         self.use_global_null_handler = True
 
         self.serialization_handlers = cdict({
-            ModelBase: self.base_to_parent,
+            ModelBase: self.model_base_to_parent,
 
             AnyXml: self.any_xml_to_parent,
             AnyUri: self.any_uri_to_parent,
@@ -136,10 +136,11 @@ class ToParentMixin(OutProtocolBase):
                 if self.ignore_wrappers and issubclass(cls, ComplexModelBase):
                     cls, inst = self.strip_wrappers(cls, inst)
 
-                # if cls is an iterable of values and it's not being iterated on, do it
+                # if cls is an iterable of values and it's not being iterated
+                # on, do it
                 from_arr = kwargs.get('from_arr', False)
-                # we need cls.Attributes here because we need the ACTUAL attrs that were
-                # set by the Array.__new__
+                # we need cls.Attributes here because we need the ACTUAL attrs
+                # that were set by the Array.__new__
                 if not from_arr and cls.Attributes.max_occurs > 1:
                     ret = self.array_to_parent(ctx, cls, inst, parent, name,
                                                                        **kwargs)
@@ -207,9 +208,6 @@ class ToParentMixin(OutProtocolBase):
             if pushed:
                 logger.debug("%s %r popped %r %r", B("$"), self, cls, inst)
                 ctx.outprot_ctx.inst_stack.pop()
-
-    def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(E(name, self.to_unicode(cls, inst)))
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
@@ -317,71 +315,56 @@ class ToParentMixin(OutProtocolBase):
         if not self.ignore_uncap:
             raise NotImplementedError("Serializing %r not supported!" % cls)
 
-    def gen_anchor(self, cls, inst, name, anchor_class=None):
-        assert name is not None
-        cls_attrs = self.get_cls_attrs(cls)
-
-        href = getattr(inst, 'href', None)
-        if href is None: # this is not a AnyUri.Value instance.
-            href = inst
-
-            content = None
-            text = cls_attrs.text
-
-        else:
-            content = getattr(inst, 'content', None)
-            text = getattr(inst, 'text', None)
-            if text is None:
-                text = cls_attrs.text
-
-        if anchor_class is None:
-            anchor_class = cls_attrs.anchor_class
-
-        if text is None:
-            text = name
-
-        retval = E.a(text)
-
-        if href is not None:
-            retval.attrib['href'] = href
-
-        if anchor_class is not None:
-            retval.attrib['class'] = anchor_class
-
-        if content is not None:
-            retval.append(content)
-
-        return retval
-
     def any_uri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        retval = self.gen_anchor(cls, inst, name)
-        parent.write(retval)
+        self.model_base_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     def imageuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        # with ImageUri, content is ignored.
-        href = getattr(inst, 'href', None)
-        if href is None: # this is not a AnyUri.Value instance.
-            href = inst
-            text = getattr(cls.Attributes, 'text', None)
-
-        else:
-            text = getattr(inst, 'text', None)
-            if text is None:
-                text = getattr(cls.Attributes, 'text', None)
-
-        retval = E.img(src=href)
-        if text is not None:
-            retval.attrib['alt'] = text
-        parent.write(retval)
+        self.model_base_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     def byte_array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_unicode(cls, inst, self.binary_encoding)))
 
-    def base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_unicode(cls, inst)))
 
     def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, **{'{%s}nil' % NS_XSI: 'true'}))
+
+    def enum_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        self.model_base_to_parent(ctx, cls, str(inst), parent, name)
+
+    def any_xml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        if isinstance(inst, string_types):
+            inst = etree.fromstring(inst)
+
+        parent.write(E(name, inst))
+
+    def any_html_to_unicode(self, cls, inst, **_):
+        if isinstance(inst, (str, six.text_type)):
+            inst = html.fromstring(inst)
+
+        return inst
+
+    def any_html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        cls_attrs = self.get_cls_attrs(cls)
+
+        if cls_attrs.as_string:
+            if not (isinstance(inst, str) or isinstance(inst, six.text_type)):
+                inst = html.tostring(inst)
+
+        else:
+            if isinstance(inst, str) or isinstance(inst, six.text_type):
+                inst = html.fromstring(inst)
+
+        parent.write(E(name, inst))
+
+    def any_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        parent.write(E(name, inst))
+
+    def any_dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        elt = E(name)
+        dict_to_etree(inst, elt)
+        parent.write(E(name, elt))
 
     def _gen_sub_name(self, cls, cls_attrs, k, use_ns=None):
         if self.use_ns is not None and use_ns is None:
@@ -525,39 +508,3 @@ class ToParentMixin(OutProtocolBase):
             self._write_members(ctx, cls, inst, parent)
             # no need to track the returned generator because we expect no
             # PushBase instance here.
-
-    def enum_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        self.base_to_parent(ctx, cls, str(inst), parent, name)
-
-    def any_xml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        if isinstance(inst, string_types):
-            inst = etree.fromstring(inst)
-
-        parent.write(E(name, inst))
-
-    def any_html_to_unicode(self, cls, inst, **_):
-        if isinstance(inst, (str, six.text_type)):
-            inst = html.fromstring(inst)
-
-        return inst
-
-    def any_html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        cls_attrs = self.get_cls_attrs(cls)
-        if cls_attrs.as_string:
-            if not (isinstance(inst, str) or isinstance(inst, six.text_type)):
-                inst = html.tostring(inst)
-
-        else:
-            if isinstance(inst, str) or isinstance(inst, six.text_type):
-                inst = html.fromstring(inst)
-
-        parent.write(E(name, inst))
-
-
-    def any_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(E(name, inst))
-
-    def any_dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        elt = E(name)
-        dict_to_etree(inst, elt)
-        parent.write(E(name, elt))

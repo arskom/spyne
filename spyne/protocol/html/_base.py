@@ -25,8 +25,10 @@ from collections import defaultdict
 from lxml import etree, html
 from lxml.html.builder import E
 
-from spyne.util import coroutine, Break
+from spyne.util import coroutine, Break, six
 from spyne.util.oset import oset
+from spyne.util.etreeconv import dict_to_etree
+
 from spyne.protocol.cloth import XmlCloth
 from spyne.protocol.cloth._base import XmlClothProtocolContext
 
@@ -111,7 +113,7 @@ class HtmlCloth(XmlCloth):
         return cls.Attributes._html_root_cloth
 
     def dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(str(inst))
+        parent.write(repr(inst))
 
     @staticmethod
     def add_html_attr(attr_name, attr_dict, class_name):
@@ -130,11 +132,6 @@ class HtmlCloth(XmlCloth):
 
         else:
             attr_dict['style'] = data
-
-    def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        cls_attrs = self.get_cls_attrs(cls)
-        if cls_attrs.min_occurs >= 1:
-            parent.write(E(name))
 
     @staticmethod
     def selsafe(s):
@@ -160,6 +157,110 @@ class HtmlCloth(XmlCloth):
                         ret.throw(Break())
                     except StopIteration:
                         pass
+
+    def gen_anchor(self, cls, inst, name, anchor_class=None):
+        assert name is not None
+        cls_attrs = self.get_cls_attrs(cls)
+
+        href = getattr(inst, 'href', None)
+        if href is None: # this is not a AnyUri.Value instance.
+            href = inst
+
+            content = None
+            text = cls_attrs.text
+
+        else:
+            content = getattr(inst, 'content', None)
+            text = getattr(inst, 'text', None)
+            if text is None:
+                text = cls_attrs.text
+
+        if anchor_class is None:
+            anchor_class = cls_attrs.anchor_class
+
+        if text is None:
+            text = name
+
+        retval = E.a(text)
+
+        if href is not None:
+            retval.attrib['href'] = href
+
+        if anchor_class is not None:
+            retval.attrib['class'] = anchor_class
+
+        if content is not None:
+            retval.append(content)
+
+        return retval
+
+    def any_uri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        retval = self.gen_anchor(cls, inst, name)
+        parent.write(retval)
+
+    def imageuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        # with ImageUri, content is ignored.
+        href = getattr(inst, 'href', None)
+        if href is None: # this is not a AnyUri.Value instance.
+            href = inst
+            text = getattr(cls.Attributes, 'text', None)
+
+        else:
+            text = getattr(inst, 'text', None)
+            if text is None:
+                text = getattr(cls.Attributes, 'text', None)
+
+        retval = E.img(src=href)
+        if text is not None:
+            retval.attrib['alt'] = text
+
+        parent.write(retval)
+
+    def byte_array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        ret = self.to_unicode(cls, inst, self.binary_encoding)
+
+        if ret is not None:
+            parent.write(ret)
+
+    def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        ret = self.to_unicode(cls, inst)
+
+        if ret is not None:
+            parent.write(ret)
+
+    def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        pass
+
+    def any_xml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        if isinstance(inst, (six.text_type, six.binary_type)):
+            inst = etree.fromstring(inst)
+
+        parent.write(inst)
+
+    def any_html_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        cls_attrs = self.get_cls_attrs(cls)
+
+        if cls_attrs.as_string:
+            if not (isinstance(inst, str) or isinstance(inst, six.text_type)):
+                inst = html.tostring(inst)
+
+        else:
+            if isinstance(inst, str) or isinstance(inst, six.text_type):
+                inst = html.fromstring(inst)
+
+        parent.write(inst)
+
+    def any_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        parent.write(inst)
+
+    def any_dict_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        elt = E('foo')
+        dict_to_etree(inst, elt)
+
+        parent.write(elt[0])
+
+    def fault_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        self.complex_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
 
 # FIXME: Deprecated
