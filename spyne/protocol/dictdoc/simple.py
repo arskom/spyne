@@ -280,7 +280,8 @@ class SimpleDictDocument(DictDocument):
                 _v = getattr(cinst, member.path[-1], None)
                 is_set = True
                 if _v is None:
-                    is_set = cinst._safe_set(member.path[-1], value, member.type)
+                    is_set = cinst._safe_set(member.path[-1], value,
+                                                                    member.type)
                 else:
                     _v.extend(value)
 
