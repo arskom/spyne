@@ -1428,6 +1428,10 @@ class Array(ComplexModelBase):
     def get_deserialization_instance(cls, ctx):
         return []
 
+    @classmethod
+    def get_inner_type(cls):
+        return next(iter(cls._type_info.values()))
+
 
 class Iterable(Array):
     """This class generates a ``ComplexModel`` child that has one attribute that
