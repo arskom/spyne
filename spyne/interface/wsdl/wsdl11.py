@@ -470,7 +470,7 @@ class Wsdl11(XmlSchema):
 
                 # create binding nodes
                 binding = SubElement(root, WSDL11("binding"))
-                binding.set('name', port_type_name)
+                binding.set('name', self._get_binding_name(port_type_name))
                 binding.set('type', '%s:%s'% (pref_tns, port_type_name))
 
                 transport = SubElement(binding, WSDL11_SOAP("binding"))
