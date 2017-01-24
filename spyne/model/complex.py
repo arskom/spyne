@@ -721,7 +721,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         print("ComplexModelMeta.__prepare__ substitution for PyDev successful")
 
 
-_is_array = lambda v: issubclass(v, Array) or (v.Attributes.min_occurs > 1)
+_is_array = lambda v: issubclass(v, Array) or (v.Attributes.max_occurs > 1)
 
 
 class ComplexModelBase(ModelBase):
