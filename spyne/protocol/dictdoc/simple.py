@@ -162,7 +162,11 @@ class SimpleDictDocument(DictDocument):
         if validator is self.SOFT_VALIDATION:
             _fill(cls, frequencies)
 
-        retval = cls.get_deserialization_instance(ctx)
+        if issubclass(cls, Array):
+            # we need the wrapper object instance here as it's a root object
+            retval = cls.get_serialization_instance([])
+        else:
+            retval = cls.get_deserialization_instance(ctx)
         simple_type_info = cls.get_simple_type_info(cls,
                                                      hier_delim=self.hier_delim)
 
@@ -303,6 +307,11 @@ class SimpleDictDocument(DictDocument):
                     path_cls = k[-2]
                     logger.debug("\t\tdo validate_freq: %r", k)
                     self._check_freq_dict(path_cls, d)
+
+        if issubclass(cls, Array):
+            # unwrap the request object
+            array_name, = cls._type_info.keys()
+            retval = getattr(retval, array_name)
 
         return retval
 
