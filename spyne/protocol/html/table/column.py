@@ -273,7 +273,11 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
                                                                  name, **kwargs)
 
         with parent.element('table', attrib):
-            if self.header:
+            write_header = self.header
+            if cls_attrs.header is False:
+                write_header = cls_attrs.header
+
+            if write_header:
                 ret = False
 
                 subprot = self.get_subprot(ctx, cls_attrs)

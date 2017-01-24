@@ -37,7 +37,7 @@ from spyne.protocol.dictdoc import DictDocument
 
 def _s2cmi(m, nidx):
     """
-    Sparse to contigous mapping inserter.
+    Sparse to contiguous mapping inserter.
 
     >>> m1={3:0, 4:1, 7:2}
     >>> _s2cmi(m1, 5); m1
@@ -186,8 +186,10 @@ class SimpleDictDocument(DictDocument):
 
                 if issubclass(member.type, Array):
                     value = []
+
                 elif self.get_cls_attrs(member.type).max_occurs > 1:
                     value = []
+
                 else:
                     value = [member.type.get_deserialization_instance(ctx)]
                     # do we have to ignore later assignments? they're illegal
@@ -198,10 +200,13 @@ class SimpleDictDocument(DictDocument):
                 value = self._to_native_values(cls, member, orig_k, k, v,
                                                              req_enc, validator)
 
+
             # assign the native value to the relevant class in the nested object
             # structure.
             cinst = retval
             ctype_info = cls.get_flat_type_info(cls)
+            ccls_attr = self.get_cls_attrs(cls)
+            value = self._cast(ccls_attr, value)
 
             idx, nidx = 0, 0
             pkey = member.path[0]

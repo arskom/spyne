@@ -536,6 +536,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             cls, _ = self.get_polymorphic_target(cls, inst)
             cls_attrs = self.get_cls_attrs(cls)
 
+            inst = self._cast(cls_attrs, inst)
+
             # if instance is None, use the default factory to generate one
             _df = cls_attrs.default_factory
             if inst is None and callable(_df):

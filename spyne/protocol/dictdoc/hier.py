@@ -367,6 +367,9 @@ class HierDictDocument(DictDocument):
 
     def _to_dict_value(self, cls, inst, tags):
         cls, switched = self.get_polymorphic_target(cls, inst)
+        cls_attr = self.get_cls_attrs(cls)
+
+        inst = self._cast(cls_attr, inst)
 
         if issubclass(cls, (Any, AnyDict)):
             return inst
@@ -381,7 +384,6 @@ class HierDictDocument(DictDocument):
         if issubclass(cls, File) and isinstance(inst, cls.Attributes.type):
             retval = self._complex_to_doc(cls.Attributes.type, inst, tags)
 
-            cls_attr = self.get_cls_attrs(cls)
             complex_as = self.get_complex_as(cls_attr)
 
             if complex_as is dict and not self.ignore_wrappers:

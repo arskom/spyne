@@ -202,6 +202,11 @@ class OutProtocolBase(ProtocolMixin):
         if value is None:
             return None
 
+        # TODO: I don't think we need these here because likes of to_parent
+        # should be responsible for doing it.
+        # cls_attrs = self.get_cls_attrs(cls)
+        # value = self._cast(cls_attrs, value)
+
         handler = self._to_bytes_handlers[cls]
         retval = handler(cls, value, *args, **kwargs)
 
@@ -213,10 +218,13 @@ class OutProtocolBase(ProtocolMixin):
         return retval
 
     def to_unicode(self, cls, value, *args, **kwargs):
-        cls_attrs = self.get_cls_attrs(cls)
-
         if value is None:
             return None
+
+        # TODO: I don't think we need these here because likes of to_parent
+        # should be responsible for doing it.
+        # cls_attrs = self.get_cls_attrs(cls)
+        # value = self._cast(cls_attrs, value)
 
         handler = self._to_unicode_handlers[cls]
         retval = handler(cls, value, *args, **kwargs)
@@ -292,7 +300,6 @@ class OutProtocolBase(ProtocolMixin):
 
     def unicode_to_unicode(self, cls, value, **_):  # :)))
         cls_attrs = self.get_cls_attrs(cls)
-        value = self._cast(cls_attrs, value)
 
         retval = value
 
@@ -405,12 +412,10 @@ class OutProtocolBase(ProtocolMixin):
 
     def boolean_to_bytes(self, cls, value, **_):
         cls_attrs = self.get_cls_attrs(cls)
-        value = self._cast(cls_attrs, value)
         return str(bool(value)).lower()
 
     def byte_array_to_bytes(self, cls, value, suggested_encoding=None, **_):
         cls_attrs = self.get_cls_attrs(cls)
-        value = self._cast(cls_attrs, value)
 
         encoding = cls_attrs.encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
