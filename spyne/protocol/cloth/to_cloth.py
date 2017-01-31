@@ -295,7 +295,22 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         There is no _exit_cloth because exiting from tags is done
         automatically with subsequent calls to _enter_cloth and finally to
-        _close_cloth."""
+        _close_cloth.
+
+        :param ctx: A MethodContext instance
+        :param cloth: The target cloth -- an ``lxml.etree._Element`` instance.
+        :param parent: The target stream -- typically an
+            ``lxml.etree._IncrementalFileWriter`` instance.
+        :param attrib: A dict of additional attributes for the target cloth.
+        :param skip: When True, the target tag is actually not entered.
+            Typically used for XmlData and friends.
+        :param method: One of ``(None, 'html', 'xml')``. When not ``None``,
+            overrides the output method of lxml.
+        :param skip_dupe: When ``False`` (the default) if this function is
+            called repeatedly for the same tag, the tag is exited and reentered.
+            This typically happens for types with ``max_occurs`` > 1
+            (eg. arrays).
+        """
 
         logger_c.debug("entering %s %r nsmap=%r attrib=%r skip=%s method=%s",
                      cloth.tag, cloth.attrib, cloth.nsmap, attrib, skip, method)
