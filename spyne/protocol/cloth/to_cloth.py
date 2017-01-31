@@ -282,7 +282,8 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
                 elt.append(mrpc_template)
                                            # mutable default ok because readonly
-    def _enter_cloth(self, ctx, cloth, parent, attrib={}, skip=False, method=None):
+    def _enter_cloth(self, ctx, cloth, parent, attrib={}, skip=False,
+                                                  method=None, skip_dupe=False):
         """Enters the given tag in the document by using the shortest path from
         current tag.
 
@@ -327,6 +328,9 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         cureltstack = eltstack[rootstack.back]
         curctxstack = ctxstack[rootstack.back]
+
+        if skip_dupe and len(cureltstack) > 0 and cureltstack[-1] is cloth:
+            return
 
         cloth_root = cloth.getroottree().getroot()
         if not cloth_root in rootstack:
@@ -807,6 +811,10 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             val = inst
         else:
             val = getattr(inst, field_name, None)
+
+        if as_data:
+            self._enter_cloth(ctx, elt, parent, skip=True, skip_dupe=True,
+                                                        method=cls_attrs.method)
 
         return self.to_cloth(ctx, field_type, val, elt, parent,
                       name=sub_name, as_attr=as_attr, as_data=as_data, **kwargs)
