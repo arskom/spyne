@@ -34,8 +34,7 @@
 import os
 from copy import copy
 
-import sqlalchemy as sa
-from sqlalchemy.engine import Dialect
+from sqlalchemy.engine import Dialect, create_engine
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import object_session
@@ -116,7 +115,7 @@ def database_exists(url):
     else:
         url.database = None
 
-    engine = sa.create_engine(url)
+    engine = create_engine(url)
 
     if engine.dialect.name == 'postgresql':
         text = "SELECT 1 FROM pg_database WHERE datname='%s'" % database
@@ -134,7 +133,7 @@ def database_exists(url):
         text = 'SELECT 1'
         try:
             url.database = database
-            engine = sa.create_engine(url)
+            engine = create_engine(url)
             engine.execute(text)
             return True
 
@@ -173,7 +172,7 @@ def create_database(url, encoding='utf8', template=None):
     elif not url.drivername.startswith('sqlite'):
         url.database = None
 
-    engine = sa.create_engine(url)
+    engine = create_engine(url)
 
     if engine.dialect.name == 'postgresql':
         if engine.driver == 'psycopg2':
@@ -229,7 +228,7 @@ def drop_database(url):
     elif not url.drivername.startswith('sqlite'):
         url.database = None
 
-    engine = sa.create_engine(url)
+    engine = create_engine(url)
 
     if engine.dialect.name == 'sqlite' and url.database != ':memory:':
         os.remove(url.database)
