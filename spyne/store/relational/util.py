@@ -32,6 +32,8 @@
 #
 
 import os
+import cProfile
+
 from copy import copy
 
 from sqlalchemy.engine import Dialect, create_engine
@@ -262,3 +264,18 @@ def drop_database(url):
     else:
         text = 'DROP DATABASE {0}'.format(quote(engine, database))
         engine.execute(text)
+
+
+# https://zapier.com/engineering/profiling-python-boss/
+def do_cprofile(func):
+    def profiled_func(*args, **kwargs):
+        profile = cProfile.Profile()
+        try:
+            profile.enable()
+            result = func(*args, **kwargs)
+            profile.disable()
+            return result
+        finally:
+            profile.print_stats(sort='time')
+
+    return profiled_func
