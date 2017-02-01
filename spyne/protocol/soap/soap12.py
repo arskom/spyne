@@ -20,7 +20,7 @@
 The ``spyne.protoco.soap.soap12`` module contains the implementation of a
 subset of the Soap 1.2 standard.
 
-This modules is EXPERIMENTAL.
+This modules is EXPERIMENTAL .
 """
 
 import logging
