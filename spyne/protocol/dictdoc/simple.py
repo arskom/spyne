@@ -81,11 +81,11 @@ class SimpleDictDocument(DictDocument):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                  ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
-                 ordered=False, hier_delim='.', strict_arrays=False):
+                            ordered=False, hier_delim='.', strict_arrays=False):
         super(SimpleDictDocument, self).__init__(app=app, validator=validator,
                         mime_type=mime_type, ignore_uncap=ignore_uncap,
                         ignore_wrappers=ignore_wrappers, complex_as=complex_as,
-                        ordered=ordered)
+                                                                ordered=ordered)
 
         self.hier_delim = hier_delim
         self.strict_arrays = strict_arrays
