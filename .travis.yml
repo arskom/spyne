@@ -1,13 +1,13 @@
 language: python
-install:
-  - pip install -r requirements/test_requirements.txt
 matrix:
   include:
   - python: "2.7"
-  env: TEST_SUITE=test
+    env: TEST_SUITE=test
   - python: "3.4"
-  env: TEST_SUITE=test_python3
+    env: TEST_SUITE=test_python3
   - python: "3.5"
-  env: TEST_SUITE=test_python3
+    env: TEST_SUITE=test_python3
+install:
+  - pip install -r requirements/test_requirements.txt
 script:
   - python setup.py $TEST_SUITE
