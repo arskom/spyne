@@ -1,4 +1,4 @@
-pytest
+pytest>=2.9
 pytest-twisted
 pytest-cov
 coverage
