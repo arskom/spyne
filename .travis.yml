@@ -18,3 +18,5 @@ install:
 script:
   - python setup.py $TEST_SUITE
   - sonar-scanner
+branches:
+  - phase-out-xml_ns-module
