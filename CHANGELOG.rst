@@ -42,6 +42,7 @@ spyne-2.13.0
   ``spyne.BODY_STYLE_EMPTY`` before. This hould not break anything unless you
   are doing some REAL fancy stuff in the method decorators or service events.
 * Auxproc is DEPRECATED. Just get rid of it.
+* `spyne.const.xml_ns` is deprecated. Replaced uses by `spyne.const.xml`.
 * `spyne.protocol.dictdoc.simple`, `spyne.server.twisted.http` and
   `spyne.server.django` are not experimental anymore.
 * No major changes otherwise but we paid a lot of technical debt. e.g. We

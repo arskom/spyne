@@ -23,9 +23,9 @@ from lxml import etree
 from spyne.protocol.soap import Soap11
 from spyne.model.binary import ByteArray
 from spyne.model.binary import _bytes_join
-import spyne.const.xml_ns
+import spyne.const.xml
 
-ns_xsd = spyne.const.xml_ns.xsd
+ns_xsd = spyne.const.xml.NS_XSD
 ns_test = 'test_namespace'
 
 

@@ -53,9 +53,9 @@ class FaultTests(unittest.TestCase):
 
     def test_to_parent_wo_detail(self):
         from lxml.etree import Element
-        import spyne.const.xml_ns
-        ns_soap_env = spyne.const.xml_ns.soap11_env
-        soap_env = spyne.const.xml_ns.const_prefmap[spyne.const.xml_ns.soap11_env]
+        import spyne.const.xml
+        ns_soap_env = spyne.const.xml.NS_SOAP11_ENV
+        soap_env = spyne.const.xml.PREFMAP[spyne.const.xml.NS_SOAP11_ENV]
 
         element = Element('testing')
         fault = Fault()
@@ -85,10 +85,10 @@ class FaultTests(unittest.TestCase):
     def test_from_xml_wo_detail(self):
         from lxml.etree import Element
         from lxml.etree import SubElement
-        import spyne.const.xml_ns
-        ns_soap_env = spyne.const.xml_ns.soap11_env
-        soap_env = spyne.const.xml_ns.const_prefmap[spyne.const.xml_ns.soap11_env]
-        element = Element('{%s}Fault' % ns_soap_env)
+        from spyne.const.xml import PREFMAP, SOAP11_ENV, NS_SOAP11_ENV
+
+        soap_env = PREFMAP[NS_SOAP11_ENV]
+        element = Element(SOAP11_ENV('Fault'))
 
         fcode = SubElement(element, 'faultcode')
         fcode.text = '%s:other' % soap_env
@@ -107,10 +107,9 @@ class FaultTests(unittest.TestCase):
     def test_from_xml_w_detail(self):
         from lxml.etree import Element
         from lxml.etree import SubElement
-        import spyne.const.xml_ns
-        ns_soap_env = spyne.const.xml_ns.soap11_env
+        from spyne.const.xml import SOAP11_ENV
 
-        element = Element('{%s}Fault' % ns_soap_env)
+        element = Element(SOAP11_ENV('Fault'))
         fcode = SubElement(element, 'faultcode')
         fcode.text = 'soap11env:other'
         fstr = SubElement(element, 'faultstring')
@@ -124,8 +123,7 @@ class FaultTests(unittest.TestCase):
         self.failUnless(fault.detail is detail)
 
     def test_add_to_schema_no_extends(self):
-        import spyne.const.xml_ns
-        ns_xsd = spyne.const.xml_ns.xsd
+        from spyne.const.xml import XSD
 
         class cls(Fault):
             __namespace__='ns'
@@ -145,19 +143,18 @@ class FaultTests(unittest.TestCase):
         c_cls = interface.classes['{ns}cls']
         c_elt = schema.types[0]
         self.failUnless(c_cls is cls)
-        self.assertEqual(c_elt.tag, '{%s}complexType' % ns_xsd)
+        self.assertEqual(c_elt.tag, XSD('complexType'))
         self.assertEqual(c_elt.get('name'), 'cls')
 
         self.assertEqual(len(schema.elements), 1)
         e_elt = schema.elements.values()[0]
-        self.assertEqual(e_elt.tag, '{%s}element' % ns_xsd)
+        self.assertEqual(e_elt.tag, XSD('element'))
         self.assertEqual(e_elt.get('name'), 'cls')
         self.assertEqual(e_elt.get('type'), 'testing:My')
         self.assertEqual(len(e_elt), 0)
 
     def test_add_to_schema_w_extends(self):
-        import spyne.const.xml_ns
-        ns_xsd = spyne.const.xml_ns.xsd
+        from spyne.const.xml import XSD
 
         class base(Fault):
             __namespace__ = 'ns'
@@ -185,7 +182,7 @@ class FaultTests(unittest.TestCase):
         c_elt = next(iter(schema.types.values()))
 
         self.failUnless(c_cls is cls)
-        self.assertEqual(c_elt.tag, '{%s}complexType' % ns_xsd)
+        self.assertEqual(c_elt.tag, XSD('complexType'))
         self.assertEqual(c_elt.get('name'), 'cls')
 
         from lxml import etree

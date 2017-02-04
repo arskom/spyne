@@ -36,7 +36,7 @@ from spyne.const import REQUEST_SUFFIX
 from spyne.const import RESPONSE_SUFFIX
 from spyne.const import ARRAY_SUFFIX
 
-from spyne.const.xml_ns import const_nsmap
+from spyne.const.xml import NSMAP
 from spyne.decorator import srpc
 from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11

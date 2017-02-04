@@ -20,7 +20,7 @@
 from spyne.application import Application
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
-import spyne.const.xml_ns as ns
+import spyne.const.xml as ns
 
 def build_app(service_list, tns, name):
     app = Application(service_list, tns, name=name,
@@ -32,12 +32,12 @@ class AppTestWrapper():
     def __init__(self, application):
 
         self.url = 'http:/localhost:7789/wsdl'
-        self.service_string = '{%s}service' % ns.wsdl
-        self.port_string = '{%s}port' % ns.wsdl
-        self.soap_binding_string = '{%s}binding' % ns.soap
-        self.operation_string = '{%s}operation' % ns.wsdl
-        self.port_type_string = '{%s}portType' % ns.wsdl
-        self.binding_string = '{%s}binding' % ns.wsdl
+        self.service_string = ns.WSDL11('service')
+        self.port_string = ns.WSDL11('port')
+        self.soap_binding_string = ns.WSDL11_SOAP('binding')
+        self.operation_string = ns.WSDL11('operation')
+        self.port_type_string = ns.WSDL11('portType')
+        self.binding_string = ns.WSDL11('binding')
 
         self.app = application
         self.interface_doc = Wsdl11(self.app.interface)
