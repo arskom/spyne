@@ -1,18 +1,14 @@
 language: python
-python:
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  # disable pypy -- travis' pypy deployment seems broken
-  # - "pypy"
-before_install:
-  #- sudo apt-get update
-  #- sudo apt-get install -qq libzmq-dev
+matrix:
+  include:
+  - python: "2.7"
+    env: TEST_SUITE=test
+  - python: "3.4"
+    env: TEST_SUITE=test_python3
+  - python: "3.5"
+    env: TEST_SUITE=test_python3
 install:
-  - pip install tox
-script:
   - pip install -r requirements/test_requirements.txt
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then  python setup.py test; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then  python setup.py test_python3; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then  python setup.py test_python3; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then pypi setup.py test; fi
+script:
+  - python setup.py $TEST_SUITE
+  
