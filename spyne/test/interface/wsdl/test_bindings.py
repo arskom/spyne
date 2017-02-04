@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-import spyne.const.xml_ns as ns
+import spyne.const.xml as ns
 
 
 from spyne.interface.wsdl.wsdl11 import Wsdl11
@@ -36,11 +36,11 @@ class TestWSDLBindingBehavior(unittest.TestCase):
     def setUp(self):
         self.transport = 'http://schemas.xmlsoap.org/soap/http'
         self.url = 'http:/localhost:7789/wsdl'
-        self.port_type_string = '{%s}portType' % ns.wsdl
-        self.service_string = '{%s}service' % ns.wsdl
-        self.binding_string = '{%s}binding' % ns.wsdl
-        self.operation_string = '{%s}operation' % ns.wsdl
-        self.port_string = '{%s}port' % ns.wsdl
+        self.port_type_string = ns.WSDL11('portType')
+        self.service_string = ns.WSDL11('service')
+        self.binding_string = ns.WSDL11('binding')
+        self.operation_string = ns.WSDL11('operation')
+        self.port_string = ns.WSDL11('port')
 
     def test_binding_simple(self):
         sa = build_app([TS1()], 'S1Port', 'TestServiceName')

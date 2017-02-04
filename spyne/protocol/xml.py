@@ -57,9 +57,8 @@ from spyne.error import ValidationError
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import LIGHT_RED
 from spyne.const.ansi_color import END_COLOR
-from spyne.const.xml_ns import xsi as _ns_xsi
-from spyne.const.xml_ns import soap11_env
-from spyne.const.xml_ns import const_prefmap, DEFAULT_NS
+from spyne.const.xml import NS_SOAP11_ENV
+from spyne.const.xml import PREFMAP, DEFAULT_NS
 
 from spyne.model import Any
 from spyne.model import ModelBase
@@ -232,8 +231,8 @@ class XmlDocument(SubXmlBase):
     type = set(ProtocolBase.type)
     type.add('xml')
 
-    soap_env = const_prefmap[soap11_env]
-    ns_soap_env = soap11_env
+    soap_env = PREFMAP[NS_SOAP11_ENV]
+    ns_soap_env = NS_SOAP11_ENV
 
     def __init__(self, app=None, validator=None,
                 replace_null_with_default=True,
@@ -407,7 +406,7 @@ class XmlDocument(SubXmlBase):
         self.validate_body(ctx, message)
 
     def from_element(self, ctx, cls, element):
-        if bool(element.get('{%s}nil' % _ns_xsi)):
+        if bool(element.get(XSI('nil'))):
             if self.validator is self.SOFT_VALIDATION and not \
                                                         cls.Attributes.nillable:
                 raise ValidationError('')

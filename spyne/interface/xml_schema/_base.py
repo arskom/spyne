@@ -24,7 +24,7 @@ import os
 import shutil
 import tempfile
 
-import spyne.const.xml_ns
+import spyne.const.xml as ns
 
 from lxml import etree
 from itertools import chain
@@ -68,11 +68,11 @@ _get_restriction_tag_handlers = cdict({
     Date: Tget_range_restriction_tag(Date),
 })
 
-_ns_xsd = spyne.const.xml_ns.xsd
-_ns_wsa = spyne.const.xml_ns.wsa
-_ns_wsdl = spyne.const.xml_ns.wsdl
-_ns_soap = spyne.const.xml_ns.soap
-_pref_wsa = spyne.const.xml_ns.const_prefmap[_ns_wsa]
+_ns_xsd = ns.NS_XSD
+_ns_wsa = ns.NS_WSA
+_ns_wsdl = ns.NS_WSDL11
+_ns_soap = ns.NS_WSDL11_SOAP
+_pref_wsa = ns.PREFMAP[_ns_wsa]
 
 
 class SchemaInfo(object):
@@ -137,7 +137,7 @@ class XmlSchema(InterfaceDocumentBase):
 
             # append import tags
             for namespace in self.interface.imports[self.interface.nsmap[pref]]:
-                import_ = etree.SubElement(schema, "{%s}import" % _ns_xsd)
+                import_ = etree.SubElement(schema, ns.XSD('import'))
 
                 import_.set("namespace", namespace)
                 import_pref = self.interface.get_namespace_prefix(namespace)
@@ -145,7 +145,7 @@ class XmlSchema(InterfaceDocumentBase):
                                         self.namespaces.get(import_pref, False):
                     import_.set('schemaLocation', "%s.xsd" % import_pref)
 
-                sl = spyne.const.xml_ns.schema_location.get(namespace, None)
+                sl = ns.schema_location.get(namespace, None)
                 if not (sl is None):
                     import_.set('schemaLocation', sl)
 
@@ -179,7 +179,7 @@ class XmlSchema(InterfaceDocumentBase):
                 name = method.in_message.get_type_name()
 
             if not name in elements:
-                element = etree.Element('{%s}element' % _ns_xsd)
+                element = etree.Element(ns.XSD('element'))
                 element.set('name', name)
                 element.set('type', method.in_message.get_type_name_ns(
                                                                 self.interface))
@@ -191,7 +191,7 @@ class XmlSchema(InterfaceDocumentBase):
                 if name is None:
                     name = method.out_message.get_type_name()
                 if not name in elements:
-                    element = etree.Element('{%s}element' % _ns_xsd)
+                    element = etree.Element(ns.XSD('element'))
                     element.set('name', name)
                     element.set('type', method.out_message \
                                               .get_type_name_ns(self.interface))
@@ -242,7 +242,7 @@ class XmlSchema(InterfaceDocumentBase):
         """Return schema node for the given namespace prefix."""
 
         if not (pref in self.schema_dict):
-            schema = etree.Element("{%s}schema" % _ns_xsd,
+            schema = etree.Element(ns.XSD('schema'),
                                                      nsmap=self.interface.nsmap)
 
             schema.set("targetNamespace", self.interface.nsmap[pref])

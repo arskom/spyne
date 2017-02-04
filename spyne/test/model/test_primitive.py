@@ -33,7 +33,7 @@ from datetime import timedelta
 from lxml import etree
 
 from spyne.util import six, total_seconds
-from spyne.const import xml_ns as ns
+from spyne.const import xml as ns
 
 from spyne import Null, AnyDict, Uuid, Array, ComplexModel, Date, Time, \
     Boolean, DateTime, Duration, Float, Integer, UnsignedInteger, Unicode, \
@@ -492,7 +492,7 @@ class TestPrimitive(unittest.TestCase):
         print(etree.tostring(element))
 
         element = element[0]
-        self.assertTrue(bool(element.attrib.get('{%s}nil' % ns.xsi)))
+        self.assertTrue(bool(element.attrib.get(ns.XSI('nil'))))
         value = XmlDocument().from_element(None, Null, element)
         self.assertEquals(None, value)
 
@@ -574,7 +574,7 @@ class TestPrimitive(unittest.TestCase):
         b = etree.Element('test')
         XmlDocument().to_parent(None, Boolean, None, b, ns_test)
         b = b[0]
-        self.assertEquals('true', b.get('{%s}nil' % ns.xsi))
+        self.assertEquals('true', b.get(ns.XSI('nil')))
 
         b = XmlDocument().from_element(None, Boolean, b)
         self.assertEquals(b, None)

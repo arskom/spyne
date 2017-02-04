@@ -25,7 +25,7 @@ from lxml import etree
 
 from spyne import Application
 from spyne import rpc
-from spyne.const import xml_ns as ns
+from spyne.const import xml as ns
 from spyne.const.xml import NS_XSD
 from spyne.model import ByteArray
 from spyne.model import ComplexModel
@@ -72,10 +72,10 @@ class TestXmlSchema(unittest.TestCase):
         print(etree.tostring(doc, pretty_print=True))
         assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
                                    '/xs:sequence/xs:element[@name="punk"]',
-            namespaces={'xs': ns.xsd})) > 0
+            namespaces={'xs': NS_XSD})) > 0
         assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
                     '/xs:sequence/xs:choice/xs:element[@name="one"]',
-            namespaces={'xs': ns.xsd})) > 0
+            namespaces={'xs': NS_XSD})) > 0
 
     def test_customized_class_with_empty_subclass(self):
         class SummaryStatsOfDouble(ComplexModel):
@@ -178,8 +178,8 @@ class TestXmlSchema(unittest.TestCase):
             out_protocol=Soap11()
         )
 
-        _ns = {'xs': ns.xsd}
-        pref_xs = ns.const_prefmap[ns.xsd]
+        _ns = {'xs': NS_XSD}
+        pref_xs = ns.PREFMAP[NS_XSD]
         xs = XmlSchema(app.interface)
         xs.build_interface_document()
         elt = xs.get_interface_document()['tns'].xpath(
@@ -216,16 +216,16 @@ class TestXmlSchema(unittest.TestCase):
         class SomeType(ComplexModel):
             __namespace__ = "zo"
 
-            anything = AnyXml(schema_tag='{%s}any' % ns.xsd, namespace='##other',
+            anything = AnyXml(schema_tag='{%s}any' % NS_XSD, namespace='##other',
                                                          process_contents='lax')
 
         docs = get_schema_documents([SomeType])
         print(etree.tostring(docs['tns'], pretty_print=True))
-        any = docs['tns'].xpath('//xsd:any', namespaces={'xsd': ns.xsd})
+        _any = docs['tns'].xpath('//xsd:any', namespaces={'xsd': NS_XSD})
 
-        assert len(any) == 1
-        assert any[0].attrib['namespace'] == '##other'
-        assert any[0].attrib['processContents'] == 'lax'
+        assert len(_any) == 1
+        assert _any[0].attrib['namespace'] == '##other'
+        assert _any[0].attrib['processContents'] == 'lax'
 
     def _build_xml_data_test_schema(self, custom_root):
         tns = 'kickass.ns'
@@ -268,7 +268,7 @@ class TestXmlSchema(unittest.TestCase):
         assert len(schema.get_interface_document()['tns'].xpath(
                 '/xs:schema/xs:complexType[@name="ProductEdition"]'
                 '/xs:simpleContent/xs:extension/xs:attribute[@name="id"]'
-                ,namespaces={'xs': ns.xsd})) == 1
+                ,namespaces={'xs': NS_XSD})) == 1
 
     def _test_xml_data_validation(self):
         schema = self._build_xml_data_test_schema(custom_root=False)
@@ -294,7 +294,7 @@ class TestXmlSchema(unittest.TestCase):
     def test_subs(self):
         from lxml import etree
         from spyne.util.xml import get_schema_documents
-        xpath = lambda o, x: o.xpath(x, namespaces={"xs": ns.xsd})
+        xpath = lambda o, x: o.xpath(x, namespaces={"xs": NS_XSD})
 
         m = {
             "s0": "aa",
@@ -325,7 +325,7 @@ class TestXmlSchema(unittest.TestCase):
         #assert len(xpath(seq, 'xs:element[@name="{dd}dd"]')) == 1
 
     def test_mandatory(self):
-        xpath = lambda o, x: o.xpath(x, namespaces={"xs": ns.xsd})
+        xpath = lambda o, x: o.xpath(x, namespaces={"xs": NS_XSD})
 
         class C(ComplexModel):
             __namespace__ = "aa"

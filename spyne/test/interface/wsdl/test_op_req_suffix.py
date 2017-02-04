@@ -30,6 +30,7 @@ from spyne.protocol.http import HttpRpc
 from spyne.protocol.json import JsonDocument
 from spyne.server.wsgi import WsgiApplication
 
+from spyne.const.xml import PREFMAP, NS_WSDL11_SOAP
 
 def strip_whitespace(string):
     return ''.join(string.split())
@@ -162,7 +163,7 @@ class TestOperationRequestSuffix(unittest.TestCase):
 
         soap_strings = [
             '<wsdl:operation name="{0}"'.format(operation_name),
-            '<soap:operation soapAction="{0}"'.format(operation_name),
+            '<{0}:operation soapAction="{1}"'.format(PREFMAP[NS_WSDL11_SOAP], operation_name),
             '<wsdl:input name="{0}">'.format(request_name),
             '<xs:element name="{0}"'.format(request_name),
             '<xs:complexType name="{0}">'.format(request_name),
