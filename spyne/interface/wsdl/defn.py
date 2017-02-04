@@ -1,7 +1,7 @@
 
 from spyne.util.six import add_metaclass
 
-from spyne.const import xml_ns
+from spyne.const import xml
 
 from spyne.model.primitive import Unicode
 from spyne.model.complex import XmlAttribute
@@ -12,12 +12,12 @@ from spyne.interface.xml_schema.defn import XmlSchema10
 
 @add_metaclass(ComplexModelMeta)
 class Wsdl11Base(ComplexModelBase):
-    __namespace__ = xml_ns.wsdl
+    __namespace__ = xml.NS_WSDL11
 
 
 @add_metaclass(ComplexModelMeta)
 class Soap11Base(ComplexModelBase):
-    __namespace__ = xml_ns.soap
+    __namespace__ = xml.NS_WSDL11_SOAP
 
 
 class Types(Wsdl11Base):
@@ -47,9 +47,9 @@ class SoapHeaderDefinition(Wsdl11Base):
 class OperationMode(Wsdl11Base):
     name = XmlAttribute(Unicode)
     message = XmlAttribute(Unicode)
-    soap_body = SoapBodyDefinition.customize(sub_ns=xml_ns.soap,
+    soap_body = SoapBodyDefinition.customize(sub_ns=xml.NS_WSDL11_SOAP,
                                                               sub_name="body")
-    soap_header = SoapHeaderDefinition.customize(sub_ns=xml_ns.soap,
+    soap_header = SoapHeaderDefinition.customize(sub_ns=xml.NS_WSDL11_SOAP,
                                                               sub_name="header")
 
 
@@ -61,7 +61,7 @@ class SoapOperation(Wsdl11Base):
 class Operation(Wsdl11Base):
     input = OperationMode
     output = OperationMode
-    soap_operation = SoapOperation.customize(sub_ns=xml_ns.soap,
+    soap_operation = SoapOperation.customize(sub_ns=xml.NS_WSDL11_SOAP,
                                              sub_name="operation")
     parameterOrder = XmlAttribute(Unicode)
 
@@ -79,7 +79,7 @@ class Binding(Wsdl11Base):
     name = XmlAttribute(Unicode)
     type = XmlAttribute(Unicode)
     location = XmlAttribute(Unicode)
-    soap_binding = SoapBinding.customize(sub_ns=xml_ns.soap,
+    soap_binding = SoapBinding.customize(sub_ns=xml.NS_WSDL11_SOAP,
                                                            sub_name="binding")
 
 
@@ -90,7 +90,7 @@ class PortAddress(Soap11Base):
 class ServicePort(Wsdl11Base):
     name = XmlAttribute(Unicode)
     binding = XmlAttribute(Unicode)
-    address = PortAddress.customize(sub_ns=xml_ns.soap)
+    address = PortAddress.customize(sub_ns=xml.NS_WSDL11_SOAP)
 
 
 class Service(Wsdl11Base):

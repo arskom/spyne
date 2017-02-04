@@ -20,7 +20,7 @@
 import logging
 logger = logging.getLogger('spyne')
 
-from spyne.const.xml_ns import DEFAULT_NS
+from spyne.const.xml import DEFAULT_NS
 
 from spyne.util import six
 
