@@ -27,7 +27,7 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.application import Application
 from spyne.model.primitive import Unicode
 from spyne.decorator import rpc
-from spyne.const.xml_ns import wsdl as NS_WSDL
+from spyne.const.xml import WSDL11
 from spyne.service import ServiceBase
 
 
@@ -85,7 +85,7 @@ class Test(unittest.TestCase):
 
         from lxml import etree
 
-        assert etree.fromstring(retval).tag == '{%s}definitions' % NS_WSDL
+        assert etree.fromstring(retval).tag == WSDL11('definitions')
 
 if __name__ == '__main__':
     unittest.main()

@@ -28,7 +28,7 @@ from collections import Iterable
 from lxml import etree, html
 from lxml.builder import E
 
-from spyne.const.xml_ns import xsi as NS_XSI, soap11_env as NS_SOAP_ENV
+from spyne.const.xml import NS_XSI, NS_SOAP11_ENV, SOAP11_ENV
 from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
     AnyHtml, ModelBase, ByteArray, XmlData, Any, AnyUri, ImageUri, XmlAttribute
 
@@ -475,8 +475,8 @@ class ToParentMixin(OutProtocolBase):
                         pass
 
     def fault_to_parent(self, ctx, cls, inst, parent, name):
-        PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP_ENV]
-        tag_name = "{%s}Fault" % NS_SOAP_ENV
+        PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP11_ENV]
+        tag_name = SOAP11_ENV("Fault")
 
         with parent.element(tag_name):
             parent.write(
@@ -494,8 +494,8 @@ class ToParentMixin(OutProtocolBase):
             # PushBase instance here.
 
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, **_):
-        PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP_ENV]
-        tag_name = "{%s}Fault" % NS_SOAP_ENV
+        PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP11_ENV]
+        tag_name = SOAP11_ENV("Fault")
 
         with parent.element(tag_name):
             parent.write(

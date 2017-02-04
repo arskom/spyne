@@ -30,7 +30,7 @@ import re
 import decimal
 import threading
 
-import spyne.const.xml_ns
+import spyne.const.xml
 
 from collections import OrderedDict
 
@@ -39,7 +39,7 @@ from spyne.util import Break, six
 from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 
-from spyne.const.xml_ns import DEFAULT_NS
+from spyne.const.xml import DEFAULT_NS
 
 
 def _decode_pa_dict(d):
@@ -270,7 +270,7 @@ class ModelBase(object):
         will imply an iterable of objects as native python type. Can be set to
         ``decimal.Decimal("inf")`` for arbitrary number of arguments."""
 
-        schema_tag = '{%s}element' % spyne.const.xml_ns.xsd
+        schema_tag = spyne.const.xml.XSD('element')
         """The tag used to add a primitives as child to a complex type in the
         xml schema."""
 
@@ -482,10 +482,10 @@ class ModelBase(object):
             return False
         tags.add(cls)
 
-        if cls.__namespace__ is spyne.const.xml_ns.DEFAULT_NS:
+        if cls.__namespace__ is spyne.const.xml.DEFAULT_NS:
             cls.__namespace__ = default_ns
 
-        if (cls.__namespace__ in spyne.const.xml_ns.const_prefmap and
+        if (cls.__namespace__ in spyne.const.xml.PREFMAP and
                                                        not cls.is_default(cls)):
             cls.__namespace__ = default_ns
 
