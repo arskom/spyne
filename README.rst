@@ -1,9 +1,6 @@
 .. image:: https://travis-ci.org/arskom/spyne.png?branch=master
         :target: http://travis-ci.org/arskom/spyne
 
-.. image:: https://sonarqube.com/api/badges/gate?key=spyne
-        :target: https://sonarqube.com/dashboard?id=spyne
-
 .. image:: https://landscape.io/github/arskom/spyne/master/landscape.svg
    :target: https://landscape.io/github/arskom/spyne/master
    :alt: Code Health
