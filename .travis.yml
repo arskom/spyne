@@ -1,9 +1,3 @@
-dist: trusty
-addons:
-  sonarqube:
-    token:
-      secure: "U1qaTqYpD0/Kvx2rwvIlZfy4oLoWMvD4pwPMn7IHoLIfGdWQHAjgofbgqUfShZCvL6Sj8VFpSgDFdxTStS28Z6V7dO4eZ9UODesz1zbWZ1zH342OZx/6bThHWrbJFLXbIRCr4nWqCZDhmIkT6C7msNPX4FHLzf1l1F4EaCmKYfVd6tGgn0yrCVn4Qf8td9tv8MZJww6nWYuIiDGk8FdF0MmnUZa3CVWtrgA/WXH0YbQJx/10zZ+XrrAGLhqzGDUtC9B5ISZrQHPX2wxt6raxtcTCbNGbpmRpIyO0N6rllwyAtfbz5ej+Gf9cqcJJx7VuFvaBplb4hsAlID2kc9MZmxEoeZmUBlafWK8vou1LD5LLL48V+Zz6UX4nGapkr6OAd1QrJSKoqkzxY3XHv2Li5c4sPaG5jXH3Kw4FfhTC0v6UZozMAGDQ5TFF5NmjVZgcCOIYgRwKiX0nyWe0hJVLwhuM2V3Zne2M4XDKTEauHf9IrRpAa6lHBzysFaB/tmXwM1IpYr8/WDO9VLBqOEGI94cxdGsXwAD0kocdm4jkpY5Xpy8RwkY1LzizQeSMj316p8OKyDrJ2l5fj8/olduyiM2PyalaLiZ4hQv7pi0fzCPgbT0/R6oJtIUgqnSTjuVflP20MYYvDs/AhM2MO9sitiHr2sikjlP1yLvO7Kqo9/4="
-
 language: python
 matrix:
   include:
@@ -17,5 +11,4 @@ install:
   - pip install -r requirements/test_requirements.txt
 script:
   - python setup.py $TEST_SUITE
-  - sonar-scanner
   
