@@ -17,4 +17,3 @@ install:
   - pip install -r requirements/test_requirements.txt
 script:
   - python setup.py $TEST_SUITE
-  - sonar-scanner
