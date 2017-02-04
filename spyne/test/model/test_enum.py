@@ -22,7 +22,7 @@ import unittest
 from pprint import pprint
 
 from spyne.application import Application
-from spyne.const.xml_ns import xsd as _ns_xsd
+from spyne.const.xml import XSD
 from spyne.interface.wsdl.wsdl11 import Wsdl11
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
@@ -88,7 +88,7 @@ class TestEnum(unittest.TestCase):
         print(simple_type)
 
         self.assertEquals(simple_type.attrib['name'], 'DaysOfWeekEnum')
-        self.assertEquals(simple_type[0].tag, "{%s}restriction" % _ns_xsd)
+        self.assertEquals(simple_type[0].tag, XSD("restriction"))
         self.assertEquals([e.attrib['value'] for e in simple_type[0]], vals)
 
     def test_serialize(self):

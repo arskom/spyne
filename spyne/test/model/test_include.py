@@ -30,7 +30,7 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap.mime import _join_attachment
-from spyne.const import xml_ns as ns
+from spyne.const import xml as ns
 
 # Service Classes
 class DownloadPartFileResult(ComplexModel):
@@ -64,7 +64,7 @@ class TestInclude(unittest.TestCase):
 
         soaptree = etree.fromstring(joinedmsg)
 
-        body = soaptree.find("{%s}Body" % ns.soap11_env)
+        body = soaptree.find(ns.SOAP11_ENV("Body"))
         response = body.getchildren()[0]
         result = response.getchildren()[0]
         r = XmlDocument().from_element(None, DownloadPartFileResult, result)

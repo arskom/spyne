@@ -26,7 +26,7 @@ to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
 
-import spyne.const.xml_ns
+import spyne.const.xml
 
 from copy import copy
 from inspect import isclass
@@ -84,7 +84,7 @@ def _produce_input_message(f, params, in_message_name,
         k = in_variable_names.get(k, k)
         in_params[k] = v
 
-    ns = spyne.const.xml_ns.DEFAULT_NS
+    ns = spyne.const.xml.DEFAULT_NS
     if in_message_name.startswith("{"):
         ns, _, in_message_name = in_message_name[1:].partition("}")
 
@@ -179,7 +179,7 @@ def _produce_output_message(func_name, body_style_str, kparams):
 
             out_params[_out_variable_name] = _returns
 
-    ns = spyne.const.xml_ns.DEFAULT_NS
+    ns = spyne.const.xml.DEFAULT_NS
     if _out_message_name.startswith("{"):
         ns = _out_message_name[1:].partition("}")[0]
 
