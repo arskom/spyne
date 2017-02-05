@@ -33,7 +33,8 @@ from lxml import etree
 from lxml.builder import E
 from lxml.etree import SubElement
 
-from spyne.const.xml import WSDL11, XSD, NS_WSA, WSDL11_SOAP, PLINK
+import spyne.const.xml as ns
+from spyne.const.xml import WSDL11, XSD, NS_WSA, PLINK
 from spyne.interface.xml_schema import XmlSchema
 
 PREF_WSA = spyne.const.xml.PREFMAP[NS_WSA]
@@ -225,7 +226,7 @@ class Wsdl11(XmlSchema):
         wsdl_port.set('name', port_name)
         wsdl_port.set('binding', '%s:%s' % (pref_tns, binding_name))
 
-        addr = SubElement(wsdl_port, WSDL11_SOAP("address"))
+        addr = SubElement(wsdl_port, ns.get_binding_ns(self.interface.app.in_protocol.type)("address"))
         addr.set('location', self.url)
 
     def _has_callbacks(self):
@@ -359,12 +360,14 @@ class Wsdl11(XmlSchema):
                                      cb_binding):
 
         pref_tns = self.interface.get_namespace_prefix(self.interface.get_tns())
+        input_binding_ns = ns.get_binding_ns(self.interface.app.in_protocol.type)
+        output_binding_ns = ns.get_binding_ns(self.interface.app.out_protocol.type)
 
         def inner(method, binding):
             operation = etree.Element(WSDL11("operation"))
             operation.set('name', method.operation_name)
 
-            soap_operation = SubElement(operation, WSDL11_SOAP("operation"))
+            soap_operation = SubElement(operation, input_binding_ns("operation"))
             soap_operation.set('soapAction', method.operation_name)
             soap_operation.set('style', 'document')
 
@@ -372,7 +375,7 @@ class Wsdl11(XmlSchema):
             input = SubElement(operation, WSDL11("input"))
             input.set('name', method.in_message.get_element_name())
 
-            soap_body = SubElement(input, WSDL11_SOAP("body"))
+            soap_body = SubElement(input, input_binding_ns("body"))
             soap_body.set('use', 'literal')
 
             # get input soap header
@@ -393,7 +396,7 @@ class Wsdl11(XmlSchema):
                     in_header_message_name = in_headers[0].get_type_name()
 
                 for header in in_headers:
-                    soap_header = SubElement(input, WSDL11_SOAP('header'))
+                    soap_header = SubElement(input, input_binding_ns('header'))
                     soap_header.set('use', 'literal')
                     soap_header.set('message', '%s:%s' % (
                                 header.get_namespace_prefix(self.interface),
@@ -404,7 +407,7 @@ class Wsdl11(XmlSchema):
                 output = SubElement(operation, WSDL11("output"))
                 output.set('name', method.out_message.get_element_name())
 
-                soap_body = SubElement(output, WSDL11_SOAP("body"))
+                soap_body = SubElement(output, output_binding_ns("body"))
                 soap_body.set('use', 'literal')
 
                 # get output soap header
@@ -425,7 +428,7 @@ class Wsdl11(XmlSchema):
                         out_header_message_name = out_headers[0].get_type_name()
 
                     for header in out_headers:
-                        soap_header = SubElement(output, WSDL11_SOAP("header"))
+                        soap_header = SubElement(output, output_binding_ns("header"))
                         soap_header.set('use', 'literal')
                         soap_header.set('message', '%s:%s' % (
                                 header.get_namespace_prefix(self.interface),
@@ -437,12 +440,12 @@ class Wsdl11(XmlSchema):
                         wsdl_fault = SubElement(operation, WSDL11("fault"))
                         wsdl_fault.set('name', f.get_type_name())
 
-                        soap_fault = SubElement(wsdl_fault, WSDL11_SOAP("fault"))
+                        soap_fault = SubElement(wsdl_fault, input_binding_ns("fault"))
                         soap_fault.set('name', f.get_type_name())
                         soap_fault.set('use', 'literal')
 
             if method.is_callback:
-                relates_to = SubElement(input, WSDL11_SOAP("header"))
+                relates_to = SubElement(input, input_binding_ns("header"))
 
                 relates_to.set('message', '%s:RelatesToHeader' % pref_tns)
                 relates_to.set('part', 'RelatesTo')
@@ -452,12 +455,12 @@ class Wsdl11(XmlSchema):
 
             else:
                 if method.is_async:
-                    rt_header = SubElement(input, WSDL11_SOAP("header"))
+                    rt_header = SubElement(input, input_binding_ns("header"))
                     rt_header.set('message', '%s:ReplyToHeader' % pref_tns)
                     rt_header.set('part', 'ReplyTo')
                     rt_header.set('use', 'literal')
 
-                    mid_header = SubElement(input, WSDL11_SOAP("header"))
+                    mid_header = SubElement(input, input_binding_ns("header"))
                     mid_header.set('message', '%s:MessageIDHeader' % pref_tns)
                     mid_header.set('part', 'MessageID')
                     mid_header.set('use', 'literal')
@@ -473,7 +476,7 @@ class Wsdl11(XmlSchema):
                 binding.set('name', port_type_name)
                 binding.set('type', '%s:%s'% (pref_tns, port_type_name))
 
-                transport = SubElement(binding, WSDL11_SOAP("binding"))
+                transport = SubElement(binding, input_binding_ns("binding"))
                 transport.set('style', 'document')
 
                 for m in service.public_methods.values():
@@ -487,7 +490,7 @@ class Wsdl11(XmlSchema):
                 cb_binding.set('name', service_name)
                 cb_binding.set('type', '%s:%s'% (pref_tns, service_name))
 
-                transport = SubElement(cb_binding, WSDL11_SOAP("binding"))
+                transport = SubElement(cb_binding, input_binding_ns("binding"))
                 transport.set('style', 'document')
                 transport.set('transport', self.interface.app.transport)
 
@@ -500,6 +503,7 @@ class Wsdl11(XmlSchema):
     def _add_callbacks(self, service, root, types, service_name, url):
         ns_tns = self.interface.get_tns()
         pref_tns = 'tns'
+        input_binding_ns = ns.get_binding_ns(self.interface.app.in_protocol.type)
 
         cb_port_type = None
 
@@ -546,7 +550,7 @@ class Wsdl11(XmlSchema):
             cb_wsdl_port.set('name', cb_service_name)
             cb_wsdl_port.set('binding', '%s:%s' % (pref_tns, cb_service_name))
 
-            cb_address = SubElement(cb_wsdl_port, WSDL11_SOAP("address"))
+            cb_address = SubElement(cb_wsdl_port, input_binding_ns("address"))
             cb_address.set('location', url)
 
         return cb_port_type

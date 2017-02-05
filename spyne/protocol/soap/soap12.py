@@ -47,6 +47,10 @@ class Soap12(Soap11):
 
     soap_env = PREFMAP[NS_SOAP12_ENV]
     ns_soap_env = NS_SOAP12_ENV
+    
+    type = set(Soap11.type)
+    type.discard('soap11')
+    type.update(('soap', 'soap12'))
 
     def generate_subcode(self, value, subcode=None):
         subcode_node = E("{%s}Subcode" % self.ns_soap_env)

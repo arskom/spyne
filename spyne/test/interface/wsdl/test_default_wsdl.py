@@ -46,6 +46,7 @@ from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.protocol.soap import Soap11
+import spyne.interface.wsdl.defn
 
 ns = {
     'wsdl':'http://schemas.xmlsoap.org/wsdl/',
