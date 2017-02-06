@@ -19,7 +19,7 @@
 
 from spyne.util.six import add_metaclass
 
-from spyne.const import xml_ns
+from spyne.const import xml
 from spyne.model.primitive import Boolean, AnyHtml
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import UnsignedInteger
@@ -30,7 +30,7 @@ from spyne.model.complex import ComplexModelMeta
 
 @add_metaclass(ComplexModelMeta)
 class SchemaBase(ComplexModelBase):
-    __namespace__ = xml_ns.xsd
+    __namespace__ = xml.NS_XSD
 
 
 class Import(SchemaBase):

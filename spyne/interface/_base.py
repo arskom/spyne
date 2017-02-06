@@ -28,7 +28,7 @@ from spyne import EventManager, MethodDescriptor
 from spyne.util import six
 from spyne.model import ModelBase, Array, Iterable, ComplexModelBase
 from spyne.model.complex import XmlModifier
-from spyne.const import xml_ns as namespace
+from spyne.const import xml as namespace
 
 
 class Interface(object):
@@ -79,8 +79,8 @@ class Interface(object):
         self.imports = {self.get_tns(): set()}
         self.service_method_map = {}
         self.method_id_map = {}
-        self.nsmap = dict(namespace.const_nsmap)
-        self.prefmap = dict(namespace.const_prefmap)
+        self.nsmap = dict(namespace.NSMAP)
+        self.prefmap = dict(namespace.PREFMAP)
         self.member_methods = deque()
 
         self.nsmap['tns'] = self.get_tns()
@@ -494,7 +494,7 @@ class Interface(object):
         if ns is None:
             raise ValueError(ns)
 
-        return self.import_base_namespaces or not (ns in namespace.const_prefmap)
+        return self.import_base_namespaces or not (ns in namespace.PREFMAP)
 
 
 class AllYourInterfaceDocuments(object):

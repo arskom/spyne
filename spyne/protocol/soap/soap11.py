@@ -42,7 +42,7 @@ import cgi
 
 from itertools import chain
 
-import spyne.const.xml_ns as ns
+import spyne.const.xml as ns
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
@@ -50,7 +50,7 @@ from lxml.etree import XMLParser
 
 from spyne import BODY_STYLE_WRAPPED
 from spyne.util import six
-from spyne.const.xml_ns import DEFAULT_NS
+from spyne.const.xml import DEFAULT_NS
 from spyne.const.http import HTTP_405, HTTP_500
 from spyne.error import RequestNotAllowed
 from spyne.model.fault import Fault
@@ -63,7 +63,7 @@ from spyne.server.http import HttpTransportContext
 def _from_soap(in_envelope_xml, xmlids=None, **kwargs):
     """Parses the xml string into the header and payload.
     """
-    ns_soap = kwargs.pop('ns', ns.soap11_env)
+    ns_soap = kwargs.pop('ns', ns.NS_SOAP11_ENV)
 
     if xmlids:
         resolve_hrefs(in_envelope_xml, xmlids)

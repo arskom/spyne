@@ -40,7 +40,7 @@ from itertools import chain
 from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, EventManager
 
 from spyne import const
-from spyne.const import xml_ns
+from spyne.const.xml import PREFMAP
 
 from spyne.model import Point, Unicode, PushBase, ModelBase
 from spyne.model import json, xml, msgpack, table
@@ -124,7 +124,7 @@ class XmlModifier(ModelBase):
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.type.get_namespace()
 
-        if cls.__namespace__ in xml_ns.const_prefmap:
+        if cls.__namespace__ in PREFMAP:
             cls.__namespace__ = default_ns
 
     @classmethod
@@ -1410,7 +1410,7 @@ class Array(ComplexModelBase):
         if cls.__namespace__ is None:
             cls.__namespace__ = serializer.get_namespace()
 
-        if cls.__namespace__ in xml_ns.const_prefmap:
+        if cls.__namespace__ in PREFMAP:
             cls.__namespace__ = default_ns
 
         return ComplexModel.resolve_namespace(cls, default_ns, tags)

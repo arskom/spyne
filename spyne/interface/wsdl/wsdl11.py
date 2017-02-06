@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 import re
 REGEX_WSDL = re.compile('[.?]wsdl$')
 
-import spyne.const.xml_ns
+import spyne.const.xml
 
 from lxml import etree
 from lxml.builder import E

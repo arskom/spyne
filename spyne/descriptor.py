@@ -24,7 +24,7 @@ from spyne import LogicError
 from spyne.util import six
 from spyne.util import DefaultAttrDict
 from spyne.service import ServiceBase
-from spyne.const.xml_ns import DEFAULT_NS
+from spyne.const.xml import DEFAULT_NS
 
 
 class BODY_STYLE_WRAPPED: pass

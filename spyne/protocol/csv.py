@@ -81,7 +81,7 @@ def _complex_to_csv(prot, ctx):
 
         if ctx.out_object[0] is not None:
             for v in ctx.out_object[0]:
-                d = prot._to_dict_value(serializer, v)
+                d = prot._to_dict_value(serializer, v, set())
                 if six.PY2:
                     for k in d:
                         if isinstance(d[k], unicode):

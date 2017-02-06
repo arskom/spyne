@@ -31,15 +31,13 @@ from lxml import etree
 
 from spyne.model import ModelBase, XmlAttribute, AnyXml, Unicode, XmlData, \
     Decimal, Integer
-from spyne.const.xml_ns import xsd as _ns_xsd
+from spyne.const.xml import NS_XSD, XSD
 from spyne.util import memoize
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
 from spyne.util.six import string_types
 from spyne.protocol.xml import XmlDocument
 _prot = XmlDocument()
-
-XSD = lambda s: '{%s}%s' % (_ns_xsd, s)
 
 # In Xml Schema, some customizations do not need a class to be extended -- they
 # are specified in-line in the parent class definition, like nullable or
@@ -292,7 +290,7 @@ def enum_add(document, cls, tags):
 
     restriction = etree.SubElement(simple_type, XSD('restriction'))
     restriction.set('base', '%s:string' %
-                               document.interface.get_namespace_prefix(_ns_xsd))
+                               document.interface.get_namespace_prefix(NS_XSD))
 
     for v in cls.__values__:
         enumeration = etree.SubElement(restriction, XSD('enumeration'))
