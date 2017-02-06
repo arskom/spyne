@@ -141,9 +141,9 @@ class MethodDescriptor(object):
         self.args = args
         """A sequence of the names of the exposed arguments, or None."""
 
-        # FIXME: docstring yo.
         self.no_self = no_self
-        """FIXME: docstring yo."""
+        """When False, this passes self as first argument (before ctx) to the
+        decorated function. This is what separates ``@rpc`` and ``@mrpc``."""
 
         self.service_class = service_class
         """The ServiceBase subclass the method belongs to. Must be None for
