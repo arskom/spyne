@@ -25,7 +25,10 @@ transport. It's a thin wrapper around
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
+
+from django.conf import settings
 
 from functools import update_wrapper
 
@@ -41,12 +44,14 @@ from spyne.util import _bytes_join
 
 from django.http import HttpResponse, HttpResponseNotAllowed, Http404
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.sites.shortcuts import get_current_site
 
 try:
     from django.http import StreamingHttpResponse
 except ImportError as e:
     def StreamingHttpResponse(*args, **kwargs):
         raise e
+
 
 class DjangoApplication(WsgiApplication):
     """You should use this for regular RPC."""
@@ -79,8 +84,8 @@ class DjangoApplication(WsgiApplication):
         # would hang waiting for extra request data. Use DjangoServer instead
         # of monkeypatching wsgi.inpu.
 
-        #environ['wsgi.input'] = request
-        #environ['wsgi.multithread'] = False
+        # environ['wsgi.input'] = request
+        # environ['wsgi.multithread'] = False
 
         response = WsgiApplication.__call__(self, environ, start_response)
         self.set_response(retval, response)
@@ -196,7 +201,19 @@ class DjangoServer(HttpBase):
             # create and build interface documents in current thread. This
             # section can be safely repeated in another concurrent thread.
             doc = AllYourInterfaceDocuments(self.app.interface)
-            doc.wsdl11.build_interface_document(request.build_absolute_uri())
+            # doc.wsdl11.build_interface_document(request.build_absolute_uri())
+            
+            # Allow specifying of domain full url and with ports e.g port 81 when needed in production
+            # The current request.build_absolute_uri() scrap it off
+            # We'll use the default django-sites to store our custom url
+            url = request.build_absolute_uri()
+            if not settings.DEBUG:
+                # Get the current site from the database
+                current_site = get_current_site(request)
+                url = '%s%s' % (current_site.domain, request.get_full_path())
+
+            doc.wsdl11.build_interface_document(url)
+
             wsdl = doc.wsdl11.get_interface_document()
 
             if self._cache_wsdl:
@@ -219,7 +236,7 @@ class DjangoServer(HttpBase):
 
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = \
-                           p_ctx.out_protocol.fault_to_http_response_code(error)
+                p_ctx.out_protocol.fault_to_http_response_code(error)
 
         self.get_out_string(p_ctx)
         resp = HttpResponse(b''.join(p_ctx.out_string))
@@ -233,7 +250,7 @@ class DjangoServer(HttpBase):
         """
 
         initial_ctx = DjangoHttpMethodContext(self, request,
-                                                self.app.out_protocol.mime_type)
+                                              self.app.out_protocol.mime_type)
 
         initial_ctx.in_string = [request.body]
         return self.generate_contexts(initial_ctx)
@@ -361,7 +378,7 @@ class DjangoView(object):
     def http_method_not_allowed(self, request, *args, **kwargs):
         logger.warning('Method Not Allowed (%s): %s', request.method,
                        request.path, extra={'status_code': 405, 'request':
-                                            self.request})
+                self.request})
         return HttpResponseNotAllowed(self._allowed_methods())
 
     def options(self, request, *args, **kwargs):
