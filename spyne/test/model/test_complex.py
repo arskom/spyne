@@ -33,7 +33,7 @@ from decimal import Decimal as D
 from spyne import Application, rpc, mrpc, ServiceBase, ByteArray, Array, \
     ComplexModel, SelfReference, XmlData, XmlAttribute, Unicode, DateTime, \
     Float, Integer, String
-from spyne.const import xml_ns
+from spyne.const import xml
 from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
@@ -409,7 +409,7 @@ class TestXmlAttribute(unittest.TestCase):
         wsdl.build_interface_document('http://a-aaaa.com')
         pref = CM.get_namespace_prefix(interface)
         type_def = wsdl.get_schema_info(pref).types[CM.get_type_name()]
-        attribute_def = type_def.find('{%s}attribute' % xml_ns.xsd)
+        attribute_def = type_def.find(xml.XSD('attribute'))
         print(etree.tostring(type_def, pretty_print=True))
 
         self.assertIsNotNone(attribute_def)

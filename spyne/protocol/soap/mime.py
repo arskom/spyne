@@ -42,9 +42,9 @@ from email import message_from_string
 from spyne.model.binary import Attachment
 from spyne.model.binary import ByteArray
 
-import spyne.const.xml_ns
-_ns_xop = spyne.const.xml_ns.xop
-_ns_soap_env = spyne.const.xml_ns.soap11_env
+import spyne.const.xml
+_ns_xop = spyne.const.xml.NS_XOP
+_ns_soap_env = spyne.const.xml.NS_SOAP11_ENV
 
 from spyne.util.six.moves.urllib.parse import unquote
 
