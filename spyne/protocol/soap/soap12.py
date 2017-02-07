@@ -21,6 +21,7 @@ The ``spyne.protoco.soap.soap12`` module contains the implementation of a
 subset of the Soap 1.2 standard.
 
 This modules is EXPERIMENTAL.
+More info can be found at: https://www.w3.org/TR/soap12-part1/
 """
 
 import logging
@@ -62,7 +63,6 @@ class Soap12(Soap11):
     def gen_fault_codes(self, faultstring):
         faultstrings = faultstring.split('.')
         value = faultstrings.pop(0)
-
         if value == 'Client':
             value = '%s:Sender' % self.soap_env
         elif value == 'Server':
@@ -104,17 +104,14 @@ class Soap12(Soap11):
             code = E("{%s}Code" % self.ns_soap_env)
             code.append(E("{%s}Value" % self.ns_soap_env, value))
 
-            child_subcode = 0
-            for value in faultcodes:
+            child_subcode = False
+            for value in faultcodes[::-1]:
                 if child_subcode:
                     child_subcode = self.generate_subcode(value, child_subcode)
                 else:
                     child_subcode = self.generate_subcode(value)
-
-            if child_subcode == 0:
-                child_subcode = self.generate_subcode(value)
-
-            code.append(child_subcode)
+            if child_subcode != 0:
+                code.append(child_subcode)
 
             _append(subelts, code)
 
