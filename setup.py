@@ -49,7 +49,7 @@ protocols and transports.
 
 try:
     os.stat('CHANGELOG.rst')
-    LONG_DESC += "\n\n" + open('CHANGELOG.rst', 'r').read()
+    LONG_DESC += u"\n\n" + open('CHANGELOG.rst', 'rb').read().decode('utf8')
 except OSError:
     pass
 
