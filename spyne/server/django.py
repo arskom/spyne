@@ -122,7 +122,7 @@ class DjangoHttpTransportContext(HttpTransportContext):
         return self.req.COOKIES[key]
 
     def get_peer(self):
-        addr, port = addres`s_parser.get_ip(self.req.META),\
+        addr, port = address_parser.get_ip(self.req.META),\
                                           address_parser.get_port(self.req.META)
 
         if address_parser.is_valid_ipv4(addr, port):
