@@ -64,6 +64,12 @@ class TransportContext(object):
         self.sessid = ''
         """The session id."""
 
+    def get_peer(self):
+        """Returns None when not applicable, otherwise returns
+        :class:`spyne.Address`"""
+
+        return None
+
 
 class ProtocolContext(object):
     """Generic object that holds protocol-specific context information"""

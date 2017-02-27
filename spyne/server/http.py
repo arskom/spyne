@@ -31,13 +31,22 @@ from spyne.const.http import gen_body_redirect, HTTP_301, HTTP_302, HTTP_303, \
 
 
 class HttpRedirect(Redirect):
+    def __init__(self, ctx, location, orig_exc=None, code=HTTP_302):
+        super(HttpRedirect, self) \
+                      .__init__(ctx, location, orig_exc=orig_exc)
+
+        self.ctx = ctx
+        self.location = location
+        self.orig_exc = orig_exc
+        self.code = code
+
     def do_redirect(self):
         if not isinstance(self.ctx.transport, HttpTransportContext):
             if self.orig_exc is not None:
                 raise self.orig_exc
             raise TypeError(self.ctx.transport)
 
-        self.ctx.transport.respond(HTTP_302, location=self.location)
+        self.ctx.transport.respond(self.code, location=self.location)
 
 #
 # Plagiarized HttpTransport.add_header() and _formatparam() function from
@@ -140,6 +149,9 @@ class HttpTransportContext(TransportContext):
         raise NotImplementedError()
 
     def get_cookie(self, key):
+        raise NotImplementedError()
+
+    def get_peer(self):
         raise NotImplementedError()
 
     @staticmethod

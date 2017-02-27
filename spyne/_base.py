@@ -32,6 +32,8 @@ class _add_address_types():
     Address.TCP6 = 'TCP6'
     Address.UDP4 = 'UDP4'
     Address.UDP6 = 'UDP6'
+
     def address_str(self):
         return ":".join((self.type, self.host, str(self.port)))
+
     Address.__str__ = address_str

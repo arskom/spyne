@@ -874,6 +874,11 @@ class PushBase(object):
         self.gen.send(inst)
         self.length += 1
 
+    def extend(self, insts):
+        for inst in insts:
+            self.gen.send(inst)
+            self.length += 1
+
     def close(self):
         try:
             self.gen.throw(Break())

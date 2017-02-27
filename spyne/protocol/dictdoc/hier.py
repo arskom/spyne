@@ -353,7 +353,6 @@ class HierDictDocument(DictDocument):
                     continue
 
             logger.debug("%s%r%r", "  " * len(tags), k, v)
-            print("  " * len(tags), k, v)
             val = self._object_to_doc(v, subinst, tags)
             min_o = subattr.min_occurs
 

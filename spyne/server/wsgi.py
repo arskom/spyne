@@ -24,6 +24,9 @@ logic.
 """
 
 import logging
+
+from spyne import Address
+
 logger = logging.getLogger(__name__)
 
 import cgi
@@ -45,6 +48,7 @@ from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.util.odict import odict
+from spyne.util.address import address_parser
 
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
@@ -203,6 +207,16 @@ class WsgiTransportContext(HttpTransportContext):
 
     def get_request_content_type(self):
         return self.req.get("CONTENT_TYPE", None)
+
+    def get_peer(self):
+        addr, port = address_parser.get_ip(self.req),\
+                                               address_parser.get_port(self.req)
+
+        if address_parser.is_valid_ipv4(addr):
+            return Address(type=Address.TCP4, host=addr, port=port)
+
+        if address_parser.is_valid_ipv6(addr):
+            return Address(type=Address.TCP6, host=addr, port=port)
 
 
 class WsgiMethodContext(HttpMethodContext):
