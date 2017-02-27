@@ -36,15 +36,17 @@ class BooleanListProtocol(HtmlBase):
         self.nothing = nothing
 
     def to_parent(self, ctx, cls, inst, parent, name, nosubprot=False, **kwargs):
-        if inst is not None:
-            wrote_nothing = True
-            for k, v in cls.get_flat_type_info(cls).items():
-                if not issubclass(v, Boolean):
-                    continue
+        if inst is None:
+            return
 
-                if getattr(inst, k, False):
-                    parent.write(E.p(self.trc(cls, ctx.locale, k)))
-                    wrote_nothing = False
+        wrote_nothing = True
+        for k, v in cls.get_flat_type_info(cls).items():
+            if not issubclass(v, Boolean):
+                continue
 
-            if wrote_nothing and self.nothing is not None:
-                parent.write(E.p(self.nothing))
+            if getattr(inst, k, False):
+                parent.write(E.p(self.trc(cls, ctx.locale, k)))
+                wrote_nothing = False
+
+        if wrote_nothing and self.nothing is not None:
+            parent.write(E.p(self.nothing))
