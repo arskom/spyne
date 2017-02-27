@@ -155,4 +155,3 @@ class IpAddress(_IpAddressBase):
     @staticmethod
     def validate_native(cls, value):
         return SimpleModel.validate_native(cls, value)
-

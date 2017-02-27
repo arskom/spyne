@@ -82,6 +82,7 @@ from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
 
+from spyne.util.address import address_parser
 from spyne.util.six import text_type, string_types
 from spyne.util.six.moves.urllib.parse import unquote
 
@@ -156,6 +157,21 @@ def _reconstruct_url(request):
     return ''.join([url_scheme, "://", server_name, request.uri])
 
 
+class _Transformer(object):
+    def __init__(self, req):
+        self.req = req
+
+    def get(self, key, default):
+        key = key.lower()
+        if key.startswith(('http_', 'http-')):
+            key = key[5:]
+
+        retval = self.req.getHeader(key)
+        if retval is None:
+            retval = default
+        return retval
+
+
 class TwistedHttpTransportContext(HttpTransportContext):
     def set_mime_type(self, what):
         if isinstance(what, text_type):
@@ -179,7 +195,19 @@ class TwistedHttpTransportContext(HttpTransportContext):
         return self.req.getHeader("Content-Type")
 
     def get_peer(self):
-        return Address.from_twisted_address(self.req.transport.getPeer())
+        peer = Address.from_twisted_address(self.req.transport.getPeer())
+        addr = address_parser.get_ip(_Transformer(self.req))
+        logger.warning("%r", self.req.getAllHeaders())
+
+        if addr is None:
+            return peer
+
+        if address_parser.is_valid_ipv4(addr):
+            return Address(type=Address.TCP4, host=addr, port=0)
+
+        if address_parser.is_valid_ipv6(addr):
+            return Address(type=Address.TCP6, host=addr, port=0)
+
 
 class TwistedHttpMethodContext(HttpMethodContext):
     default_transport_context = TwistedHttpTransportContext
