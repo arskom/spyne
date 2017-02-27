@@ -203,7 +203,7 @@ class RunTests(ExtendedTestCommand):
         ret = 0
 
         tests = [
-            'interface', 'model', 'multipython', 'protocol',
+            'interface', 'model', 'multipython', 'protocol', 'util',
 
             'interop/test_pyramid.py',
             'interop/test_soap_client_http_twisted.py',
@@ -213,7 +213,6 @@ class RunTests(ExtendedTestCommand):
             'test_null_server.py',
             'test_service.py',
             'test_soft_validation.py',
-            'test_util.py',
             'test_sqlalchemy.py',
             'test_sqlalchemy_deprecated.py',
         ]
