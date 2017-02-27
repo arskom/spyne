@@ -37,8 +37,6 @@ from collections import deque, OrderedDict
 from inspect import isclass
 from itertools import chain
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, EventManager
-
 from spyne import const
 from spyne.const.xml import PREFMAP
 
