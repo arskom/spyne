@@ -275,5 +275,4 @@ class AddressParser(object):
                                              AddressParser.is_valid_ipv6(ip_str)
 
 
-
 address_parser = AddressParser()
