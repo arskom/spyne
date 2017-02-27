@@ -62,7 +62,7 @@ from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
 from twisted.internet.threads import deferToThread
 
-from spyne import Redirect
+from spyne import Redirect, Address
 from spyne.application import logger_server
 from spyne.application import get_fault_string_from_exception
 
@@ -178,6 +178,8 @@ class TwistedHttpTransportContext(HttpTransportContext):
     def get_request_content_type(self):
         return self.req.getHeader("Content-Type")
 
+    def get_peer(self):
+        return Address.from_twisted_address(self.req.transport.getPeer())
 
 class TwistedHttpMethodContext(HttpMethodContext):
     default_transport_context = TwistedHttpTransportContext

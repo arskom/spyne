@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 from functools import update_wrapper
 
+from spyne import Address
 from spyne.application import get_fault_string_from_exception, Application
 from spyne.auxproc import process_contexts
 from spyne.interface import AllYourInterfaceDocuments
@@ -38,6 +39,7 @@ from spyne.protocol.http import HttpRpc
 from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
 from spyne.server.wsgi import WsgiApplication
 from spyne.util import _bytes_join
+from spyne.util.address import address_parser
 
 from django.http import HttpResponse, HttpResponseNotAllowed, Http404
 from django.views.decorators.csrf import csrf_exempt
@@ -118,6 +120,16 @@ class DjangoHttpTransportContext(HttpTransportContext):
 
     def get_cookie(self, key):
         return self.req.COOKIES[key]
+
+    def get_peer(self):
+        addr, port = addres`s_parser.get_ip(self.req.META),\
+                                          address_parser.get_port(self.req.META)
+
+        if address_parser.is_valid_ipv4(addr, port):
+            return Address(type=Address.TCP4, host=addr, port=port)
+
+        if address_parser.is_valid_ipv6(addr, port):
+            return Address(type=Address.TCP6, host=addr, port=port)
 
 
 class DjangoHttpMethodContext(HttpMethodContext):
@@ -361,7 +373,7 @@ class DjangoView(object):
     def http_method_not_allowed(self, request, *args, **kwargs):
         logger.warning('Method Not Allowed (%s): %s', request.method,
                        request.path, extra={'status_code': 405, 'request':
-                                            self.request})
+                                                                  self.request})
         return HttpResponseNotAllowed(self._allowed_methods())
 
     def options(self, request, *args, **kwargs):

@@ -151,6 +151,9 @@ class HttpTransportContext(TransportContext):
     def get_cookie(self, key):
         raise NotImplementedError()
 
+    def get_peer(self):
+        raise NotImplementedError()
+
     @staticmethod
     def gen_header(_value, **kwargs):
         parts = []

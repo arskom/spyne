@@ -46,8 +46,6 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
-from inspect import isgenerator
-
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Factory
 
@@ -61,8 +59,7 @@ from spyne.util._twisted_ws import WebSocketsResource
 from spyne.util._twisted_ws import CONTROLS
 
 
-from spyne import MethodContext
-from spyne import TransportContext
+from spyne import MethodContext, TransportContext, Address
 from spyne.auxproc import process_contexts
 from spyne.model import PushBase
 from spyne.model.complex import ComplexModel
@@ -79,6 +76,11 @@ class WebSocketTransportContext(TransportContext):
 
         self.parent = parent
         """Parent Context"""
+
+    def get_peer(self):
+        if self.client_handle is not None:
+            peer = self.client_handle.transport.getPeer()
+            return Address.from_twisted_address(peer)
 
 
 class WebSocketMethodContext(MethodContext):

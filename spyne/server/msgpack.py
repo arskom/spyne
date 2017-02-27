@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 import msgpack
 
-from spyne import MethodContext, TransportContext
+from spyne import MethodContext, TransportContext, Address
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError
 from spyne.model import Fault
@@ -61,6 +61,11 @@ class MessagePackTransportContext(TransportContext):
         self.in_header = None
         self.protocol = None
         self.inreq_queue = OrderedDict()
+
+    def get_peer(self):
+        if self.protocol is not None:
+            peer = self.protocol.transport.getPeer()
+            return Address.from_twisted_address(peer)
 
 
 class MessagePackMethodContext(MethodContext):
