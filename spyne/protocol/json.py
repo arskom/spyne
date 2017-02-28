@@ -256,9 +256,9 @@ class JsonP(JsonDocument):
 
         if out_string_encoding is None:
             ctx.out_string = chain(
-                    [self.callback_name, '('],
+                    (self.callback_name, '('),
                         ctx.out_string,
-                    [');'],
+                    (');',),
                 )
         else:
             ctx.out_string = chain(
