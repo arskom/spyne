@@ -192,6 +192,46 @@ class JsonDocument(HierDictDocument):
                                                       for o in ctx.out_document)
 
 
+# Continuation of http://stackoverflow.com/a/24184379/1520211
+class HybridHttpJsonDocument(JsonDocument):
+    """This protocol lets you have the method name as the last fragment in the
+    request url. Eg. instead of sending a HTTP POST request to
+
+        http://api.endpoint/json/
+
+    containing: ::
+
+        {
+            "method_name": {
+                "arg1" : 42,
+                "arg2" : "foo"
+            }
+        }
+
+    you will have to send the request to
+
+        http://api.endpoint/json/method_name
+
+    containing: ::
+
+        {
+            "arg1" : 42,
+            "arg2" : "foo"
+        }
+
+    Part of request data comes from HTTP and part of it comes from Json, hence
+    the name.
+    """
+
+    def create_in_document(self, ctx, in_string_encoding=None):
+        super(HybridHttpJsonDocument, self).create_in_document(ctx)
+
+        url_fragment = ctx.transport.get_path().split('/')[-1]
+
+        ctx.in_document = {url_fragment: ctx.in_document}
+
+
+
 class JsonP(JsonDocument):
     """The JsonP protocol puts the reponse document inside a designated
     javascript function call. The input protocol is identical to the
