@@ -373,12 +373,12 @@ class _SpyneJsonRpc1(JsonDocument):
         self.event_manager.fire_event('after_serialize', ctx)
 
 
-_json_rpc_flavours = {
+_json_rpc_flavors = {
     'spyne': _SpyneJsonRpc1
 }
 
 def JsonRpc(flavour, *args, **kwargs):
-    assert flavour in _json_rpc_flavours, "Unknown JsonRpc flavour. " \
-                             "Accepted ones are: %r" % tuple(_json_rpc_flavours)
+    assert flavour in _json_rpc_flavors, "Unknown JsonRpc flavor. " \
+                              "Accepted ones are: %r" % tuple(_json_rpc_flavors)
 
-    return _json_rpc_flavours[flavour](*args, **kwargs)
+    return _json_rpc_flavors[flavour](*args, **kwargs)
