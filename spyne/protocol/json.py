@@ -282,12 +282,12 @@ class _SpyneJsonRpc1(JsonDocument):
 
         ver = indoc.get(self.VERSION)
         if ver is None:
-            raise ValidationError("Missing Version")
+            raise ValidationError("Unknown Version")
 
         body = indoc.get(self.BODY)
         err = indoc.get(self.FAULT)
         if body is None and err is None:
-            raise ValidationError("Missing request")
+            raise ValidationError("Request data not found")
 
         ctx.protocol.error = False
         if err is not None:
@@ -295,7 +295,7 @@ class _SpyneJsonRpc1(JsonDocument):
             ctx.protocol.error = True
         else:
             if not isinstance(body, dict):
-                raise ValidationError("Missing request body")
+                raise ValidationError("Request body not found")
             if not len(body) == 1:
                 raise ValidationError("Need len(body) == 1")
 
