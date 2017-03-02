@@ -68,6 +68,13 @@ from spyne.model.enum import EnumBase
 
 from spyne.protocol import ProtocolBase
 
+from spyne.util import six
+
+if six.PY2:
+    STR_TYPES = (str, unicode)
+else:
+    STR_TYPES = (str, bytes)
+
 
 NIL_ATTR = {XSI('nil'): 'true'}
 XSI_TYPE = XSI('type')
@@ -911,7 +918,7 @@ class XmlDocument(SubXmlBase):
         self.modelbase_to_parent(ctx, cls, str(inst), parent, ns, name, **kwargs)
 
     def any_xml_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
-        if isinstance(inst, str) or isinstance(inst, unicode):
+        if isinstance(inst, STR_TYPES):
             inst = etree.fromstring(inst)
 
         _append(parent, E(_gen_tagname(ns, name), inst))

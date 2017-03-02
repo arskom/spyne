@@ -31,8 +31,9 @@ from pprint import pprint
 from base64 import b64encode
 
 from lxml import etree
+from lxml.builder import E
 
-from spyne import MethodContext, rpc, ByteArray, File
+from spyne import MethodContext, rpc, ByteArray, File, AnyXml
 from spyne.context import FakeContext
 from spyne.const import RESULT_SUFFIX
 from spyne.service import ServiceBase
@@ -42,8 +43,7 @@ from spyne.decorator import srpc
 from spyne.util.six import BytesIO
 from spyne.model import Fault, Integer, Decimal, Unicode, Date, DateTime, \
     XmlData, Array, ComplexModel, XmlAttribute, Mandatory as M
-from spyne.protocol.xml import XmlDocument
-from spyne.protocol.xml import SchemaValidationError
+from spyne.protocol.xml import XmlDocument, SchemaValidationError
 
 from spyne.util import six
 from spyne.util.xml import get_xml_as_object, get_object_as_xml
@@ -302,7 +302,7 @@ class TestXml(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(Unicode(pattern=u'x'), _returns=Unicode)
             def some_call(s):
-                test(never,reaches,here)
+                test(should, never, reach, here)
 
         app = Application([SomeService], "tns", name="test_mandatory_elements",
                           in_protocol=XmlDocument(validator='lxml'),
@@ -484,6 +484,28 @@ class TestIncremental(unittest.TestCase):
         eltstr = etree.tostring(elt)
         print(eltstr)
         assert elt.text == b64encode(v).decode('ascii')
+
+    def test_any_xml_text(self):
+        v = u"<roots><bloody/></roots>"
+        elt = get_object_as_xml(v, AnyXml, 'B', no_namespace=True)
+        eltstr = etree.tostring(elt)
+        print(eltstr)
+        assert etree.tostring(elt[0], encoding="unicode") == v
+
+    def test_any_xml_bytes(self):
+        v = b"<roots><bloody/></roots>"
+
+        elt = get_object_as_xml(v, AnyXml, 'B', no_namespace=True)
+        eltstr = etree.tostring(elt)
+        print(eltstr)
+        assert etree.tostring(elt[0]) == v
+
+    def test_any_xml_elt(self):
+        v = E.roots(E.bloody(E.roots()))
+        elt = get_object_as_xml(v, AnyXml, 'B')
+        eltstr = etree.tostring(elt)
+        print(eltstr)
+        assert etree.tostring(elt[0]) == etree.tostring(v)
 
     def test_file(self):
         v = b'aaaa'
