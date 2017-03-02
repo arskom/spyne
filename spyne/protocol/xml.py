@@ -131,7 +131,7 @@ class XmlDocument(SubXmlBase):
 
     Spyne's ```lxml.etree.XMLParser``` instance has ```resolve_pis```,
     ```load_dtd```, ```resolve_entities```, ```dtd_validation```,
-    ```huge_tree``` off by default.
+    ```huge_tree``` Defaults to ``False``
 
     Having ```resolve_entities``` disabled will prevent the 'lxml' validation
     for documents with custom xml entities defined in the DTD. See the example
@@ -143,15 +143,21 @@ class XmlDocument(SubXmlBase):
     Xml security in Python world.
 
     :param app: The owner application instance.
+
     :param validator: One of (None, 'soft', 'lxml', 'schema',
-                ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
-                Both ``'lxml'`` and ``'schema'`` values are equivalent to
-                ``XmlDocument.SCHEMA_VALIDATION``.
-    :param replace_null_with_default: If False, does not replace incoming
+        ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
+        Both ``'lxml'`` and ``'schema'`` values are equivalent to
+        ``XmlDocument.SCHEMA_VALIDATION``.
+
+        Defaults to ``None``.
+
+    :param replace_null_with_default: If ``False``, does not replace incoming
         explicit null values with denoted default values. This is against Xml
         Schema standard but consistent with other Spyne protocol
         implementations. Set this to False if you want cross-protocol
         compatibility.
+
+        Defaults to ``True``.
 
         Relevant quote from xml schema primer
         (http://www.w3.org/TR/xmlschema-0/):
@@ -170,45 +176,91 @@ class XmlDocument(SubXmlBase):
             missing, and default element values apply when elements are empty.
 
     :param xml_declaration: Whether to add xml_declaration to the responses
-        Default is 'True'.
+
+        Defaults to ``True``.
+
     :param cleanup_namespaces: Whether to add clean up namespace declarations
-        in the response document. Default is 'True'.
+        in the response document.
+
+        Defaults to ``True``.
+
     :param encoding: The suggested string encoding for the returned xml
         documents. The transport can override this.
+
+        Defaults to ``None``.
+
     :param pretty_print: When ``True``, returns the document in a pretty-printed
         format.
-    :param parse_xsi_type: Set to ``False`` to disable parsing of ``xsi:type``
-        attribute, effectively disabling polymorphism. Defaults to True.
 
-    The following are passed straight to the XMLParser() instance. Docs are
-    plagiarized from the lxml documentation. Please note that some of the
-    defaults are different to make parsing safer by default.
+        Defaults to ``False``.
+
+    :param parse_xsi_type: Set to ``False`` to disable parsing of ``xsi:type``
+        attribute, effectively disabling polymorphism.
+
+        Defaults to ``True``.
+
+    The following are passed straight to the ``XMLParser()`` instance from
+    lxml. Docs are also plagiarized from the lxml documentation. Please note
+    that some of the defaults are different to make parsing safer by default.
 
     :param attribute_defaults: read the DTD (if referenced by the document) and
-        add the default attributes from it. Off by default.
-    :param dtd_validation: validate while parsing (if a DTD was referenced). Off
-        by default.
+        add the default attributes from it.
+
+        Defaults to ``False``
+
+    :param dtd_validation: validate while parsing (if a DTD was referenced).
+
+        Defaults to ``False``
+
     :param load_dtd: load and parse the DTD while parsing (no validation is
-        performed). Off by default.
+        performed).
+
+        Defaults to ``False``.
+
     :param no_network: prevent network access when looking up external
-        documents. On by default.
-    :param ns_clean: try to clean up redundant namespace declarations. Off by
-        default. The note that this is for incoming documents. The
-        ```cleanup_namespaces``` parameter is for output documents, which is
-        that's on by default.
-    :param recover: try hard to parse through broken Xml. Off by default.
+        documents.
+
+        Defaults to ``True``.
+
+    :param ns_clean: try to clean up redundant namespace declarations.
+        Please note that this is for incoming documents. 
+        See ``cleanup_namespaces`` parameter for output documents.
+
+        Defaults to ``False``.
+
+    :param recover: try hard to parse through broken Xml.
+
+        Defaults to ``False``.
+
     :param remove_blank_text: discard blank text nodes between tags, also known
         as ignorable whitespace. This is best used together with a DTD or schema
         (which tells data and noise apart), otherwise a heuristic will be
-        applied. Off by default.
-    :param remove_pis: discard processing instructions. On by default.
-    :param strip_cdata: replace CDATA sections by normal text content. On by
-        default.
-    :param resolve_entities: replace entities by their text value. Off by
-        default.
+        applied. 
+
+        Defaults to ``False``.
+
+    :param remove_pis: When ``True`` xml parser discards processing
+        instructions.
+
+        Defaults to ``True``.
+
+    :param strip_cdata: replace CDATA sections by normal text content.
+
+        Defaults to ``True``
+
+    :param resolve_entities: replace entities by their text value.
+
+        Defaults to ``False``.
+
     :param huge_tree: disable security restrictions and support very deep trees
-        and very long text content. (only affects libxml2 2.7+) Off by default.
-    :param compact: use compact storage for short text content. On by default.
+        and very long text content. (only affects libxml2 2.7+)
+
+        Defaults to ``False``.
+
+    :param compact: use compact storage for short text content.
+
+        Defaults to ``True``.
+
     """
 
     SCHEMA_VALIDATION = type("Schema", (object,), {})
