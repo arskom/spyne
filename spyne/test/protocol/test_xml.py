@@ -396,66 +396,6 @@ class TestXml(unittest.TestCase):
         ])
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
-
-class TestIncremental(unittest.TestCase):
-    def test_one(self):
-        class SomeComplexModel(ComplexModel):
-            s = Unicode
-            i = Integer
-
-        v = SomeComplexModel(s='a', i=1),
-
-        class SomeService(ServiceBase):
-            @rpc(_returns=SomeComplexModel)
-            def get(ctx):
-                return v
-
-        desc = SomeService.public_methods['get']
-        ctx = FakeContext(out_object=v, descriptor=desc)
-        ostr = ctx.out_stream = BytesIO()
-        XmlDocument(Application([SomeService], __name__)) \
-                             .serialize(ctx, XmlDocument.RESPONSE)
-
-        elt = etree.fromstring(ostr.getvalue())
-        print(etree.tostring(elt, pretty_print=True))
-
-        assert elt.xpath('x:getResult/x:i/text()',
-                                            namespaces={'x':__name__}) == ['1']
-        assert elt.xpath('x:getResult/x:s/text()',
-                                            namespaces={'x':__name__}) == ['a']
-
-    def test_many(self):
-        class SomeComplexModel(ComplexModel):
-            s = Unicode
-            i = Integer
-
-        v = [
-            SomeComplexModel(s='a', i=1),
-            SomeComplexModel(s='b', i=2),
-            SomeComplexModel(s='c', i=3),
-            SomeComplexModel(s='d', i=4),
-            SomeComplexModel(s='e', i=5),
-        ]
-
-        class SomeService(ServiceBase):
-            @rpc(_returns=Array(SomeComplexModel))
-            def get(ctx):
-                return v
-
-        desc = SomeService.public_methods['get']
-        ctx = FakeContext(out_object=[v], descriptor=desc)
-        ostr = ctx.out_stream = BytesIO()
-        XmlDocument(Application([SomeService], __name__)) \
-                            .serialize(ctx, XmlDocument.RESPONSE)
-
-        elt = etree.fromstring(ostr.getvalue())
-        print(etree.tostring(elt, pretty_print=True))
-
-        assert elt.xpath('x:getResult/x:SomeComplexModel/x:i/text()',
-                        namespaces={'x': __name__}) == ['1', '2', '3', '4', '5']
-        assert elt.xpath('x:getResult/x:SomeComplexModel/x:s/text()',
-                        namespaces={'x': __name__}) == ['a', 'b', 'c', 'd', 'e']
-
     def test_bare_sub_name_ns(self):
         class Action (ComplexModel):
             class Attributes(ComplexModel.Attributes):
@@ -565,6 +505,66 @@ class TestIncremental(unittest.TestCase):
 
         # xml schema says it should be 'default'
         assert obj.b is None
+
+
+class TestIncremental(unittest.TestCase):
+    def test_one(self):
+        class SomeComplexModel(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = SomeComplexModel(s='a', i=1),
+
+        class SomeService(ServiceBase):
+            @rpc(_returns=SomeComplexModel)
+            def get(ctx):
+                return v
+
+        desc = SomeService.public_methods['get']
+        ctx = FakeContext(out_object=v, descriptor=desc)
+        ostr = ctx.out_stream = BytesIO()
+        XmlDocument(Application([SomeService], __name__)) \
+                             .serialize(ctx, XmlDocument.RESPONSE)
+
+        elt = etree.fromstring(ostr.getvalue())
+        print(etree.tostring(elt, pretty_print=True))
+
+        assert elt.xpath('x:getResult/x:i/text()',
+                                            namespaces={'x':__name__}) == ['1']
+        assert elt.xpath('x:getResult/x:s/text()',
+                                            namespaces={'x':__name__}) == ['a']
+
+    def test_many(self):
+        class SomeComplexModel(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = [
+            SomeComplexModel(s='a', i=1),
+            SomeComplexModel(s='b', i=2),
+            SomeComplexModel(s='c', i=3),
+            SomeComplexModel(s='d', i=4),
+            SomeComplexModel(s='e', i=5),
+        ]
+
+        class SomeService(ServiceBase):
+            @rpc(_returns=Array(SomeComplexModel))
+            def get(ctx):
+                return v
+
+        desc = SomeService.public_methods['get']
+        ctx = FakeContext(out_object=[v], descriptor=desc)
+        ostr = ctx.out_stream = BytesIO()
+        XmlDocument(Application([SomeService], __name__)) \
+                            .serialize(ctx, XmlDocument.RESPONSE)
+
+        elt = etree.fromstring(ostr.getvalue())
+        print(etree.tostring(elt, pretty_print=True))
+
+        assert elt.xpath('x:getResult/x:SomeComplexModel/x:i/text()',
+                        namespaces={'x': __name__}) == ['1', '2', '3', '4', '5']
+        assert elt.xpath('x:getResult/x:SomeComplexModel/x:s/text()',
+                        namespaces={'x': __name__}) == ['a', 'b', 'c', 'd', 'e']
 
 
 if __name__ == '__main__':
