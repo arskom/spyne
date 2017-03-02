@@ -42,9 +42,8 @@ import random
 from spyne import Application, rpc, Array, ComplexModel, Integer, String, \
     ServiceBase, ResourceNotFoundError
 
-from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.xml import XmlDocument
 from spyne.protocol.http import HttpRpc
+from spyne.protocol.xml import XmlDocument
 from spyne.server.wsgi import WsgiApplication
 
 
