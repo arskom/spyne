@@ -385,12 +385,16 @@ def _get_file_info(ctx):
         return retval
 
     for k in keys:
-        field = img[k]
+        fields = img[k]
 
-        file_type = field.type
-        file_name = field.disposition_options.get('filename', None)
-        if file_name is not None:
-            retval.append(_FileInfo(k, file_name, file_type,
+        if isinstance(fields, cgi.FieldStorage):
+            fields = (fields,)
+
+        for field in fields:
+            file_type = field.type
+            file_name = field.disposition_options.get('filename', None)
+            if file_name is not None:
+                retval.append(_FileInfo(k, file_name, file_type,
                                                 [mmap(field.file.fileno(), 0)]))
 
     return retval
