@@ -208,12 +208,6 @@ class MethodDescriptor(object):
     def internal_key(self):
         """The internal function identifier in '{namespace}name' form."""
 
-        sc = self.service_class
-        if sc is not None:
-            return '{%s}%s%s' % (sc.get_internal_key(),
-                                    six.get_function_name(self.function),
-                                                       self.internal_key_suffix)
-
         pc = self.parent_class
         if pc is not None:
             mn = pc.__module__
@@ -226,6 +220,12 @@ class MethodDescriptor(object):
                 return "{%s}%s.%s" % (mn, on, dn)
 
             return "{%s}%s" % (mn, dn)
+
+        sc = self.service_class
+        if sc is not None:
+            return '{%s}%s%s' % (sc.get_internal_key(),
+                                    six.get_function_name(self.function),
+                                                       self.internal_key_suffix)
 
     @staticmethod
     def get_owner_name(cls):
