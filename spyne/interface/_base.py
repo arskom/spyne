@@ -317,6 +317,10 @@ class Interface(object):
                 for cls in self.add_method(method):
                     self.add_class(cls)
 
+        # populate additional types
+        for c in self.app.classes:
+            self.add_class(c)
+
         # populate call routes for service methods
         for s in self.services:
             self.service_attrs[s]['tns'] = self.get_tns()
