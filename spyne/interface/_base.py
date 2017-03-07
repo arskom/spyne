@@ -338,6 +338,14 @@ class Interface(object):
                      "while populating methods", should_we, method.internal_key)
 
             if should_we:
+                s = method.service_class
+                if s is not None:
+                    if method.in_header is None:
+                        method.in_header = s.__in_header__
+
+                    if method.out_header is None:
+                        method.out_header = s.__out_header__
+
                 self.process_method(cls.__orig__ or cls, method)
 
         # populate method descriptor id to method key map
