@@ -162,7 +162,7 @@ class ServiceBaseBase(object):
         return None
 
     @classmethod
-    def call_wrapper(cls, ctx):
+    def call_wrapper(cls, ctx, args=None):
         """Called in place of the original method call. You can override this to
         do your own exception handling.
 
@@ -172,17 +172,19 @@ class ServiceBaseBase(object):
         """
 
         if ctx.function is not None:
-            args = ctx.in_object
+            if args is None:
+                args = ctx.in_object
 
-            # python3 wants a proper sequence as *args
-            assert not isinstance(args, six.string_types)
-            if not isinstance(args, collections.Sequence):
-                args = tuple(args)
+                assert not isinstance(args, six.string_types)
 
-            if ctx.descriptor.no_ctx:
-                return ctx.function(*args)
-            else:
-                return ctx.function(ctx, *args)
+                # python3 wants a proper sequence as *args
+                if not isinstance(args, collections.Sequence):
+                    args = tuple(args)
+
+                if not ctx.descriptor.no_ctx:
+                    args = (ctx,) + args
+
+            return ctx.function(*args)
 
     @classmethod
     def initialize(cls, app):

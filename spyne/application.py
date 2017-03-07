@@ -244,13 +244,13 @@ class Application(object):
 
         in_cls = ctx.descriptor.in_message
 
-        args = ctx.in_object
+        args = tuple(ctx.in_object)
         if args is None:
-            args = []
+            args = ()
 
         elif ctx.descriptor.body_style is BODY_STYLE_WRAPPED and \
                                 len(in_cls.get_flat_type_info(in_cls)) <= 1:
-            args = []
+            args = ()
 
         else:
             args = args[1:]
@@ -262,9 +262,15 @@ class Application(object):
                 raise InvalidRequestError("Invalid object state for request")
 
         if ctx.descriptor.no_ctx:
-            retval = ctx.function(inst, *args)
+            args = (inst,) + args
         else:
-            retval = ctx.function(inst, ctx, *args)
+            args = (inst, ctx,) + args
+
+        if ctx.descriptor.service_class is None:
+            retval = ctx.function(*args)
+
+        else:
+            retval = ctx.descriptor.service_class.call_wrapper(ctx, args=args)
 
         return retval
 

@@ -340,8 +340,10 @@ def rpc(*params, **kparams):
         has no real functionality besides publishing this information in
         interface documents.
     :param _args: the name of the arguments to expose.
-    :param _service_class: A :class:`Service` subclass, if you feel like
-        overriding it.
+    :param _service_class: A :class:`Service` subclass. It's generally not a good idea
+        to override it for ``@rpc`` methods. It could be necessary to override
+        it for ``@mrpc`` methods to add events and other goodies.
+    :param _service: Same as ``_service``.
     """
 
     params = list(params)
@@ -376,6 +378,11 @@ def rpc(*params, **kparams):
             _static_when = kparams.pop("_static_when", None)
             _href = kparams.pop("_href", None)
             _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
+            if '_service' in kparams and '_service_class' in kparams:
+                raise LogicError("Please pass only one of '_service' and "
+                                                             "'_service_class'")
+            if '_service' in kparams:
+                _service_class = kparams.pop("_service")
             if '_service_class' in kparams:
                 _service_class = kparams.pop("_service_class")
 

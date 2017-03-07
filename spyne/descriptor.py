@@ -23,7 +23,7 @@ logger = logging.getLogger('spyne')
 from spyne import LogicError
 from spyne.util import six
 from spyne.util import DefaultAttrDict
-from spyne.service import Service
+from spyne.service import Service, ServiceBaseBase
 from spyne.const.xml import DEFAULT_NS
 
 
@@ -146,7 +146,7 @@ class MethodDescriptor(object):
         decorated function. This is what separates ``@rpc`` and ``@mrpc``."""
 
         self.service_class = service_class
-        """The Service subclass the method belongs to. Must be None for
+        """The Service subclass the method belongs to. If not None for
         ``@mrpc`` methods, a Service subclass for anything else."""
 
         self.parent_class = parent_class
@@ -156,8 +156,6 @@ class MethodDescriptor(object):
         self.default_on_null = default_on_null
         if parent_class is None and not (default_on_null is False):
             raise LogicError("default_on_null is only to be used inside @mrpc")
-        if parent_class is not None and service_class is not None:
-            raise LogicError("There is no service_class for @mrpc")
 
         # HATEOAS Stuff
         self.translations = translations
@@ -237,7 +235,7 @@ class MethodDescriptor(object):
 
     def gen_interface_key(self, cls):
         # this is a regular service method decorated by @rpc
-        if issubclass(cls, Service):
+        if issubclass(cls, ServiceBaseBase):
             return '{}.{}.{}'.format(cls.__module__,
                                             self.get_owner_name(cls), self.name)
 
