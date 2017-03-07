@@ -93,54 +93,8 @@ class ServiceBaseMeta(type):
         return self.__has_aux_methods
 
 
-@six.add_metaclass(ServiceBaseMeta)
-class ServiceBase(object):
-    """The ``ServiceBase`` class is the base class for all service definitions.
-
-    The convention is to have public methods defined under a subclass of this
-    class along with common properties of public methods like header classes or
-    auxiliary processors. The :func:`spyne.decorator.srpc` decorator or its
-    wrappers should be used to flag public methods.
-
-    This class is designed to be subclassed just once. You're supposed to
-    combine ServiceBase subclasses in order to get the public method mix you
-    want.
-
-    It is a natural abstract base class, because it's of no use without any
-    method definitions, hence the 'Base' suffix in the name.
-
-    This class supports the following events:
-        * ``method_call``
-            Called right before the service method is executed
-
-        * ``method_return_object``
-            Called right after the service method is executed
-
-        * ``method_exception_object``
-            Called when an exception occurred in a service method, before the
-            exception is serialized.
-
-        * ``method_accept_document``
-            Called by the transport right after the incoming stream is parsed to
-            the incoming protocol's document type.
-
-        * ``method_return_document``
-            Called by the transport right after the outgoing object is
-            serialized to the outgoing protocol's document type.
-
-        * ``method_exception_document``
-            Called by the transport right before the outgoing exception object
-            is serialized to the outgoing protocol's document type.
-
-        * ``method_return_string``
-            Called by the transport right before passing the return string to
-            the client.
-
-        * ``method_exception_string``
-            Called by the transport right before passing the exception string to
-            the client.
-    """
-
+# FIXME: To be renamed to ServiceBase in Spyne 3
+class ServiceBaseBase(object):
     __in_header__ = None
     """The incoming header object that the methods under this service definition
     accept."""
@@ -233,3 +187,56 @@ class ServiceBase(object):
     @classmethod
     def initialize(cls, app):
         pass
+
+
+@six.add_metaclass(ServiceBaseMeta)
+class Service(ServiceBaseBase):
+    """The ``Service`` class is the base class for all service definitions.
+
+    The convention is to have public methods defined under a subclass of this
+    class along with common properties of public methods like header classes or
+    auxiliary processors. The :func:`spyne.decorator.srpc` decorator or its
+    wrappers should be used to flag public methods.
+
+    This class is designed to be subclassed just once. You're supposed to
+    combine ServiceBase subclasses in order to get the public method mix you
+    want.
+
+    It is a natural abstract base class, because it's of no use without any
+    method definitions, hence the 'Base' suffix in the name.
+
+    This class supports the following events:
+        * ``method_call``
+            Called right before the service method is executed
+
+        * ``method_return_object``
+            Called right after the service method is executed
+
+        * ``method_exception_object``
+            Called when an exception occurred in a service method, before the
+            exception is serialized.
+
+        * ``method_accept_document``
+            Called by the transport right after the incoming stream is parsed to
+            the incoming protocol's document type.
+
+        * ``method_return_document``
+            Called by the transport right after the outgoing object is
+            serialized to the outgoing protocol's document type.
+
+        * ``method_exception_document``
+            Called by the transport right before the outgoing exception object
+            is serialized to the outgoing protocol's document type.
+
+        * ``method_return_string``
+            Called by the transport right before passing the return string to
+            the client.
+
+        * ``method_exception_string``
+            Called by the transport right before passing the exception string to
+            the client.
+    """
+
+
+# FIXME: To be deleted in Spyne 3
+ServiceBase = Service
