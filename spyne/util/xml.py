@@ -35,7 +35,10 @@ from spyne.protocol.xml import XmlDocument
 
 
 class FakeApplication(object):
-    pass
+    def __init__(self, default_namespace):
+        self.tns = default_namespace
+        self.services = ()
+        self.classes = ()
 
 
 def get_schema_documents(models, default_namespace=None):
@@ -49,9 +52,7 @@ def get_schema_documents(models, default_namespace=None):
     if default_namespace is None:
         default_namespace = models[0].get_namespace()
 
-    fake_app = FakeApplication()
-    fake_app.tns = default_namespace
-    fake_app.services = []
+    fake_app = FakeApplication(default_namespace)
 
     interface = Interface(fake_app)
     for m in models:
@@ -75,9 +76,7 @@ def get_validation_schema(models, default_namespace=None):
     if default_namespace is None:
         default_namespace = models[0].get_namespace()
 
-    fake_app = FakeApplication()
-    fake_app.tns = default_namespace
-    fake_app.services = []
+    fake_app = FakeApplication(default_namespace)
 
     interface = Interface(fake_app)
     for m in models:
