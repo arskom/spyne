@@ -340,6 +340,12 @@ def rpc(*params, **kparams):
         has no real functionality besides publishing this information in
         interface documents.
     :param _args: the name of the arguments to expose.
+    :param _event_managers: An iterable of :class:`spyne.EventManager`
+        instances. This is useful for adding additional event handlers to
+        individual functions.
+    :param _event_manager: An instance of :class:`spyne.EventManager` class.
+    :param _evmgrs: Same as ``_event_managers``.
+    :param _evmgr: Same as ``_event_manager``.
     :param _service_class: A :class:`Service` subclass. It's generally not a good idea
         to override it for ``@rpc`` methods. It could be necessary to override
         it for ``@mrpc`` methods to add events and other goodies.
