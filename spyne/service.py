@@ -31,7 +31,33 @@ from spyne.util import six
 from spyne.util.oset import oset
 
 
-class ServiceMeta(type):
+class ServiceBaseMeta(type):
+    """Adds event managers."""
+
+    def __init__(self, cls_name, cls_bases, cls_dict):
+        super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
+
+        self.public_methods = {}
+        self.event_manager = EventManager(self,
+                                      self.__get_base_event_handlers(cls_bases))
+
+    def __get_base_event_handlers(self, cls_bases):
+        handlers = {}
+
+        for base in cls_bases:
+            evmgr = getattr(base, 'event_manager', None)
+            if evmgr is None:
+                continue
+
+            for k, v in evmgr.handlers.items():
+                handler = handlers.get(k, oset())
+                for h in v:
+                    handler.add(h)
+                handlers[k] = handler
+
+        return handlers
+
+class ServiceMeta(ServiceBaseMeta):
     """Creates the :class:`spyne.MethodDescriptor` objects by iterating over
     tagged methods.
     """
@@ -41,10 +67,6 @@ class ServiceMeta(type):
 
         self.__has_aux_methods = self.__aux__ is not None
         has_nonaux_methods = None
-
-        self.public_methods = {}
-        self.event_manager = EventManager(self,
-                                      self.__get_base_event_handlers(cls_bases))
 
         for k, v in cls_dict.items():
             if not hasattr(v, '_is_rpc'):
@@ -73,27 +95,12 @@ class ServiceMeta(type):
                 raise Exception("You can't mix primary and "
                                 "auxiliary methods in a single service definition.")
 
-    def __get_base_event_handlers(self, cls_bases):
-        handlers = {}
-
-        for base in cls_bases:
-            evmgr = getattr(base, 'event_manager', None)
-            if evmgr is None:
-                continue
-
-            for k, v in evmgr.handlers.items():
-                handler = handlers.get(k, oset())
-                for h in v:
-                    handler.add(h)
-                handlers[k] = handler
-
-        return handlers
-
     def is_auxiliary(self):
         return self.__has_aux_methods
 
 
 # FIXME: To be renamed to ServiceBase in Spyne 3
+@six.add_metaclass(ServiceBaseMeta)
 class ServiceBaseBase(object):
     __in_header__ = None
     """The incoming header object that the methods under this service definition
