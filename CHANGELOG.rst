@@ -4,6 +4,10 @@ Changelog
 
 spyne-2.13.0
 ------------
+* ``ServiceBase`` is deprecated in favor of ``Service``. It's just a name change
+  in order to make it consistent with the rest of the package. ServiceBase will
+  be kept until Spyne 3.
+
 * Introduced internal keys for services and methods. Uniqueness is enforced
   during Application instantiation. If your server refuses to boot after
   migrating to 2.13 raising ``MethodAlreadyExistsError``, explicitly setting a
