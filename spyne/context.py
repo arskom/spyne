@@ -346,7 +346,7 @@ class MethodContext(object):
     by the user code.
     """
 
-    # Deprecated. Use self.descriptor.service_class.
+    # FIXME: Deprecated. Use self.descriptor.service_class.
     @property
     def service_class(self):
         if self.descriptor is not None:
