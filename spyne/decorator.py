@@ -75,7 +75,7 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
 
         if len(params) != len(argnames):
             raise LogicError("%r function has %d argument(s) but its decorator "
-                            "has %d." % (f.__name__, len(argnames), len(params)))
+                           "has %d." % (f.__name__, len(argnames), len(params)))
 
     else:
         argnames = copy(argnames)
@@ -107,8 +107,8 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
     message = None
     if body_style_str == 'bare':
         if len(in_params) > 1:
-            raise LogicError("body_style='bare' can handle at most one function "
-                            "argument.")
+            raise LogicError("body_style='bare' can handle at most one "
+                                                           "function argument.")
 
         if len(in_params) == 0:
             message = ComplexModel.produce(type_name=in_message_name,
@@ -450,10 +450,10 @@ def rpc(*params, **kparams):
 
             in_message = _produce_input_message(f, params,
                     _in_message_name, _in_arg_names, _no_ctx, _no_self,
-                                    _args, body_style_str, _self_ref_replacement)
+                                   _args, body_style_str, _self_ref_replacement)
 
             out_message = _produce_output_message(function_name,
-                        body_style_str, _self_ref_replacement, _no_self, kparams)
+                       body_style_str, _self_ref_replacement, _no_self, kparams)
 
             doc = getattr(f, '__doc__')
 
