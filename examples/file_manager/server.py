@@ -39,7 +39,7 @@ from werkzeug.serving import run_simple
 
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.error import ResourceNotFoundError
 from spyne.error import ValidationError
 from spyne.model.binary import ByteArray
@@ -54,7 +54,7 @@ BLOCK_SIZE = 8192
 port = 9000
 
 
-class FileServices(ServiceBase):
+class FileServices(Service):
     @rpc(Mandatory.Unicode, _returns=ByteArray)
     def get(ctx, file_name):
         path = os.path.join(os.path.abspath('./files'), file_name)

@@ -20,7 +20,7 @@
 
 import unittest
 
-from spyne import Application, ServiceBase, rpc
+from spyne import Application, Service, rpc
 from spyne.model import Array, ComplexModel, AnyXml, UnsignedLong, \
     UnsignedInteger16, Integer, DateTime, Unicode
 from spyne.protocol.http import HttpRpc
@@ -52,12 +52,12 @@ class TestInterface(unittest.TestCase):
             __namespace__ = "4"
             k = UnsignedInteger16
 
-        class Service1(ServiceBase):
+        class Service1(Service):
             @rpc(SomethingElse, _returns=Array(KeyValuePair))
             def some_call(ctx, sth):
                 pass
 
-        class Service2(ServiceBase):
+        class Service2(Service):
             @rpc(BetterSomething, _returns=Array(KeyValuePair))
             def some_other_call(ctx, sth):
                 pass
@@ -91,7 +91,7 @@ class TestInterface(unittest.TestCase):
         class DataRequest(ComplexModel):
             status = Array(RequestStatus)
 
-        class HelloWorldService(ServiceBase):
+        class HelloWorldService(Service):
             @rpc(DataRequest)
             def some_call(ctx, dgrntcl):
                 pass

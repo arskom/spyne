@@ -44,7 +44,7 @@ from twisted.internet import reactor
 from twisted.internet.task import deferLater
 from twisted.web.server import Site
 
-from spyne import Application, rpc, ServiceBase, Iterable, Unicode, \
+from spyne import Application, rpc, Service, Iterable, Unicode, \
     UnsignedInteger
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlColumnTable
@@ -55,7 +55,7 @@ HOST = '127.0.0.1'
 PORT = 8000
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(Unicode(default='World'), UnsignedInteger(default=5),
                                                     _returns=Iterable(Unicode))
     def say_hello(ctx, name, times):

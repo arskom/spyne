@@ -34,10 +34,10 @@ from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer, Unicode
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.json import JsonDocument
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def hello(ctx, name, times):
         name = name or ctx.udc.config['HELLO']

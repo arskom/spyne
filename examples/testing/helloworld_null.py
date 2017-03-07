@@ -14,13 +14,13 @@ from spyne.protocol.soap import Soap11
 from spyne.server.null import NullServer
 
 from spyne.decorator import rpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(ctx, name, times):
         for i in range(times):

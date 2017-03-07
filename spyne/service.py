@@ -18,7 +18,7 @@
 #
 
 """
-This module contains the :class:`ServiceBase` class and its helper objects.
+This module contains the :class:`Service` class and its helper objects.
 """
 
 import logging
@@ -31,13 +31,13 @@ from spyne.util import six
 from spyne.util.oset import oset
 
 
-class ServiceBaseMeta(type):
+class ServiceMeta(type):
     """Creates the :class:`spyne.MethodDescriptor` objects by iterating over
     tagged methods.
     """
 
     def __init__(self, cls_name, cls_bases, cls_dict):
-        super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
+        super(ServiceMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
         self.__has_aux_methods = self.__aux__ is not None
         has_nonaux_methods = None
@@ -189,7 +189,7 @@ class ServiceBaseBase(object):
         pass
 
 
-@six.add_metaclass(ServiceBaseMeta)
+@six.add_metaclass(ServiceMeta)
 class Service(ServiceBaseBase):
     """The ``Service`` class is the base class for all service definitions.
 
@@ -199,7 +199,7 @@ class Service(ServiceBaseBase):
     wrappers should be used to flag public methods.
 
     This class is designed to be subclassed just once. You're supposed to
-    combine ServiceBase subclasses in order to get the public method mix you
+    combine Service subclasses in order to get the public method mix you
     want.
 
     It is a natural abstract base class, because it's of no use without any

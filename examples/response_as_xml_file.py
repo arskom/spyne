@@ -30,14 +30,14 @@
 #
 
 
-from spyne import Application, rpc, ServiceBase, Iterable, Integer, Unicode
+from spyne import Application, rpc, Service, Iterable, Integer, Unicode
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.xml import XmlDocument
 from spyne.server.http import HttpTransportContext
 from spyne.server.wsgi import WsgiApplication
 
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello_as_file(ctx, name, times):
         if isinstance(ctx.transport, HttpTransportContext):

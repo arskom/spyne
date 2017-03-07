@@ -58,7 +58,7 @@ class Application(object):
     """The Application class is the glue between one or more service
     definitions, input and output protocols.
 
-    :param services:     An iterable of ServiceBase subclasses that defines
+    :param services:     An iterable of Service subclasses that defines
                          the exposed services.
     :param tns:          The targetNamespace attribute of the exposed
                          service.

@@ -124,7 +124,7 @@ Primitives
 
 Using primitives in functions are very simple. Here are some examples: ::
 
-    class SomeSampleServices(ServiceBase):
+    class SomeSampleServices(Service):
         @srpc(Decimal, Decimal, _returns=Decimal)
         def exp(x, y):
             """Exponentiate arbitrary rationals. A very DoS friendly service!"""

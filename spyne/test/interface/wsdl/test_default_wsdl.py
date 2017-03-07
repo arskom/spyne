@@ -38,7 +38,7 @@ from spyne.const import ARRAY_SUFFIX
 
 from spyne.const.xml import NSMAP
 from spyne.decorator import srpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.interface.wsdl import Wsdl11
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
@@ -176,7 +176,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         )
 
     def test_bare_simple(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String, _returns=String, _body_style='bare')
             def whatever(ss):
                 return ss
@@ -207,7 +207,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         assert elts[0].attrib['type'] == 'xs:string'
 
     def test_bare_with_conflicting_types(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Array(String), _returns=Array(String))
             def whatever(sa):
                 return sa

@@ -22,7 +22,7 @@ You just need to consider the order the events are fired, so that you don't
 overwrite data.
 
 If you want to use headers in a function, you must denote it either in the
-decorator or the :class:`spyne.service.ServiceBase` child that you use to
+decorator or the :class:`spyne.service.Service` child that you use to
 expose your functions.
 
 A full example using most of the available metadata functionality is available
@@ -44,7 +44,7 @@ Header objects are defined just like any other object: ::
 They can be integrated to the rpc definition either by denoting it in the
 service definition: ::
 
-    class UserService(ServiceBase):
+    class UserService(Service):
         __tns__ = 'spyne.examples.authentication'
         __in_header__ = RequestHeader
 
@@ -56,7 +56,7 @@ Or in the decorator: ::
 
         @rpc(_in_header=RequestHeader, _returns=Preferences)
 
-It's generally a better idea to set the header types in the ``ServiceBase``
+It's generally a better idea to set the header types in the ``Service``
 child as it's likely that all methods will use it. This will avoid cluttering
 the service definition with header declarations. The header declaration in the
 decorator will overwrite the one in the service definition.
@@ -98,7 +98,7 @@ We can now modify the decorator to expose the exception this service can throw: 
 
     preferences_db = SpyneDict()
 
-    class UserService(ServiceBase):
+    class UserService(Service):
         __tns__ = 'spyne.examples.authentication'
         __in_header__ = RequestHeader
 

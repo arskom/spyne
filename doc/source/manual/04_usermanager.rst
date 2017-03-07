@@ -30,19 +30,19 @@ We register it as the application's ``'method_call'`` handler. ::
                             'method_call', _on_method_call)
 
 Note that registering it to the service definition's event manager would have
-the same effect, but it'd have to be set for every other ``ServiceBase``
+the same effect, but it'd have to be set for every other ``Service``
 subclass that we'd otherwise define: ::
 
     UserManagerService.event_manager.add_listener(
                             'method_call', _on_method_call)
 
-You can also prefer to define your own ``ServiceBase`` class and use it as a
+You can also prefer to define your own ``Service`` class and use it as a
 base class throughout your projects: ::
 
-    class MyServiceBase(ServiceBase):
+    class MyService(Service):
         pass
 
-    MyServiceBase.event_manager.add_listener('method_call', _on_method_call)
+    MyService.event_manager.add_listener('method_call', _on_method_call)
 
 Next, we define the UserDefinedContext object. It's just a regular Python
 class with no specific api it should adhere to: ::
@@ -67,11 +67,11 @@ events to measure method performance can be found in the
 Method Metadata
 ---------------
 
-As said before, the smallest exposable unit in Spyne is the ServiceBase
+As said before, the smallest exposable unit in Spyne is the Service
 subclass which has one or more functions decorated with the ``@rpc`` or
 ``@srpc`` decorator.
 
-The ``ServiceBase`` subclasses are never instantiated, so methods decorated
+The ``Service`` subclasses are never instantiated, so methods decorated
 by ``@rpc`` are implicit ``staticmethod``\s [#]_.
 
 The ``@rpc`` decorator is what you would use most of the time. It passes an
@@ -149,7 +149,7 @@ example: ::
     def my_decor(f):
         return decorator(_do_something, f)
 
-    class tests(ServiceBase):
+    class tests(Service):
         @my_decor
         @srpc(Integer, _returns=Integer)
         def testf(first):

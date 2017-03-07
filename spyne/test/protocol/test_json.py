@@ -27,7 +27,7 @@ except ImportError:
 from spyne import MethodContext
 from spyne import Application
 from spyne import rpc,srpc
-from spyne import ServiceBase
+from spyne import Service
 from spyne.model import Integer, Unicode, ComplexModel
 from spyne.protocol.json import JsonP
 from spyne.protocol.json import JsonDocument
@@ -52,7 +52,7 @@ _dry_sjrpc1 = TDry(json, _SpyneJsonRpc1)
 
 class TestSpyneJsonRpc1(unittest.TestCase):
     def test_call(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Integer, _returns=Integer)
             def yay(i):
                 print(i)
@@ -69,7 +69,7 @@ class TestSpyneJsonRpc1(unittest.TestCase):
         class SomeHeader(ComplexModel):
             i = Integer
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             __in_header__ = SomeHeader
             @rpc(Integer, _returns=Integer)
             def yay(ctx, i):
@@ -87,7 +87,7 @@ class TestSpyneJsonRpc1(unittest.TestCase):
         class SomeHeader(ComplexModel):
             i = Integer
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             __in_header__ = SomeHeader
             @rpc(Integer, Integer, _returns=Integer)
             def div(ctx, dividend, divisor):
@@ -104,7 +104,7 @@ class TestSpyneJsonRpc1(unittest.TestCase):
 
 class TestJsonDocument(unittest.TestCase):
     def test_out_kwargs(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc()
             def yay():
                 pass
@@ -124,7 +124,7 @@ class TestJsonDocument(unittest.TestCase):
         assert not ('cls' in app.in_protocol.kwargs)
 
     def test_invalid_input(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             pass
 
         app = Application([SomeService], 'tns',
@@ -150,7 +150,7 @@ class TestJsonP(unittest.TestCase):
         v1 = 42
         v2 = SomeComplexModel(i=42, s='foo')
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=Integer)
             def yay():
                 return v1
@@ -188,7 +188,7 @@ class TestJsonP(unittest.TestCase):
                 ('feature', Unicode),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=Array(Permission))
             def yay():
                 return [

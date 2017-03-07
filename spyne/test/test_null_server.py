@@ -28,14 +28,14 @@ from spyne.model.complex import Array
 from spyne.model.primitive import String
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server.null import NullServer
 
 class TestNullServer(unittest.TestCase):
     def test_call(self):
         queue = set()
 
-        class MessageService(ServiceBase):
+        class MessageService(Service):
             @srpc(String)
             def send_message(s):
                 queue.add(s)
@@ -51,7 +51,7 @@ class TestNullServer(unittest.TestCase):
     def test_call(self):
         queue = set()
 
-        class MessageService(ServiceBase):
+        class MessageService(Service):
             @srpc(String, String)
             def send_message(s, k):
                 queue.add((s,k))
@@ -76,7 +76,7 @@ class TestNullServer(unittest.TestCase):
     def test_ostr(self):
         queue = set()
 
-        class MessageService(ServiceBase):
+        class MessageService(Service):
             @srpc(String, String, _returns=Array(String))
             def send_message(s, k):
                 queue.add((s, k))

@@ -32,7 +32,7 @@ from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlMicroFormat
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server.wsgi import WsgiMethodContext
 from spyne.server.wsgi import WsgiApplication
 from spyne.util.test import show, call_wsgi_app_kwargs
@@ -40,7 +40,7 @@ from spyne.util.test import show, call_wsgi_app_kwargs
 
 class TestHtmlMicroFormat(unittest.TestCase):
     def test_simple(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String, _returns=String)
             def some_call(s):
                 return s
@@ -69,7 +69,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
                                    b'<div class="some_callResult">s</div></div>'
 
     def test_multiple_return(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=[Integer, String])
             def some_call():
                 return 1, 's'
@@ -106,7 +106,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             i = Integer
             s = String
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=CCM)
             def some_call(ccm):
                 return CCM(c=ccm.c,i=ccm.i, s=ccm.s)
@@ -171,7 +171,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
         assert s[0].text == 'def'
 
     def test_multiple(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String(max_occurs='unbounded'), _returns=String)
             def some_call(s):
                 print(s)
@@ -215,7 +215,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             i = Integer
             s = String
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=Array(CCM))
             def some_call(ccm):
                 return [CCM(c=ccm.c,i=ccm.i, s=ccm.s)] * 2
@@ -246,7 +246,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             i = Integer
             s = String
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=Array(CCM))
             def some_call(ccm):
                 return [CCM(c=ccm.c,i=ccm.i, s=ccm.s)] * 2

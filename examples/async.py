@@ -53,11 +53,11 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.util import get_callback_info
 
 
-class SleepingService(ServiceBase):
+class SleepingService(Service):
     @rpc(Integer, _is_async=True)
     def sleep(ctx, seconds):
         msgid, replyto = get_callback_info()

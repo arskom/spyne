@@ -32,14 +32,14 @@
 import logging
 import random
 
-from spyne import Application, srpc, ServiceBase, Integer, UnsignedInteger, \
+from spyne import Application, srpc, Service, Integer, UnsignedInteger, \
     Mandatory as M
 
 from spyne.protocol.http import HttpRpc
 from spyne.server.wsgi import WsgiApplication
 
 
-class RandomService(ServiceBase):
+class RandomService(Service):
     # We need the _args argument here because we only want to expose the
     # `a` and `b` arguments and not the `self` argument.
     randint = srpc(M(Integer), M(Integer), _returns=Integer,

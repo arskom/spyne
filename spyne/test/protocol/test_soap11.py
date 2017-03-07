@@ -40,7 +40,7 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.model.fault import Fault
 from spyne.protocol.soap import Soap11
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server import ServerBase
 
 from spyne.protocol.soap import _from_soap
@@ -95,12 +95,12 @@ class TypeNS2(ComplexModel):
     d = DateTime
     f = Float
 
-class MultipleNamespaceService(ServiceBase):
+class MultipleNamespaceService(Service):
     @rpc(TypeNS1, TypeNS2)
     def a(ctx, t1, t2):
         return "OK"
 
-class TestService(ServiceBase):
+class TestService(Service):
     @rpc(String, _returns=String)
     def aa(ctx, s):
         return s
@@ -129,7 +129,7 @@ class TestService(ServiceBase):
         return '1234'
 
 
-class MultipleReturnService(ServiceBase):
+class MultipleReturnService(Service):
     @rpc(String, _returns=(String, String, String))
     def multi(ctx, s):
         return s, 'a', 'b'
@@ -385,7 +385,7 @@ class RelatesTo (Unicode):
     __type_name__ = "RelatesTo"
     __namespace__ = NAMESPACE_ADDRESSING
 
-class SOAPServiceWithHeader(ServiceBase):
+class SOAPServiceWithHeader(Service):
     @rpc(Unicode,
         _in_header=(Action,
                     MessageID,

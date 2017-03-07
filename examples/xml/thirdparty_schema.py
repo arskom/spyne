@@ -61,7 +61,7 @@ files = {
 from os.path import isfile
 from datetime import datetime, timedelta
 
-from spyne import ServiceBase
+from spyne import Service
 from spyne.util.xml import parse_schema_file
 
 
@@ -79,7 +79,7 @@ wsse = parse_schema_file(files[NS.WSSE], files=files)
 wsu = parse_schema_file(files[NS.WSU], files=files)
 
 
-class InteropServiceWithHeader(ServiceBase):
+class InteropServiceWithHeader(Service):
     __out_header__ = Security
 
     @rpc(_returns=Security)

@@ -36,7 +36,7 @@ from lxml.builder import E
 from spyne import MethodContext, rpc, ByteArray, File, AnyXml
 from spyne.context import FakeContext
 from spyne.const import RESULT_SUFFIX
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -66,7 +66,7 @@ class TestXml(unittest.TestCase):
             a = XmlData(Unicode)
             b = XmlAttribute(Unicode)
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(C, _returns=C)
             def some_call(c):
                 assert c.a == 'a'
@@ -124,7 +124,7 @@ class TestXml(unittest.TestCase):
     def test_decimal(self):
         d = decimal.Decimal('1e100')
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Decimal(120,4), _returns=Decimal)
             def some_call(p):
                 print(p)
@@ -266,7 +266,7 @@ class TestXml(unittest.TestCase):
         return ctx
 
     def test_mandatory_elements(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(M(Unicode), _returns=Unicode)
             def some_call(s):
                 assert s == 'hello'
@@ -299,7 +299,7 @@ class TestXml(unittest.TestCase):
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
     def test_unicode_chars_in_exception(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Unicode(pattern=u'x'), _returns=Unicode)
             def some_call(s):
                 test(should, never, reach, here)
@@ -333,7 +333,7 @@ class TestXml(unittest.TestCase):
         class C(ComplexModel):
             foo = M(Unicode)
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(C.customize(min_occurs=1), _returns=Unicode)
             def some_call(c):
                 assert c is not None
@@ -366,7 +366,7 @@ class TestXml(unittest.TestCase):
         class C(ComplexModel):
             bar = XmlAttribute(M(Unicode))
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(C.customize(min_occurs=1), _returns=Unicode)
             def some_call(c):
                 assert c is not None
@@ -515,7 +515,7 @@ class TestIncremental(unittest.TestCase):
 
         v = SomeComplexModel(s='a', i=1),
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=SomeComplexModel)
             def get(ctx):
                 return v
@@ -547,7 +547,7 @@ class TestIncremental(unittest.TestCase):
             SomeComplexModel(s='e', i=5),
         ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=Array(SomeComplexModel))
             def get(ctx):
                 return v

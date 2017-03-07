@@ -25,7 +25,7 @@ from spyne.protocol.yaml import YamlDocument
 from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server import ServerBase
 
 from spyne.protocol.yaml import yaml
@@ -37,7 +37,7 @@ TestYamlDocument = TDictDocumentTest(yaml, YamlDocument, YamlDocument().out_kwar
 
 class Test(unittest.TestCase):
     def test_invalid_input(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc()
             def yay():
                 pass

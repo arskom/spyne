@@ -35,7 +35,7 @@ This is a simple example that illustrates how to have immediate children of a
 complexType in a different namespace.
 """
 
-from spyne import Unicode, Iterable, XmlAttribute, ComplexModel, ServiceBase, \
+from spyne import Unicode, Iterable, XmlAttribute, ComplexModel, Service, \
     Application, rpc
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
@@ -58,7 +58,7 @@ class FooCustomRequest(ComplexModel):
     Baz = Unicode
 
 
-class FooService(ServiceBase):
+class FooService(Service):
     @rpc(FooCustomRequest, _returns = Iterable(Unicode), _body_style='bare')
     def Foo(ctx, req):
         AttrA, AttrB, Baz, Bar = req.AttrA, req.AttrB, req.Baz, req.Bar

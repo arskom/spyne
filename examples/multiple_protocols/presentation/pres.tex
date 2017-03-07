@@ -152,7 +152,7 @@
 
 
     \begin{center}
-      We wrap it in a \texttt{ServiceBase} subclass:
+      We wrap it in a \texttt{Service} subclass:
     \end{center}
 
 \end{frame}
@@ -162,12 +162,12 @@
   \begin{lstlisting}[frame=none]
 from spyne.model.primitive import DateTime
 from spyne.decorator import srpc
-from spyne.service import ServiceBase
+from spyne.service import Service
   \end{lstlisting}
 \end{uncoverenv}
 \begin{uncoverenv}<3->
   \begin{lstlisting}[frame=none]
-class DateTimeService(ServiceBase):
+class DateTimeService(Service):
   \end{lstlisting}
   \vspace{-13pt}
 \end{uncoverenv}
@@ -568,7 +568,7 @@ def get_name_of_month(month):
   \bigskip
 
   \begin{lstlisting}[emph={Integer,le,ge}]
-class NameOfMonthService(ServiceBase):
+class NameOfMonthService(Service):
   @srpc(Integer(ge=1,le=12), _returns=Unicode)
   def get_name_of_month(month):
     return datetime(2000,month,1).strftime("%B")

@@ -30,7 +30,7 @@ from lxml import etree
 from base64 import b64encode
 from decimal import Decimal as D
 
-from spyne import Application, rpc, mrpc, ServiceBase, ByteArray, Array, \
+from spyne import Application, rpc, mrpc, Service, ByteArray, Array, \
     ComplexModel, SelfReference, XmlData, XmlAttribute, Unicode, DateTime, \
     Float, Integer, String
 from spyne.const import xml
@@ -459,7 +459,7 @@ class TestXmlAttribute(unittest.TestCase):
     def test_customized_type(self):
         class SomeClass(ComplexModel):
             a = XmlAttribute(Integer(ge=4))
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(SomeClass)
             def some_call(ctx, some_class):
                 pass
@@ -605,7 +605,7 @@ class TestSelfRefence(unittest.TestCase):
 
         assert c is TestSelfReference
 
-        class SoapService(ServiceBase):
+        class SoapService(Service):
             @rpc(_returns=TestSelfReference)
             def view_categories(ctx):
                 pass
@@ -627,7 +627,7 @@ class TestSelfRefence(unittest.TestCase):
         assert d['children'][0]['id'] == 0
         assert d['children'][1]['id'] == 1
 
-        class SoapService(ServiceBase):
+        class SoapService(Service):
             @rpc(_returns=Category)
             def view_categories(ctx):
                 pass
@@ -711,7 +711,7 @@ class TestMemberRpc(unittest.TestCase):
         print(methods)
         assert 'member_method' in methods
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=SomeComplexModel)
             def service_method(ctx):
                 return SomeComplexModel()
@@ -731,7 +731,7 @@ class TestMemberRpc(unittest.TestCase):
         print(methods)
         assert 'member_method' in methods
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=SomeComplexModel)
             def service_method(ctx):
                 return SomeComplexModel()
@@ -754,7 +754,7 @@ class TestMemberRpc(unittest.TestCase):
             def put(self, ctx):
                 return v
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=SomeComplexModel)
             def get(ctx):
                 return SomeComplexModel()
@@ -800,7 +800,7 @@ class TestMemberRpc(unittest.TestCase):
             def echo(self, ctx):
                 return self
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=SomeComplexModel)
             def get(ctx):
                 return SomeComplexModel()
@@ -1063,7 +1063,7 @@ class TestCustomize(unittest.TestCase):
 
         TestComplexModel2 = TestComplexModel
 
-        class TestService(ServiceBase):
+        class TestService(Service):
             @rpc(TestComplexModel1)
             def test1(ctx, obj):
                 pass

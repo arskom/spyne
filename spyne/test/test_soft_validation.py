@@ -26,7 +26,7 @@ import unittest
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.error import ValidationError
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.model.primitive import Integer
@@ -92,7 +92,7 @@ class TestValidationInteger(unittest.TestCase):
 
 class TestHttpRpcSoftValidation(unittest.TestCase):
     def setUp(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String(pattern='a'))
             def some_method(s):
                 pass
@@ -146,7 +146,7 @@ class TestHttpRpcSoftValidation(unittest.TestCase):
 
 class TestSoap11SoftValidation(unittest.TestCase):
     def test_basic(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String(pattern='a'))
             def some_method(s):
                 pass

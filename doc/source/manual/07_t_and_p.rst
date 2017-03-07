@@ -52,10 +52,10 @@ If it was an RPC request, here's what happens:
    the one in :class:`spyne.application.Application`.
 
 #. The ``call_wrapper`` function in
-   turn calls the :func:`spyne.service.ServiceBase.call_wrapper` function,
+   turn calls the :func:`spyne.service.Service.call_wrapper` function,
    which has has the same requirements.
 
-#. The :func:`spyne.service.ServiceBase.call_wrapper` finally calls the user
+#. The :func:`spyne.service.Service.call_wrapper` finally calls the user
    function, and the value is returned to ``process_request`` call, which sets
    the return value to ``ctx.out_object``.
 
@@ -255,7 +255,7 @@ callable factory. ::
 
 This is the worker service that will process the tasks. ::
 
-    class AsyncService(ServiceBase):
+    class AsyncService(Service):
         @rpc(UnsignedInteger)
         def sleep(ctx, integer):
             print "Sleeping for %d seconds..." % (integer)

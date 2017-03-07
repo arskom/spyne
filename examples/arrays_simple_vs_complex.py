@@ -36,7 +36,7 @@ For testing different kind of arrays with different protocols.
 
 import logging
 
-from spyne import Application, rpc, ServiceBase, Unicode, ComplexModel, Array
+from spyne import Application, rpc, Service, Unicode, ComplexModel, Array
 
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.json import JsonDocument
@@ -57,7 +57,7 @@ v = [
 ]
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(_returns=Array(Permission))
     def simple(ctx):
         return v

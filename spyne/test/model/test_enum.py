@@ -30,7 +30,7 @@ from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap.soap11 import Soap11
 
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.decorator import rpc
 
 from spyne.model.enum import Enum
@@ -58,7 +58,7 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum',
 )
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
     def get_the_day(self, day):
         return DaysOfWeekEnum.Sunday

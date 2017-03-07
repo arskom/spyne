@@ -26,7 +26,7 @@ from pyramid.config import Configurator
 from pyramid.request import Request
 
 from spyne.protocol.soap import Soap11
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.decorator import srpc
 from spyne import Application
 from spyne.model import Unicode, Integer, Iterable
@@ -35,7 +35,7 @@ from spyne.server.pyramid import PyramidApplication
 
 class SpyneIntegrationTest(unittest.TestCase):
     """Tests for integration of Spyne into Pyramid view callable"""
-    class HelloWorldService(ServiceBase):
+    class HelloWorldService(Service):
         @srpc(Unicode, Integer, _returns=Iterable(Unicode))
         def say_hello(name, times):
             for i in range(times):

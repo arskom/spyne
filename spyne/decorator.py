@@ -283,7 +283,7 @@ def _get_event_managers(kparams):
 
 def rpc(*params, **kparams):
     """Method decorator to tag a method as a remote procedure call in a
-    :class:`spyne.service.ServiceBase` subclass.
+    :class:`spyne.service.Service` subclass.
 
     You should use the :class:`spyne.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute
@@ -340,7 +340,7 @@ def rpc(*params, **kparams):
         has no real functionality besides publishing this information in
         interface documents.
     :param _args: the name of the arguments to expose.
-    :param _service_class: A :class:`ServiceBase` subclass, if you feel like
+    :param _service_class: A :class:`Service` subclass, if you feel like
         overriding it.
     """
 

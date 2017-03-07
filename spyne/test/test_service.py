@@ -34,7 +34,7 @@ from spyne import LogicError
 from spyne.const import RESPONSE_SUFFIX
 from spyne.model.primitive import NATIVE_MAP
 
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.decorator import rpc, srpc
 from spyne.application import Application
 from spyne.auxproc.sync import SyncAuxProc
@@ -54,13 +54,13 @@ def start_response(code, headers):
     print(code, headers)
 
 
-class MultipleMethods1(ServiceBase):
+class MultipleMethods1(Service):
     @srpc(String)
     def multi(s):
         return "%r multi 1" % s
 
 
-class MultipleMethods2(ServiceBase):
+class MultipleMethods2(Service):
     @srpc(String)
     def multi(s):
         return "%r multi 2" % s
@@ -80,19 +80,19 @@ class TestMultipleMethods(unittest.TestCase):
     def test_simple_aux_nullserver(self):
         data = []
 
-        class Service(ServiceBase):
+        class SomeService(Service):
             @srpc(String)
             def call(s):
                 data.append(s)
 
-        class AuxService(ServiceBase):
+        class AuxService(Service):
             __aux__ = SyncAuxProc()
 
             @srpc(String)
             def call(s):
                 data.append(s)
 
-        app = Application([Service, AuxService], 'tns','name', Soap11(), Soap11())
+        app = Application([SomeService, AuxService], 'tns','name', Soap11(), Soap11())
         server = NullServer(app)
         server.service.call("hey")
 
@@ -100,7 +100,7 @@ class TestMultipleMethods(unittest.TestCase):
 
     def test_namespace_in_message_name(self):
 
-        class S(ServiceBase):
+        class S(Service):
             @srpc(String, _in_message_name='{tns}inMessageName')
             def call(s):
                 pass
@@ -110,20 +110,20 @@ class TestMultipleMethods(unittest.TestCase):
     def test_simple_aux_wsgi(self):
         data = []
 
-        class Service(ServiceBase):
+        class SomeService(Service):
             @srpc(String, _returns=String)
             def call(s):
                 data.append(s)
 
-        class AuxService(ServiceBase):
+        class AuxService(Service):
             __aux__ = SyncAuxProc()
 
             @srpc(String, _returns=String)
             def call(s):
                 data.append(s)
 
-        app = Application([Service, AuxService], 'tns', in_protocol=HttpRpc(),
-                                                         out_protocol=HttpRpc())
+        app = Application([SomeService, AuxService], 'tns',
+                                  in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
         server({
             'QUERY_STRING': 's=hey',
@@ -141,19 +141,20 @@ class TestMultipleMethods(unittest.TestCase):
         logging.basicConfig(level=logging.DEBUG)
         data = set()
 
-        class Service(ServiceBase):
+        class SomeService(Service):
             @srpc(String, _returns=String)
             def call(s):
                 data.add(s)
 
-        class AuxService(ServiceBase):
+        class AuxService(Service):
             __aux__ = ThreadAuxProc()
 
             @srpc(String, _returns=String)
             def call(s):
                 data.add(s + "aux")
 
-        app = Application([Service, AuxService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
+        app = Application([SomeService, AuxService], 'tns',
+                                  in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
         server({
             'QUERY_STRING': 's=hey',
@@ -171,7 +172,7 @@ class TestMultipleMethods(unittest.TestCase):
 
     def test_mixing_primary_and_aux_methods(self):
         try:
-            class Service(ServiceBase):
+            class SomeService(Service):
                 @srpc(String, _returns=String, _aux=ThreadAuxProc())
                 def call(s):
                     pass
@@ -210,7 +211,7 @@ class TestMultipleMethods(unittest.TestCase):
             Elem1 = String
 
         # test header in service definition
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             __out_header__ = RespHeader
 
             @rpc()
@@ -223,7 +224,7 @@ class TestMultipleMethods(unittest.TestCase):
         assert elt.xpath(query, namespaces=nsmap)[0] == 'Test1'
 
         # test header in decorator
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_out_header=RespHeader)
             def some_call(ctx):
                 ctx.out_header = RespHeader()
@@ -234,7 +235,7 @@ class TestMultipleMethods(unittest.TestCase):
         assert elt.xpath(query, namespaces=nsmap)[0] == 'Test1'
 
         # test no header
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc()
             def some_call(ctx):
                 ctx.out_header = RespHeader()
@@ -248,7 +249,7 @@ class TestMultipleMethods(unittest.TestCase):
 class TestNativeTypes(unittest.TestCase):
     def test_native_types(self):
         for t in NATIVE_MAP:
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @rpc(t)
                 def some_call(ctx, arg):
                     pass
@@ -257,7 +258,7 @@ class TestNativeTypes(unittest.TestCase):
 
     def test_native_types_in_arrays(self):
         for t in NATIVE_MAP:
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @rpc(Array(t))
                 def some_call(ctx, arg):
                     pass
@@ -269,7 +270,7 @@ class TestNativeTypes(unittest.TestCase):
 
 class TestBodyStyle(unittest.TestCase):
     def test_soap_bare_empty_output(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(String, _body_style='bare')
             def some_call(ctx, s):
                 assert s == 'abc'
@@ -304,7 +305,7 @@ class TestBodyStyle(unittest.TestCase):
         assert len(resp[0][0]) == 0
 
     def test_soap_bare_empty_input(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_body_style='bare', _returns=String)
             def some_call(ctx):
                 return 'abc'
@@ -342,7 +343,7 @@ class TestBodyStyle(unittest.TestCase):
         class EmptyRequest(ComplexModel):
             pass
         try:
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @rpc(EmptyRequest, _body_style='bare', _returns=String)
                 def some_call(ctx, request):
                     return 'abc'
@@ -357,7 +358,7 @@ class TestBodyStyle(unittest.TestCase):
             __namespace__ = 'tns'
             s = String
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(someCallResponse, _returns=String)
             def someCall(ctx, x):
                 return ['abc', 'def']
@@ -371,7 +372,7 @@ class TestBodyStyle(unittest.TestCase):
             raise Exception("must fail.")
 
     def test_soap_bare_wrapped_array_output(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_body_style='bare', _returns=Array(String))
             def some_call(ctx):
                 return ['abc', 'def']
@@ -405,7 +406,7 @@ class TestBodyStyle(unittest.TestCase):
         assert resp[0][0][1].text == 'def'
 
     def test_array_iterable(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(Array(Unicode), Iterable(Unicode))
             def some_call(ctx, a, b):
                 pass
@@ -417,7 +418,7 @@ class TestBodyStyle(unittest.TestCase):
 
     def test_invalid_self_reference(self):
         try:
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @rpc(_returns=SelfReference)
                 def method(ctx):
                     pass
