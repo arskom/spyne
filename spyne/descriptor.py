@@ -241,7 +241,7 @@ class MethodDescriptor(object):
 
         # this is a member method decorated by @mrpc
         else:
-            mn = cls.get_namespace() or '__nons__'
+            mn = cls.get_namespace() or '__none__'
             on = cls.get_type_name()
 
             dn = self.name
