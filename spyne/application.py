@@ -231,7 +231,7 @@ class Application(object):
             assert ctx.descriptor.service_class is not None
             return ctx.descriptor.service_class.call_wrapper(ctx)
 
-        # from here on out it's @mrpc in a (parent) class
+        # from here on it's @mrpc in a (parent) class
         cls = ctx.descriptor.parent_class
         if cls.__orig__ is not None:
             cls = cls.__orig__
