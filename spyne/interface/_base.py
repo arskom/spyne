@@ -346,6 +346,10 @@ class Interface(object):
                     if method.out_header is None:
                         method.out_header = s.__out_header__
 
+                    # FIXME: There's no need to process aux info here as it's
+                    # not currently known how to write aux member methods in the
+                    # first place.
+
                 self.process_method(cls.__orig__ or cls, method)
 
         # populate method descriptor id to method key map
