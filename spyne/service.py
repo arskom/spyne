@@ -189,7 +189,7 @@ class ServiceBaseBase(object):
                     args = tuple(args)
 
                 if not ctx.descriptor.no_ctx:
-                    args = (ctx,) + args
+                    args = (ctx,) + tuple(args)
 
             return ctx.function(*args)
 
