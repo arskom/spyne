@@ -222,7 +222,7 @@ class XmlSchemaParser(object):
             for inc in sub_schema.includes:
                 base_dir = dirname(file_name)
                 child_ctx = self.clone(base_dir=base_dir)
-                self.process_includes(inc)
+                child_ctx.process_includes(inc)
                 self.nsmap.update(child_ctx.nsmap)
                 self.prefmap = dict([(v, k) for k, v in self.nsmap.items()])
 
