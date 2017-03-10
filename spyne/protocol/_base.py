@@ -26,10 +26,14 @@ from datetime import datetime
 from weakref import WeakKeyDictionary
 
 from spyne import ProtocolContext, EventManager
+from spyne.const import DEFAULT_LOCALE
 from spyne.model import Array
 from spyne.error import ResourceNotFoundError
 from spyne.util import DefaultAttrDict, memoize_id_method
 from spyne.util.six import string_types
+
+
+_MISSING = type("_MISSING", (object,), {})()
 
 
 class ProtocolMixin(object):
@@ -273,7 +277,7 @@ class ProtocolMixin(object):
         """
 
         if locale is None:
-            locale = 'en_US'
+            locale = DEFAULT_LOCALE
         if cls.Attributes.translations is not None:
             return cls.Attributes.translations.get(locale, default)
         return default
@@ -289,7 +293,7 @@ class ProtocolMixin(object):
         """
 
         if locale is None:
-            locale = 'en_US'
+            locale = DEFAULT_LOCALE
         if trdict is None:
             return default
         if isinstance(trdict, string_types):
