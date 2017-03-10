@@ -267,6 +267,39 @@ class ProtocolMixin(object):
             return inst.__class__, True
 
     @staticmethod
+    def trc_verbose(cls, locale, default):
+        """Translate a class.
+
+        :param cls: class
+        :param locale: locale string
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
+        if locale is None:
+            locale = DEFAULT_LOCALE
+            _log_locale = "default locale '%s'"
+        else:
+            _log_locale = "given locale '%s'"
+
+        if cls.Attributes.translations is None:
+            retval = default
+            _log_tr = "translated to '%s' without any translations at all with"
+
+        else:
+            retval = cls.Attributes.translations.get(locale, _MISSING)
+            if retval is _MISSING:
+                retval = default
+                _log_tr = "translated to '%s': No translation for"
+            else:
+                _log_tr = "translated to '%s' with"
+
+        logger.debug(' '.join(("%r ", _log_tr, _log_locale)),
+                                                            cls, retval, locale)
+
+        return retval
+
+    @staticmethod
     def trc(cls, locale, default):
         """Translate a class.
 
@@ -281,6 +314,43 @@ class ProtocolMixin(object):
         if cls.Attributes.translations is not None:
             return cls.Attributes.translations.get(locale, default)
         return default
+
+    @staticmethod
+    def trd_verbose(trdict, locale, default):
+        """Translate from a translations dict.
+
+        :param trdict: translation dict
+        :param locale: locale string
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
+        if locale is None:
+            locale = DEFAULT_LOCALE
+            _log_locale = "default locale '%s'"
+        else:
+            _log_locale = "given locale '%s'"
+
+        if trdict is None:
+            retval = default
+            _log_tr = "translated to '%s' without any translations at all with"
+
+        elif isinstance(trdict, string_types):
+            retval = trdict
+            _log_tr = "translated to '%s' regardless of"
+
+        else:
+            retval = trdict.get(locale, _MISSING)
+            if retval is _MISSING:
+                retval = default
+                _log_tr = "translated to '%s': No translation for"
+            else:
+                _log_tr = "translated to '%s' with"
+
+        logger.debug(' '.join(("%r ", _log_tr, _log_locale)),
+                                                         trdict, retval, locale)
+
+        return retval
 
     @staticmethod
     def trd(trdict, locale, default):
