@@ -270,7 +270,7 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
             attrib['width'] = self.table_width
 
         self.event_manager.fire_event('before_table', ctx, cls, inst, parent,
-                                                                 name, **kwargs)
+                                                      name, prot=self, **kwargs)
 
         with parent.element('table', attrib):
             write_header = self.header
