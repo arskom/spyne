@@ -234,7 +234,8 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
 
                     m = cls.Attributes.methods
                     if m is not None and len(m) > 0:
-                        parent.write(E.th())
+                        th_attrs = {'class': 'mrpc-cell'}
+                        parent.write(E.th(**th_attrs))
 
                 else:
                     th_attrs = {}
