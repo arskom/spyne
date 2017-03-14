@@ -707,10 +707,13 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
         request.write(ret)
 
     else:
-        p_ctx.out_error = ret.value
-        ret.printTraceback()
         p_ctx.out_error = InternalError(ret.value)
+        ret.printTraceback()
+
+        ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
 
         p_ctx.fire_event('method_exception_object')
+
+        request.write(ret)
 
     request.finish()
