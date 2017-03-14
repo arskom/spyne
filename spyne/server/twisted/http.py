@@ -678,8 +678,6 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
 
 def _eb_deferred(ret, request, p_ctx, others, resource):
-    app = p_ctx.app
-
     # DRY this with what's in Application.process_request
     if issubclass(ret.type, Redirect):
         try:
