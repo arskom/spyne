@@ -162,7 +162,7 @@ class HierDictDocument(DictDocument):
             if (validator is self.SOFT_VALIDATION
                                         and isinstance(inst, six.string_types)
                                         and not cls.validate_string(cls, inst)):
-                raise ValidationError((key, inst))
+                raise ValidationError([key, inst])
 
             if issubclass(cls, (ByteArray, File, Uuid)):
                 retval = self.from_serstr(cls, inst, self.binary_encoding)
