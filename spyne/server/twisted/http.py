@@ -197,7 +197,6 @@ class TwistedHttpTransportContext(HttpTransportContext):
     def get_peer(self):
         peer = Address.from_twisted_address(self.req.transport.getPeer())
         addr = address_parser.get_ip(_Transformer(self.req))
-        logger.warning("%r", self.req.getAllHeaders())
 
         if addr is None:
             return peer
