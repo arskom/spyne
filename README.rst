@@ -166,3 +166,8 @@ compute time for free.
 
 
 Thanks a lot guys!..
+
+
+.. image:: https://badges.gitter.im/arskom/spyne.svg
+   :alt: Join the chat at https://gitter.im/arskom/spyne
+   :target: https://gitter.im/arskom/spyne?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
