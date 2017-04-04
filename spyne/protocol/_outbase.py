@@ -306,8 +306,10 @@ class OutProtocolBase(ProtocolMixin):
         if isinstance(value, six.binary_type):
             if cls_attrs.encoding is not None:
                 retval = value.decode(cls_attrs.encoding)
+
             if self.default_string_encoding is not None:
                 retval = value.decode(self.default_string_encoding)
+
             elif not six.PY2:
                 logger.warning("You need to set either an encoding for %r "
                                "or a default_string_encoding for %r", cls, self)
