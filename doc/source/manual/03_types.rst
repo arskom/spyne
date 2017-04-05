@@ -458,7 +458,9 @@ The default value of that attribute is going to change in future version
 of Spyne to ``"name"``.  Since the preivous example had the fields sorted by
 name this will produce the same outcome: ::
 
-    PredictableComplexModel = ComplexModel.customize(declare_order="name")
+    class PredictableComplexModel(ComplexModelBase):
+        class Attributes(ComplexModelBase.Attributes)
+            declare_order = "name"
 
     class Permission(PredictableComplexModel):
         application = Unicode
