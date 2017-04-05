@@ -34,6 +34,9 @@ from spyne.server import ServerBase
 from spyne.util.six import binary_type
 
 
+MSGPACK_SHELL_OVERHEAD = 10
+
+
 def _process_v1_msg(prot, msg):
     header = None
     body = msg[1]
@@ -61,6 +64,7 @@ class MessagePackTransportContext(TransportContext):
         self.in_header = None
         self.protocol = None
         self.inreq_queue = OrderedDict()
+        self.request_len = None
 
     def get_peer(self):
         if self.protocol is not None:
@@ -115,10 +119,18 @@ class MessagePackTransportBase(ServerBase):
             logger.debug("Incoming request: %r", msg)
             raise ValidationError(msg[0], "Unknown request type %r")
 
+        msglen = len(msg[1])
+        # shellen = len(msgpack.packb(msg))
+        # logger.debug("Shell size: %d, message size: %d, diff: %d",
+        #                                     shellen, msglen, shellen - msglen)
+        # some approx. msgpack overhead based on observations of what's above.
+        msglen += MSGPACK_SHELL_OVERHEAD
+
         initial_ctx = processor(self, msg)
         contexts = self.generate_contexts(initial_ctx)
 
         p_ctx, others = contexts[0], contexts[1:]
+        p_ctx.transport.request_len = msglen
 
         return p_ctx, others
 
