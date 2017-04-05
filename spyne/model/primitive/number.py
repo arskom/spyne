@@ -64,7 +64,7 @@ class Decimal(SimpleModel):
 
         format = None
         """A regular python string formatting string. See here:
-        http://docs.python.org/library/stdtypes.html#string-formatting"""
+        http://docs.python.org/2/library/stdtypes.html#string-formatting"""
 
         str_format = None
         """A regular python string formatting string used by invoking its
