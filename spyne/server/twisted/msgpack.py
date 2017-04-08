@@ -161,6 +161,9 @@ class TwistedMessagePackProtocol(Protocol):
         for msg in self._buffer:
             self.process_incoming_message(msg)
 
+            if self.disconnecting:
+                return
+
     def _reset_idle_timer(self):
         if self.idle_timer is not None:
             self.idle_timer.cancel()
