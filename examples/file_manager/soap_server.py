@@ -71,7 +71,7 @@ class FileServices(Service):
             raise ValidationError(file_name)
 
         try:
-            f = open(path, 'r')
+            f = open(path, 'rb')
         except IOError:
             raise ResourceNotFoundError(file_name)
 
@@ -95,7 +95,7 @@ class FileServices(Service):
         if not path.startswith(os.path.abspath('./files')):
             raise ValidationError(file_name)
 
-        f = open(path, 'w') # if this fails, the client will see an
+        f = open(path, 'wb') # if this fails, the client will see an
                             # internal error.
 
         try:
