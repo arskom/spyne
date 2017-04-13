@@ -108,7 +108,7 @@ class FileServices(Service):
 
         except:
             f.close()
-            os.remove(file_name)
+            os.remove(path)
             logger.debug("File removed: %r" % file_name)
             raise # again, the client will see an internal error.
 
