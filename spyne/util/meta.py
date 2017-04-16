@@ -23,6 +23,7 @@
 
 import sys
 import inspect
+import spyne.const
 
 from functools import wraps
 from itertools import chain
@@ -58,12 +59,19 @@ class Prepareable(type):
         def preparing_constructor(cls, name, bases, attributes):
             # Don't bother with this shit unless the user *explicitly* asked for
             # it
+            default_is_declared = (spyne.const.DEFAULT_DECLARE_ORDER ==
+                                   'declared')
             for c in chain(bases, [cls]):
-                if hasattr(c,'Attributes') and not \
-                               (c.Attributes.declare_order in (None, 'random')):
-                    break
+                if hasattr(c, 'Attributes'):
+                    if (c.Attributes.declare_order == 'declared'):
+                        break
+
+                    if (c.Attributes.declare_order is None and
+                        default_is_declared):
+                        break
             else:
-                return constructor(cls, name, bases, attributes)
+                if not default_is_declared:
+                    return constructor(cls, name, bases, attributes)
 
             try:
                 cls.__prepare__
