@@ -215,8 +215,10 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
 
     ns = spyne.const.xml.DEFAULT_NS
     if _out_message_name.startswith("{"):
-        ns = _out_message_name[1:].partition("}")[0]
-
+        _out_message_name_parts = _out_message_name[1:].partition("}")
+        ns = _out_message_name_parts[0]  # skip index 1, it is the closing '}'
+        _out_message_name = _out_message_name_parts[2]
+        
     if body_style_str.endswith('bare') and _returns is not None:
         message = _returns.customize(sub_name=_out_message_name, sub_ns=ns)
         if message.__type_name__ is ModelBase.Empty:
