@@ -172,7 +172,7 @@ class TwistedMessagePackProtocol(Protocol):
         if self.idle_timer is not None:
             self.idle_timer.cancel()
 
-        if self.IDLE_TIMEOUT_SEC > 0:
+        if self.IDLE_TIMEOUT_SEC is not None and self.IDLE_TIMEOUT_SEC > 0:
             self.idle_timer = deferLater(reactor, self.IDLE_TIMEOUT_SEC,
                                    self.loseConnection, self.IDLE_TIMEOUT_MSG) \
                 .addErrback(self._err_idle_cancelled)
