@@ -79,11 +79,9 @@ def _cha(*args):
     return args
 
 
-IDLE_TIMEOUT = 'idle timeout'
-
-
 class TwistedMessagePackProtocol(Protocol):
     IDLE_TIMEOUT_SEC = 0
+    IDLE_TIMEOUT_MSG = 'idle timeout'
 
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, out_chunk_size=0,
                       out_chunk_delay_sec=1, max_in_queue_size=0, factory=None):
@@ -176,7 +174,7 @@ class TwistedMessagePackProtocol(Protocol):
 
         if self.IDLE_TIMEOUT_SEC > 0:
             self.idle_timer = deferLater(reactor, self.IDLE_TIMEOUT_SEC,
-                                          self.loseConnection, IDLE_TIMEOUT) \
+                                   self.loseConnection, self.IDLE_TIMEOUT_MSG) \
                 .addErrback(self._err_idle_cancelled)
 
     def _err_idle_cancelled(self, err):
