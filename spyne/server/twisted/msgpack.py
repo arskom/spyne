@@ -42,6 +42,8 @@ from spyne.error import InternalError
 
 
 class TwistedMessagePackProtocolFactory(Factory):
+    IDLE_TIMEOUT_SEC = None
+
     def __init__(self, tpt):
         assert isinstance(tpt, ServerBase)
 
@@ -49,8 +51,12 @@ class TwistedMessagePackProtocolFactory(Factory):
         self.event_manager = EventManager(self)
 
     def buildProtocol(self, address):
-        return TwistedMessagePackProtocol(self.tpt, factory=self)
+        retval = TwistedMessagePackProtocol(self.tpt, factory=self)
 
+        if self.IDLE_TIMEOUT_SEC is not None:
+            retval.IDLE_TIMEOUT_SEC = self.IDLE_TIMEOUT_SEC
+
+        return retval
 
 TwistedMessagePackProtocolServerFactory = TwistedMessagePackProtocolFactory
 
