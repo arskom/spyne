@@ -299,8 +299,6 @@ class PGFileJson(PGObjectJson):
         def process(value):
             retval = None
 
-            print(value)
-
             if isinstance(value, six.text_type):
                 value = json.loads(value)
             elif isinstance(value, six.binary_type):
