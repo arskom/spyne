@@ -106,12 +106,12 @@ class MessagePackDocument(HierDictDocument):
     def get_class_name(self, cls):
         class_name = cls.get_type_name()
         if not six.PY2:
-            if not isinstance(class_name, bytes):
+            if isinstance(class_name, bytes):
                 class_name = class_name.encode('utf8')
 
         return class_name
 
-    def create_in_document(self, ctx, in_string_encoding=None):
+    def create_in_document(self, ctx, in_string_encoding='utf8'):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.
 
         :param ctx: The MethodContext object
@@ -125,9 +125,10 @@ class MessagePackDocument(HierDictDocument):
         # handle mmap objects from in ctx.in_string as returned by
         # TwistedWebResource.handle_rpc.
         in_string = ((s.read(s.size()) if hasattr(s, 'read') else s)
-                                                         for s in ctx.in_string)
+                     for s in ctx.in_string)
         try:
-            ctx.in_document = msgpack.unpackb(b''.join(in_string))
+            ctx.in_document = msgpack.unpackb(b''.join(in_string),
+                                              encoding=in_string_encoding)
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
@@ -138,13 +139,11 @@ class MessagePackDocument(HierDictDocument):
         """
 
         mrs, = ctx.in_body_doc.keys()
-        if six.PY3:
-            mrs = mrs.decode('utf8')
-
         return '{%s}%s' % (self.app.interface.get_tns(), mrs)
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
-        ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
+        ctx.out_string = (msgpack.packb(o, encoding=out_string_encoding)
+                          for o in ctx.out_document)
 
     def integer_from_string(self, cls, value):
         if isinstance(value, (six.text_type, six.binary_type)):
