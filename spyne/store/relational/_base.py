@@ -124,6 +124,7 @@ _sq2sp_type_map = {
 
     PGUuid: Uuid,
     PGLTree: Ltree,
+    PGInet: IpAddress,
 }
 
 
