@@ -38,7 +38,7 @@ from spyne.model import Unicode
 from spyne.model import Uuid
 from spyne.model import Boolean
 from spyne.protocol.soap import Soap11, Soap12
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.util.xml import get_schema_documents
 from spyne.util.xml import parse_schema_element
 from spyne.util.xml import parse_schema_string
@@ -56,7 +56,7 @@ class TestXmlSchema(unittest.TestCase):
             two = Integer(xml_choice_group="numbers")
             punk = Unicode
 
-        class KickassService(ServiceBase):
+        class KickassService(Service):
             @rpc(_returns=SomeObject)
             def wooo(ctx):
                 return SomeObject()
@@ -92,7 +92,7 @@ class TestXmlSchema(unittest.TestCase):
                           ('Stat3', SummaryStats),
                           ('Dummy', Unicode)]
 
-        class JackedUpService(ServiceBase):
+        class JackedUpService(Service):
             @rpc(_returns=Payload)
             def GetPayload(ctx):
                 return Payload()
@@ -125,7 +125,7 @@ class TestXmlSchema(unittest.TestCase):
                 ('release', Release.customize(max_occurs=float('inf'))),
             ]
 
-        class RdfService(ServiceBase):
+        class RdfService(Service):
             @rpc(Unicode, Unicode, _returns=Project)
             def some_call(ctx, a, b):
                 pass
@@ -145,7 +145,7 @@ class TestXmlSchema(unittest.TestCase):
             id = XmlAttribute(Uuid)
             edition = Unicode
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(Product, _returns=Product)
             def echo_product(ctx, product):
                 logging.info('edition_id: %r', product.edition_id)
@@ -166,7 +166,7 @@ class TestXmlSchema(unittest.TestCase):
             base64_1 = ByteArray(encoding='base64')
             base64_2 = ByteArray
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(Product, _returns=Product)
             def echo_product(ctx, product):
                 logging.info('edition_id: %r', product.edition_id)
@@ -194,7 +194,7 @@ class TestXmlSchema(unittest.TestCase):
                             namespaces=_ns)[0] == '%s:hexBinary' % pref_xs
 
     def test_multilevel_customized_simple_type(self):
-        class ExampleService(ServiceBase):
+        class ExampleService(Service):
             __tns__ = 'http://xml.company.com/ns/example/'
 
             @rpc(M(Uuid), _returns=Unicode)
@@ -243,7 +243,7 @@ class TestXmlSchema(unittest.TestCase):
             id = XmlAttribute(Uuid)
             edition = ProductEdition
 
-        class ExampleService(ServiceBase):
+        class ExampleService(Service):
             @rpc(Product, _returns=Product)
             def say_my_uuid(ctx, product):
                 pass
@@ -460,12 +460,12 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         class DigitalInput(DeviceEntity):
             IdleState = XmlAttribute(Unicode)
 
-        class Service(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=DigitalInput, _body_style='bare')
             def GetDigitalInput(ctx):
                 return DigitalInput()
 
-        Application([Service], 'some_tns',
+        Application([SomeService], 'some_tns',
             in_protocol=Soap11(validator='lxml'),
             out_protocol=Soap11())
 
@@ -477,7 +477,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         class Params(ComplexModel):
             sendHeader = Header.customize(nillable=False, min_occurs=1)
 
-        class DummyService(ServiceBase):
+        class DummyService(Service):
             @rpc(Params, _returns=Unicode)
             def loadServices(ctx, serviceParams):
                 return '42'

@@ -53,12 +53,12 @@ Here's how to call it using suds:
 """
 
 
-from spyne import rpc, ServiceBase, ComplexModel, Iterable, Integer, Unicode
+from spyne import rpc, Service, ComplexModel, Iterable, Integer, Unicode
 
 from spyne.util.simple import wsgi_soap_application
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(Unicode, _returns=Iterable(Unicode), _body_style='bare')
     def say_hello(ctx, name):
         """

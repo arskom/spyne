@@ -37,7 +37,7 @@ MessagePack-via-vanilla-TCP-sockets server.
 
 import logging
 
-from spyne import Application, rpc, ServiceBase, Iterable, UnsignedInteger, \
+from spyne import Application, rpc, Service, Iterable, UnsignedInteger, \
     Unicode
 
 from spyne.protocol.msgpack import MessagePackDocument
@@ -49,7 +49,7 @@ HOST = '127.0.0.1'
 PORT = 5550
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(Unicode, UnsignedInteger, _returns=Iterable(Unicode))
     def say_hello(ctx, name, times):
         for i in range(times):

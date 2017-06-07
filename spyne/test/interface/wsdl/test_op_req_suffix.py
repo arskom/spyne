@@ -22,7 +22,7 @@ from webtest import TestApp as _TestApp  # avoid confusing py.test
 
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.model.primitive import Integer, Unicode
 from spyne.model.complex import Iterable
 from spyne.protocol.soap import Soap11
@@ -82,7 +82,7 @@ class TestOperationRequestSuffix(unittest.TestCase):
         import spyne.const
         spyne.const.REQUEST_SUFFIX = suffix
 
-        class EchoService(ServiceBase):
+        class EchoService(Service):
 
             srpc_kparams = {'_returns': Iterable(Unicode)}
             if _in_message_name:

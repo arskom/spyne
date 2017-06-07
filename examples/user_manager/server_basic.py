@@ -44,7 +44,7 @@ from spyne.model.complex import Array
 from spyne.model.complex import Iterable
 from spyne.model.complex import ComplexModel
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 _user_database = {}
 _user_id_seq = 0
@@ -68,7 +68,7 @@ class User(ComplexModel):
     permissions = Array(Permission)
 
 
-class UserManagerService(ServiceBase):
+class UserManagerService(Service):
     @rpc(User.customize(min_occurs=1, nullable=False), _returns=UnsignedInteger32)
     def put_user(ctx, user):
         if user.id is None:

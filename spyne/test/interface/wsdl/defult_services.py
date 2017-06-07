@@ -19,12 +19,12 @@
 
 
 from spyne.model.primitive import String
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.decorator import rpc
 
 
 def TDefaultPortService():
-    class DefaultPortService(ServiceBase):
+    class DefaultPortService(Service):
         @rpc(String, _returns=String)
         def echo_default_port_service(self, string):
             return string
@@ -33,7 +33,7 @@ def TDefaultPortService():
 
 
 def TDefaultPortServiceMultipleMethods():
-    class DefaultPortServiceMultipleMethods(ServiceBase):
+    class DefaultPortServiceMultipleMethods(Service):
         @rpc(String, _returns=String)
         def echo_one(self, string):
             return string

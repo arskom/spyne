@@ -2,12 +2,12 @@
 
 from __future__ import absolute_import
 
-from spyne import ServiceBase, rpc, Application, Fault
+from spyne import Service, rpc, Application, Fault
 from spyne.server.null import NullServer
 from spyne.util.color import G
 
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc()
     def server_exception(ctx):
         raise Exception("boo!")

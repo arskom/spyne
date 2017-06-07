@@ -223,23 +223,23 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         cls_cloth = self.get_class_cloth(cls)
         if cls_cloth is not None:
-            logger.debug("to object cloth")
+            logger.debug("to object cloth for %s", cls.get_type_name())
             ret = self.to_parent_cloth(ctx, cls, inst, cls_cloth, parent, name)
 
         elif self._root_cloth is not None:
-            logger.debug("to root cloth")
+            logger.debug("to root cloth for %s", cls.get_type_name())
             ret = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
                                                                    parent, name)
             have_cloth = True
 
         elif self._cloth is not None:
-            logger.debug("to parent protocol cloth")
+            logger.debug("to parent protocol cloth for %s", cls.get_type_name())
             ret = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                            name)
             have_cloth = True
 
         else:
-            logger.debug("to parent")
+            logger.debug("to parent for %s", cls.get_type_name())
             ret = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         if isgenerator(ret):  # Poor man's yield from

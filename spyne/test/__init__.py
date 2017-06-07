@@ -22,6 +22,7 @@ class FakeApp(object):
     tns = 'tns'
     name = 'name'
     services = []
+    classes = ()
 
 import logging
 logging.basicConfig(level=logging.DEBUG)

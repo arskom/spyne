@@ -159,10 +159,10 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
             p_ctx.close()
             process_contexts(tpt, others, p_ctx)
 
-        def _eb_deferred(retval):
-            p_ctx.out_error = retval.value
-            if not issubclass(retval.type, Fault):
-                retval.printTraceback()
+        def _eb_deferred(err):
+            p_ctx.out_error = err.value
+            if not issubclass(err.type, Fault):
+                err.printTraceback()
 
             tpt.get_out_string(p_ctx)
             self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)

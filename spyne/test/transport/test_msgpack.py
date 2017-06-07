@@ -19,7 +19,7 @@
 
 import msgpack
 
-from spyne import Application, ServiceBase, rpc
+from spyne import Application, Service, rpc
 from spyne.model import Unicode
 from spyne.protocol.msgpack import MessagePackDocument
 
@@ -41,7 +41,7 @@ class TestMessagePackServer(unittest.TestCase):
 
      def test_roundtrip(self):
         v = "yaaay!"
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(Unicode, _returns=Unicode)
             def yay(ctx, u):
                 return u
@@ -66,7 +66,7 @@ class TestMessagePackServer(unittest.TestCase):
 
         v = "yaaay!"
         p_ctx = []
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(Unicode, _returns=Unicode)
             def yay(ctx, u):
                 def _cb():

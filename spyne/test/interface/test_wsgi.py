@@ -28,7 +28,7 @@ from spyne.application import Application
 from spyne.model.primitive import Unicode
 from spyne.decorator import rpc
 from spyne.const.xml import WSDL11
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 
 def start_response(code, headers):
@@ -37,7 +37,7 @@ def start_response(code, headers):
 
 class Test(unittest.TestCase):
     def setUp(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(Unicode)
             def some_call(ctx, some_str):
                 print(some_str)

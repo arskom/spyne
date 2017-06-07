@@ -38,7 +38,7 @@ from spyne.decorator import srpc
 from spyne.model import ByteArray, DateTime, Uuid, String, Integer, Integer8, \
     ComplexModel, Array
 from spyne.protocol.http import HttpRpc, HttpPattern
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server.wsgi import WsgiApplication, WsgiMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.util.test import call_wsgi_app_kwargs
@@ -46,7 +46,7 @@ from spyne.util.test import call_wsgi_app_kwargs
 
 class TestString(unittest.TestCase):
     def setUp(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String, _returns=String)
             def echo_string(s):
                 return s
@@ -133,7 +133,7 @@ def _test(services, qs, validator='soft', strict_arrays=False):
 
 class TestValidation(unittest.TestCase):
     def test_validation_frequency(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(ByteArray(min_occurs=1), _returns=ByteArray)
             def some_call(p):
                 pass
@@ -146,7 +146,7 @@ class TestValidation(unittest.TestCase):
             raise Exception("must raise ValidationError")
 
     def _test_validation_frequency_simple_bare(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(ByteArray(min_occurs=1), _body_style='bare', _returns=ByteArray)
             def some_call(p):
                 pass
@@ -163,7 +163,7 @@ class TestValidation(unittest.TestCase):
             i=Integer(min_occurs=1)
             s=String
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(C, _body_style='bare')
             def some_call(p):
                 pass
@@ -192,7 +192,7 @@ class TestValidation(unittest.TestCase):
             i=Integer(min_occurs=1)
             s=String
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(C)
             def some_call(p):
                 pass
@@ -215,7 +215,7 @@ class TestValidation(unittest.TestCase):
             i=Integer(min_occurs=1)
             s=String
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Array(C))
             def some_call(p):
                 pass
@@ -237,7 +237,7 @@ class TestValidation(unittest.TestCase):
         class C(ComplexModel):
             i=Integer
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Array(C), _returns=String)
             def some_call(p):
                 return repr(p)
@@ -255,7 +255,7 @@ class TestValidation(unittest.TestCase):
         class C(ComplexModel):
             i=Integer
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Array(C), _returns=String)
             def some_call(p):
                 return repr(p)
@@ -277,7 +277,7 @@ class TestValidation(unittest.TestCase):
             i = Integer(min_occurs=1)
             cc = Array(CC)
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Array(C))
             def some_call(p):
                 print(p)
@@ -296,7 +296,7 @@ class TestValidation(unittest.TestCase):
         _test([SomeService], '', validator='soft')
 
     def test_validation_nullable(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(ByteArray(nullable=False), _returns=ByteArray)
             def some_call(p):
                 pass
@@ -309,7 +309,7 @@ class TestValidation(unittest.TestCase):
             raise Exception("must raise ValidationError")
 
     def test_validation_string_pattern(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Uuid)
             def some_call(p):
                 pass
@@ -322,7 +322,7 @@ class TestValidation(unittest.TestCase):
             raise Exception("must raise ValidationError")
 
     def test_validation_integer_range(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Integer(ge=0, le=5))
             def some_call(p):
                 pass
@@ -335,7 +335,7 @@ class TestValidation(unittest.TestCase):
             raise Exception("must raise ValidationError")
 
     def test_validation_integer_type(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Integer8)
             def some_call(p):
                 pass
@@ -348,7 +348,7 @@ class TestValidation(unittest.TestCase):
             raise Exception("must raise ValidationError")
 
     def test_validation_integer_type_2(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Integer8)
             def some_call(p):
                 pass
@@ -363,7 +363,7 @@ class TestValidation(unittest.TestCase):
 
 class Test(unittest.TestCase):
     def test_multiple_return(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=[Integer, String])
             def some_call():
                 return 1, 's'
@@ -381,7 +381,7 @@ class Test(unittest.TestCase):
             i = Integer
             s = String
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(SomeComplexModel, _returns=SomeComplexModel)
             def some_call(scm):
                 return SomeComplexModel(i=5, s='5x')
@@ -408,7 +408,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=String)
             def some_call(ccm):
                 return repr(CCM(c=ccm.c, i=ccm.i, s=ccm.s))
@@ -418,7 +418,7 @@ class Test(unittest.TestCase):
         assert ctx.out_string[0] == b"CCM(i=1, c=CM(i=3, s='cs'), s='s')"
 
     def test_simple_array(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String(max_occurs='unbounded'), _returns=String)
             def some_call(s):
                 return '\n'.join(s)
@@ -433,7 +433,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Array(CM), _returns=String)
             def some_call(cs):
                 return '\n'.join([repr(c) for c in cs])
@@ -455,7 +455,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Array(CM), _returns=String)
             def some_call(cs):
                 return repr(cs)
@@ -471,7 +471,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CM, _returns=String)
             def some_call(c):
                 return repr(c)
@@ -494,7 +494,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=String)
             def some_call(ccm):
                 return repr(ccm)
@@ -518,7 +518,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM.customize(max_occurs=2), _returns=String)
             def some_call(ccm):
                 return repr(ccm)
@@ -545,7 +545,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=String)
             def some_call(ccm):
                 return repr(ccm)
@@ -571,7 +571,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=String)
             def some_call(ccm):
                 return repr(ccm)
@@ -591,7 +591,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Array(CCM), _returns=String)
             def some_call(ccm):
                 return repr(ccm)
@@ -609,7 +609,7 @@ class Test(unittest.TestCase):
                 ("s", String(default='default')),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CM, _returns=String)
             def some_call(cm):
                 return repr(cm)
@@ -637,7 +637,7 @@ class Test(unittest.TestCase):
                 ("s", String),
             ]
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=String)
             def some_call(ccm):
                 return repr(ccm)
@@ -667,7 +667,7 @@ class Test(unittest.TestCase):
         class RequestHeader(ComplexModel):
             some_field = String
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             __in_header__ = RequestHeader
 
             @rpc(String)
@@ -720,7 +720,7 @@ class Test(unittest.TestCase):
                 'Expires': DateTime
             }
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             __out_header__ = ResponseHeader
 
             @rpc(String)
@@ -769,7 +769,7 @@ class TestHttpPatterns(unittest.TestCase):
         _int = 5
         _fragment = 'some_fragment'
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Integer, _returns=Integer, _patterns=[
                                       HttpPattern('/%s/<some_int>'% _fragment)])
             def some_call(some_int):

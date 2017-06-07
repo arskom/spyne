@@ -42,7 +42,7 @@ import lxml.html
 from lxml.builder import E
 
 from spyne import MethodContext
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc, rpc
@@ -171,7 +171,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 i = Integer
                 s = Unicode
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(SomeComplexModel, _returns=SomeComplexModel)
                 def some_call(scm):
                     return SomeComplexModel(i=5, s='5x')
@@ -194,7 +194,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 i = Integer
                 s = Unicode
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(CCM, _returns=CCM)
                 def some_call(ccm):
                     return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
@@ -217,7 +217,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             assert d['c']['CM']['s'] in ('3x', b'3x')
 
         def test_multiple_list(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Unicode(max_occurs=decimal.Decimal('inf')),
                             _returns=Unicode(max_occurs=decimal.Decimal('inf')))
                 def some_call(s):
@@ -232,7 +232,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                           {"some_callResponse": {"some_callResult": ("a", "b")}}
 
         def test_multiple_dict(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Unicode(max_occurs=decimal.Decimal('inf')),
                             _returns=Unicode(max_occurs=decimal.Decimal('inf')))
                 def some_call(s):
@@ -244,7 +244,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     {"some_callResponse": {"some_callResult": ("a", "b")}}
 
         def test_multiple_dict_array(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Iterable(Unicode), _returns=Iterable(Unicode))
                 def some_call(s):
                     return s
@@ -267,7 +267,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             class ECM(CCM):
                 d = DateTime
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Iterable(ECM), _returns=Iterable(ECM))
                 def some_call(ecm):
                     return ecm
@@ -295,7 +295,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             assert ret["some_callResponse"]['some_callResult'][0]["ECM"]["d"] == "2011-12-13T14:15:16+00:00"
 
         def test_invalid_request(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer, String, DateTime)
                 def yay(i,s,d):
                     print(i,s,d)
@@ -307,7 +307,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             assert ctx.in_error.faultcode == 'Client.ResourceNotFound'
 
         def test_invalid_string(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer, String, DateTime)
                 def yay(i,s,d):
                     print(i, s, d)
@@ -318,7 +318,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             assert ctx.in_error.faultcode == 'Client.ValidationError'
 
         def test_invalid_number(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer, String, DateTime)
                 def yay(i,s,d):
                     print(i,s,d)
@@ -329,7 +329,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             assert ctx.in_error.faultcode == 'Client.ValidationError'
 
         def test_missing_value(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer, Unicode, Mandatory.DateTime)
                 def yay(i, s, d):
                     print(i, s, d)
@@ -342,7 +342,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             assert ctx.in_error.faultstring.endswith("at least 1 times.")
 
         def test_invalid_datetime(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer, String, Mandatory.DateTime)
                 def yay(i,s,d):
                     print(i,s,d)
@@ -353,7 +353,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             assert ctx.in_error.faultcode == 'Client.ValidationError'
 
         def test_fault_to_dict(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(_returns=String)
                 def some_call():
                     raise Fault()
@@ -365,7 +365,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 i = Integer
                 s = String(min_occurs=1)
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(_returns=SomeObject)
                 def some_call():
                     return SomeObject()
@@ -381,7 +381,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             d = lxml.etree.tostring(E('{ns1}x', E('{ns2}Y', "some data")),
                                                              encoding='unicode')
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(AnyXml, _returns=AnyXml)
                 def some_call(p):
                     print(p)
@@ -401,7 +401,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             d = lxml.html.tostring(E('div', E('span', "something")),
                                                              encoding='unicode')
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(AnyHtml, _returns=AnyHtml)
                 def some_call(p):
                     print(p)
@@ -421,7 +421,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_any_dict(self):
             d = {'helo': 213, 'data': {'nested': [12, 0.3]}}
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(AnyDict, _returns=AnyDict)
                 def some_call(p):
                     print(p)
@@ -441,7 +441,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_unicode(self):
             d = u'some string'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Unicode, _returns=Unicode)
                 def some_call(p):
                     print(p)
@@ -460,7 +460,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_string(self):
             d = 'some string'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(String(encoding='utf8'), _returns=String)
                 def some_call(p):
                     print(p)
@@ -479,7 +479,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_any_uri(self):
             d = 'http://example.com/?asd=b12&df=aa#tag'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(AnyUri, _returns=AnyUri)
                 def some_call(p):
                     print(p)
@@ -498,7 +498,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_image_uri(self):
             d = 'http://example.com/funny.gif'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(ImageUri, _returns=ImageUri)
                 def some_call(p):
                     print(p)
@@ -519,7 +519,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             if _DictDocumentChild._decimal_as_string:
                 d = str(d)
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Decimal, _returns=Decimal)
                 def some_call(p):
                     print(p)
@@ -538,7 +538,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_double(self):
             d = 12.3467
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Double, _returns=Double)
                 def some_call(p):
                     print(p)
@@ -557,7 +557,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_integer(self):
             d = 5
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer, _returns=Integer)
                 def some_call(p):
                     print(p)
@@ -578,7 +578,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             if _DictDocumentChild._huge_numbers_as_string:
                 d = str(d)
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer, _returns=Integer)
                 def some_call(p):
                     print(p)
@@ -600,7 +600,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             if _DictDocumentChild._huge_numbers_as_string:
                 d = str(d)
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer, _returns=Integer)
                 def some_call(p):
                     print(p)
@@ -619,7 +619,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_time(self):
             d = time(10, 20, 30).isoformat()
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Time, _returns=Time)
                 def some_call(p):
                     print(p)
@@ -639,7 +639,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_date(self):
             d = date(2010, 9, 8).isoformat()
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Date, _returns=Date)
                 def some_call(p):
                     print(p)
@@ -659,7 +659,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_datetime(self):
             d = datetime(2010, 9, 8, 7, 6, 5).isoformat()
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(DateTime, _returns=DateTime(timezone=False))
                 def some_call(p):
                     print(p)
@@ -679,7 +679,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_datetime_tz(self):
             d = datetime(2010, 9, 8, 7, 6, 5, tzinfo=pytz.utc).isoformat()
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(DateTime, _returns=DateTime(ge=datetime(2010,1,1,tzinfo=pytz.utc)))
                 def some_call(p):
                     print(p)
@@ -699,7 +699,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_duration(self):
             d = ProtocolBase().to_unicode(Duration, timedelta(0, 45))
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Duration, _returns=Duration)
                 def some_call(p):
                     print(p)
@@ -718,7 +718,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_boolean(self):
             d = True
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Boolean, _returns=Boolean)
                 def some_call(p):
                     print(p)
@@ -737,7 +737,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_uuid(self):
             d = '7d2a6330-eb64-4900-8a10-38ebef415e9d'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Uuid, _returns=Uuid)
                 def some_call(p):
                     print(p)
@@ -756,7 +756,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_point2d(self):
             d = 'POINT(1 2)'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Point, _returns=Point)
                 def some_call(p):
                     print(p)
@@ -775,7 +775,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_point3d(self):
             d = 'POINT(1 2 3)'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Point, _returns=Point)
                 def some_call(p):
                     print(p)
@@ -794,7 +794,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_line2d(self):
             d = 'LINESTRING(1 2, 3 4)'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Line, _returns=Line)
                 def some_call(p):
                     print(p)
@@ -813,7 +813,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_line3d(self):
             d = 'LINESTRING(1 2 3, 4 5 6)'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Line, _returns=Line)
                 def some_call(p):
                     print(p)
@@ -832,7 +832,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_polygon2d(self):
             d = 'POLYGON((1 1, 1 2, 2 2, 2 1, 1 1))'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Polygon(2), _returns=Polygon(2))
                 def some_call(p):
                     print(p)
@@ -851,7 +851,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_polygon3d(self):
             d = 'POLYGON((1 1 0, 1 2 0, 2 2 0, 2 1 0, 1 1 0))'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Polygon(3), _returns=Polygon(3))
                 def some_call(p):
                     print(p)
@@ -870,7 +870,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_multipoint2d(self):
             d = 'MULTIPOINT ((10 40), (40 30), (20 20), (30 10))'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(MultiPoint(2), _returns=MultiPoint(2))
                 def some_call(p):
                     print(p)
@@ -889,7 +889,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_multipoint3d(self):
             d = 'MULTIPOINT (10 40 30, 40 30 10,)'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(MultiPoint(3), _returns=MultiPoint(3))
                 def some_call(p):
                     print(p)
@@ -908,7 +908,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_multiline2d(self):
             d = 'MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20, 30 10))'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(MultiLine(2), _returns=MultiLine(2))
                 def some_call(p):
                     print(p)
@@ -927,7 +927,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_multiline3d(self):
             d = 'MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20, 30 10))'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(MultiLine(3), _returns=MultiLine(3))
                 def some_call(p):
                     print(p)
@@ -946,7 +946,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
         def test_multipolygon2d(self):
             d = 'MULTIPOLYGON (((30 20, 10 40, 45 40, 30 20)),((15 5, 40 10, 10 20, 5 10, 15 5)))'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(MultiPolygon(2), _returns=MultiPolygon(2))
                 def some_call(p):
                     print(p)
@@ -967,7 +967,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                               '((20 35, 45 20, 30 5, 10 10, 10 30, 20 35),' \
                                '(30 20, 20 25, 20 15, 30 20)))'
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(MultiPolygon(3), _returns=MultiPolygon(3))
                 def some_call(p):
                     print(p)
@@ -984,7 +984,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             assert s == d
 
         def test_generator(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(_returns=Iterable(Integer))
                 def some_call():
                     return iter(range(1000))
@@ -1006,7 +1006,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             if _DictDocumentChild.text_based:
                 encoded_data = encoded_data.decode('latin1')
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(ByteArray, _returns=ByteArray)
                 def some_call(ba):
                     print(ba)
@@ -1036,7 +1036,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             if _DictDocumentChild.text_based:
                 encoded_data = encoded_data.decode('latin1')
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(File, _returns=File)
                 def some_call(p):
                     print(p)
@@ -1075,7 +1075,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             print(repr(v.data))
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(File, _returns=File)
                 def some_call(p):
                     print(p)
@@ -1102,7 +1102,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             assert self.loads(s) == self.loads(d)
 
         def test_validation_frequency(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(ByteArray(min_occurs=1), _returns=ByteArray)
                 def some_call(p):
                     pass
@@ -1115,7 +1115,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 raise Exception("must raise ValidationError")
 
         def test_validation_nullable(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(ByteArray(nullable=False), _returns=ByteArray)
                 def some_call(p):
                     pass
@@ -1130,7 +1130,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 raise Exception("must raise ValidationError")
 
         def test_validation_string_pattern(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Uuid)
                 def some_call(p):
                     pass
@@ -1146,7 +1146,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 raise Exception("must raise ValidationError")
 
         def test_validation_integer_range(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer(ge=0, le=5))
                 def some_call(p):
                     pass
@@ -1161,7 +1161,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 raise Exception("must raise ValidationError")
 
         def test_validation_integer_type(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer8)
                 def some_call(p):
                     pass
@@ -1176,7 +1176,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 raise Exception("must raise ValidationError")
 
         def test_validation_integer_type_2(self):
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(Integer8)
                 def some_call(p):
                     pass
@@ -1195,7 +1195,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 i = Integer(min_occurs=1)
                 s = Unicode
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(C)
                 def some_call(p):
                     pass
@@ -1225,7 +1225,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                 foo = Unicode
                 bar = Uuid
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @rpc(_returns=C)
                 def some_call(ctx):
                     result = C()
@@ -1257,7 +1257,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             class D(P):
                 bar = Integer
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @rpc(P, _returns=Unicode)
                 def typeof(ctx, p):
                     return type(p).__name__
@@ -1291,7 +1291,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     ('b', Unicode(default='default')),
                 ]
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(SomeComplexModel)
                 def some_method(s):
                     pass
@@ -1316,7 +1316,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     ('b', Unicode(min_occurs=1, default='default', nillable=True)),
                 ]
 
-            class SomeService(ServiceBase):
+            class SomeService(Service):
                 @srpc(SomeComplexModel)
                 def some_method(s):
                     pass

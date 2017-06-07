@@ -75,7 +75,7 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
 
         if len(params) != len(argnames):
             raise LogicError("%r function has %d argument(s) but its decorator "
-                            "has %d." % (f.__name__, len(argnames), len(params)))
+                           "has %d." % (f.__name__, len(argnames), len(params)))
 
     else:
         argnames = copy(argnames)
@@ -107,8 +107,8 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
     message = None
     if body_style_str == 'bare':
         if len(in_params) > 1:
-            raise LogicError("body_style='bare' can handle at most one function "
-                            "argument.")
+            raise LogicError("body_style='bare' can handle at most one "
+                                                           "function argument.")
 
         if len(in_params) == 0:
             message = ComplexModel.produce(type_name=in_message_name,
@@ -283,7 +283,7 @@ def _get_event_managers(kparams):
 
 def rpc(*params, **kparams):
     """Method decorator to tag a method as a remote procedure call in a
-    :class:`spyne.service.ServiceBase` subclass.
+    :class:`spyne.service.Service` subclass.
 
     You should use the :class:`spyne.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute
@@ -340,8 +340,16 @@ def rpc(*params, **kparams):
         has no real functionality besides publishing this information in
         interface documents.
     :param _args: the name of the arguments to expose.
-    :param _service_class: A :class:`ServiceBase` subclass, if you feel like
-        overriding it.
+    :param _event_managers: An iterable of :class:`spyne.EventManager`
+        instances. This is useful for adding additional event handlers to
+        individual functions.
+    :param _event_manager: An instance of :class:`spyne.EventManager` class.
+    :param _evmgrs: Same as ``_event_managers``.
+    :param _evmgr: Same as ``_event_manager``.
+    :param _service_class: A :class:`Service` subclass. It's generally not a good idea
+        to override it for ``@rpc`` methods. It could be necessary to override
+        it for ``@mrpc`` methods to add events and other goodies.
+    :param _service: Same as ``_service``.
     """
 
     params = list(params)
@@ -376,6 +384,11 @@ def rpc(*params, **kparams):
             _static_when = kparams.pop("_static_when", None)
             _href = kparams.pop("_href", None)
             _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
+            if '_service' in kparams and '_service_class' in kparams:
+                raise LogicError("Please pass only one of '_service' and "
+                                                             "'_service_class'")
+            if '_service' in kparams:
+                _service_class = kparams.pop("_service")
             if '_service_class' in kparams:
                 _service_class = kparams.pop("_service_class")
 
@@ -450,10 +463,10 @@ def rpc(*params, **kparams):
 
             in_message = _produce_input_message(f, params,
                     _in_message_name, _in_arg_names, _no_ctx, _no_self,
-                                    _args, body_style_str, _self_ref_replacement)
+                                   _args, body_style_str, _self_ref_replacement)
 
             out_message = _produce_output_message(function_name,
-                        body_style_str, _self_ref_replacement, _no_self, kparams)
+                       body_style_str, _self_ref_replacement, _no_self, kparams)
 
             doc = getattr(f, '__doc__')
 

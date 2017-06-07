@@ -20,7 +20,7 @@
 
 from spyne import Array, ByteArray, ComplexModel, SelfReference, Enum, Fault, \
     AnyXml, AnyDict, Boolean, Time, Date, DateTime, Float, Integer, Duration, \
-    String, Double, ServiceBase, rpc, srpc
+    String, Double, Service, rpc, srpc
 
 from datetime import datetime
 
@@ -122,7 +122,7 @@ class OutTraceHeader(ComplexModel):
     returnDate = DateTime
 
 
-class InteropServiceWithHeader(ServiceBase):
+class InteropServiceWithHeader(Service):
     __in_header__ = InHeader
     __out_header__ = OutHeader
 
@@ -139,7 +139,7 @@ class InteropServiceWithHeader(ServiceBase):
         return ctx.out_header
 
 
-class InteropServiceWithComplexHeader(ServiceBase):
+class InteropServiceWithComplexHeader(Service):
     __in_header__ = (InHeader, InTraceHeader)
     __out_header__ = (OutHeader, OutTraceHeader)
 
@@ -162,7 +162,7 @@ class InteropServiceWithComplexHeader(ServiceBase):
         return ctx.out_header
 
 
-class InteropPrimitive(ServiceBase):
+class InteropPrimitive(Service):
     @srpc(AnyXml, _returns=AnyXml)
     def echo_any(xml):
         return xml
@@ -228,7 +228,7 @@ class InteropPrimitive(ServiceBase):
         return data
 
 
-class InteropArray(ServiceBase):
+class InteropArray(Service):
     @srpc(Array(Integer), _returns=Array(Integer))
     def echo_integer_array(ia):
         return ia
@@ -262,7 +262,7 @@ class InteropArray(ServiceBase):
         return baa
 
 
-class InteropClass(ServiceBase):
+class InteropClass(Service):
     @srpc(SimpleClass, _returns=SimpleClass)
     def echo_simple_class(sc):
         return sc
@@ -288,7 +288,7 @@ class InteropClass(ServiceBase):
         return sr
 
 
-class InteropBare(ServiceBase):
+class InteropBare(Service):
     @srpc(String, _returns=String, _body_style='bare')
     def echo_simple_bare(ss):
         return ss
@@ -306,7 +306,7 @@ class InteropBare(ServiceBase):
         assert ss is not None
 
 
-class InteropException(ServiceBase):
+class InteropException(Service):
     @srpc()
     def python_exception():
         raise Exception("Possible")
@@ -320,7 +320,7 @@ class InteropException(ServiceBase):
         raise DocumentedFault()
 
 
-class InteropMisc(ServiceBase):
+class InteropMisc(Service):
     @srpc(
         _returns=[
             Integer,

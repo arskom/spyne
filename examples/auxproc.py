@@ -35,7 +35,7 @@ import logging
 
 from wsgiref.simple_server import make_server
 
-from spyne import Application, rpc, Integer, ServiceBase
+from spyne import Application, rpc, Integer, Service
 from spyne.protocol.http import HttpRpc
 
 from spyne.protocol.xml import XmlDocument
@@ -50,7 +50,7 @@ host = '127.0.0.1'
 port = 9753
 
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc(Integer)
     def block(ctx, seconds):
         """Blocks the reactor for given number of seconds."""
@@ -58,7 +58,7 @@ class SomeService(ServiceBase):
         time.sleep(seconds)
 
 
-class SomeAuxService(ServiceBase):
+class SomeAuxService(Service):
     __aux__ = ThreadAuxProc() # change this to SyncAuxProc to see the difference
 
     @rpc(Integer)

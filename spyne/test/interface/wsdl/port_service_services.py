@@ -18,11 +18,11 @@
 #
 
 from spyne.model.primitive import String
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.decorator import rpc
 
 def TS1():
-    class S1(ServiceBase):
+    class S1(Service):
         name = 'S1Fools'
         __namespace__ = 'Hippity'
 
@@ -32,7 +32,7 @@ def TS1():
     return S1
 
 def TS2():
-    class S2(ServiceBase):
+    class S2(Service):
         name = 'S2Fools'
         __namespace__ = 'Hoppity'
 
@@ -43,7 +43,7 @@ def TS2():
     return S2
 
 def TS3():
-    class S3(ServiceBase):
+    class S3(Service):
         name = 'S3Fools'
         __namespace__ = 'Hoppity'
         __service_name__ = 'BlahService'
@@ -60,7 +60,7 @@ def TS3():
     return S3
 
 def TMissingRPCPortService():
-    class MissingRPCPortService(ServiceBase):
+    class MissingRPCPortService(Service):
         name = 'MissingRPCPortService'
         __namespace__ = 'MissingRPCPortService'
         __service_name__ = 'MissingRPCPortService'
@@ -72,7 +72,7 @@ def TMissingRPCPortService():
     return MissingRPCPortService
 
 def TBadRPCPortService():
-    class BadRPCPortService(ServiceBase):
+    class BadRPCPortService(Service):
         name = 'MissingRPCPortService'
         __namespace__ = 'MissingRPCPortService'
         __service_name__ = 'MissingRPCPortService'
@@ -85,7 +85,7 @@ def TBadRPCPortService():
     return BadRPCPortService
 
 def TMissingServicePortService():
-    class MissingServicePortService(ServiceBase):
+    class MissingServicePortService(Service):
         name = 'MissingRPCPortService'
         __namespace__ = 'MissingRPCPortService'
         __service_name__ = 'MissingRPCPortService'
@@ -98,7 +98,7 @@ def TMissingServicePortService():
     return MissingServicePortService
 
 def TSinglePortService():
-    class SinglePortService(ServiceBase):
+    class SinglePortService(Service):
         name = 'SinglePort'
         __service_name__ = 'SinglePortService_ServiceInterface'
         __namespace__ = 'SinglePortNS'
@@ -111,7 +111,7 @@ def TSinglePortService():
     return SinglePortService
 
 def TDoublePortService():
-    class DoublePortService(ServiceBase):
+    class DoublePortService(Service):
         name = 'DoublePort'
         __namespace__ = 'DoublePort'
         __port_types__ = ['FirstPort', 'SecondPort']

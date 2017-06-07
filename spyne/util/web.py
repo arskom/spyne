@@ -28,7 +28,7 @@ from __future__ import absolute_import
 from inspect import isclass
 
 from spyne import rpc, Any, AnyDict, NATIVE_MAP, M, Array, ComplexModelBase, \
-    UnsignedInteger32, PushBase, Iterable, ModelBase, File, ServiceBase, \
+    UnsignedInteger32, PushBase, Iterable, ModelBase, File, Service, \
     ResourceNotFoundError, Unicode
 
 from spyne.const import MAX_ARRAY_ELEMENT_NUM, MAX_DICT_ELEMENT_NUM, \
@@ -61,11 +61,11 @@ except ImportError:
     RESET = ""
 
 
-class ReaderServiceBase(ServiceBase):
+class ReaderService(Service):
     pass
 
 
-class WriterServiceBase(ServiceBase):
+class WriterService(Service):
     pass
 
 
@@ -278,7 +278,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
 
 
 def TReaderService(T, T_name):
-    class ReaderService(ReaderServiceBase):
+    class ReaderService(ReaderService):
         @rpc(M(UnsignedInteger32), _returns=T,
                     _in_message_name='get_%s' % T_name,
                     _in_variable_names={'obj_id': "%s_id" % T_name})
@@ -304,7 +304,7 @@ def TWriterService(T, T_name, put_not_found='raise'):
         def put_not_found(obj):
             obj.id = None
 
-    class WriterService(WriterServiceBase):
+    class WriterService(WriterService):
         @rpc(M(T), _returns=UnsignedInteger32,
                     _in_message_name='put_%s' % T_name,
                     _in_variable_names={'obj': T_name})

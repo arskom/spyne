@@ -12,7 +12,7 @@ from spyne.decorator import srpc
 from spyne.interface import Wsdl11
 from spyne.server.wsgi import WsgiApplication
 from spyne.protocol.soap.soap12 import Soap12
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.test.protocol.test_soap11 import TestService, TestSingle, \
     TestMultiple, MultipleReturnService
 
@@ -68,7 +68,7 @@ class TestSoap12(unittest.TestCase):
         assert ret.faultcode == "env:Sender.st:SomeDomainProblem"
 
     def test_fault_generation(self):
-        class SoapException(ServiceBase):
+        class SoapException(Service):
             @srpc()
             def soap_exception():
                 raise Fault(

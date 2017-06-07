@@ -178,11 +178,11 @@ class TestSqlAlchemy(unittest.TestCase):
 
         session.commit()
 
-        from spyne.service import ServiceBase
+        from spyne.service import Service
         from spyne.model.complex import Array
         from spyne.model.primitive import String
 
-        class Service(ServiceBase):
+        class Service(Service):
             @rpc(String(max_occurs='unbounded'),
                     _returns=Array(KeyValuePair),
                     _in_variable_names={

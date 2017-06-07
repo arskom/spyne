@@ -37,7 +37,7 @@
 
 import os
 
-from spyne import ServiceBase, File, rpc, Application, Unicode, ValidationError
+from spyne import Service, File, rpc, Application, Unicode, ValidationError
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
@@ -52,7 +52,7 @@ from spyne.server.wsgi import WsgiApplication
 FILE_REPO = os.getcwd()
 
 
-class FileServices(ServiceBase):
+class FileServices(Service):
     @rpc(Unicode, _returns=File)
     def get_file(ctx, path):
         # protect against file name injection attacks

@@ -32,6 +32,7 @@ import threading
 
 import spyne.const.xml
 
+from copy import deepcopy
 from collections import OrderedDict
 
 from spyne import const
@@ -610,6 +611,10 @@ class ModelBase(object):
             Attributes.translations = {}
         if cls.Attributes.sqla_column_args is None:
             Attributes.sqla_column_args = (), {}
+        else:
+            Attributes.sqla_column_args = deepcopy(
+                                                cls.Attributes.sqla_column_args)
+
         cls_dict['Attributes'] = Attributes
 
         # properties get reset every time a new class is defined. So we need

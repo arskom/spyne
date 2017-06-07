@@ -50,7 +50,7 @@ from spyne import MethodContext, Application, rpc, TTableModel, Integer32, \
 from spyne import RemoteService, RemoteProcedureBase, ClientBase
 
 # server stuff
-from spyne import ServerBase, ServiceBase
+from spyne import ServerBase, Service
 
 from spyne.protocol.soap import Soap11
 
@@ -182,7 +182,7 @@ class Producer(ClientBase):
 # The service to call.
 #
 
-class AsyncService(ServiceBase):
+class AsyncService(Service):
     @rpc(M(UnsignedInteger))
     def sleep(ctx, integer):
         print("Sleeping for %d seconds..." % (integer))

@@ -33,7 +33,7 @@ from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html.table import HtmlColumnTable, HtmlRowTable
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server.wsgi import WsgiApplication
 from spyne.util.test import show, call_wsgi_app_kwargs, call_wsgi_app
 
@@ -55,7 +55,7 @@ class CCM(ComplexModel):
 
 class TestHtmlColumnTable(unittest.TestCase):
     def test_complex_array(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=Array(CCM))
             def some_call(ccm):
                 return [ccm] * 5
@@ -103,7 +103,7 @@ class TestHtmlColumnTable(unittest.TestCase):
             assert cell[0].text == 'def'
 
     def test_string_array(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String(max_occurs='unbounded'), _returns=Array(String))
             def some_call(s):
                 return s
@@ -133,7 +133,7 @@ class TestHtmlColumnTable(unittest.TestCase):
         class C(ComplexModel):
             c = AnyUri
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=Array(C))
             def some_call():
                 return [C(c=_link)]
@@ -156,7 +156,7 @@ class TestHtmlColumnTable(unittest.TestCase):
         class C(ComplexModel):
             c = AnyUri
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=Array(C))
             def some_call():
                 return [C(c=AnyUri.Value(_link, text=_text))]
@@ -223,7 +223,7 @@ class TestHtmlColumnTable(unittest.TestCase):
             prot=HtmlColumnTable(field_type_name_attr=None),
         )
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=SearchTable)
             def some_call():
                 return [
@@ -258,7 +258,7 @@ class TestHtmlRowTable(unittest.TestCase):
         class C(ComplexModel):
             c = AnyUri
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=C)
             def some_call():
                 return C(c=_link)
@@ -281,7 +281,7 @@ class TestHtmlRowTable(unittest.TestCase):
         class C(ComplexModel):
             c = AnyUri
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=C)
             def some_call():
                 return C(c=AnyUri.Value(_link, text=_text))
@@ -299,7 +299,7 @@ class TestHtmlRowTable(unittest.TestCase):
         assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
 
     def test_complex(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(CCM, _returns=CCM)
             def some_call(ccm):
                 return ccm
@@ -366,7 +366,7 @@ class TestHtmlRowTable(unittest.TestCase):
         assert elt.xpath('tbody/tr/td[@class="s"]/text()')[0] == 'def'
 
     def test_string_array(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String(max_occurs='unbounded'), _returns=Array(String))
             def some_call(s):
                 return s
@@ -398,7 +398,7 @@ class TestHtmlRowTable(unittest.TestCase):
             '</div>'
 
     def test_string_array_no_header(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String(max_occurs='unbounded'), _returns=Array(String))
             def some_call(s):
                 return s
@@ -438,7 +438,7 @@ class TestHtmlRowTable(unittest.TestCase):
             CM(i=3, s='c'),
             CM(i=4, s='d'),
         ]
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(_returns=Array(CM))
             def some_call():
                 return v

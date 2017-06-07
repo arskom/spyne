@@ -31,12 +31,12 @@
 
 from spyne.application import Application
 from spyne.protocol.msgpack import MessagePackRpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.decorator import rpc
 from spyne.model.primitive import Unicode
 
 
-class RadianteRPC(ServiceBase):    
+class RadianteRPC(Service):
     @rpc(_returns=Unicode)
     def whoami(ctx):
         return "Hello I am Seldon!"

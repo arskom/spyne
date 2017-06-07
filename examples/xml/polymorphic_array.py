@@ -34,7 +34,7 @@ from __future__ import absolute_import
 import sys
 
 from spyne import ComplexModel, Unicode, Integer, Array, TTableModel, rpc, \
-    Application, ServiceBase
+    Application, Service
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 from spyne.util.cherry import cherry_graft_and_start
@@ -67,7 +67,7 @@ class Garage(ComplexModel):
     ]
 
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc(_returns=Garage)
     def get_garage_dump(self):
         return Garage(

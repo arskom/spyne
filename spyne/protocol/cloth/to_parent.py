@@ -167,7 +167,8 @@ class ToParentMixin(OutProtocolBase):
                     # of instances at hand.
                     ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
                     pushed = True
-                    logger.debug("%s %r pushed %r %r", R("$"), self, cls, inst)
+                    logger.debug("%s %r pushed %r using %r",
+                                                     R("$"), self, cls, handler)
 
                     # disabled for performance reasons
                     # from spyne.util.web import log_repr
@@ -177,8 +178,7 @@ class ToParentMixin(OutProtocolBase):
                     # logger.debug("Writing %s using %s for %s. Inst: %r", name,
                     #                  identifier, cls.get_type_name(), log_str)
 
-                    # finally, serialize the value. retval is the coroutine
-                    # handle if any
+                    # finally, serialize the value. ret is the coroutine handle
                     ret = handler(ctx, cls, inst, parent, name, **kwargs)
 
         if isgenerator(ret):

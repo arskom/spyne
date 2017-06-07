@@ -1,4 +1,5 @@
 
+
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -66,6 +67,10 @@ DEFAULT_DECLARE_ORDER = 'random'
 
 MIN_GC_INTERVAL = 1.0
 """Minimum time in seconds between gc.collect() calls."""
+
+DEFAULT_LOCALE = 'en_US'
+"""Locale code to use for the translation subsystem when locale information is
+missing in an incoming request."""
 
 
 def add_request_suffix(string):

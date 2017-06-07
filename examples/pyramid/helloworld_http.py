@@ -41,7 +41,7 @@ from spyne.decorator import rpc
 from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 logging.basicConfig()
 logging.basicConfig(level=logging.DEBUG)
@@ -83,7 +83,7 @@ Service ( HelloWorldService ) tns="spyne.helloworld"
  }
 '''
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     __namespace__ = tns
     
     @rpc(String, Integer, _returns=Iterable(String))

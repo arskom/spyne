@@ -42,6 +42,8 @@ from spyne.error import InternalError
 
 
 class TwistedMessagePackProtocolFactory(Factory):
+    IDLE_TIMEOUT_SEC = None
+
     def __init__(self, tpt):
         assert isinstance(tpt, ServerBase)
 
@@ -49,8 +51,12 @@ class TwistedMessagePackProtocolFactory(Factory):
         self.event_manager = EventManager(self)
 
     def buildProtocol(self, address):
-        return TwistedMessagePackProtocol(self.tpt, factory=self)
+        retval = TwistedMessagePackProtocol(self.tpt, factory=self)
 
+        if self.IDLE_TIMEOUT_SEC is not None:
+            retval.IDLE_TIMEOUT_SEC = self.IDLE_TIMEOUT_SEC
+
+        return retval
 
 TwistedMessagePackProtocolServerFactory = TwistedMessagePackProtocolFactory
 
@@ -73,11 +79,9 @@ def _cha(*args):
     return args
 
 
-IDLE_TIMEOUT = 'idle timeout'
-
-
 class TwistedMessagePackProtocol(Protocol):
     IDLE_TIMEOUT_SEC = 0
+    IDLE_TIMEOUT_MSG = 'idle timeout'
 
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, out_chunk_size=0,
                       out_chunk_delay_sec=1, max_in_queue_size=0, factory=None):
@@ -161,13 +165,16 @@ class TwistedMessagePackProtocol(Protocol):
         for msg in self._buffer:
             self.process_incoming_message(msg)
 
+            if self.disconnecting:
+                return
+
     def _reset_idle_timer(self):
         if self.idle_timer is not None:
             self.idle_timer.cancel()
 
-        if self.IDLE_TIMEOUT_SEC > 0:
+        if self.IDLE_TIMEOUT_SEC is not None and self.IDLE_TIMEOUT_SEC > 0:
             self.idle_timer = deferLater(reactor, self.IDLE_TIMEOUT_SEC,
-                                          self.loseConnection, IDLE_TIMEOUT) \
+                                   self.loseConnection, self.IDLE_TIMEOUT_MSG) \
                 .addErrback(self._err_idle_cancelled)
 
     def _err_idle_cancelled(self, err):

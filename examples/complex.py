@@ -40,7 +40,7 @@ import logging
 import random
 
 from spyne import Application, rpc, Array, ComplexModel, Integer, String, \
-    ServiceBase, ResourceNotFoundError
+    Service, ResourceNotFoundError
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.xml import XmlDocument
 from spyne.server.wsgi import WsgiApplication
@@ -104,7 +104,7 @@ def add_user(user):
     user_database[user.userid] = user
 
 
-class UserManager(ServiceBase):
+class UserManager(Service):
     @rpc(User, _returns=Integer)
     def add_user(ctx, user):
         add_user(user)

@@ -29,54 +29,62 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+
 """
-This is a simple HelloWorld example to show the basics of writing a
-MessagePack-via-vanilla-TCP-sockets server using the JsonDocument protocol.
+This is a simple example that illustrates how to have immediate children of a
+complexType in a different namespace.
 """
 
-
-import logging
-
-from spyne import Application, rpc, Service, Iterable, UnsignedInteger, \
-    Unicode
-
-from spyne.protocol.json import JsonDocument
-from spyne.server.twisted.msgpack import TwistedMessagePackProtocolFactory
+from spyne import Unicode, Iterable, XmlAttribute, ComplexModel, Service, \
+    Application, rpc
+from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 
 
-HOST = '127.0.0.1'
-PORT = 5551
+NS_B = "www.example.com/schema/b"
 
 
-class HelloWorldService(Service):
-    @rpc(Unicode, UnsignedInteger, _returns=Iterable(Unicode))
-    def say_hello(ctx, name, times):
-        for i in range(times):
-            yield u'Hello, %s' % name
+class Baz(ComplexModel):
+    __namespace__ = NS_B
+
+    Thing = Unicode
+    AttrC = XmlAttribute(Unicode)
 
 
-if __name__=='__main__':
-    from twisted.internet import reactor
-    from twisted.python import log
+class FooCustomRequest(ComplexModel):
+    AttrA = XmlAttribute(Unicode)
+    AttrB = XmlAttribute(Unicode)
+    Bar = Baz.customize(sub_ns=NS_B)
+    Baz = Unicode
 
-    # logging boilerplate
+
+class FooService(Service):
+    @rpc(FooCustomRequest, _returns = Iterable(Unicode), _body_style='bare')
+    def Foo(ctx, req):
+        AttrA, AttrB, Baz, Bar = req.AttrA, req.AttrB, req.Baz, req.Bar
+        yield 'Hello, %s' % Bar
+
+
+application = Application([FooService],
+    tns="www.example.com/schema/a",
+    in_protocol=Soap11(validator='soft'),
+    out_protocol=Soap11(),
+)
+
+
+wsgi_application = WsgiApplication(application)
+
+
+if __name__ == '__main__':
+    import logging
+
+    from wsgiref.simple_server import make_server
+
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    observer = log.PythonLoggingObserver('twisted')
-    log.startLoggingWithObserver(observer.emit, setStdout=False)
+    logging.info("listening to http://127.0.0.1:8000")
+    logging.info("wsdl is at: http://localhost:8000/?wsdl")
 
-    # set up application
-    application = Application([HelloWorldService],
-        'spyne.examples.hello.msgpack', in_protocol=JsonDocument(),
-                                                    out_protocol=JsonDocument())
-
-    # set up transport
-    factory = TwistedMessagePackProtocolFactory(application)
-
-    # set up listening endpoint
-    reactor.listenTCP(PORT, factory, interface=HOST)
-
-    # run the reactor
-    reactor.run()
+    server = make_server('127.0.0.1', 8000, wsgi_application)
+    server.serve_forever()

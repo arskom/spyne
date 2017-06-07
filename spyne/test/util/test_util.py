@@ -27,7 +27,7 @@ from spyne.model.primitive import DateTime
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
 
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 from spyne.util import AttrDict, AttrDictColl
 
@@ -301,7 +301,7 @@ class TestDeserialize(unittest.TestCase):
     def test_deserialize(self):
         from spyne.protocol.soap import Soap11
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Integer, _returns=Iterable(Integer))
             def some_call(yo):
                 return range(yo)

@@ -58,7 +58,7 @@ class Application(object):
     """The Application class is the glue between one or more service
     definitions, input and output protocols.
 
-    :param services:     An iterable of ServiceBase subclasses that defines
+    :param services:     An iterable of Service subclasses that defines
                          the exposed services.
     :param tns:          The targetNamespace attribute of the exposed
                          service.
@@ -95,11 +95,12 @@ class Application(object):
     transport = None
 
     def __init__(self, services, tns, name=None,
-                              in_protocol=None, out_protocol=None, config=None):
+                  in_protocol=None, out_protocol=None, config=None, classes=()):
         self.services = tuple(services)
         self.tns = tns
         self.name = name
         self.config = config
+        self.classes = classes
 
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
@@ -230,7 +231,7 @@ class Application(object):
             assert ctx.descriptor.service_class is not None
             return ctx.descriptor.service_class.call_wrapper(ctx)
 
-        # from here on out it's @mrpc in a (parent) class
+        # from here on it's @mrpc in a (parent) class
         cls = ctx.descriptor.parent_class
         if cls.__orig__ is not None:
             cls = cls.__orig__
@@ -243,13 +244,13 @@ class Application(object):
 
         in_cls = ctx.descriptor.in_message
 
-        args = ctx.in_object
+        args = tuple(ctx.in_object)
         if args is None:
-            args = []
+            args = ()
 
         elif ctx.descriptor.body_style is BODY_STYLE_WRAPPED and \
                                 len(in_cls.get_flat_type_info(in_cls)) <= 1:
-            args = []
+            args = ()
 
         else:
             args = args[1:]
@@ -261,9 +262,15 @@ class Application(object):
                 raise InvalidRequestError("Invalid object state for request")
 
         if ctx.descriptor.no_ctx:
-            retval = ctx.function(inst, *args)
+            args = (inst,) + args
         else:
-            retval = ctx.function(inst, ctx, *args)
+            args = (inst, ctx,) + args
+
+        if ctx.descriptor.service_class is None:
+            retval = ctx.function(*args)
+
+        else:
+            retval = ctx.descriptor.service_class.call_wrapper(ctx, args=args)
 
         return retval
 

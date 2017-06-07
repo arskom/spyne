@@ -30,7 +30,7 @@
 #
 
 
-from spyne import Application, rpc, ServiceBase, Iterable, Integer, Unicode, \
+from spyne import Application, rpc, Service, Iterable, Integer, Unicode, \
     File
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.json import JsonDocument
@@ -50,7 +50,7 @@ def _say_hello(ctx, name, times, file_ext):
         yield u'Hello, %s' % name
 
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello_as_xml_file(ctx, name, times):
         ctx.out_protocol = XmlDocument()

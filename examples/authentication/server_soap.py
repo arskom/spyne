@@ -53,7 +53,7 @@ from spyne.model.primitive import Mandatory
 from spyne.model.primitive import String
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 
 class PublicKeyError(Fault):
@@ -120,7 +120,7 @@ preferences_db = SpyneDict({
 })
 
 
-class AuthenticationService(ServiceBase):
+class AuthenticationService(Service):
     __tns__ = 'spyne.examples.authentication'
 
     @rpc(Mandatory.String, Mandatory.String, _returns=String,
@@ -142,7 +142,7 @@ class AuthenticationService(ServiceBase):
         return session_id[1]
 
 
-class UserService(ServiceBase):
+class UserService(Service):
     __tns__ = 'spyne.examples.authentication'
     __in_header__ = RequestHeader
 

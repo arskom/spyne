@@ -197,7 +197,6 @@ class TwistedHttpTransportContext(HttpTransportContext):
     def get_peer(self):
         peer = Address.from_twisted_address(self.req.transport.getPeer())
         addr = address_parser.get_ip(_Transformer(self.req))
-        logger.warning("%r", self.req.getAllHeaders())
 
         if addr is None:
             return peer
@@ -385,12 +384,16 @@ def _get_file_info(ctx):
         return retval
 
     for k in keys:
-        field = img[k]
+        fields = img[k]
 
-        file_type = field.type
-        file_name = field.disposition_options.get('filename', None)
-        if file_name is not None:
-            retval.append(_FileInfo(k, file_name, file_type,
+        if isinstance(fields, cgi.FieldStorage):
+            fields = (fields,)
+
+        for field in fields:
+            file_type = field.type
+            file_name = field.disposition_options.get('filename', None)
+            if file_name is not None:
+                retval.append(_FileInfo(k, file_name, file_type,
                                                 [mmap(field.file.fileno(), 0)]))
 
     return retval
@@ -674,8 +677,6 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
 
 def _eb_deferred(ret, request, p_ctx, others, resource):
-    app = p_ctx.app
-
     # DRY this with what's in Application.process_request
     if issubclass(ret.type, Redirect):
         try:
@@ -705,10 +706,13 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
         request.write(ret)
 
     else:
-        p_ctx.out_error = ret.value
-        ret.printTraceback()
         p_ctx.out_error = InternalError(ret.value)
+        ret.printTraceback()
+
+        ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
 
         p_ctx.fire_event('method_exception_object')
+
+        request.write(ret)
 
     request.finish()
