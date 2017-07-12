@@ -40,8 +40,8 @@ except ImportError:
     etree = None
     html = None
 
+from spyne import PushBase
 from spyne.protocol._base import ProtocolMixin
-
 from spyne.model import ModelBase, XmlAttribute, SimpleModel, Null, \
     ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, Decimal, \
     Double, Integer, Time, DateTime, Uuid, Duration, Boolean, AnyDict, AnyUri
@@ -239,6 +239,9 @@ class OutProtocolBase(ProtocolMixin):
     def to_bytes_iterable(self, cls, value):
         if value is None:
             return []
+
+        if isinstance(value, PushBase):
+            return value
 
         handler = self._to_bytes_iterable_handlers[cls]
         return handler(cls, value)
