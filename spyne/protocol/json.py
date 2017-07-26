@@ -72,6 +72,7 @@ from spyne.model.fault import Fault
 from spyne.protocol.dictdoc import HierDictDocument
 
 
+# TODO: use this as default
 class JsonEncoder(json.JSONEncoder):
     def default(self, o):
         try:
@@ -131,8 +132,6 @@ class JsonDocument(HierDictDocument):
         self._to_unicode_handlers[Integer] = self._ret
 
         self.default_string_encoding = default_string_encoding
-        if not ('cls' in kwargs):
-            kwargs['cls'] = JsonEncoder
         self.kwargs = kwargs
 
     def _ret(self, cls, value):
