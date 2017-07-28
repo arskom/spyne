@@ -108,16 +108,19 @@ class HierDictDocument(DictDocument):
         elif message is self.RESPONSE:
             out_type = ctx.descriptor.out_message
 
+        else:
+            assert False
+
         if out_type is None:
             return
-
-        out_type_info = out_type.get_flat_type_info(out_type)
 
         # assign raw result to its wrapper, result_message
         if ctx.descriptor.is_out_bare():
             out_instance, = ctx.out_object
 
         else:
+            out_type_info = out_type.get_flat_type_info(out_type)
+
             # instantiate the result message
             out_instance = out_type()
 
