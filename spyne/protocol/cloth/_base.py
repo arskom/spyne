@@ -109,9 +109,8 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                 if self.ignore_wrappers:
                     result_inst = ctx.out_object[0]
                     while result_class.Attributes._wrapper and \
-                                      len(result_class._type_info) == 1:
-                        result_class, = \
-                                        result_class._type_info.values()
+                                              len(result_class._type_info) == 1:
+                        result_class, = result_class._type_info.values()
 
                 else:
                     result_inst = result_class()
