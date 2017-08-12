@@ -26,6 +26,8 @@ to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
 
+import sys
+
 import spyne.const.xml
 
 from copy import copy
@@ -47,6 +49,17 @@ from spyne.model.complex import TypeInfo, recust_selfref, SelfReference
 
 from spyne.const import add_request_suffix
 
+if sys.version_info >= (3, 3):
+    from inspect import signature
+
+    def _get_args(f):
+        return tuple(signature(f).parameters)
+else:
+    from inspect import getargspec
+
+    def _get_args(f):
+        return tuple(getargspec(f).args)
+
 
 def _produce_input_message(f, params, in_message_name, in_variable_names,
                        no_ctx, no_self, argnames, body_style_str, self_ref_cls):
@@ -58,10 +71,9 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
 
     if argnames is None:
         try:
-            argcount = f.__code__.co_argcount
-            argnames = f.__code__.co_varnames[arg_start:argcount]
+            argnames = _get_args(f)[arg_start:]
 
-        except AttributeError:
+        except ValueError:
             raise TypeError(
                 "It's not possible to instrospect builtins. You must pass a "
                 "sequence of argument names as the '_args' argument to the "
