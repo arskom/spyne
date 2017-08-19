@@ -63,8 +63,10 @@ class memoize(object):
     def __call__(self, *args, **kwargs):
         key = self.get_key(args, kwargs)
         if not key in self.memo:
-            self.memo[key] = self.func(*args, **kwargs)
-        return self.memo[key]
+            value = self.func(*args, **kwargs)
+            self.memo[key] = value
+            return value
+        return self.memo.get(key)
 
     def get_key(self, args, kwargs):
         return tuple(args), tuple(kwargs.items())
