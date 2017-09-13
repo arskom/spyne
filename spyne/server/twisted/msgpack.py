@@ -363,14 +363,18 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
     # if there is one return value or the output is bare (which means there
     # can't be anything other than 1 return value case) use the enclosing list.
     # otherwise, the return value is a tuple anyway, so leave it alone.
-    if p_ctx.descriptor.is_out_bare():
-        p_ctx.out_object = [ret]
+    if nowrap:
+        p_ctx.out_object = ret
 
     else:
-        if nowrap or len(p_ctx.descriptor.out_message._type_info) > 1:
-            p_ctx.out_object = ret
-        else:
+        if p_ctx.descriptor.is_out_bare():
             p_ctx.out_object = [ret]
+
+        else:
+            if len(p_ctx.descriptor.out_message._type_info) > 1:
+                p_ctx.out_object = ret
+            else:
+                p_ctx.out_object = [ret]
 
     try:
         prot.spyne_tpt.get_out_string(p_ctx)
