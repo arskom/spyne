@@ -69,7 +69,8 @@ class User(ComplexModel):
 
 
 class UserManagerService(Service):
-    @rpc(User.customize(min_occurs=1, nullable=False), _returns=UnsignedInteger32)
+    @rpc(User.customize(min_occurs=1, nullable=False),
+                                                     _returns=UnsignedInteger32)
     def put_user(ctx, user):
         if user.id is None:
             user.id = ctx.udc.get_next_user_id()
