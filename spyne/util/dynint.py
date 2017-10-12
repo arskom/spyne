@@ -1,5 +1,5 @@
 
-from spyne import Integer, ModelBase, Date, DateTime, IpAddress
+from spyne import D, Integer, ModelBase, Date, DateTime, IpAddress, Decimal
 from spyne.protocol import ProtocolBase
 from spyne.util import six
 from spyne.util.cdict import cdict
@@ -18,6 +18,12 @@ MAP = cdict({
         object: lambda _: _,
         bytes: lambda _: _.strip(),
         unicode: lambda _: _.strip(),
+    }),
+
+    Decimal: cdict({
+        int: lambda _: D(_),
+        bytes: lambda s: None if s.strip() == '' else D(s.strip()),
+        unicode: lambda s: None if s.strip() == u'' else D(s.strip()),
     }),
 
     Integer: cdict({
