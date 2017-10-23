@@ -234,6 +234,9 @@ class HierDictDocument(DictDocument):
 
         # get all class attributes, including the ones coming from parent classes.
         flat_type_info = cls.get_flat_type_info(cls)
+        if flat_type_info is None:
+            logger.critical("No flat_type_info found for type %r", cls)
+            raise TypeError(cls)
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(int)
