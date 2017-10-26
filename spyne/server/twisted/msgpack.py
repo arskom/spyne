@@ -351,13 +351,6 @@ def _eb_deferred(fail, prot, p_ctx, others):
 
     prot.handle_error(p_ctx, others, p_ctx.out_error)
 
-    data_len = 0
-    for data in p_ctx.out_string:
-        prot.enqueue_outresp_data(id(p_ctx), data)
-        data_len += len(data)
-
-    p_ctx.transport.resp_length = data_len
-
 
 def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
     # if there is one return value or the output is bare (which means there
