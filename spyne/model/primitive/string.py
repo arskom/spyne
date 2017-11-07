@@ -214,7 +214,7 @@ class Ltree(Unicode(LTREE_OPTIMAL_SIZE, unicode_pattern=LTREE_PATTERN)):
     __type_name__ = 'ltreeString'
 
 
-if six.PY3:
+if not six.PY2:
     NATIVE_MAP.update({
         str: Unicode,
     })

@@ -253,7 +253,7 @@ class TestXml(unittest.TestCase):
         # rounds up as well
         d = get_xml_as_object(fs('<d>2013-04-05T06:07:08.1234565</d>'), DateTime)
         # FIXME: this is very interesting. why?
-        if six.PY3:
+        if not six.PY2:
             assert d.microsecond == 123456
         else:
             assert d.microsecond == 123457

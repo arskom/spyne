@@ -343,7 +343,7 @@ NATIVE_MAP.update({
 })
 
 
-if six.PY3:
+if not six.PY2:
     NATIVE_MAP.update({
         int: Integer,
     })
