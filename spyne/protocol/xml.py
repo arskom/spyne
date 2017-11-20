@@ -230,7 +230,7 @@ class XmlDocument(SubXmlBase):
         Defaults to ``True``.
 
     :param ns_clean: try to clean up redundant namespace declarations.
-        Please note that this is for incoming documents. 
+        Please note that this is for incoming documents.
         See ``cleanup_namespaces`` parameter for output documents.
 
         Defaults to ``False``.
@@ -242,7 +242,7 @@ class XmlDocument(SubXmlBase):
     :param remove_blank_text: discard blank text nodes between tags, also known
         as ignorable whitespace. This is best used together with a DTD or schema
         (which tells data and noise apart), otherwise a heuristic will be
-        applied. 
+        applied.
 
         Defaults to ``False``.
 
