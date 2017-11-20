@@ -959,6 +959,9 @@ class XmlDocument(SubXmlBase):
 
         # parse input to set incoming data to related attributes.
         for c in elt:
+            if isinstance(c, etree._Comment):
+                continue
+
             key = c.tag.split('}')[-1]
             frequencies[key] += 1
 
