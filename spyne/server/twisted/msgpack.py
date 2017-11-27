@@ -351,26 +351,23 @@ def _eb_deferred(fail, prot, p_ctx, others):
 
     prot.handle_error(p_ctx, others, p_ctx.out_error)
 
-    data_len = 0
-    for data in p_ctx.out_string:
-        prot.enqueue_outresp_data(id(p_ctx), data)
-        data_len += len(data)
-
-    p_ctx.transport.resp_length = data_len
-
 
 def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
     # if there is one return value or the output is bare (which means there
     # can't be anything other than 1 return value case) use the enclosing list.
     # otherwise, the return value is a tuple anyway, so leave it alone.
-    if p_ctx.descriptor.is_out_bare():
-        p_ctx.out_object = [ret]
+    if nowrap:
+        p_ctx.out_object = ret
 
     else:
-        if nowrap or len(p_ctx.descriptor.out_message._type_info) > 1:
-            p_ctx.out_object = ret
-        else:
+        if p_ctx.descriptor.is_out_bare():
             p_ctx.out_object = [ret]
+
+        else:
+            if len(p_ctx.descriptor.out_message._type_info) > 1:
+                p_ctx.out_object = ret
+            else:
+                p_ctx.out_object = [ret]
 
     try:
         prot.spyne_tpt.get_out_string(p_ctx)

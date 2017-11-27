@@ -239,7 +239,7 @@ class InProtocolBase(ProtocolMixin):
         if string is None:
             return None
 
-        #if six.PY3:
+        #if not six.PY2:
         #    assert isinstance(string, str), \
         #        "Invalid type passed to `from_unicode`: {}".format(
         #                                         (class_, type(string), string))

@@ -28,7 +28,7 @@ import decimal
 from spyne.util import six
 from spyne.util.dictdoc import get_object_as_dict
 
-if six.PY3:
+if not six.PY2:
     long = int
 
 from datetime import datetime
