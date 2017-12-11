@@ -92,6 +92,7 @@ class ServerBase(object):
 
         except Fault as e:
             logger.exception(e)
+            logger.debug("Failed document is: %s", ctx.in_document)
 
             ctx.in_object = None
             ctx.in_error = e
