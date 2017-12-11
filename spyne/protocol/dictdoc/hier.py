@@ -250,9 +250,9 @@ class HierDictDocument(DictDocument):
             try:
                 items = zip([k for k, v in flat_type_info.items()
                                          if not self.get_cls_attrs(v).exc], doc)
-            except TypeError:
+            except TypeError as e:
                 logger.error("Invalid document %r for %r", doc, cls)
-                raise
+                raise ValidationError(doc)
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
