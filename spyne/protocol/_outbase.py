@@ -40,11 +40,11 @@ except ImportError:
     etree = None
     html = None
 
-from spyne import PushBase
 from spyne.protocol._base import ProtocolMixin
 from spyne.model import ModelBase, XmlAttribute, SimpleModel, Null, \
     ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, Decimal, \
-    Double, Integer, Time, DateTime, Uuid, Duration, Boolean, AnyDict, AnyUri
+    Double, Integer, Time, DateTime, Uuid, Duration, Boolean, AnyDict, \
+    AnyUri, PushBase
 
 from spyne.const.http import HTTP_400, HTTP_401, HTTP_404, HTTP_405, HTTP_413, \
     HTTP_500

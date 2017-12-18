@@ -23,6 +23,8 @@ definition document standards along with the
 to generate those documents.
 """
 
+from __future__ import print_function
+
 from spyne.interface._base import Interface
 from spyne.interface._base import InterfaceDocumentBase
 from spyne.interface._base import AllYourInterfaceDocuments
@@ -30,5 +32,8 @@ from spyne.interface._base import AllYourInterfaceDocuments
 try:
     from spyne.interface.wsdl.wsdl11 import Wsdl11
     HAS_WSDL = True
-except ImportError:
-    HAS_WSDL = False
+except ImportError as e:
+    if e.args in ('No module named lxml', "No module named 'lxml'"):
+        HAS_WSDL = False
+    else:
+        raise
