@@ -57,6 +57,9 @@ except ImportError:
     YEL = lambda s: s
     MAG = lambda s: s
     CYA = lambda s: s
+    DARK_YEL = lambda s: s
+    DARK_MAG = lambda s: s
+    DARK_CYA = lambda s: s
 
 
 if __name__ == '__main__':
