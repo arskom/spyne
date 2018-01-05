@@ -246,6 +246,8 @@ class AutoReloader(object):
             args = ['"%s"' % arg for arg in args]
 
         os.chdir(_module__file__base)
+        logger.debug("Change working directory to: %s", _module__file__base)
+
         if self.max_cloexec_files:
             self._set_cloexec()
 
