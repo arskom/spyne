@@ -73,7 +73,7 @@ class Soap12(Soap11):
         faultcode = []
         faultcode.append(element.find('soap:Code/soap:Value', namespaces=nsmap).text)
         subcode = element.find('soap:Code/soap:Subcode', namespaces=nsmap)
-        while subcode:
+        while subcode is not None:
             faultcode.append(subcode.find('soap:Value', namespaces=nsmap).text)
             subcode = subcode.find('soap:Subcode', namespaces=nsmap)
 
@@ -143,9 +143,9 @@ class Soap12(Soap11):
         node = element.find("soap:Node", namespaces=nsmap)
         detail = element.find("soap:Detail", namespaces=nsmap)
         faultactor = ''
-        if role:
+        if role is not None:
             faultactor += role.text.strip()
-        if node:
+        if node is not None:
             faultactor += node.text.strip()
         return cls(faultcode=code, faultstring=reason,
                    faultactor=faultactor, detail=detail)
