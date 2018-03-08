@@ -95,7 +95,7 @@ class Soap12(Soap11):
         tag_name = "{%s}Fault" % self.ns_soap_env
 
         if isinstance(inst.faultcode, string_types):
-            value, faultcodes  = self.gen_fault_codes(inst.faultcode)
+            value, faultcodes = self.gen_fault_codes(inst.faultcode)
 
             code = E("{%s}Code" % self.ns_soap_env)
             code.append(E("{%s}Value" % self.ns_soap_env, value))
@@ -135,7 +135,7 @@ class Soap12(Soap11):
         return self._fault_to_parent_impl(ctx, cls, inst, parent, ns, subelts)
 
     def fault_from_element(self, ctx, cls, element):
-        nsmap  = element.nsmap
+        nsmap = element.nsmap
 
         code = self.generate_faultcode(element)
         reason = element.find("soap:Reason/soap:Text", namespaces=nsmap).text.strip()
@@ -148,4 +148,4 @@ class Soap12(Soap11):
         if node:
             faultactor += node.text.strip()
         return cls(faultcode=code, faultstring=reason,
-                   faultactor = faultactor, detail=detail)
+                   faultactor=faultactor, detail=detail)
