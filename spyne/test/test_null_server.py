@@ -32,7 +32,7 @@ from spyne.service import Service
 from spyne.server.null import NullServer
 
 class TestNullServer(unittest.TestCase):
-    def test_call(self):
+    def test_call_one_arg(self):
         queue = set()
 
         class MessageService(Service):
@@ -48,7 +48,7 @@ class TestNullServer(unittest.TestCase):
 
         assert set(["zabaaa"]) == queue
 
-    def test_call(self):
+    def test_call_two_args(self):
         queue = set()
 
         class MessageService(Service):

@@ -233,8 +233,8 @@ class RunTests(ExtendedTestCommand):
                                                     capture=self.capture) or ret
 
         ret = call_tox_subprocess('py%s-dj18' % PYVER) or ret
-        ret = call_tox_subprocess('py%s-dj19' % PYVER) or ret
         ret = call_tox_subprocess('py%s-dj110' % PYVER) or ret
+        ret = call_tox_subprocess('py%s-dj111' % PYVER) or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)

@@ -73,6 +73,8 @@ class HelloWorldService(Service):
 
 
 if __name__ == '__main__':
+    import logging
+
     from wsgiref.simple_server import make_server
 
     logging.basicConfig(level=logging.DEBUG)
