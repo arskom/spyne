@@ -52,13 +52,13 @@ Here's how to call it using suds:
 """
 
 
-from spyne import Application, rpc, Service, Iterable, Integer, Unicode
+from spyne import Application, rpc, ServiceBase, Iterable, Integer, Unicode
 
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 
 
-class HelloWorldService(Service):
+class HelloWorldService(ServiceBase):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(ctx, name, times):
         """Docstrings for service methods appear as documentation in the wsdl.
