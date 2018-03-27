@@ -39,6 +39,14 @@ def read_resource_contents(ns, fn):
     return open(resfn, 'rb').read().decode("utf8")
 
 
+def parse_xml_resource(ns, fn):
+    from lxml import etree
+
+    retval = etree.fromstring(read_resource_contents(ns, fn))
+
+    return retval
+
+
 def parse_html_resource(ns, fn):
     from lxml import html
 
