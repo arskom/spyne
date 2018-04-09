@@ -44,7 +44,7 @@ from spyne.protocol._base import ProtocolMixin
 from spyne.model import ModelBase, XmlAttribute, SimpleModel, Null, \
     ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, Decimal, \
     Double, Integer, Time, DateTime, Uuid, Duration, Boolean, AnyDict, \
-    AnyUri, PushBase
+    AnyUri, PushBase, Date
 
 from spyne.const.http import HTTP_400, HTTP_401, HTTP_404, HTTP_405, HTTP_413, \
     HTTP_500
@@ -107,6 +107,7 @@ class OutProtocolBase(ProtocolMixin):
             Time: self.time_to_bytes,
             Uuid: self.uuid_to_bytes,
             Null: self.null_to_bytes,
+            Date: self.date_to_bytes,
             Double: self.double_to_bytes,
             AnyXml: self.any_xml_to_bytes,
             Unicode: self.unicode_to_bytes,
@@ -125,6 +126,7 @@ class OutProtocolBase(ProtocolMixin):
             ModelBase: self.model_base_to_unicode,
             File: self.file_to_unicode,
             Time: self.time_to_bytes,
+            Date: self.date_to_bytes,
             Uuid: self.uuid_to_bytes,
             Null: self.null_to_bytes,
             Double: self.double_to_bytes,
@@ -359,6 +361,14 @@ class OutProtocolBase(ProtocolMixin):
 
     def time_to_bytes(self, cls, value, **_):
         """Returns ISO formatted times."""
+        if isinstance(value, datetime):
+            value = value.time()
+        return value.isoformat()
+
+    def date_to_bytes(self, cls, value, **_):
+        """Returns ISO formatted times."""
+        if isinstance(value, datetime):
+            value = value.date()
         return value.isoformat()
 
     def datetime_to_bytes(self, cls, val, **_):
