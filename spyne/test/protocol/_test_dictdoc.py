@@ -638,6 +638,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
         def test_date(self):
             d = date(2010, 9, 8).isoformat()
+            vdt = datetime(2010, 9, 8)
+            dt = vdt.isoformat()
 
             class SomeService(Service):
                 @srpc(Date, _returns=Date)
@@ -648,10 +650,20 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     assert p.isoformat() == d
                     return p
 
-            ctx = _dry_me([SomeService], {"some_call": [d]})
+                @srpc(_returns=Date)
+                def some_call_dt():
+                    return vdt
 
+            ctx = _dry_me([SomeService], {"some_call": [d]})
             s = self.loads(b''.join(ctx.out_string))
             d = {"some_callResponse": {"some_callResult": d}}
+            print(s)
+            print(d)
+            assert s == d
+
+            ctx = _dry_me([SomeService], {"some_call_dt": []})
+            s = self.loads(b''.join(ctx.out_string))
+            d = {"some_call_dtResponse": {"some_call_dtResult": d}}
             print(s)
             print(d)
             assert s == d
