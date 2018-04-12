@@ -9,6 +9,8 @@ matrix:
     env: TEST_SUITE=test_python3
   - python: "3.6"
     env: TEST_SUITE=test_python3
+  - python: "3.7"
+    env: TEST_SUITE=test_python3
 install:
   - pip install -r requirements/test_requirements.txt
 script:
