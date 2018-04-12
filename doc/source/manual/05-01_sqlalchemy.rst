@@ -60,7 +60,7 @@ same, except a few small differences:
    restriction. If you need a length-limited ``UnicodeText``, you can use
    Spyne's ``Unicode`` object as follows: ::
 
-        class(TableModel):
+        class SomeTable(TableModel):
             __tablename__ = "some_table"
 
             # text

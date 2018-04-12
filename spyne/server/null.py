@@ -66,8 +66,8 @@ class NullServer(ServerBase):
 
         super(NullServer, self).__init__(app)
 
-        self.service = _FunctionProxy(self, self.app, async=False)
-        self.async = _FunctionProxy(self, self.app, async=True)
+        self.service = _FunctionProxy(self, self.app, is_async=False)
+        self.async = _FunctionProxy(self, self.app, is_async=True)
         self.factory = Factory(self.app)
         self.ostr = ostr
         self.locale = locale
@@ -86,22 +86,22 @@ class NullServer(ServerBase):
 
 
 class _FunctionProxy(object):
-    def __init__(self, server, app, async):
+    def __init__(self, server, app, is_async):
         self._app = app
         self._server = server
         self.in_header = None
-        self.async = async
+        self.is_async = is_async
 
     def __getattr__(self, key):
         return _FunctionCall(self._app, self._server, key, self.in_header,
-                  self._server.ostr, self._server.locale, self.async)
+                          self._server.ostr, self._server.locale, self.is_async)
 
     def __getitem__(self, key):
         return self.__getattr__(key)
 
 
 class _FunctionCall(object):
-    def __init__(self, app, server, key, in_header, ostr, locale, async):
+    def __init__(self, app, server, key, in_header, ostr, locale, async_):
         self.app = app
 
         self._key = key
@@ -109,7 +109,7 @@ class _FunctionCall(object):
         self._in_header = in_header
         self._ostr = ostr
         self._locale = locale
-        self._async = async
+        self._async = async_
 
     def __call__(self, *args, **kwargs):
         initial_ctx = MethodContext(self, MethodContext.SERVER)

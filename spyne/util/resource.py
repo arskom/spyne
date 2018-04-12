@@ -31,12 +31,23 @@ def get_resource_path(ns, fn):
     return path
 
 
-def read_resource_contents(ns, fn):
+def read_resource_contents(ns, fn, enc=None):
     import spyne.util.autorel
 
     resfn = get_resource_path(ns, fn)
     spyne.util.autorel.AutoReloader.FILES.add(resfn)
-    return open(resfn, 'rb').read().decode("utf8")
+    if enc is None:
+        return open(resfn, 'rb').read()
+    else:
+        return open(resfn, 'rb').read().decode(enc)
+
+
+def parse_xml_resource(ns, fn):
+    from lxml import etree
+
+    retval = etree.fromstring(read_resource_contents(ns, fn))
+
+    return retval
 
 
 def parse_html_resource(ns, fn):
