@@ -305,6 +305,7 @@ class XmlDocument(SubXmlBase):
         super(XmlDocument, self).__init__(app, validator,
                                                 binary_encoding=binary_encoding)
 
+        self.validation_schema = None
         self.xml_declaration = xml_declaration
         self.cleanup_namespaces = cleanup_namespaces
         self.replace_null_with_default = replace_null_with_default
