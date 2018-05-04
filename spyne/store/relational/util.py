@@ -143,14 +143,15 @@ def database_exists(url):
             return False
 
 
-def create_database(url, encoding='utf8', template=None):
+def create_database(url, encoding='utf8', psql_template='template1'):
     """Issue the appropriate CREATE DATABASE statement.
 
     :param url: A SQLAlchemy engine URL.
     :param encoding: The encoding to create the database as.
-    :param template:
-        The name of the template from which to create the new database. At the
-        moment only supported by PostgreSQL driver.
+    :param psql_template:
+        The name of the template from which to create the new database,
+        only supported by PostgreSQL driver. As per Postgresql docs, defaults to
+        "template1".
 
     To create a database, you can pass a simple URL that would have
     been passed to ``create_engine``. ::
@@ -183,13 +184,10 @@ def create_database(url, encoding='utf8', template=None):
                 ISOLATION_LEVEL_AUTOCOMMIT
             )
 
-        if not template:
-            template = 'template0'
-
         text = "CREATE DATABASE {0} ENCODING '{1}' TEMPLATE {2}".format(
             quote(engine, database),
             encoding,
-            quote(engine, template)
+            quote(engine, psql_template)
         )
         engine.execute(text)
 
