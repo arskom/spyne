@@ -27,8 +27,8 @@ from spyne.store.relational._base import gen_sqla_info
 from spyne.store.relational._base import gen_spyne_info
 from spyne.store.relational._base import get_pk_columns
 
-from spyne.store.relational.document import PGXml, PGObjectXml, PGHtml
-from spyne.store.relational.document import PGJson, PGObjectJson, PGFileJson
+from spyne.store.relational.document import PGXml, PGObjectXml, PGHtml, \
+    PGJson, PGJsonB, PGObjectJson, PGFileJson
 from spyne.store.relational.simple import PGLTree, PGLQuery, PGLTxtQuery
 from spyne.store.relational.spatial import PGGeometry
 
