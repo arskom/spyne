@@ -94,7 +94,8 @@ class Interface(object):
         ns = cls.get_namespace()
         tn = cls.get_type_name()
 
-        c = self.classes.get('{%s}%s' % (ns, tn))
+        key = '{%s}%s' % (ns, tn)
+        c = self.classes.get(key)
         if c is None:
             return False
 
@@ -110,8 +111,8 @@ class Interface(object):
             if set((o1, o2)) == set((Array, Iterable)):
                 return True
 
-            raise ValueError("classes %r and %r have conflicting names." %
-                                                                       (cls, c))
+            raise ValueError("classes %r and %r have conflicting names: '%s'" %
+                                                                  (cls, c, key))
         return True
 
     def get_class(self, key):
