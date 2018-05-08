@@ -69,7 +69,7 @@ class PGXml(UserDefinedType):
         self.pretty_print = pretty_print
         self.encoding = encoding
 
-    def get_col_spec(self):
+    def get_col_spec(self, **_):
         return "xml"
 
     def bind_processor(self, dialect):
@@ -99,7 +99,7 @@ class PGHtml(UserDefinedType):
         self.pretty_print = pretty_print
         self.encoding = encoding
 
-    def get_col_spec(self):
+    def get_col_spec(self, **_):
         return "text"
 
     def bind_processor(self, dialect):
@@ -125,7 +125,7 @@ class PGJson(UserDefinedType):
     def __init__(self, encoding='UTF-8'):
         self.encoding = encoding
 
-    def get_col_spec(self):
+    def get_col_spec(self, **_):
         return "json"
 
     def bind_processor(self, dialect):
@@ -166,7 +166,7 @@ class PGObjectXml(UserDefinedType):
         self.no_namespace = no_namespace
         self.pretty_print = pretty_print
 
-    def get_col_spec(self):
+    def get_col_spec(self, **_):
         return "xml"
 
     def bind_processor(self, dialect):
