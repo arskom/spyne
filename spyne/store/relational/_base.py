@@ -50,9 +50,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 
 from spyne.store.relational.simple import PGLTree
 from spyne.store.relational.document import PGXml, PGObjectXml, PGObjectJson, \
-    PGFileJson
-from spyne.store.relational.document import PGHtml
-from spyne.store.relational.document import PGJson
+    PGFileJson, PGJsonB, PGHtml, PGJson
 from spyne.store.relational.spatial import PGGeometry
 
 # internal types
@@ -62,18 +60,23 @@ from spyne.model.complex import XmlModifier
 # Config types
 from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
+from spyne.model.complex import jsonb as c_jsonb
 from spyne.model.complex import table as c_table
 from spyne.model.complex import msgpack as c_msgpack
 from spyne.model.binary import HybridFileStore
 
 # public types
-from spyne.model import SimpleModel, AnyDict, Enum, ByteArray, Array, \
-    ComplexModelBase, AnyXml, AnyHtml, Uuid, Date, Time, DateTime, Float, \
-    Double, Decimal, String, Unicode, Boolean, Integer, Integer8, Integer16, \
-    Integer32, Integer64, Point, Line, Polygon, MultiPoint, MultiLine, \
-    MultiPolygon, UnsignedInteger, UnsignedInteger8, UnsignedInteger16, \
-    UnsignedInteger32, UnsignedInteger64, File, Ltree, Ipv6Address, Ipv4Address, \
-    IpAddress, Duration
+from spyne.model import SimpleModel, Enum, Array, ComplexModelBase, \
+    Any, AnyDict, AnyXml, AnyHtml, \
+    Date, Time, DateTime, Duration, \
+    ByteArray, String, Unicode, Uuid, Boolean, \
+    Point, Line, Polygon, MultiPoint, MultiLine, MultiPolygon, \
+    Float, Double, Decimal, \
+    Integer, Integer8, Integer16, Integer32, Integer64, \
+    UnsignedInteger, UnsignedInteger8, UnsignedInteger16, UnsignedInteger32, \
+                                                            UnsignedInteger64, \
+    Ipv6Address, Ipv4Address, IpAddress, \
+    File, Ltree
 
 from spyne.util import sanitize_args
 
@@ -207,11 +210,13 @@ def _get_sqlalchemy_type(cls):
     if issubclass(cls, AnyHtml):
         return PGHtml
 
-    if issubclass(cls, AnyDict):
+    if issubclass(cls, (Any, AnyDict)):
         sa = cls.Attributes.store_as
         if isinstance(sa, c_json):
             return PGJson
-        raise NotImplementedError(dict(cls=AnyDict, store_as=sa))
+        if isinstance(sa, c_jsonb):
+            return PGJsonB
+        raise NotImplementedError(dict(cls=cls, store_as=sa))
 
     if issubclass(cls, ByteArray):
         return sqlalchemy.LargeBinary
@@ -816,12 +821,13 @@ def _add_complex_type_as_xml(cls, props, table, subname, subcls, storage,
 
 
 def _add_complex_type_as_json(cls, props, table, subname, subcls, storage,
-                                                          col_args, col_kwargs):
+                                                     col_args, col_kwargs, dbt):
     if subname in table.c:
         col = table.c[subname]
+
     else:
         t = PGObjectJson(subcls, ignore_wrappers=storage.ignore_wrappers,
-                                                  complex_as=storage.complex_as)
+                                         complex_as=storage.complex_as, dbt=dbt)
         col = Column(subname, t, *col_args, **col_kwargs)
 
     props[subname] = col
@@ -845,7 +851,10 @@ def _add_complex_type(cls, props, table, subname, subcls):
                                                   storage, col_args, col_kwargs)
     if isinstance(storage, c_json):
         return _add_complex_type_as_json(cls, props, table, subname, subcls,
-                                                  storage, col_args, col_kwargs)
+                                         storage, col_args, col_kwargs, 'json')
+    if isinstance(storage, c_jsonb):
+        return _add_complex_type_as_json(cls, props, table, subname, subcls,
+                                         storage, col_args, col_kwargs, 'jsonb')
     if isinstance(storage, c_msgpack):
         raise NotImplementedError(c_msgpack)
 
@@ -934,6 +943,10 @@ def _add_file_type(cls, props, table, subname, subcls):
             #FIXME: Add support for storage markers from spyne.model.complex
             if storage.db_format == 'json':
                 t = PGFileJson(storage.store, storage.type)
+
+            elif storage.db_format == 'jsonb':
+                t = PGFileJson(storage.store, storage.type, dbt='jsonb')
+
             else:
                 raise NotImplementedError(storage.db_format)
 

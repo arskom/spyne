@@ -21,7 +21,8 @@
 from sqlalchemy.ext.compiler import compiles
 
 from sqlalchemy.dialects.postgresql import INET
-from spyne.store.relational import PGXml, PGJson, PGHtml
+from spyne.store.relational import PGXml, PGJson, PGHtml, PGJsonB, \
+    PGObjectJson, PGFileJson
 
 
 @compiles(PGXml)
@@ -36,7 +37,22 @@ def compile_html(type_, compiler, **kw):
 
 @compiles(PGJson)
 def compile_json(type_, compiler, **kw):
-    return "json"
+    return type_.get_col_spec()
+
+
+@compiles(PGJsonB)
+def compile_jsonb(type_, compiler, **kw):
+    return type_.get_col_spec()
+
+
+@compiles(PGObjectJson)
+def compile_ojson(type_, compiler, **kw):
+    return type_.get_col_spec()
+
+
+@compiles(PGFileJson)
+def compile_fjson(type_, compiler, **kw):
+    return type_.get_col_spec()
 
 
 @compiles(INET)
@@ -57,6 +73,21 @@ def compile_html_firebird(type_, compiler, **kw):
 
 @compiles(PGJson, "firebird")
 def compile_json_firebird(type_, compiler, **kw):
+    return "blob"
+
+
+@compiles(PGJsonB, "firebird")
+def compile_jsonb_firebird(type_, compiler, **kw):
+    return "blob"
+
+
+@compiles(PGObjectJson, "firebird")
+def compile_ojson_firebird(type_, compiler, **kw):
+    return "blob"
+
+
+@compiles(PGFileJson, "firebird")
+def compile_fjson_firebird(type_, compiler, **kw):
     return "blob"
 
 

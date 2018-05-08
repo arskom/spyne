@@ -150,6 +150,14 @@ class PGJson(UserDefinedType):
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGJson
 
 
+class PGJsonB(PGJson):
+    def get_col_spec(self, **_):
+        return "jsonb"
+
+
+sqlalchemy.dialects.postgresql.base.ischema_names['jsonb'] = PGJsonB
+
+
 class PGObjectXml(UserDefinedType):
     def __init__(self, cls, root_tag_name=None, no_namespace=False,
                                                             pretty_print=False):
@@ -177,18 +185,19 @@ class PGObjectXml(UserDefinedType):
 
 
 class PGObjectJson(UserDefinedType):
-    def __init__(self, cls, ignore_wrappers=True, complex_as=dict):
+    def __init__(self, cls, ignore_wrappers=True, complex_as=dict, dbt='json'):
         self.cls = cls
         self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as
+        self.dbt = dbt
 
         from spyne.util.dictdoc import get_dict_as_object
         from spyne.util.dictdoc import get_object_as_json
         self.get_object_as_json = get_object_as_json
         self.get_dict_as_object = get_dict_as_object
 
-    def get_col_spec(self):
-        return "json"
+    def get_col_spec(self, **_):
+        return self.dbt
 
     def bind_processor(self, dialect):
         def process(value):
@@ -224,12 +233,12 @@ class PGObjectJson(UserDefinedType):
 
 
 class PGFileJson(PGObjectJson):
-    def __init__(self, store, type=None):
+    def __init__(self, store, type=None, dbt='json'):
         if type is None:
             type = FileData
 
         super(PGFileJson, self).__init__(type, ignore_wrappers=True,
-                                                                complex_as=list)
+                                                       complex_as=list, dbt=dbt)
         self.store = store
 
     def bind_processor(self, dialect):

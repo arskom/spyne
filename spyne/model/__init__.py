@@ -35,6 +35,7 @@ from spyne.model.primitive import *
 # this after import of primitive package
 from spyne.model._base import xml
 from spyne.model._base import json
+from spyne.model._base import jsonb
 from spyne.model._base import table
 from spyne.model._base import msgpack
 

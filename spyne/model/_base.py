@@ -969,6 +969,18 @@ class json:
         self.complex_as = complex_as
 
 
+class jsonb:
+    """Compound option object for jsonb serialization. It's meant to be passed
+    to :func:`ComplexModelBase.Attributes.store_as`.
+    """
+
+    def __init__(self, ignore_wrappers=True, complex_as=dict):
+        if ignore_wrappers != True:
+            raise NotImplementedError("ignore_wrappers != True")
+        self.ignore_wrappers = ignore_wrappers
+        self.complex_as = complex_as
+
+
 class msgpack:
     """Compound option object for msgpack serialization. It's meant to be passed
     to :func:`ComplexModelBase.Attributes.store_as`.
@@ -979,13 +991,17 @@ class msgpack:
         pass
 
 
-def apply_pssm(val, pssm_map):
+PSSM_VALUES = {'json': json, 'jsonb': jsonb, 'xml': xml,
+                                             'msgpack': msgpack, 'table': table}
+
+
+def apply_pssm(val):
     if val is not None:
-        val_c = pssm_map.get(val, None)
+        val_c = PSSM_VALUES.get(val, None)
         if val_c is None:
-            assert isinstance(val, tuple(pssm_map.values())), \
+            assert isinstance(val, tuple(PSSM_VALUES.values())), \
              "'store_as' should be one of: %r or an instance of %r not %r" \
-             % (tuple(pssm_map.keys()), tuple(pssm_map.values()), val)
+             % (tuple(PSSM_VALUES.keys()), tuple(PSSM_VALUES.values()), val)
 
             return val
         return val_c()

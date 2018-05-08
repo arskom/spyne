@@ -41,8 +41,8 @@ from spyne import const
 from spyne.const.xml import PREFMAP
 
 from spyne.model import Point, Unicode, PushBase, ModelBase
-from spyne.model import json, xml, msgpack, table
-from spyne.model._base import apply_pssm
+from spyne.model import json, jsonb, xml, msgpack, table
+from spyne.model._base import PSSM_VALUES, apply_pssm
 from spyne.model.primitive import NATIVE_MAP
 
 from spyne.util import six, memoize, memoize_id, sanitize_args
@@ -50,9 +50,6 @@ from spyne.util.color import YEL
 from spyne.util.meta import Prepareable
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass, with_metaclass, string_types
-
-
-PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
 
 
 def _is_under_pydev_debugger():
@@ -1125,7 +1122,7 @@ class ComplexModelBase(ModelBase):
         could cause memory leaks. You have been warned.
         """
 
-        store_as = apply_pssm(kwargs.get('store_as', None), PSSM_VALUES)
+        store_as = apply_pssm(kwargs.get('store_as', None))
         if store_as is not None:
             kwargs['store_as'] = store_as
 

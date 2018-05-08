@@ -20,6 +20,7 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+import inspect
 import unittest
 import sqlalchemy
 
@@ -34,7 +35,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 
-from spyne import M
+from spyne import M, Any, Double
 
 from spyne.model import XmlAttribute, File, XmlData, ComplexModel, Array, \
     Integer32, Unicode, Integer, Enum, TTableModel, DateTime, Boolean
@@ -44,15 +45,18 @@ from spyne.model.complex import xml
 from spyne.model.complex import table
 
 from spyne.store.relational import get_pk_columns
-
+from spyne.store.relational.document import PGJsonB, PGJson, PGFileJson, \
+    PGObjectJson
 
 TableModel = TTableModel()
 
 
 class TestSqlAlchemyTypeMappings(unittest.TestCase):
     def test_bool(self):
+        fn = inspect.stack()[0][3]
+
         class SomeClass1(TableModel):
-            __tablename__ = 'test_bool_1'
+            __tablename__ = "%s_%d" % (fn, 1)
             i = Integer32(pk=True)
             b = Boolean
 
@@ -60,12 +64,62 @@ class TestSqlAlchemyTypeMappings(unittest.TestCase):
                                                              sqlalchemy.Boolean)
 
         class SomeClass2(TableModel):
-            __tablename__ = 'test_bool_2'
+            __tablename__ = "%s_%d" % (fn, 2)
             i = Integer32(pk=True)
             b = Boolean(store_as=int)
 
         assert isinstance(SomeClass2.Attributes.sqla_table.c.b.type,
                                                         sqlalchemy.SmallInteger)
+
+    def test_jsonb(self):
+        fn = inspect.stack()[0][3]
+
+        class SomeClass1(TableModel):
+            __tablename__ = "%s_%d" % (fn, 1)
+            i = Integer32(pk=True)
+            a = Any(store_as='json')
+
+        assert isinstance(SomeClass1.Attributes.sqla_table.c.a.type, PGJson)
+
+        class SomeClass2(TableModel):
+            __tablename__ = "%s_%d" % (fn, 2)
+            i = Integer32(pk=True)
+            a = Any(store_as='jsonb')
+
+        assert isinstance(SomeClass2.Attributes.sqla_table.c.a.type, PGJsonB)
+
+        class SomeClass3(TableModel):
+            __tablename__ = "%s_%d" % (fn, 3)
+            i = Integer32(pk=True)
+            a = File(store_as=HybridFileStore("path", db_format='jsonb'))
+
+        assert isinstance(SomeClass3.Attributes.sqla_table.c.a.type, PGFileJson)
+        assert SomeClass3.Attributes.sqla_table.c.a.type.dbt == 'jsonb'
+
+    def test_obj_json(self):
+        fn = inspect.stack()[0][3]
+
+        class SomeClass(ComplexModel):
+            s = Unicode
+            d = Double
+
+        class SomeClass1(TableModel):
+            __tablename__ = "%s_%d" % (fn, 1)
+            _type_info = [
+                ('i', Integer32(pk=True)),
+                ('a', Array(SomeClass, store_as='json')),
+            ]
+
+        assert isinstance(SomeClass1.Attributes.sqla_table.c.a.type,
+                                                                   PGObjectJson)
+
+        class SomeClass2(TableModel):
+            __tablename__ = "%s_%d" % (fn, 2)
+            i = Integer32(pk=True)
+            a = SomeClass.customize(store_as='json')
+
+        assert isinstance(SomeClass2.Attributes.sqla_table.c.a.type,
+                                                                   PGObjectJson)
 
 
 class TestSqlAlchemySchema(unittest.TestCase):
