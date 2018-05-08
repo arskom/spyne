@@ -93,4 +93,6 @@ def compile_fjson_firebird(type_, compiler, **kw):
 
 @compiles(INET, "firebird")
 def compile_inet_firebird(type_, compiler, **kw):
-    return "varchar(64)"
+    # http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/netinet_in.h.html
+    # INET6_ADDRSTRLEN
+    return "varchar(45)"
