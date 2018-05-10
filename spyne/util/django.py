@@ -185,7 +185,7 @@ class RelationMapper(BaseDjangoFieldMapper):
 
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model configured by related field."""
-        related_field = field.rel.get_related_field()
+        related_field = field.rel.get_related_field() if hasattr(field, 'rel') else field.remote_field.get_related_field()
         field_type = related_field.__class__.__name__
         field_mapper = self.django_model_mapper.get_field_mapper(field_type)
 
