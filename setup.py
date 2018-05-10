@@ -36,8 +36,8 @@ PYVER = ''.join([str(i) for i in sys.version_info[:2]])
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 
-SHORT_DESC="""A transport and architecture agnostic rpc library that focuses on
-exposing public services with a well-defined API."""
+SHORT_DESC="A transport and architecture agnostic rpc library that focuses on" \
+" exposing public services with a well-defined API."
 
 LONG_DESC = """Homepage: http://spyne.io
 
@@ -50,6 +50,7 @@ protocols and transports.
 try:
     os.stat('CHANGELOG.rst')
     LONG_DESC += u"\n\n" + open('CHANGELOG.rst', 'rb').read().decode('utf8')
+    print(LONG_DESC.encode('utf8'))
 except OSError:
     pass
 
