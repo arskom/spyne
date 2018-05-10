@@ -2,8 +2,8 @@
 Changelog
 =========
 
-spyne-2.13.0
-------------
+spyne-2.13.2-alpha
+------------------
 * ``ServiceBase`` is deprecated in favor of ``Service``. It's just a name change
   in order to make it consistent with the rest of the package. ServiceBase will
   be kept until Spyne 3.
