@@ -582,9 +582,9 @@ class InProtocolBase(ProtocolMixin):
             if six.PY2:
                 # FIXME: perhaps it should encode to string's encoding instead
                 # of utf8 all the time
-                if isinstance(dt_format, unicode):
+                if isinstance(dt_format, six.text_type):
                     dt_format = dt_format.encode('utf8')
-                if isinstance(string, unicode):
+                if isinstance(string, six.text_type):
                     string = string.encode('utf8')
 
             retval = datetime.strptime(string, dt_format)
