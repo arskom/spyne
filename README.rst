@@ -136,7 +136,7 @@ The official mailing list for both users and developers alike can be found at:
 http://lists.spyne.io/listinfo/people.
 
 You can also use the 'spyne' tag to ask questions on
-`Stack Overflow <http://stackoverflow.com>`_.
+`Stack Overflow <https://stackoverflow.com/questions/tagged/spyne>`_.
 
 Please don't use the issue tracker for asking questions. It's a database that
 holds the most important information for the project, so we must avoid
