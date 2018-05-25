@@ -21,17 +21,21 @@
 """The `spyne.util.xml` module contains various Xml and Xml Schema related
 utility functions.
 """
+from inspect import isgenerator
 
 from lxml import etree
 
 from os.path import dirname
 from os.path import abspath
 
+from spyne.context import FakeContext
 from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
 from spyne.interface.xml_schema.parser import XmlSchemaParser, Thier_repr, PARSER
+from spyne.protocol.cloth import XmlCloth
 
 from spyne.protocol.xml import XmlDocument
+from spyne.util.six import BytesIO
 
 
 class FakeApplication(object):
@@ -126,6 +130,40 @@ def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=False):
         etree.cleanup_namespaces(parent)
 
     return parent[0]
+
+
+def get_object_as_xml_cloth(inst, cls=None, no_namespace=False, encoding='utf8'):
+    """Returns an ElementTree representation of a
+    :class:`spyne.model.complex.ComplexModel` subclass.
+
+    :param inst: The instance of the class to be serialized.
+    :param cls: The class to be serialized. Optional.
+    :param root_tag_name: The root tag string to use. Defaults to the output of
+        ``value.__class__.get_type_name_ns()``.
+    :param no_namespace: When true, namespace information is discarded.
+    """
+
+    if cls is None:
+        cls = inst.__class__
+
+    if cls.get_namespace() is None and no_namespace is None:
+        no_namespace = True
+
+    if no_namespace is None:
+        no_namespace = False
+
+    ostr = BytesIO()
+    xml_cloth = XmlCloth(use_ns=(not no_namespace))
+    ctx = FakeContext()
+    with etree.xmlfile(ostr, encoding=encoding) as xf:
+        ctx.protocol.doctype_written = False
+        ctx.protocol.prot_stack = []
+        tn = cls.get_type_name()
+        ret = xml_cloth.subserialize(ctx, cls, inst, xf, tn)
+
+        assert not isgenerator(ret)
+
+    return ostr.getvalue()
 
 
 def get_xml_as_object(elt, cls):
