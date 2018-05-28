@@ -31,7 +31,7 @@ support `__getitem__` -- i.e. getting nth variable from the ordered dict.
 class odict(dict):
     """Sort of an ordered dictionary implementation."""
 
-    def __init__(self, data=[]):
+    def __init__(self, data=()):
         if isinstance(data, self.__class__):
             self.__list = list(data.__list)
             super(odict, self).__init__(data)
@@ -126,7 +126,7 @@ class odict(dict):
         self[k] = v
 
     def insert(self, index, item):
-        k,v = item
+        k, v = item
         if k in self:
             del self.__list[self.__list.index(k)]
         self.__list.insert(index, k)
