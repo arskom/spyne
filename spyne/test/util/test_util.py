@@ -18,7 +18,7 @@ from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.decorator import srpc
 from spyne.application import Application
 
-from spyne.model.complex import XmlAttribute
+from spyne.model.complex import XmlAttribute, TypeInfo
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.complex import Array
@@ -42,6 +42,37 @@ from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
 from spyne.util.xml import get_schema_documents
 from spyne.util.xml import get_validation_schema
+
+
+class TestTypeInfo(unittest.TestCase):
+    def test_insert(self):
+        d = TypeInfo()
+
+        d['a'] = 1
+        assert d[0] == d['a'] == 1
+
+        d.insert(0, ('b', 2))
+
+        assert d[1] == d['a'] == 1
+        assert d[0] == d['b'] == 2
+
+    def test_insert_existing(self):
+        d = TypeInfo()
+
+        d["a"] = 1
+        d["b"] = 2
+        assert d[1] == d['b'] == 2
+
+        d.insert(0, ('b', 3))
+        assert d[1] == d['a'] == 1
+        assert d[0] == d['b'] == 3
+
+    def test_update(self):
+        d = TypeInfo()
+        d["a"] = 1
+        d.update([('b', 2)])
+        assert d[0] == d['a'] == 1
+        assert d[1] == d['b'] == 2
 
 
 class TestXml(unittest.TestCase):
