@@ -350,7 +350,8 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
         if not isinstance(_type_info, TypeInfo):
             _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
-    _type_info.update(mixin)
+    for k, v in reversed(mixin.items()):
+        _type_info.insert(0, (k, v))
 
     return _type_info
 
