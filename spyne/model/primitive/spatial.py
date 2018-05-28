@@ -93,6 +93,11 @@ class Point(Unicode):
 
     @staticmethod
     def Value(x, y, prec=15):
+        if isinstance(x, str) or isinstance(y, str):
+            assert isinstance(x, str)
+            assert isinstance(y, str)
+            return 'POINT(%s %s)' % (x, y)
+
         return ('POINT(%%3.%(prec)sf %%3.%(prec)sf)' % {'prec': prec}) % (x,y)
 
     def __new__(cls, dim=None, **kwargs):
