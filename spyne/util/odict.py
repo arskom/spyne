@@ -96,11 +96,14 @@ class odict(dict):
     def keys(self):
         return self.__list
 
-    def update(self, data):
+    def update(self, data, **kwargs):
         if isinstance(data, (dict, odict)):
             data = data.items()
 
         for k, v in data:
+            self[k] = v
+
+        for k, v in kwargs.items():
             self[k] = v
 
     def values(self):
