@@ -1121,7 +1121,7 @@ class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
 
         t = self.metadata.tables[table_name]
         assert 'e' in t.c
-        assert t.c.e.type.enums == enums
+        assert tuple(t.c.e.type.enums) == enums
 
 
 if __name__ == '__main__':

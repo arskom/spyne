@@ -2,6 +2,11 @@
 Changelog
 =========
 
+spyne-2.13.3-alpha
+------------------
+* Add support for sqlalchemy-1.2
+
+
 spyne-2.13.2-alpha
 ------------------
 * ``ServiceBase`` is deprecated in favor of ``Service``. It's just a name change
