@@ -193,7 +193,7 @@ class TestPrimitive(unittest.TestCase):
 
     def test_date_format(self):
         t = datetime.date.today()
-        format = "%Y %m %d"
+        format = "%Y-%m-%d"
 
         element = etree.Element('test')
         XmlDocument().to_parent(None, Date(format=format), t, element, ns_test)
