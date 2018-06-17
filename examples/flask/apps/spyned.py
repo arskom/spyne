@@ -28,13 +28,9 @@
 #
 
 
-from spyne.application import Application
-from spyne.decorator import rpc
-from spyne.model.complex import Iterable
-from spyne.model.primitive import Integer, Unicode
+from spyne import Iterable, Integer, Unicode, rpc, Application, Service
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.json import JsonDocument
-from spyne.service import Service
 
 
 class HelloWorldService(Service):
@@ -51,9 +47,9 @@ class UserDefinedContext(object):
 
 
 def create_app(flask_app):
-    '''Creates SOAP services application and distribute Flask config into
+    """Creates SOAP services application and distribute Flask config into
     user con defined context for each method call.
-    '''
+    """
     application = Application(
         [HelloWorldService], 'spyne.examples.flask',
         # The input protocol is set as HttpRpc to make our service easy to call.
