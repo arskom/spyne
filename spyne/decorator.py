@@ -375,7 +375,7 @@ def rpc(*params, **kparams):
             _mtom = kparams.pop('_mtom', False)
             _in_header = kparams.pop('_in_header', None)
             _out_header = kparams.pop('_out_header', None)
-            _port_type = kparams.pop('_soap_port_type', None)
+            _port_type = kparams.pop('_port_type', None)
             _no_ctx = kparams.pop('_no_ctx', False)
             _aux = kparams.pop('_aux', None)
             _pattern = kparams.pop("_pattern", None)
