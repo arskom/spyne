@@ -52,14 +52,6 @@ from spyne.util.odict import odict
 from spyne.util.six import add_metaclass, with_metaclass, string_types
 
 
-def _is_under_pydev_debugger():
-    import inspect
-    for frame in inspect.stack():
-        if frame[1].endswith("pydevd.py"):
-            return True
-    return False
-
-
 def _get_flat_type_info(cls, retval):
     assert isinstance(retval, TypeInfo)
     parent = getattr(cls, '__extends__', None)
@@ -699,22 +691,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
     @classmethod
     def __prepare__(mcs, name, bases, **kwds):
         return odict()
-
-    #
-    #  pydev debugger seems to secretly manipulate class dictionaries without
-    # doing proper checks -- not always do a class with a metaclass with a
-    # __prepare__ has to have it. this code has a very specific workaround to
-    # make debugging under pydev for python 3.x work.
-    #
-    # see https://github.com/arskom/spyne/issues/432 for details
-    #
-    # this can be removed once pydev fixes secret calls to class dict's
-    # __delitem__
-    if _is_under_pydev_debugger():
-        @classmethod
-        def __prepare__(mcs, name, bases, **kwds):
-            return odict((('__class__', mcs),))
-        print("ComplexModelMeta.__prepare__ substitution for PyDev successful")
 
 
 _is_array = lambda v: issubclass(v, Array) or (v.Attributes.max_occurs > 1)

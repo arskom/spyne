@@ -74,9 +74,10 @@ class odict(dict):
 
     def __delitem__(self, key):
         if not isinstance(key, int):
+            super(odict, self).__delitem__(key)
             key = self.__list.index(key) # ouch.
-
-        super(odict, self).__delitem__(self.__list[key])
+        else:
+            super(odict, self).__delitem__(self.__list[key])
         del self.__list[key]
 
     def __add__(self, other):
