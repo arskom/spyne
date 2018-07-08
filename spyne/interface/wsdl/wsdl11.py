@@ -475,6 +475,7 @@ class Wsdl11(XmlSchema):
 
                 transport = SubElement(binding, WSDL11_SOAP("binding"))
                 transport.set('style', 'document')
+                transport.set('transport', self.interface.app.transport)
 
                 for m in service.public_methods.values():
                     if m.port_type == port_type_name:
