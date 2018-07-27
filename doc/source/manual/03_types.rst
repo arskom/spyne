@@ -55,7 +55,7 @@ valid email strings: ::
       __type_name__ = 'EmailString'
 
       class Attributes(Unicode.Attributes):
-          max_length = 128
+          max_len = 128
           pattern = '[^@]+@[^@]+'
 
 You must consult the reference of the type you want to customize in order to
@@ -65,7 +65,7 @@ As this is a quite verbose way of doing it, Spyne offers an in-line
 customization mechanism for every type: ::
 
     EmailString = Unicode.customize(
-        max_length=128,
+        max_len=128,
         pattern='[^@]+@[^@]+',
         type_name='EmailString',
     )
@@ -76,7 +76,7 @@ Here, ``type_name`` is a special argument name that gets assigned to
 Calling simple types directly is a shortcut to their customize method: ::
 
     EmailString = Unicode(
-        max_length=128,
+        max_len=128,
         pattern='[^@]+@[^@]+',
         type_name='EmailString',
     )
