@@ -897,7 +897,7 @@ class ComplexModelBase(ModelBase):
         """
 
         return dict((
-            (k, getattr(self, k)) for k in self.get_flat_type_info(self)
+            (k, getattr(self, k)) for k in self.get_flat_type_info(self.__class__)
             if getattr(self, k) is not None
         ))
 
