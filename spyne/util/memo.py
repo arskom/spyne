@@ -21,6 +21,9 @@
 
 When you have memory leaks in your daemon, the reason could very well be
 reckless usage of the tools here.
+
+These are NOT thread-safe. If you are relying on exactly-one-execution-per-key
+behavior in a multithreaded environment, roll your own stuff.
 """
 
 
@@ -73,6 +76,41 @@ class memoize(object):
 
     def reset(self):
         self.memo = {}
+
+
+def memoize_ignore(values):
+    """A memoization decorator that ignores values in the 'values' iterable. eg
+    let `values = (1, 2)` and `add = lambda x, y: x + y`, the result of
+    `add(1, 1)` is not memoized but the result of `add(5, 5)` is."""
+
+    class _memoize_ignored(memoize):
+        def __call__(self, *args, **kwargs):
+            key = self.get_key(args, kwargs)
+            if not key in self.memo:
+                value = self.func(*args, **kwargs)
+                if not value in values:
+                    self.memo[key] = value
+
+                return value
+            return self.memo.get(key)
+
+    return _memoize_ignored
+
+
+class memoize_ignore_none(memoize):
+    """A memoization decorator that ignores `None` values. ie when the decorated
+    function returns `None`, the value is returned but not memoized.
+    """
+
+    def __call__(self, *args, **kwargs):
+        key = self.get_key(args, kwargs)
+        if not key in self.memo:
+            value = self.func(*args, **kwargs)
+            if not (value is None):
+                self.memo[key] = value
+
+            return value
+        return self.memo.get(key)
 
 
 class memoize_id(memoize):
