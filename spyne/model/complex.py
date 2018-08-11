@@ -41,11 +41,11 @@ from spyne import const
 from spyne.const.xml import PREFMAP
 
 from spyne.model import Point, Unicode, PushBase, ModelBase
-from spyne.model import json, jsonb, xml, msgpack, table
 from spyne.model._base import PSSM_VALUES, apply_pssm
 from spyne.model.primitive import NATIVE_MAP
 
-from spyne.util import six, memoize, memoize_id, sanitize_args
+from spyne.util import six, memoize, memoize_id, sanitize_args, \
+    memoize_ignore_none
 from spyne.util.color import YEL
 from spyne.util.meta import Prepareable
 from spyne.util.odict import odict
@@ -978,7 +978,7 @@ class ComplexModelBase(ModelBase):
         return retval
 
     @staticmethod
-    @memoize
+    @memoize_ignore_none
     def get_flat_type_info(cls):
         """Returns a _type_info dict that includes members from all base
         classes.
