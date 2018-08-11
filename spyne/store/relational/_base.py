@@ -58,11 +58,11 @@ from spyne.model.enum import EnumBase
 from spyne.model.complex import XmlModifier
 
 # Config types
-from spyne.model.complex import xml as c_xml
-from spyne.model.complex import json as c_json
-from spyne.model.complex import jsonb as c_jsonb
-from spyne.model.complex import table as c_table
-from spyne.model.complex import msgpack as c_msgpack
+from spyne.model import xml as c_xml
+from spyne.model import json as c_json
+from spyne.model import jsonb as c_jsonb
+from spyne.model import table as c_table
+from spyne.model import msgpack as c_msgpack
 from spyne.model.binary import HybridFileStore
 
 # public types
