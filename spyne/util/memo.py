@@ -37,9 +37,9 @@ MEMOIZATION_STATS_LOG_INTERVAL = 60.0
 
 
 def _do_log():
-    logger.debug("%d memoizers", len(memoize.registry))
+    logger.info("%d memoizers", len(memoize.registry))
     for memo in memoize.registry:
-        logger.debug("%r: %d entries.", memo.func, len(memo.memo))
+        logger.info("%r: %d entries.", memo.func, len(memo.memo))
 
 
 def start_memoization_stats_logger():
