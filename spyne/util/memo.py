@@ -45,10 +45,14 @@ def _do_log():
 def start_memoization_stats_logger():
     import threading
 
+    logger.info("Enabling @memoize statistics every %d second(s).",
+                                                 MEMOIZATION_STATS_LOG_INTERVAL)
+
     _do_log()
 
     t = threading.Timer(MEMOIZATION_STATS_LOG_INTERVAL,
                                                  start_memoization_stats_logger)
+
     t.daemon = True
     t.start()
 
