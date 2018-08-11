@@ -51,6 +51,10 @@ from spyne.util.meta import Prepareable
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass, with_metaclass, string_types
 
+# FIXME: for backwards compatibility, to be removed in Spyne 3
+# noinspection PyUnresolvedReferences
+from spyne.model import json, jsonb, xml, msgpack, table
+
 
 def _get_flat_type_info(cls, retval):
     assert isinstance(retval, TypeInfo)
