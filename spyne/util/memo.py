@@ -34,22 +34,38 @@ logger = logging.getLogger(__name__)
 MEMOIZATION_STATS_LOG_INTERVAL = 60.0
 
 
-def _do_log():
+def _log_all():
     logger.info("%d memoizers", len(memoize.registry))
     for memo in memoize.registry:
         logger.info("%r: %d entries.", memo.func, len(memo.memo))
 
 
-def start_memoization_stats_logger():
+def _log_func(func):
+    for memo in memoize.registry:
+        if memo.func is func.func.im_self.func:
+            break
+    else:
+        logger.error("%r not found in memoization regisry", func)
+        return
+
+    logger.info("%r: %d entries.", memo.func, len(memo.memo))
+    for k, v in memo.memo.items():
+        logger.info("\t%r: %r", k, v)
+
+
+def start_memoization_stats_logger(func=None):
     import threading
 
     logger.info("Enabling @memoize statistics every %d second(s).",
                                                  MEMOIZATION_STATS_LOG_INTERVAL)
 
-    _do_log()
+    if func is None:
+        _log_all()
+    else:
+        _log_func(func)
 
     t = threading.Timer(MEMOIZATION_STATS_LOG_INTERVAL,
-                                                 start_memoization_stats_logger)
+                                        start_memoization_stats_logger, (func,))
 
     t.daemon = True
     t.start()
