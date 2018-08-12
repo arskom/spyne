@@ -30,8 +30,6 @@ behavior in a multithreaded environment, roll your own stuff.
 import logging
 logger = logging.getLogger(__name__)
 
-import functools
-
 
 MEMOIZATION_STATS_LOG_INTERVAL = 60.0
 
@@ -124,14 +122,3 @@ class memoize_id(memoize):
     def get_key(self, args, kwargs):
         return tuple([id(a) for a in args]), \
                                   tuple([(k, id(v)) for k, v in kwargs.items()])
-
-
-class memoize_id_method(memoize_id):
-    """A memoization decorator that keeps caching until reset for unhashable
-    types on instance methods. It works on id()'s of objects instead."""
-
-    def __get__(self, obj, objtype):
-        """Support instance methods."""
-        fn = functools.partial(self.__call__, obj)
-        fn.reset = self.reset
-        return fn
