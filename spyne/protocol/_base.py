@@ -29,7 +29,7 @@ from spyne import ProtocolContext, EventManager
 from spyne.const import DEFAULT_LOCALE
 from spyne.model import Array
 from spyne.error import ResourceNotFoundError
-from spyne.util import DefaultAttrDict, memoize_id_method
+from spyne.util import DefaultAttrDict
 from spyne.util.six import string_types
 
 

@@ -34,7 +34,6 @@ from spyne.util.memo import memoize
 from spyne.util.memo import memoize_ignore
 from spyne.util.memo import memoize_ignore_none
 from spyne.util.memo import memoize_id
-from spyne.util.memo import memoize_id_method
 
 from spyne.util.attrdict import AttrDict
 from spyne.util.attrdict import AttrDictColl
