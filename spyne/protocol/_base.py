@@ -70,6 +70,7 @@ class ProtocolMixin(object):
             self.mime_type = mime_type
 
         self._attrcache = WeakKeyDictionary()
+        self._sortcache = WeakKeyDictionary()
 
     def _cast(self, cls_attrs, inst):
         if cls_attrs.cast is not None:
@@ -371,8 +372,11 @@ class ProtocolMixin(object):
 
         return trdict.get(locale, default)
 
-    @memoize_id_method
     def sort_fields(self, cls=None, items=None):
+        retval = self._sortcache.get(cls, None)
+        if retval is not None:
+            return retval
+
         if items is None:
             items = list(cls.get_flat_type_info(cls).items())
 
@@ -391,6 +395,8 @@ class ProtocolMixin(object):
                 indexes[k] = len(indexes)
 
         items.sort(key=lambda x: indexes[x[0]])
+        self._sortcache[cls] = items
+
         return items
 
 
