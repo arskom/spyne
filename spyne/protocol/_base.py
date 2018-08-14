@@ -397,6 +397,8 @@ class ProtocolMixin(object):
         items.sort(key=lambda x: indexes[x[0]])
         self._sortcache[cls] = items
 
+        logger.info("len(sortcache)=%d", len(self._sortcache))
+
         return items
 
 
