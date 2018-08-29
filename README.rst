@@ -50,9 +50,9 @@ Python version
 
 First things first: Spyne is known to fully work on Python versions 2.6 and 2.7.
 However Spyne's Soap (and all of its subcomponents like XmlDocument, Wsdl, etc.)
-subsystem also works on Python 3.3 and up. You can track the Python 3 porting
+subsystem also works on Python 3.4 and up. You can track the Python 3 porting
 progress from our jenkins deployment, here:
-https://spyne.ci.cloudbees.com/job/spyne/PYFLAV=3.3/
+https://jenkins.arskom.com.tr/job/spyne/
 
 The only hard requirement is `pytz <http://pytz.sourceforge.net/>`_ which is
 available via PyPi.
@@ -148,21 +148,3 @@ Contributing
 If you feel like helping out, see the CONTRIBUTING.rst file in the Spyne source
 distribution for starting points and general guidelines.
 
-Acknowledgments
-===============
-
-.. image:: http://spyne.io/images/logo_pycharm.svg
-        :width: 400 px
-        :target: http://www.jetbrains.com/pycharm/
-
-Spyne committers get a free license for PyCharm Professional Edition, courtesy
-of JetBrains.
-
-.. image:: http://www.cloudbees.com/sites/default/files/Button-Built-on-CB-1.png
-        :target: https://spyne.ci.cloudbees.com/
-
-CloudBees generously hosts our Jenkins installation and gives us a ton of
-compute time for free.
-
-
-Thanks a lot guys!..
