@@ -111,7 +111,6 @@ def run_tests_and_create_report(report_name, *tests, **kwargs):
 
     args = [
         '--verbose',
-        '--twisted',
         '--cov-report=', '--cov', 'spyne',
         '--cov-append',
         '--tb=short',
@@ -150,7 +149,6 @@ def call_pytest_subprocess(*tests, **kwargs):
 
     args = [
         '--verbose',
-        '--twisted',
         '--cov-append',
         '--cov-report=',
         '--cov', 'spyne',
