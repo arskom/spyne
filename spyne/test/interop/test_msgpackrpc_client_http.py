@@ -21,14 +21,15 @@ import unittest
 
 from spyne.client.http import HttpClient
 from spyne.test.interop._test_soap_client_base import SpyneClientTestBase
-from spyne.test.interop.server.msgpackrpc_http_basic import msgpackrpc_application
+from spyne.test.interop.server.msgpackrpc_http_basic import msgpackrpc_application, port
 from spyne.util.etreeconv import root_dict_to_etree
 
 class TestSpyneHttpClient(SpyneClientTestBase, unittest.TestCase):
     def setUp(self):
         SpyneClientTestBase.setUp(self, 'msgpack_rpc_http')
 
-        self.client = HttpClient('http://localhost:9754/', msgpackrpc_application)
+        self.client = HttpClient('http://localhost:%d/' % port[0],
+                                                         msgpackrpc_application)
         self.ns = "spyne.test.interop.server"
 
     @unittest.skip("MessagePackRpc does not support header")

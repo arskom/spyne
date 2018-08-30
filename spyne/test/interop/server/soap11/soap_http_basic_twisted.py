@@ -22,11 +22,14 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('spyne.wsgi')
 logger.setLevel(logging.DEBUG)
 
+from spyne.test.interop.server import get_open_port
 from spyne.test.interop.server.soap_http_basic import soap11_application
 from spyne.server.twisted import TwistedWebResource
 
+
 host = '127.0.0.1'
-port = 9755
+port = [0]
+
 
 def main(argv):
     from twisted.web.server import Site
@@ -39,8 +42,10 @@ def main(argv):
     wr = TwistedWebResource(soap11_application)
     site = Site(wr)
 
-    reactor.listenTCP(port, site)
-    logging.info("listening on: %s:%d" % (host,port))
+    if port[0] == 0:
+        port[0] = get_open_port()
+    reactor.listenTCP(port[0], site)
+    logging.info("listening on: %s:%d" % (host,port[0]))
 
     return reactor.run()
 
