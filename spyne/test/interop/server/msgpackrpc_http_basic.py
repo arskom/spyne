@@ -22,6 +22,7 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.protocol.msgpack').setLevel(logging.DEBUG)
 logger = logging.getLogger('spyne.test.interop.server.msgpackrpc_http_basic')
 
+from spyne.test.interop.server import get_open_port
 from spyne.server.wsgi import WsgiApplication
 from spyne.test.interop.server._service import services
 from spyne.application import Application
@@ -32,17 +33,19 @@ msgpackrpc_application = Application(services, 'spyne.test.interop.server',
                  out_protocol=MessagePackRpc())
 
 host = '127.0.0.1'
-port = 9754
+port = [0]
 
 def main():
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
+        if port[0] == 0:
+            port[0] = get_open_port()
 
         wsgi_application = WsgiApplication(msgpackrpc_application)
-        server = make_server(host, port, validator(wsgi_application))
+        server = make_server(host, port[0], validator(wsgi_application))
 
-        logger.info('Starting interop server at %s:%s.' % (host, port))
+        logger.info('Starting interop server at %s:%s.' % (host, port[0]))
         logger.info('WSDL is at: /?wsdl')
         server.serve_forever()
 

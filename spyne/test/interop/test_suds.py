@@ -33,7 +33,8 @@ from suds import WebFault
 
 from spyne.util import six
 
-from spyne.test.interop._test_soap_client_base import SpyneClientTestBase
+from spyne.test.interop._test_soap_client_base import SpyneClientTestBase, \
+    server_started
 
 
 class LastReceivedPlugin(MessagePlugin):
@@ -46,7 +47,10 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def setUp(self):
         SpyneClientTestBase.setUp(self, 'http')
 
-        self.client = Client("http://localhost:9754/?wsdl", cache=None, plugins=[LastReceivedPlugin()])
+        port, = server_started.keys()
+
+        self.client = Client("http://localhost:%d/?wsdl" % port, cache=None,
+                                                 plugins=[LastReceivedPlugin()])
         self.ns = "spyne.test.interop.server"
 
     def test_echo_datetime(self):
@@ -418,6 +422,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         ret = self.client.service.echo_complex_bare(ia)
 
         assert ret == val
+
 
 if __name__ == '__main__':
     unittest.main()

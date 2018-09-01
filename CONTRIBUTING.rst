@@ -1,3 +1,12 @@
+First things first: No questions in the issue tracker please. Spyne
+maintainers answer questions in the Spyne mailing list
+( https://lists.spyne.io/lists/people ) or StackOverflow questions
+tagged ``[spyne]`` (https://stackoverflow.com/questions/tagged/spyne).
+Questions filed in the issue tracker get closed without being looked at.
+
+If you are not here to ask a question, please read on.
+
+--------------------------------
 
 Hey there! Thanks a lot for considering to contribute to Spyne! Here are some
 things you might want to know.
@@ -15,11 +24,10 @@ However, if:
 - You are fixing a bug in Spyne
 - Your code is tightly coupled with Spyne (i.e. it's using private APIs,
   needs monkey-patching to work outside of Spyne, etc.)
-- You are adding a new feature to a partly-finished part of spyne (E.g. the Xml
-  Schema support)
+- You are adding a new feature to a partly-finished part of Spyne
 - You are not sure
 
-just send a pull request and we will talk.
+... just send a pull request and we will talk.
 
 Spyne development guidelines
 ============================
@@ -56,11 +64,11 @@ They are, in no particular order:
                         long_yet_informative_names, which_makes_the_code,
                               a_pleasure_to_read, yet_sometimes_a_pain_to_write)
 
-    where the rightmost character is ALWAYS on the 80th column.
+    where the rightmost character of the last line is ALWAYS on the 80th column.
 
 -   Every module starts with:
 
-     1. Hashbang line (if executable)
+     1. Hashbang line (only if executable)
      2. ``# encoding: utf8`` line or empty line.
      3. Spyne license header. Leading and trailing lines with just ``#`` in them
         look nice.
@@ -77,8 +85,8 @@ They are, in no particular order:
      6. Preferred order for import statements is as follows:
 
         - stdlib absolute imports
-        - stdlib relative imports
         - other absolute imports (grouped by package)
+        - stdlib relative imports
         - other relative imports (grouped by package)
 
 -   When in doubt, follow `PEP 8 <http://www.python.org/dev/peps/pep-0008/>`_

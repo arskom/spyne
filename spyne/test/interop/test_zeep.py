@@ -18,6 +18,7 @@
 #
 import logging
 
+
 zeep_logger = logging.getLogger('zeep')
 zeep_logger.setLevel(logging.INFO)
 
@@ -26,6 +27,7 @@ import unittest
 from datetime import datetime
 from base64 import b64encode, b64decode
 
+from spyne.test.interop._test_soap_client_base import server_started
 from spyne.util import six
 
 from zeep import Client
@@ -38,8 +40,11 @@ class TestZeep(unittest.TestCase):
         from spyne.test.interop._test_soap_client_base import run_server
         run_server('http')
 
+        port, = server_started.keys()
+
         transport = Transport(cache=False)
-        self.client = Client("http://localhost:9754/?wsdl", transport=transport)
+        self.client = Client("http://localhost:%d/?wsdl" % port,
+                                                            transport=transport)
         self.ns = "spyne.test.interop.server"
 
     def get_inst(self, what):

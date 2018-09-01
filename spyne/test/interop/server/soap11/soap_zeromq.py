@@ -19,15 +19,20 @@
 
 import logging
 
+from spyne.test.interop.server import get_open_port
 from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
 
 from spyne.server.zeromq import ZeroMQServer
 
+
 host = '127.0.0.1'
-port = 55555
+port = [0]
+
 
 def main():
-    url = "tcp://%s:%d" % (host,port)
+    if port[0] == 0:
+        port[0] = get_open_port()
+    url = "tcp://%s:%d" % (host, port[0])
 
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
@@ -41,6 +46,7 @@ def main():
     logging.info("************************")
 
     server.serve_forever()
+
 
 if __name__ == '__main__':
     main()
