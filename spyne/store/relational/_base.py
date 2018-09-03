@@ -212,6 +212,8 @@ def _get_sqlalchemy_type(cls):
 
     if issubclass(cls, (Any, AnyDict)):
         sa = cls.Attributes.store_as
+        if sa is None:
+            return None
         if isinstance(sa, c_json):
             return PGJson
         if isinstance(sa, c_jsonb):
