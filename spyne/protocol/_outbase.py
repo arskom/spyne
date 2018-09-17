@@ -511,6 +511,9 @@ class OutProtocolBase(ProtocolMixin):
 
             assert False, "Unhandled file type"
 
+        if value is None:
+            return b''
+
         return binary_encoding_handlers[encoding](value)
 
     def file_to_unicode(self, cls, value, suggested_encoding=None):
