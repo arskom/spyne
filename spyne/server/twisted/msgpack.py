@@ -390,6 +390,7 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
 
     except Exception as e:
         logger.exception(e)
+        logger.error("%r", p_ctx)
         prot.handle_error(p_ctx, others, InternalError(e))
 
     finally:
