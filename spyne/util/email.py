@@ -36,7 +36,7 @@ from email.mime.text import MIMEText
 from spyne.util import six
 
 
-def email_exception(exception_address, message=""):
+def email_exception(exception_address, message="", bcc=None):
     # http://stackoverflow.com/questions/1095601/find-module-name-of-the-originating-exception-in-python
     frm = inspect.trace()[-1]
     mod = inspect.getmodule(frm[0])
@@ -44,6 +44,8 @@ def email_exception(exception_address, message=""):
 
     sender = 'robot@spyne.io'
     receivers = [exception_address]
+    if bcc is not None:
+        recipients.extend(bcc)
 
     error_str = ("%s\n\n%s" % (message, traceback.format_exc()))
     msg = MIMEText(error_str.encode('utf8'), 'plain', 'utf8')
@@ -84,7 +86,7 @@ def email_text_smtp(addresses, sender=None, subject='', message="",
     logger.info("Text email sent to: %r.", addresses)
 
 
-def email_text(addresses, sender=None, subject='', message=""):
+def email_text(addresses, sender=None, subject='', message="", bcc=None):
     sender = 'robot@spyne.io'
     receivers = addresses
 
@@ -102,6 +104,8 @@ def email_text(addresses, sender=None, subject='', message=""):
 
     cmd = ["/usr/sbin/sendmail", "-oi", '--']
     cmd.extend(receivers)
+    if bcc is not None:
+        cmd.extend(bcc)
 
     p = Popen(cmd, stdin=PIPE)
     if six.PY2:
