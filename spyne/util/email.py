@@ -43,7 +43,7 @@ def email_exception(exception_address, message="", bcc=None):
     module_name = mod.__name__ if mod else frm[1]
 
     sender = 'robot@spyne.io'
-    receivers = [exception_address]
+    recipients = [exception_address]
     if bcc is not None:
         recipients.extend(bcc)
 
@@ -56,7 +56,7 @@ def email_exception(exception_address, message="", bcc=None):
 
     try:
         smtp_object = smtplib.SMTP('localhost')
-        smtp_object.sendmail(sender, receivers, msg.as_string())
+        smtp_object.sendmail(sender, recipients, msg.as_string())
         logger.error("Error email sent")
 
     except Exception as e:
@@ -67,7 +67,6 @@ def email_exception(exception_address, message="", bcc=None):
 def email_text_smtp(addresses, sender=None, subject='', message="",
                                                      host='localhost', port=25):
     sender = 'robot@spyne.io'
-    receivers = addresses
 
     if sender is None:
         sender = 'Spyne <robot@spyne.io>'
@@ -88,8 +87,6 @@ def email_text_smtp(addresses, sender=None, subject='', message="",
 
 def email_text(addresses, sender=None, subject='', message="", bcc=None):
     sender = 'robot@spyne.io'
-    receivers = addresses
-
     if sender is None:
         sender = 'Spyne <robot@spyne.io>'
 
@@ -103,7 +100,7 @@ def email_text(addresses, sender=None, subject='', message="", bcc=None):
     msg['Subject'] = subject
 
     cmd = ["/usr/sbin/sendmail", "-oi", '--']
-    cmd.extend(receivers)
+    cmd.extend(addresses)
     if bcc is not None:
         cmd.extend(bcc)
 
