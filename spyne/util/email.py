@@ -81,8 +81,7 @@ def email_text_smtp(addresses, sender=None, subject='', message="",
 
     smtp_object = smtplib.SMTP(host, port)
     smtp_object.sendmail(sender, receivers, msg.as_string())
-    logger.info("Text email sent to: %r. Text: %s " % (addresses,
-                                              message[100:].replace('\n', ' ')))
+    logger.info("Text email sent to: %r.", addresses)
 
 
 def email_text(addresses, sender=None, subject='', message=""):
@@ -110,5 +109,4 @@ def email_text(addresses, sender=None, subject='', message=""):
     else:
         p.communicate(msg.as_bytes())
 
-    logger.info("Text email sent to: %r. Text: %s" % (addresses,
-                                              message[100:].replace('\n', ' ')))
+    logger.info("Text email sent to: %r.", addresses)
