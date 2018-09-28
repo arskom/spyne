@@ -28,8 +28,12 @@ import traceback
 import smtplib
 
 from socket import gethostname
+from subprocess import Popen, PIPE
+
 from email.utils import COMMASPACE, formatdate
 from email.mime.text import MIMEText
+
+from spyne.util import six
 
 
 def email_exception(exception_address, message=""):
@@ -58,6 +62,29 @@ def email_exception(exception_address, message=""):
         logger.exception(e)
 
 
+def email_text_smtp(addresses, sender=None, subject='', message="",
+                                                     host='localhost', port=25):
+    sender = 'robot@spyne.io'
+    receivers = addresses
+
+    if sender is None:
+        sender = 'Spyne <robot@spyne.io>'
+
+    exc = traceback.format_exc()
+    if exc is not None:
+        message = (u"%s\n\n%s" % (message, exc))
+    msg = MIMEText(message.encode('utf8'), 'plain', 'utf8')
+    msg['To'] = COMMASPACE.join(addresses)
+    msg['From'] = sender
+    msg['Date'] = formatdate()
+    msg['Subject'] = subject
+
+    smtp_object = smtplib.SMTP(host, port)
+    smtp_object.sendmail(sender, receivers, msg.as_string())
+    logger.info("Text email sent to: %r. Text: %s " % (addresses,
+                                              message[100:].replace('\n', ' ')))
+
+
 def email_text(addresses, sender=None, subject='', message=""):
     sender = 'robot@spyne.io'
     receivers = addresses
@@ -74,7 +101,14 @@ def email_text(addresses, sender=None, subject='', message=""):
     msg['Date'] = formatdate()
     msg['Subject'] = subject
 
-    smtp_object = smtplib.SMTP('localhost')
-    smtp_object.sendmail(sender, receivers, msg.as_string())
-    logger.info("Text email sent to: %r. Text: %s " % (addresses,
+    cmd = ["/usr/sbin/sendmail", "-oi", '--']
+    cmd.extend(receivers)
+
+    p = Popen(cmd, stdin=PIPE)
+    if six.PY2:
+        p.communicate(msg.as_string())
+    else:
+        p.communicate(msg.as_bytes())
+
+    logger.info("Text email sent to: %r. Text: %s" % (addresses,
                                               message[100:].replace('\n', ' ')))
