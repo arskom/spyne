@@ -81,7 +81,10 @@ def email_text_smtp(addresses, sender=None, subject='', message="",
     msg['Subject'] = subject
 
     smtp_object = smtplib.SMTP(host, port)
-    smtp_object.sendmail(sender, receivers, msg.as_string())
+    if six.PY2:
+        smtp_object.sendmail(sender, addresses, msg.as_string())
+    else:
+        smtp_object.sendmail(sender, addresses, msg.as_bytes())
     logger.info("Text email sent to: %r.", addresses)
 
 
