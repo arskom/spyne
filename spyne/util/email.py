@@ -66,8 +66,6 @@ def email_exception(exception_address, message="", bcc=None):
 
 def email_text_smtp(addresses, sender=None, subject='', message="",
                                                      host='localhost', port=25):
-    sender = 'robot@spyne.io'
-
     if sender is None:
         sender = 'Spyne <robot@spyne.io>'
 
@@ -89,7 +87,6 @@ def email_text_smtp(addresses, sender=None, subject='', message="",
 
 
 def email_text(addresses, sender=None, subject='', message="", bcc=None):
-    sender = 'robot@spyne.io'
     if sender is None:
         sender = 'Spyne <robot@spyne.io>'
 
