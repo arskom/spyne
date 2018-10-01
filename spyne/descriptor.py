@@ -44,7 +44,7 @@ class MethodDescriptor(object):
                  parent_class, port_type, no_ctx, udd, class_key, aux, patterns,
                  body_style, args, operation_name, no_self, translations,
                  when, static_when, service_class, href, internal_key_suffix,
-                 default_on_null, event_managers):
+                 default_on_null, event_managers, logged):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -178,6 +178,9 @@ class MethodDescriptor(object):
 
         self.event_managers = event_managers
         """Event managers registered with this method."""
+
+        self.logged = logged
+        """Denotes the logging style for this method."""
 
         if self.service_class is not None:
             self.event_managers.append(self.service_class.event_manager)

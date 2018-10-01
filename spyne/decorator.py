@@ -346,6 +346,8 @@ def rpc(*params, **kparams):
         instances. This is useful for adding additional event handlers to
         individual functions.
     :param _event_manager: An instance of :class:`spyne.EventManager` class.
+    :param _logged: May be the string '...' to denote that the rpc arguments
+        will not be logged.
     :param _evmgrs: Same as ``_event_managers``.
     :param _evmgr: Same as ``_event_manager``.
     :param _service_class: A :class:`Service` subclass. It's generally not a good idea
@@ -385,6 +387,7 @@ def rpc(*params, **kparams):
             _when = kparams.pop("_when", None)
             _static_when = kparams.pop("_static_when", None)
             _href = kparams.pop("_href", None)
+            _logged = kparams.pop("_logged", True)
             _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
             if '_service' in kparams and '_service_class' in kparams:
                 raise LogicError("Please pass only one of '_service' and "
@@ -470,6 +473,10 @@ def rpc(*params, **kparams):
             out_message = _produce_output_message(function_name,
                        body_style_str, _self_ref_replacement, _no_self, kparams)
 
+            if _logged != True:
+                in_message.Attributes.logged = _logged
+                out_message.Attributes.logged = _logged
+
             doc = getattr(f, '__doc__')
 
             if _pattern is not None and _patterns != []:
@@ -507,6 +514,7 @@ def rpc(*params, **kparams):
                 internal_key_suffix=_internal_key_suffix,
                 default_on_null=_default_on_null,
                 event_managers=_event_managers,
+                logged=_logged,
             )
 
             if _patterns is not None and _no_self:
