@@ -98,6 +98,10 @@ class Choice(SchemaBase):
     elements = Element.customize(max_occurs="unbounded", sub_name="element")
 
 
+class All(SchemaBase):
+    elements = Element.customize(max_occurs="unbounded", sub_name="element")
+
+
 class Sequence(SchemaBase):
     elements = Element.customize(max_occurs="unbounded", sub_name="element")
     choices = Choice.customize(max_occurs="unbounded", sub_name="choice")
@@ -121,6 +125,7 @@ class ComplexType(SchemaBase):
     attributes = Attribute.customize(max_occurs="unbounded",
                                                         sub_name="attribute")
     choice = Choice
+    all = All
 
 
 class Include(SchemaBase):

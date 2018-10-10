@@ -369,7 +369,12 @@ class ModelBase(object):
 
         xml_choice_group = None
         """When not None, shares the same <choice> tag with fields with the same
-        xml_choice_group value.
+        xml_choice_group value. Cannot be used in conjunction with xml_all_group.
+        """
+
+        xml_all_group = None
+        """When not None, shares the same <all> tag with fields with the same
+        xml_all_group value. Cannot be used in conjunction with xml_choice_group.
         """
 
         index = None

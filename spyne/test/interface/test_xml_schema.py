@@ -77,6 +77,89 @@ class TestXmlSchema(unittest.TestCase):
                     '/xs:sequence/xs:choice/xs:element[@name="one"]',
             namespaces={'xs': NS_XSD})) > 0
 
+    def test_all_tag(self):
+        class SomeObject(ComplexModel):
+            __namespace__ = "flag_ns"
+
+            usa = Boolean(xml_all_group="flags")
+            can = Boolean(xml_all_group="flags")
+            ident = Unicode
+
+        class SomeService(Service):
+            @rpc(_returns=SomeObject)
+            def wooo(ctx):
+                return SomeObject()
+
+        Application([SomeService],
+            tns='flag.ns',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+
+        docs = get_schema_documents([SomeObject])
+        doc = docs['tns']
+        print(etree.tostring(doc, pretty_print=True))
+        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
+                                   '/xs:sequence/xs:element[@name="ident"]',
+            namespaces={'xs': NS_XSD})) > 0
+        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
+                    '/xs:any/xs:element[@name="usa"]',
+            namespaces={'xs': NS_XSD})) == 0
+
+    def test_all_tag2(self):
+        class SomeObject(ComplexModel):
+            __namespace__ = "flag_ns"
+
+            ident = Unicode
+            usa = Boolean(xml_all_group="flags")
+            can = Boolean(xml_all_group="flags")
+
+        class SomeService(Service):
+            @rpc(_returns=SomeObject)
+            def wooo(ctx):
+                return SomeObject()
+
+        Application([SomeService],
+            tns='flag.ns',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+
+        docs = get_schema_documents([SomeObject])
+        doc = docs['tns']
+        print(etree.tostring(doc, pretty_print=True))
+        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
+                                   '/xs:sequence/xs:element[@name="ident"]',
+            namespaces={'xs': NS_XSD})) > 0
+        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
+                    '/xs:any/xs:element[@name="usa"]',
+            namespaces={'xs': NS_XSD})) == 0
+
+    def test_all_tag3(self):
+        class SomeObject(ComplexModel):
+            __namespace__ = "flag_ns"
+
+            usa = Boolean(xml_all_group="flags")
+            can = Boolean(xml_all_group="flags")
+
+        class SomeService(Service):
+            @rpc(_returns=SomeObject)
+            def wooo(ctx):
+                return SomeObject()
+
+        Application([SomeService],
+            tns='flag.ns',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+
+        docs = get_schema_documents([SomeObject])
+        doc = docs['tns']
+        print(etree.tostring(doc, pretty_print=True))
+        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
+                    '/xs:any/xs:element[@name="usa"]',
+            namespaces={'xs': NS_XSD})) > 0
+
     def test_customized_class_with_empty_subclass(self):
         class SummaryStatsOfDouble(ComplexModel):
             _type_info = [('Min', XmlAttribute(Integer, use='required')),

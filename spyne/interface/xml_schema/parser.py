@@ -478,6 +478,11 @@ class XmlSchemaParser(object):
                         for e in ch.elements:
                             process_element(e)
 
+        if c.all is not None:
+            if c.all.elements is not None:
+                for e in c.all.elements:
+                    process_element(e)
+
         if c.choice is not None:
             if c.choice.elements is not None:
                 for e in c.choice.elements:
