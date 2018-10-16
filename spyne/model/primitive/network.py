@@ -145,7 +145,7 @@ class IpAddress(_IpAddressBase):
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'addr_ip'
 
-    class Attributes(_Ipv6Base.Attributes):
+    class Attributes(_IpAddressBase.Attributes):
         serialize_as = None
 
     @staticmethod
