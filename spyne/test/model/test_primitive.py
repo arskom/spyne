@@ -382,7 +382,6 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(value, i)
 
     def test_integer_limits(self):
-        i = 12
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
 
@@ -409,21 +408,17 @@ class TestPrimitive(unittest.TestCase):
 
         try:
             Integer16(ge=32768)
-
-
-    def test_limits(self):
-        try:
-            ProtocolBase() \
-                      .from_string(Integer, "1" * (Integer.__max_str_len__ + 1))
-        except:
+        except ValueError:
             pass
         else:
-            raise Exception("must fail.")
+            raise Exception("must fail")
 
-        ProtocolBase().from_string(UnsignedInteger, "-1")
-                                                 # This is not supposed to fail.
-
-        assert not UnsignedInteger.validate_native(UnsignedInteger, -1)
+        try:
+            Integer16(lt=-32768)
+        except ValueError:
+            pass
+        else:
+            raise Exception("must fail")
 
     def test_large_integer(self):
         i = 128375873458473
