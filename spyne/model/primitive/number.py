@@ -97,23 +97,32 @@ class Decimal(SimpleModel):
             kwargs['fraction_digits'] = 0
             if len(args) == 2 and args[1] is not None:
                 kwargs['fraction_digits'] = args[1]
-                assert args[0] > 0, "'total_digits' must be positive."
-                assert args[1] <= args[0], "'total_digits' must be greater than" \
-                                          " or equal to 'fraction_digits'." \
-                                          " %r ! <= %r" % (args[1], args[0])
-
-            # + 1 for decimal separator
-            # + 1 for negative sign
-            msl = kwargs.get('max_str_len', None)
-            if msl is None:
-                kwargs['max_str_len'] = (cls.Attributes.total_digits +
-                                             cls.Attributes.fraction_digits + 2)
-            else:
-                kwargs['max_str_len'] = msl
 
         retval = SimpleModel.__new__(cls,  ** kwargs)
 
         return retval
+
+    @classmethod
+    def _s_customize(cls, **kwargs):
+        td = kwargs.get('total_digits', None)
+        fd = kwargs.get('fraction_digits', None)
+        if td is not None and fd is not None:
+            assert td > 0, "'total_digits' must be positive."
+            assert fd <= td, \
+                "'total_digits' must be greater than" \
+                                       " or equal to 'fraction_digits'." \
+                                                        " %r ! <= %r" % (fd, td)
+
+        # + 1 for decimal separator
+        # + 1 for negative sign
+        msl = kwargs.get('max_str_len', None)
+        if msl is None:
+            kwargs['max_str_len'] = (cls.Attributes.total_digits +
+                                     cls.Attributes.fraction_digits + 2)
+        else:
+            kwargs['max_str_len'] = msl
+
+        return super(Decimal, cls)._s_customize(**kwargs)
 
     @staticmethod
     def is_default(cls):
