@@ -34,14 +34,15 @@ from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
 from spyne.util.six import BytesIO
 from spyne.util.color import R, B
+from spyne.util.tlist import tlist
 
 
 class XmlClothProtocolContext(ProtocolContext):
     def __init__(self, parent, transport, type=None):
         super(XmlClothProtocolContext, self).__init__(parent, transport, type)
 
-        self.inst_stack = []
-        self.prot_stack = []
+        self.inst_stack = tlist([], tuple)
+        self.prot_stack = tlist([], tuple)
         self.doctype_written = False
 
 
