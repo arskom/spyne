@@ -54,7 +54,7 @@ def TS3():
             return string
 
         @rpc(String, _port_type='bobhope', _returns=String)
-        def echo_bob_hope(self,  string):
+        def echo_bob_hope(self, string):
             return 'Bob Hope'
 
     return S3

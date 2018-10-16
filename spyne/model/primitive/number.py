@@ -102,7 +102,7 @@ class Decimal(SimpleModel):
             if len(args) == 2 and args[1] is not None:
                 kwargs['fraction_digits'] = args[1]
 
-        retval = SimpleModel.__new__(cls,  **kwargs)
+        retval = SimpleModel.__new__(cls, **kwargs)
 
         return retval
 
