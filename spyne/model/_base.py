@@ -204,7 +204,7 @@ class ModelBaseMeta(type(object)):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
-        cls_name, cls_bases, cls_dict = ModelBase._s_customize(self, **kwargs)
+        cls_name, cls_bases, cls_dict = self._s_customize(**kwargs)
 
         return type(cls_name, cls_bases, cls_dict)
 
@@ -586,12 +586,10 @@ class ModelBase(object):
         else:
             return ''
 
-    @staticmethod
+    @classmethod
     def _s_customize(cls, **kwargs):
-        """This function duplicates and customizes the class it belongs to. The
-        original class remains unchanged.
-
-        Not meant to be overridden.
+        """Sanitizes customization parameters of the class it belongs to.
+        Doesn't perform any actual customization.
         """
 
         def _log_debug(s, *args):
@@ -807,7 +805,7 @@ class SimpleModel(ModelBase):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
-        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+        cls_name, cls_bases, cls_dict = cls._s_customize(**kwargs)
 
         retval = type(cls_name, cls_bases, cls_dict)
 
