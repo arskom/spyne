@@ -20,11 +20,15 @@
 import math
 import decimal
 import platform
+from _warnings import warn
 
 from spyne.model import SimpleModel
 from spyne.model.primitive import NATIVE_MAP
 from spyne.util import six
-from spyne.util import memoize
+
+
+class NumberLimitsWarning(Warning):
+    pass
 
 
 class Decimal(SimpleModel):
@@ -121,6 +125,30 @@ class Decimal(SimpleModel):
                                      cls.Attributes.fraction_digits + 2)
         else:
             kwargs['max_str_len'] = msl
+
+        minb = cls.Attributes.min_bound
+        if minb is not None:
+            ge = kwargs.get("ge", None)
+            if ge is not None and ge < minb:
+                warn("Greater than or equal limit %d smaller than min_bound %d"
+                                              % (ge, minb), NumberLimitsWarning)
+
+            gt = kwargs.get("gt", None)
+            if gt is not None and gt < minb:
+                warn("Greater than limit %d smaller than min_bound %d"
+                                              % (gt, minb), NumberLimitsWarning)
+
+        maxb = cls.Attributes.max_bound
+        if maxb is not None:
+            le = kwargs.get("le", None)
+            if le > maxb:
+                warn("Little than or equal limit %d greater than max_bound %d"
+                                              % (le, maxb), NumberLimitsWarning)
+
+            lt = kwargs.get("lt", None)
+            if lt > maxb:
+                warn("Little than limit %d greater than max_bound %d"
+                                              % (lt, maxb), NumberLimitsWarning)
 
         return super(Decimal, cls)._s_customize(**kwargs)
 
