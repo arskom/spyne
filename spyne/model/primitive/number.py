@@ -140,12 +140,10 @@ class Decimal(SimpleModel):
 
         if minb is not None:
             if ge is not None and ge < minb:
-                ge = minb
                 warn("'Greater than or equal value' %d smaller than min_bound %d"
                                               % (ge, minb), NumberLimitsWarning)
 
-            if gt is not None and gt <= minb:
-                gt = maxb - 1
+            if gt is not None and gt < minb:
                 warn("'Greater than' value %d smaller than min_bound %d"
                                               % (gt, minb), NumberLimitsWarning)
 
@@ -161,12 +159,10 @@ class Decimal(SimpleModel):
 
         if maxb is not None:
             if le is not None and le > maxb:
-                le = maxb
                 warn("'Little than or equal' value %d greater than max_bound %d"
                                               % (le, maxb), NumberLimitsWarning)
 
-            if lt is not None and lt >= maxb:
-                lt = maxb + 1
+            if lt is not None and lt > maxb:
                 warn("'Little than' value %d greater than max_bound %d"
                                               % (lt, maxb), NumberLimitsWarning)
 
