@@ -32,10 +32,12 @@ from spyne.context import FakeContext
 from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
 from spyne.interface.xml_schema.parser import XmlSchemaParser, Thier_repr, PARSER
+from spyne.protocol import ProtocolMixin
 from spyne.protocol.cloth import XmlCloth
 
 from spyne.protocol.xml import XmlDocument
 from spyne.util.six import BytesIO
+from spyne.util.tlist import tlist
 
 
 class FakeApplication(object):
@@ -157,7 +159,7 @@ def get_object_as_xml_cloth(inst, cls=None, no_namespace=False, encoding='utf8')
     ctx = FakeContext()
     with etree.xmlfile(ostr, encoding=encoding) as xf:
         ctx.protocol.doctype_written = False
-        ctx.protocol.prot_stack = []
+        ctx.protocol.prot_stack = tlist([], ProtocolMixin)
         tn = cls.get_type_name()
         ret = xml_cloth.subserialize(ctx, cls, inst, xf, tn)
 

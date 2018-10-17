@@ -22,6 +22,7 @@
 implementation is a subclass of ``ProtocolBase``.
 """
 
+from spyne.protocol._base import ProtocolMixin
 from spyne.protocol._inbase import InProtocolBase
 from spyne.protocol._outbase import OutProtocolBase
 
