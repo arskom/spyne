@@ -29,19 +29,21 @@ from lxml.etree import LxmlSyntaxError
 
 from spyne import ProtocolContext, BODY_STYLE_WRAPPED, ByteArray, File
 from spyne.util import Break, coroutine
+from spyne.protocol import ProtocolMixin
 
 from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
 from spyne.util.six import BytesIO
 from spyne.util.color import R, B
+from spyne.util.tlist import tlist
 
 
 class XmlClothProtocolContext(ProtocolContext):
     def __init__(self, parent, transport, type=None):
         super(XmlClothProtocolContext, self).__init__(parent, transport, type)
 
-        self.inst_stack = []
-        self.prot_stack = []
+        self.inst_stack = tlist([], tuple)
+        self.prot_stack = tlist([], ProtocolMixin)
         self.doctype_written = False
 
 
@@ -151,7 +153,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         try:
             with self.docfile(ctx.out_stream, encoding=self.encoding) as xf:
                 ctx.protocol.doctype_written = False
-                ctx.protocol.prot_stack = []
+                ctx.protocol.prot_stack = tlist([], ProtocolMixin)
                 ret = self.subserialize(ctx, cls, inst, xf, name)
 
                 if isgenerator(ret):  # Poor man's yield from

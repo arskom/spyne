@@ -24,6 +24,7 @@ import re
 import uuid
 import datetime
 import unittest
+import warnings
 
 import pytz
 import spyne
@@ -32,12 +33,13 @@ from datetime import timedelta
 
 from lxml import etree
 
+from spyne.model.primitive.number import NumberLimitsWarning
 from spyne.util import six, total_seconds
 from spyne.const import xml as ns
 
 from spyne import Null, AnyDict, Uuid, Array, ComplexModel, Date, Time, \
     Boolean, DateTime, Duration, Float, Integer, UnsignedInteger, Unicode, \
-    String, Decimal
+    String, Decimal, Integer16
 from spyne.model import ModelBase
 
 from spyne.protocol import ProtocolBase
@@ -379,19 +381,44 @@ class TestPrimitive(unittest.TestCase):
         value = XmlDocument().from_element(None, integer, element)
         self.assertEquals(value, i)
 
-    def test_limits(self):
+    def test_integer_limits(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            integer = Integer16(ge=-32768)
+
+            assert len(w) == 0
+
+            integer = Integer16(ge=-32769)
+            assert len(w) == 1
+            assert issubclass(w[-1].category, NumberLimitsWarning)
+            assert "smaller than min_bound" in str(w[-1].message)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            integer = Integer16(le=32767)
+
+            assert len(w) == 0
+
+            integer = Integer16(le=32768)
+            assert len(w) == 1
+            assert issubclass(w[-1].category, NumberLimitsWarning)
+            assert "greater than max_bound" in str(w[-1].message)
+
         try:
-            ProtocolBase() \
-                      .from_string(Integer, "1" * (Integer.__max_str_len__ + 1))
-        except:
+            Integer16(ge=32768)
+        except ValueError:
             pass
         else:
-            raise Exception("must fail.")
+            raise Exception("must fail")
 
-        ProtocolBase().from_string(UnsignedInteger, "-1")
-                                                 # This is not supposed to fail.
-
-        assert not UnsignedInteger.validate_native(UnsignedInteger, -1)
+        try:
+            Integer16(lt=-32768)
+        except ValueError:
+            pass
+        else:
+            raise Exception("must fail")
 
     def test_large_integer(self):
         i = 128375873458473

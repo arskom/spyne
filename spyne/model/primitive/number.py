@@ -20,11 +20,15 @@
 import math
 import decimal
 import platform
+from _warnings import warn
 
 from spyne.model import SimpleModel
 from spyne.model.primitive import NATIVE_MAP
 from spyne.util import six
-from spyne.util import memoize
+
+
+class NumberLimitsWarning(Warning):
+    pass
 
 
 class Decimal(SimpleModel):
@@ -97,23 +101,86 @@ class Decimal(SimpleModel):
             kwargs['fraction_digits'] = 0
             if len(args) == 2 and args[1] is not None:
                 kwargs['fraction_digits'] = args[1]
-                assert args[0] > 0, "'total_digits' must be positive."
-                assert args[1] <= args[0], "'total_digits' must be greater than" \
-                                          " or equal to 'fraction_digits'." \
-                                          " %r ! <= %r" % (args[1], args[0])
 
-            # + 1 for decimal separator
-            # + 1 for negative sign
-            msl = kwargs.get('max_str_len', None)
-            if msl is None:
-                kwargs['max_str_len'] = (cls.Attributes.total_digits +
-                                             cls.Attributes.fraction_digits + 2)
-            else:
-                kwargs['max_str_len'] = msl
-
-        retval = SimpleModel.__new__(cls,  ** kwargs)
+        retval = SimpleModel.__new__(cls, **kwargs)
 
         return retval
+
+    @classmethod
+    def _s_customize(cls, **kwargs):
+        td = kwargs.get('total_digits', None)
+        fd = kwargs.get('fraction_digits', None)
+        if td is not None and fd is not None:
+            assert td > 0, "'total_digits' must be positive."
+            assert fd <= td, \
+                "'total_digits' must be greater than" \
+                                       " or equal to 'fraction_digits'." \
+                                                        " %r ! <= %r" % (fd, td)
+
+        msl = kwargs.get('max_str_len', None)
+        if msl is None:
+            # max_str_len is a DoS precaution. if the user needs to accept
+            # numbers that don't fit inside 1024 decimal places, he needs to be
+            # explicit about it.
+            kwargs['max_str_len'] = min(Decimal.Attributes.max_str_len,
+                        cls.Attributes.total_digits +
+                                             cls.Attributes.fraction_digits + 2)
+            # + 1 for decimal separator
+            # + 1 for negative sign
+
+        else:
+            kwargs['max_str_len'] = msl
+
+        minb = cls.Attributes.min_bound
+        maxb = cls.Attributes.max_bound
+        ge = kwargs.get("ge", None)
+        gt = kwargs.get("gt", None)
+        le = kwargs.get("le", None)
+        lt = kwargs.get("lt", None)
+
+        if minb is not None:
+            if ge is not None and ge < minb:
+                ge = minb
+                warn("'Greater than or equal value' %d smaller than min_bound %d"
+                                              % (ge, minb), NumberLimitsWarning)
+
+            if gt is not None and gt <= minb:
+                gt = maxb - 1
+                warn("'Greater than' value %d smaller than min_bound %d"
+                                              % (gt, minb), NumberLimitsWarning)
+
+            if le is not None and le < minb:
+                raise ValueError(
+                    "'Little than or equal' value %d smaller than min_bound %d"
+                                                                   % (le, minb))
+
+            if lt is not None and lt <= minb:
+                raise ValueError(
+                    "'Little than' value %d smaller than min_bound %d"
+                                                                   % (lt, minb))
+
+        if maxb is not None:
+            if le is not None and le > maxb:
+                le = maxb
+                warn("'Little than or equal' value %d greater than max_bound %d"
+                                              % (le, maxb), NumberLimitsWarning)
+
+            if lt is not None and lt >= maxb:
+                lt = maxb + 1
+                warn("'Little than' value %d greater than max_bound %d"
+                                              % (lt, maxb), NumberLimitsWarning)
+
+            if ge is not None and ge > maxb:
+                raise ValueError(
+                    "'Greater than or equal' value %d greater than max_bound %d"
+                                                                   % (ge, maxb))
+
+            if gt is not None and gt >= maxb:
+                raise ValueError(
+                    "'Greater than' value %d greater than max_bound %d"
+                                                                   % (gt, maxb))
+
+        return super(Decimal, cls)._s_customize(**kwargs)
 
     @staticmethod
     def is_default(cls):

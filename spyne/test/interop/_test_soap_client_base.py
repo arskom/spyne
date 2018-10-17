@@ -18,7 +18,7 @@
 #
 
 import unittest
-
+import socket
 import time
 
 import pytz
@@ -33,9 +33,9 @@ from spyne.model.fault import Fault
 
 from datetime import datetime
 
-import socket
 
 server_started = {}
+
 
 def test_port_open(port):
     host = '127.0.0.1'
@@ -45,6 +45,7 @@ def test_port_open(port):
     s.shutdown(2)
 
     return True
+
 
 def run_server(server_type):
     if server_type == 'http':
@@ -62,7 +63,7 @@ def run_server(server_type):
     else:
         raise ValueError(server_type)
 
-    if server_started.get(port, None) is None:
+    if server_started.get(port[0], None) is None:
         def run_server():
             main()
 
@@ -71,7 +72,7 @@ def run_server(server_type):
         # FIXME: Does anybody have a better idea?
         time.sleep(2)
 
-        server_started[port] = test_port_open(port)
+        server_started[port[0]] = test_port_open(port[0])
 
 
 class SpyneClientTestBase(object):
@@ -276,6 +277,7 @@ class SpyneClientTestBase(object):
         self.assertEquals(ret.resultDescription, "Test")
         self.assertEquals(ret.transactionId, 123)
         self.assertEquals(ret.roles[0], roles.MEMBER)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -91,6 +91,14 @@ class TwistedMessagePackProtocol(Protocol):
         :param max_buffer_size: Max. encoded message size.
         :param out_chunk_size: Split
         :param factory: Twisted protocol factory
+
+        Supported events:
+            * ``outresp_flushed(ctx, ctxid, data)``
+                Called right after response data is flushed to the socket.
+                    * ctx: Always None
+                    * ctxid: Integer equal to ``id(ctx)``
+                    * data: Flushed bytes object
+
         """
 
         from spyne.server.msgpack import MessagePackTransportBase
@@ -236,6 +244,8 @@ class TwistedMessagePackProtocol(Protocol):
                 break
 
             self.out_write(v)
+            self.spyne_tpt.event_manager.fire_event('outresp_flushed',
+                                                                     None, k, v)
 
             del self.inreq_queue[k]
 
@@ -380,6 +390,7 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
 
     except Exception as e:
         logger.exception(e)
+        logger.error("%r", p_ctx)
         prot.handle_error(p_ctx, others, InternalError(e))
 
     finally:

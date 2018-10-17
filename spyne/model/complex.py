@@ -1107,7 +1107,7 @@ class ComplexModelBase(ModelBase):
         if store_as is not None:
             kwargs['store_as'] = store_as
 
-        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+        cls_name, cls_bases, cls_dict = cls._s_customize(**kwargs)
         cls_dict['__module__'] = cls.__module__
         if '__extends__' not in cls_dict:
             cls_dict['__extends__'] = cls.__extends__

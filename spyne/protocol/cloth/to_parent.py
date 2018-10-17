@@ -230,7 +230,8 @@ class ToParentMixin(OutProtocolBase):
                 while True:
                     sv = (yield)
 
-                    ctx.protocol.inst_stack.append(sv)
+                    # disabled because to_parent is supposed to take care of this
+                    #ctx.protocol.inst_stack.append((cls, sv, True))
                     kwargs['from_arr'] = True
                     kwargs['array_index'] = i
 
@@ -254,15 +255,17 @@ class ToParentMixin(OutProtocolBase):
                                 pass
 
                         finally:
-                            popped_val = ctx.protocol.inst_stack.pop()
-                            assert popped_val is sv
+                            # disabled because to_parent is supposed to take care of this
+                            #popped_val = ctx.protocol.inst_stack.pop()
+                            #assert popped_val is sv
 
                             if ser_subprot is not None:
                                 ser_subprot.column_table_before_row(ctx, cls,
                                                    inst, parent, name, **kwargs)
                     else:
-                        popped_val = ctx.protocol.inst_stack.pop()
-                        assert popped_val is sv
+                        # disabled because to_parent is supposed to take care of this
+                        #popped_val = ctx.protocol.inst_stack.pop()
+                        #assert popped_val is sv
 
                         if ser_subprot is not None:
                             ser_subprot.column_table_after_row(ctx, cls, inst,
@@ -276,7 +279,8 @@ class ToParentMixin(OutProtocolBase):
             assert isinstance(inst, Iterable), ("%r is not iterable" % (inst,))
 
             for i, sv in enumerate(inst):
-                ctx.protocol.inst_stack.append(sv)
+                # disabled because to_parent is supposed to take care of this
+                #ctx.protocol.inst_stack.append((cls, sv, True)
                 kwargs['from_arr'] = True
                 kwargs['array_index'] = i
 
@@ -298,16 +302,18 @@ class ToParentMixin(OutProtocolBase):
                             pass
 
                     finally:
-                        popped_val = ctx.protocol.inst_stack.pop()
-                        assert popped_val is sv
+                        # disabled because to_parent is supposed to take care of this
+                        #popped_val = ctx.protocol.inst_stack.pop()
+                        #assert popped_val is sv
 
                         if ser_subprot is not None:
                             ser_subprot.column_table_after_row(ctx, cls, inst,
                                                          parent, name, **kwargs)
 
                 else:
-                    popped_val = ctx.protocol.inst_stack.pop()
-                    assert popped_val is sv
+                    # disabled because to_parent is supposed to take care of this
+                    #popped_val = ctx.protocol.inst_stack.pop()
+                    #assert popped_val is sv
 
                     if ser_subprot is not None:
                         ser_subprot.column_table_after_row(ctx, cls, inst,

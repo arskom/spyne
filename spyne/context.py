@@ -124,13 +124,13 @@ class MethodContext(object):
 
         return retval
 
-    def fire_event(self, event):
-        self.app.event_manager.fire_event(event, self)
+    def fire_event(self, event, *args, **kwargs):
+        self.app.event_manager.fire_event(event, self, *args, **kwargs)
 
         desc = self.descriptor
         if desc is not None:
             for evmgr in desc.event_managers:
-                evmgr.fire_event(event, self)
+                evmgr.fire_event(event, self, *args, **kwargs)
 
     @property
     def method_name(self):

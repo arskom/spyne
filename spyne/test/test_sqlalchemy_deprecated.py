@@ -237,7 +237,7 @@ class TestSqlAlchemy(unittest.TestCase):
 
         user_t = Table('user', self.metadata,
              Column('id', sqlalchemy.Integer, primary_key=True),
-             Column('name',  sqlalchemy.String),
+             Column('name', sqlalchemy.String),
         )
 
         class User(TableModel, self.DeclarativeBase):
