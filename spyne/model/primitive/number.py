@@ -119,12 +119,7 @@ class Decimal(SimpleModel):
 
         msl = kwargs.get('max_str_len', None)
         if msl is None:
-            # max_str_len is a DoS precaution. if the user needs to accept
-            # numbers that don't fit inside 1024 decimal places, he needs to be
-            # explicit about it.
-            kwargs['max_str_len'] = min(Decimal.Attributes.max_str_len,
-                        cls.Attributes.total_digits +
-                                             cls.Attributes.fraction_digits + 2)
+            kwargs['max_str_len'] = cls.Attributes.total_digits + 2
             # + 1 for decimal separator
             # + 1 for negative sign
 
