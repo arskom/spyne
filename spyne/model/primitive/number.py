@@ -119,12 +119,7 @@ class Decimal(SimpleModel):
 
         msl = kwargs.get('max_str_len', None)
         if msl is None:
-            # max_str_len is a DoS precaution. if the user needs to accept
-            # numbers that don't fit inside 1024 decimal places, he needs to be
-            # explicit about it.
-            kwargs['max_str_len'] = min(Decimal.Attributes.max_str_len,
-                        cls.Attributes.total_digits +
-                                             cls.Attributes.fraction_digits + 2)
+            kwargs['max_str_len'] = cls.Attributes.total_digits + 2
             # + 1 for decimal separator
             # + 1 for negative sign
 
@@ -140,12 +135,10 @@ class Decimal(SimpleModel):
 
         if minb is not None:
             if ge is not None and ge < minb:
-                ge = minb
                 warn("'Greater than or equal value' %d smaller than min_bound %d"
                                               % (ge, minb), NumberLimitsWarning)
 
-            if gt is not None and gt <= minb:
-                gt = maxb - 1
+            if gt is not None and gt < minb:
                 warn("'Greater than' value %d smaller than min_bound %d"
                                               % (gt, minb), NumberLimitsWarning)
 
@@ -161,12 +154,10 @@ class Decimal(SimpleModel):
 
         if maxb is not None:
             if le is not None and le > maxb:
-                le = maxb
                 warn("'Little than or equal' value %d greater than max_bound %d"
                                               % (le, maxb), NumberLimitsWarning)
 
-            if lt is not None and lt >= maxb:
-                lt = maxb + 1
+            if lt is not None and lt > maxb:
                 warn("'Little than' value %d greater than max_bound %d"
                                               % (lt, maxb), NumberLimitsWarning)
 

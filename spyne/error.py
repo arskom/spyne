@@ -87,7 +87,7 @@ class ValidationError(Fault):
 
     def __init__(self, obj, custom_msg='The value %r could not be validated.'):
         try:
-            msg = custom_msg % obj
+            msg = custom_msg % (obj,)
         except TypeError:
             msg = custom_msg
 
