@@ -308,9 +308,8 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    keywords=('soap', 'wsdl', 'wsgi', 'zeromq', 'rest', 'rpc', 'json', 'http',
-              'msgpack', 'xml', 'django', 'pyramid', 'postgresql', 'sqlalchemy',
-              'twisted', 'yaml'),
+    keywords='soap wsdl wsgi zeromq rest rpc json http msgpack xml'
+             ' django pyramid postgresql sqlalchemy twisted yaml',
     author='Burak Arslan',
     author_email='burak+package@spyne.io',
     maintainer='Burak Arslan',
