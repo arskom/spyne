@@ -198,10 +198,12 @@ class TestPrimitive(unittest.TestCase):
         format = "%Y-%m-%d"
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, Date(format=format), t, element, ns_test)
+        XmlDocument().to_parent(None,
+                                  Date(date_format=format), t, element, ns_test)
         assert element[0].text == datetime.date.strftime(t, format)
 
-        dt = XmlDocument().from_element(None, Date(format=format), element[0])
+        dt = XmlDocument().from_element(None,
+                                           Date(date_format=format), element[0])
         assert t == dt
 
     def test_datetime_timezone(self):

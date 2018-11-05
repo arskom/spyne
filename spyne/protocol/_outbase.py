@@ -365,10 +365,16 @@ class OutProtocolBase(ProtocolMixin):
             value = value.time()
         return value.isoformat()
 
-    def date_to_bytes(self, cls, value, **_):
-        if isinstance(value, datetime):
-            value = value.date()
-        return value.isoformat()
+    def date_to_bytes(self, cls, val, **_):
+        if isinstance(val, datetime):
+            val = val.date()
+
+        sa = self.get_cls_attrs(cls).serialize_as
+
+        if sa is None or sa in (str, 'str'):
+            return self._date_to_bytes(cls, val)
+
+        return _datetime_smap[sa](cls, val)
 
     def datetime_to_bytes(self, cls, val, **_):
         sa = self.get_cls_attrs(cls).serialize_as
@@ -631,6 +637,30 @@ class OutProtocolBase(ProtocolMixin):
         interp_format = cls_attrs.interp_format
         if interp_format is not None:
             return interp_format.format(value)
+
+        return retval
+
+    def _date_to_bytes(self, cls, value, **_):
+        cls_attrs = self.get_cls_attrs(cls)
+
+        date_format = cls_attrs.date_format
+        if date_format is None:
+            retval = value.isoformat()
+
+        elif six.PY2 and isinstance(date_format, unicode):
+            date_format = date_format.encode('utf8')
+            retval = self.strftime(value, date_format).decode('utf8')
+
+        else:
+            retval = self.strftime(value, date_format)
+
+        str_format = cls_attrs.str_format
+        if str_format is not None:
+            return str_format.format(value)
+
+        format = cls_attrs.format
+        if format is not None:
+            return format.format(value)
 
         return retval
 
