@@ -2,10 +2,19 @@
 Changelog
 =========
 
+spyne-2.13.4-alpha
+------------------
+* ``Date(format="%Y")`` no longer works. Use ``Date(date_format="%Y")`` just
+  like the api docs say
+
 spyne-2.13.3-alpha
 ------------------
-* Add support for sqlalchemy-1.2
-
+* Add support for sqlalchemy-1.2.
+* Implement _logged for @rpc.
+* Fix memory leak in ComplexModelBase.as_dict. 
+* Switch to homegrown jenkins as test infrastructure. See
+  https://jenkins.arskom.com.tr
+* Fix decimal totalDigits blunder.
 
 spyne-2.13.2-alpha
 ------------------
