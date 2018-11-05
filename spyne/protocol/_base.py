@@ -113,6 +113,8 @@ class ProtocolMixin(object):
             raise
 
     def _get_datetime_format(self, cls_attrs):
+        # FIXME: this should be dt_format, all other aliases are to be
+        # deprecated
         dt_format = cls_attrs.datetime_format
         if dt_format is None:
             dt_format = cls_attrs.dt_format

@@ -48,8 +48,6 @@ class NullServer(ServerBase):
     """A server that doesn't support any transport at all -- it's implemented
     to test services without having to run a server.
 
-    It implicitly uses the 'sync' auxiliary processing mode.
-
     Note that:
         1) ``**kwargs`` overwrite ``*args``.
         2) You can do: ::

@@ -366,13 +366,11 @@ class OutProtocolBase(ProtocolMixin):
         return value.isoformat()
 
     def date_to_bytes(self, cls, value, **_):
-        """Returns ISO formatted times."""
         if isinstance(value, datetime):
             value = value.date()
         return value.isoformat()
 
     def datetime_to_bytes(self, cls, val, **_):
-        """Returns serialized datetimes. Somehow."""
         sa = self.get_cls_attrs(cls).serialize_as
 
         if sa is None or sa in (str, 'str'):
@@ -611,8 +609,6 @@ class OutProtocolBase(ProtocolMixin):
         if not cls_attrs.timezone:
             value = value.replace(tzinfo=None)
 
-        # FIXME: this should be dt_format, all other aliases are to be
-        # deprecated
         dt_format = self._get_datetime_format(cls_attrs)
 
         if dt_format is None:
