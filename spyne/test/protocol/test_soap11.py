@@ -298,11 +298,11 @@ b'''<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')
-        Soap11().to_parent(None, DateTime(format=format), n,
+        Soap11().to_parent(None, DateTime(dt_format=format), n,
                                                       element, 'some_namespace')
         assert element[0].text == n.isoformat()
 
-        dt = Soap11().from_element(None, DateTime(format=format), element[0])
+        dt = Soap11().from_element(None, DateTime(dt_format=format), element[0])
         assert n == dt
 
     def test_date_with_tzoffset(self):

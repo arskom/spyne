@@ -174,8 +174,8 @@ class Soap11(XmlDocument):
         super(Soap11, self).__init__(*args, **kwargs)
 
         # SOAP requires DateTime strings to be in iso format. The following
-        # lines make sure custom datetime formatting via DateTime(format="...")
-        # string is bypassed.
+        # lines make sure custom datetime formatting via
+        # DateTime(dt_format="...") (or similar) is bypassed.
         self._to_unicode_handlers[Time] = lambda cls, value: value.isoformat()
         self._to_unicode_handlers[DateTime] = lambda cls, value: value.isoformat()
 

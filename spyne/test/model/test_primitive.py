@@ -167,12 +167,13 @@ class TestPrimitive(unittest.TestCase):
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, DateTime(format=format), n, element,
+        XmlDocument().to_parent(None, DateTime(dt_format=format), n, element,
                                                                         ns_test)
         element = element[0]
 
         assert element.text == datetime.datetime.strftime(n, format)
-        dt = XmlDocument().from_element(None, DateTime(format=format), element)
+        dt = XmlDocument().from_element(None, DateTime(dt_format=format), 
+                                                                        element)
         assert n == dt
 
     def test_datetime_unicode_format(self):
@@ -180,7 +181,7 @@ class TestPrimitive(unittest.TestCase):
         format = u"%Y %m %d\u00a0%H %M %S"
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, DateTime(format=format), n,
+        XmlDocument().to_parent(None, DateTime(dt_format=format), n,
                                                                element, ns_test)
         element = element[0]
 
@@ -190,7 +191,8 @@ class TestPrimitive(unittest.TestCase):
         else:
             assert element.text == n.strftime(format)
 
-        dt = XmlDocument().from_element(None, DateTime(format=format), element)
+        dt = XmlDocument().from_element(None, DateTime(dt_format=format), 
+                                                                        element)
         assert n == dt
 
     def test_date_format(self):

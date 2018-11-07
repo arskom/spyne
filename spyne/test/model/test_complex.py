@@ -1023,7 +1023,7 @@ class TestCustomize(unittest.TestCase):
         B2 = B.customize(child_attrs=dict(s=dict(max_len=10)))
         assert B2.get_flat_type_info(B2)['s'].Attributes.max_len == 10
 
-        B3 = B2.customize(child_attrs=dict(d=dict(format="%y")))
+        B3 = B2.customize(child_attrs=dict(d=dict(dt_format="%y")))
         assert B3.get_flat_type_info(B3)['s'].Attributes.max_len == 10
 
     def test_cust_all(self):
