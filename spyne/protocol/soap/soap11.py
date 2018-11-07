@@ -203,7 +203,8 @@ class Soap11(XmlDocument):
 
     def decompose_incoming_envelope(self, ctx, message=XmlDocument.REQUEST):
         envelope_xml, xmlids = ctx.in_document
-        header_document, body_document = _from_soap(envelope_xml, xmlids, ns=self.ns_soap_env)
+        header_document, body_document = _from_soap(envelope_xml, xmlids,
+                                                            ns=self.ns_soap_env)
 
         ctx.in_document = envelope_xml
 
@@ -265,7 +266,8 @@ class Soap11(XmlDocument):
             if ctx.in_body_doc is None:
                 ctx.in_object = [None] * len(body_class._type_info)
             else:
-                ctx.in_object = self.from_element(ctx, body_class, ctx.in_body_doc)
+                ctx.in_object = self.from_element(ctx, body_class,
+                                                                ctx.in_body_doc)
 
         self.event_manager.fire_event('after_deserialize', ctx)
 

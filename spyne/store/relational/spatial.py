@@ -32,7 +32,7 @@ class PGGeometry(UserDefinedType):
         pass
 
     def __init__(self, geometry_type='GEOMETRY', srid=4326, dimension=2,
-                 format='wkt'):
+                                                                  format='wkt'):
         self.geometry_type = geometry_type.upper()
         self.name = 'geometry'
         self.srid = int(srid)
