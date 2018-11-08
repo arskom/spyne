@@ -1,8 +1,10 @@
+from datetime import date, datetime
 
 from spyne import D, Integer, ModelBase, Date, DateTime, IpAddress, Decimal
 from spyne.protocol import ProtocolBase
 from spyne.util import six
 from spyne.util.cdict import cdict
+
 
 if six.PY2:
     bytes = str
@@ -21,18 +23,22 @@ MAP = cdict({
     }),
 
     Decimal: cdict({
+        D: lambda _: _,
         int: lambda _: D(_),
         bytes: lambda s: None if s.strip() == '' else D(s.strip()),
         unicode: lambda s: None if s.strip() == u'' else D(s.strip()),
     }),
 
     Integer: cdict({
+        D: lambda _: _,
         int: lambda _: _,
         bytes: lambda s: None if s.strip() == '' else int(s.strip()),
         unicode: lambda s: None if s.strip() == u'' else int(s.strip()),
     }),
 
     Date: cdict({
+        date: lambda _: _,
+        datetime: lambda _: _.date(),
         object: lambda _:_,
         bytes: lambda s: None if s.strip() in ('', '0000-00-00')
                                    else _prot.date_from_string(Date, s.strip()),
@@ -41,6 +47,8 @@ MAP = cdict({
     }),
 
     DateTime: cdict({
+        date: lambda _: datetime(date.year, date.month, date.day),
+        datetime: lambda _: _,
         object: lambda _:_,
         bytes: lambda s: None if s.strip() in ('', '0000-00-00 00:00:00')
                            else _prot.datetime_from_string(DateTime, s.strip()),
