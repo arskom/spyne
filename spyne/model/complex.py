@@ -59,10 +59,10 @@ from spyne.model import json, jsonb, xml, msgpack, table
 def _get_flat_type_info(cls, retval):
     assert isinstance(retval, TypeInfo)
     parent = getattr(cls, '__extends__', None)
-    if parent != None:
+    if not (parent is None):
         _get_flat_type_info(parent, retval)
     retval.update(cls._type_info)
-    retval.alt.update(cls._type_info_alt) # FIXME: move to cls._type_info.alt
+    retval.alt.update(cls._type_info_alt)  # FIXME: move to cls._type_info.alt
     retval.attrs.update({k: v for (k, v) in cls._type_info.items()
                                                 if issubclass(v, XmlAttribute)})
     return retval
@@ -427,6 +427,7 @@ def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
     for k, v in _type_info.items():
         if not isinstance(k, six.string_types):
             raise ValueError("Invalid class key", k)
+
         if not isclass(v):
             raise ValueError(v)
 
