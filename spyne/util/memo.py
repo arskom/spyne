@@ -30,6 +30,8 @@ behavior in a multithreaded environment, roll your own stuff.
 import logging
 logger = logging.getLogger(__name__)
 
+import threading
+
 
 MEMOIZATION_STATS_LOG_INTERVAL = 60.0
 
@@ -54,8 +56,6 @@ def _log_func(func):
 
 
 def start_memoization_stats_logger(func=None):
-    import threading
-
     logger.info("Enabling @memoize statistics every %d second(s).",
                                                  MEMOIZATION_STATS_LOG_INTERVAL)
 
@@ -79,14 +79,19 @@ class memoize(object):
     def __init__(self, func):
         self.func = func
         self.memo = {}
+        self.lock = threading.RLock()
         memoize.registry.append(self)
 
     def __call__(self, *args, **kwargs):
         key = self.get_key(args, kwargs)
+        # we hope that gil makes this comparison is race-free
         if not key in self.memo:
-            value = self.func(*args, **kwargs)
-            self.memo[key] = value
-            return value
+            with self.lock:
+                # make sure the situation hasn't changed after lock acq
+                if not key in self.memo:
+                    value = self.func(*args, **kwargs)
+                    self.memo[key] = value
+                    return value
         return self.memo.get(key)
 
     def get_key(self, args, kwargs):
@@ -97,19 +102,28 @@ class memoize(object):
 
 
 def memoize_ignore(values):
-    """A memoization decorator that ignores values in the 'values' iterable. eg
-    let `values = (1, 2)` and `add = lambda x, y: x + y`, the result of
-    `add(1, 1)` is not memoized but the result of `add(5, 5)` is."""
+    """A memoization decorator that does memoization unless the returned
+    value is in the 'values' iterable. eg let `values = (2,)` and
+    `add = lambda x, y: x + y`, the result of `add(1, 1)` (=2) is not memoized
+    but the result of `add(5, 5)` (=10) is.
+    """
+
+    assert iter(values), \
+                       "memoize_ignore requires an iterable of values to ignore"
 
     class _memoize_ignored(memoize):
         def __call__(self, *args, **kwargs):
             key = self.get_key(args, kwargs)
+            # we hope that gil makes this comparison is race-free
             if not key in self.memo:
-                value = self.func(*args, **kwargs)
-                if not value in values:
-                    self.memo[key] = value
+                with self.lock:
+                    # make sure the situation hasn't changed after lock acq
+                    if not key in self.memo:
+                        value = self.func(*args, **kwargs)
+                        if not value in values:
+                            self.memo[key] = value
 
-                return value
+                        return value
             return self.memo.get(key)
 
     return _memoize_ignored
@@ -122,12 +136,16 @@ class memoize_ignore_none(memoize):
 
     def __call__(self, *args, **kwargs):
         key = self.get_key(args, kwargs)
+        # we hope that gil makes this comparison is race-free
         if not key in self.memo:
-            value = self.func(*args, **kwargs)
-            if not (value is None):
-                self.memo[key] = value
+            with self.lock:
+                # make sure the situation hasn't changed after lock acq
+                if not key in self.memo:
+                    value = self.func(*args, **kwargs)
+                    if not (value is None):
+                        self.memo[key] = value
 
-            return value
+                    return value
         return self.memo.get(key)
 
 
