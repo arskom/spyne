@@ -232,7 +232,8 @@ class HierDictDocument(DictDocument):
 
         inst = cls.get_deserialization_instance(ctx)
 
-        # get all class attributes, including the ones coming from parent classes.
+        # get all class attributes, including the ones coming from
+        # parent classes.
         flat_type_info = cls.get_flat_type_info(cls)
         if flat_type_info is None:
             logger.critical("No flat_type_info found for type %r", cls)
