@@ -30,6 +30,7 @@ from spyne.model.primitive import Unicode
 from spyne.service import Service
 
 from spyne.util import AttrDict, AttrDictColl
+from spyne.util import memoize, memoize_ignore_none, memoize_ignore, memoize_id
 
 from spyne.util.protocol import deserialize_request_string
 
@@ -517,6 +518,74 @@ class TestTlist(unittest.TestCase):
             pass
         else:
             raise Exception("Must fail")
+
+
+class TestMemoization(unittest.TestCase):
+    def test_memoize(self):
+        counter = [0]
+        @memoize
+        def f(arg):
+            counter[0] += 1
+            print(arg, counter)
+
+        f(1)
+        f(1)
+        assert counter[0] == 1
+
+        f(2)
+        assert counter[0] == 2
+
+    def test_memoize_ignore_none(self):
+        counter = [0]
+        @memoize_ignore_none
+        def f(arg):
+            counter[0] += 1
+            print(arg, counter)
+            return arg
+
+        f(None)
+        f(None)
+        assert counter[0] == 2
+
+        f(1)
+        assert counter[0] == 3
+        f(1)
+        assert counter[0] == 3
+
+    def test_memoize_ignore_values(self):
+        counter = [0]
+        @memoize_ignore((1,))
+        def f(arg):
+            counter[0] += 1
+            print(arg, counter)
+            return arg
+
+        f(1)
+        f(1)
+        assert counter[0] == 2
+
+        f(2)
+        assert counter[0] == 3
+        f(2)
+        assert counter[0] == 3
+
+    def test_memoize_id(self):
+        counter = [0]
+        @memoize_id
+        def f(arg):
+            counter[0] += 1
+            print(arg, counter)
+            return arg
+
+        d = {}
+        f(d)
+        f(d)
+        assert counter[0] == 1
+
+        f({})
+        assert counter[0] == 2
+        f({})
+        assert counter[0] == 3
 
 
 if __name__ == '__main__':
