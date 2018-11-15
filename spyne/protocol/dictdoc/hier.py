@@ -184,9 +184,11 @@ class HierDictDocument(DictDocument):
             return []
 
         if issubclass(cls, Any):
+            doc = self._cast(self.get_cls_attrs(cls), doc)
             return doc
 
         if issubclass(cls, Array):
+            doc = self._cast(self.get_cls_attrs(cls), doc)
             retval = []
             (serializer,) = cls._type_info.values()
 
