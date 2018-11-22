@@ -2,10 +2,12 @@
 
 from __future__ import print_function
 
-import unittest
-import pytz
-import decimal
 import json
+import decimal
+import unittest
+
+import pytz
+import sqlalchemy
 
 from pprint import pprint
 from decimal import Decimal as D
@@ -29,7 +31,7 @@ from spyne.model.primitive import Unicode
 
 from spyne.service import Service
 
-from spyne.util import AttrDict, AttrDictColl
+from spyne.util import AttrDict, AttrDictColl, get_version
 from spyne.util import memoize, memoize_ignore_none, memoize_ignore, memoize_id
 
 from spyne.util.protocol import deserialize_request_string
@@ -44,6 +46,13 @@ from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
 from spyne.util.xml import get_schema_documents
 from spyne.util.xml import get_validation_schema
+
+
+class TestUtil(unittest.TestCase):
+    def test_version(self):
+        assert get_version('sqlalchemy') == get_version(sqlalchemy)
+        assert '.'.join([str(i) for i in get_version('sqlalchemy')]) == \
+                                                          sqlalchemy.__version__
 
 
 class TestTypeInfo(unittest.TestCase):

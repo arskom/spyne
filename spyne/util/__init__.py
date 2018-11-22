@@ -35,6 +35,7 @@ from spyne.util.attrdict import AttrDictColl
 from spyne.util.attrdict import DefaultAttrDict
 
 from spyne.util._base import utctime
+from spyne.util._base import get_version
 
 
 try:

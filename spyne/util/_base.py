@@ -20,6 +20,17 @@
 from time import mktime
 from datetime import datetime
 
+from spyne.util import memoize, six
+
 
 def utctime():
     return mktime(datetime.utcnow().timetuple())
+
+
+@memoize
+def get_version(package):
+    if isinstance(package, (six.text_type, six.binary_type)):
+        package = __import__(package)
+
+    verstr = getattr(package, '__version__')
+    return tuple([int(f) for f in verstr.split(".")])
