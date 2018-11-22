@@ -22,8 +22,6 @@ logger = logging.getLogger(__name__)
 
 from spyne.util import six
 
-from spyne.util.six import PY3
-
 from spyne.util.coopmt import coroutine
 from spyne.util.coopmt import Break
 
@@ -35,6 +33,9 @@ from spyne.util.memo import memoize_id
 from spyne.util.attrdict import AttrDict
 from spyne.util.attrdict import AttrDictColl
 from spyne.util.attrdict import DefaultAttrDict
+
+from spyne.util._base import utctime
+
 
 try:
     import thread
@@ -81,9 +82,9 @@ def sanitize_args(a):
     return args, kwargs
 
 
-if PY3:
-    def _bytes_join(val, joiner=b''):
+if six.PY2:
+    def _bytes_join(val, joiner=''):
         return joiner.join(val)
 else:
-    def _bytes_join(val, joiner=''):
+    def _bytes_join(val, joiner=b''):
         return joiner.join(val)
