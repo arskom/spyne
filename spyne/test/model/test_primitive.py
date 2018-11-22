@@ -627,20 +627,20 @@ class TestPrimitive(unittest.TestCase):
     def test_uuid_serialize(self):
         value = uuid.UUID('12345678123456781234567812345678')
 
-        assert ProtocolBase().to_bytes(Uuid, value) == \
-                                '12345678-1234-5678-1234-567812345678'
-        assert ProtocolBase().to_bytes(Uuid(serialize_as='hex'), value) == \
-                                '12345678123456781234567812345678'
-        assert ProtocolBase().to_bytes(Uuid(serialize_as='urn'), value) == \
-                                'urn:uuid:12345678-1234-5678-1234-567812345678'
-        assert ProtocolBase().to_bytes(Uuid(serialize_as='bytes'), value) == \
-                                b'\x124Vx\x124Vx\x124Vx\x124Vx'
-        assert ProtocolBase().to_bytes(Uuid(serialize_as='bytes_le'), value) == \
-                                b'xV4\x124\x12xV\x124Vx\x124Vx'
-        assert ProtocolBase().to_bytes(Uuid(serialize_as='fields'), value) == \
-                                (305419896, 4660, 22136, 18, 52, 95073701484152)
-        assert ProtocolBase().to_bytes(Uuid(serialize_as='int'), value) == \
-                                24197857161011715162171839636988778104
+        assert ProtocolBase().to_unicode(Uuid, value) \
+                             == '12345678-1234-5678-1234-567812345678'
+        assert ProtocolBase().to_unicode(Uuid(serialize_as='hex'), value) \
+                             == '12345678123456781234567812345678'
+        assert ProtocolBase().to_unicode(Uuid(serialize_as='urn'), value) \
+                             == 'urn:uuid:12345678-1234-5678-1234-567812345678'
+        assert ProtocolBase().to_unicode(Uuid(serialize_as='bytes'), value) \
+                             == b'\x124Vx\x124Vx\x124Vx\x124Vx'
+        assert ProtocolBase().to_unicode(Uuid(serialize_as='bytes_le'), value) \
+                             == b'xV4\x124\x12xV\x124Vx\x124Vx'
+        assert ProtocolBase().to_unicode(Uuid(serialize_as='fields'), value) \
+                             == (305419896, 4660, 22136, 18, 52, 95073701484152)
+        assert ProtocolBase().to_unicode(Uuid(serialize_as='int'), value) \
+                             == 24197857161011715162171839636988778104
 
     def test_uuid_deserialize(self):
         value = uuid.UUID('12345678123456781234567812345678')
@@ -670,16 +670,16 @@ class TestPrimitive(unittest.TestCase):
         i = 1234567890123456
         v = datetime.datetime.fromtimestamp(i / 1e6)
 
-        assert ProtocolBase().to_bytes(
-                            DateTime(serialize_as='sec'), v) == i//1e6
-        assert ProtocolBase().to_bytes(
-                            DateTime(serialize_as='sec_float'), v) == i/1e6
-        assert ProtocolBase().to_bytes(
-                            DateTime(serialize_as='msec'), v) == i//1e3
-        assert ProtocolBase().to_bytes(
-                            DateTime(serialize_as='msec_float'), v) == i/1e3
-        assert ProtocolBase().to_bytes(
-                            DateTime(serialize_as='usec'), v) == i
+        assert ProtocolBase().to_unicode(
+                                DateTime(serialize_as='sec'), v) == i//1e6
+        assert ProtocolBase().to_unicode(
+                                DateTime(serialize_as='sec_float'), v) == i/1e6
+        assert ProtocolBase().to_unicode(
+                                DateTime(serialize_as='msec'), v) == i//1e3
+        assert ProtocolBase().to_unicode(
+                                DateTime(serialize_as='msec_float'), v) == i/1e3
+        assert ProtocolBase().to_unicode(
+                                DateTime(serialize_as='usec'), v) == i
 
     def test_datetime_deserialize(self):
         i = 1234567890123456
