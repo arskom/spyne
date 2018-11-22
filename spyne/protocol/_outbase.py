@@ -28,7 +28,7 @@ import errno
 
 from os.path import isabs, join, abspath
 from collections import deque
-from datetime import timedelta, datetime
+from datetime import datetime
 from decimal import Decimal as D
 from mmap import mmap, ACCESS_READ
 from time import mktime, strftime
@@ -391,7 +391,7 @@ class OutProtocolBase(ProtocolMixin):
         else:
             negative = False
 
-        tot_sec = int(_total_seconds(value))
+        tot_sec = int(value.total_seconds())
         seconds = value.seconds % 60
         minutes = value.seconds // 60
         hours = minutes // 60
@@ -773,16 +773,6 @@ _uuid_deserialize = {
 if six.PY2:
     _uuid_deserialize[('int', long)] = _uuid_deserialize[('int', int)]
     _uuid_deserialize[(int, long)] = _uuid_deserialize[('int', int)]
-
-
-
-if hasattr(timedelta, 'total_seconds'):
-    def _total_seconds(td):
-        return td.total_seconds()
-
-else:
-    def _total_seconds(td):
-        return (td.microseconds + (td.seconds + td.days * 24 * 3600) *1e6) / 1e6
 
 
 def _parse_datetime_iso_match(date_match, tz=None):

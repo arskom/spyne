@@ -20,9 +20,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import sys
-import datetime
-
 from spyne.util import six
 
 from spyne.util.six import PY3
@@ -60,10 +57,6 @@ def split_url(url):
     return scheme.lower(), host, path
 
 
-def check_pyversion(*minversion):
-    return sys.version_info[:3] >= minversion
-
-
 def sanitize_args(a):
     try:
         args, kwargs = a
@@ -94,11 +87,3 @@ if PY3:
 else:
     def _bytes_join(val, joiner=''):
         return joiner.join(val)
-
-if hasattr(datetime.timedelta, 'total_seconds'):
-    total_seconds = datetime.timedelta.total_seconds
-
-else:
-    def total_seconds(td):
-        return (td.microseconds +
-                            (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
