@@ -1201,6 +1201,32 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             else:
                 raise Exception("must raise ValidationError")
 
+        def test_not_wrapped(self):
+            class SomeInnerClass(ComplexModel):
+                d = date
+                dt = datetime
+
+            class SomeClass(ComplexModel):
+                a = int
+                b = Unicode
+                c = SomeInnerClass.customize(not_wrapped=True)
+
+            class SomeService(Service):
+                @srpc(SomeClass.customize(not_wrapped=True),
+                      _returns=SomeClass.customize(not_wrapped=True))
+                def some_call(p):
+                    assert p.a == 1
+                    assert p.b == 's'
+                    assert p.c.d == date(2018, 11, 22)
+                    return p
+
+            inner = {"a": 1, "b": "s", "c": {"d": '2018-11-22'}}
+            doc = {"some_call": [inner]}
+            ctx = _dry_me([SomeService], doc, validator='soft')
+
+            assert ctx.out_document == ({"some_callResponse":
+                                                   {'some_callResult': inner}},)
+
         def test_validation_freq_parent(self):
             class C(ComplexModel):
                 i = Integer(min_occurs=1)

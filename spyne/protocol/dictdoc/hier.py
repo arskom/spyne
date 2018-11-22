@@ -201,7 +201,8 @@ class HierDictDocument(DictDocument):
 
             return retval
 
-        if not self.ignore_wrappers:
+        cls_attrs = self.get_cls_attrs(cls)
+        if not self.ignore_wrappers and not cls_attrs.not_wrapped:
             if not isinstance(doc, dict):
                 raise ValidationError("Wrapper documents must be dicts")
             if len(doc) == 0:
@@ -431,7 +432,7 @@ class HierDictDocument(DictDocument):
         complex_as = self.get_complex_as(cls_attr)
 
         d = complex_as(self._get_member_pairs(cls, inst, tags))
-        if self.ignore_wrappers:
+        if self.ignore_wrappers or cls_attr.not_wrapped:
             return d
         else:
             return {cls.get_type_name(): d}
