@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import io
 import os
 import re
 import sys
@@ -49,7 +50,8 @@ protocols and transports.
 
 try:
     os.stat('CHANGELOG.rst')
-    LONG_DESC += u"\n\n" + open('CHANGELOG.rst', 'rb').read().decode('utf8')
+    with io.open('CHANGELOG.rst', 'rb') as f:
+        LONG_DESC += u"\n\n" + f.read().decode('utf8')
 except OSError:
     pass
 
