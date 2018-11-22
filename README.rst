@@ -37,6 +37,7 @@ The following are the primary sources of information about spyne:
 * You can download Spyne releases from
   `Github <https://github.com/arskom/spyne/downloads>`_ or
   `PyPi <http://pypi.python.org/pypi/spyne>`_.
+* Continuous Integration: https://jenkins.arskom.com.tr/job/spyne/
 
 Requirements
 ============
@@ -52,7 +53,7 @@ First things first: Spyne is known to fully work on Python versions 2.6 and 2.7.
 However Spyne's Soap (and all of its subcomponents like XmlDocument, Wsdl, etc.)
 subsystem also works on Python 3.4 and up. You can track the Python 3 porting
 progress from our jenkins deployment, here:
-https://jenkins.arskom.com.tr/job/spyne/
+https://jenkins.arskom.com.tr/job/spyne/job/origin-devel/
 
 The only hard requirement is `pytz <http://pytz.sourceforge.net/>`_ which is
 available via PyPi.
@@ -105,7 +106,7 @@ You can add append --user to get it installed with $HOME/.local prefix.
 
 You can get spyne via pypi: ::
 
-    easy_install spyne
+    easy_install [--user] spyne
 
 or you can clone the latest master tree from Github: ::
 
@@ -147,4 +148,3 @@ Contributing
 
 If you feel like helping out, see the CONTRIBUTING.rst file in the Spyne source
 distribution for starting points and general guidelines.
-
