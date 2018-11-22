@@ -568,7 +568,7 @@ class ModelBase(object):
         """
         Returns str(value). This should be overridden if this is not enough.
         """
-        return str(value)
+        return six.binary_type(value)
 
     @classmethod
     def to_unicode(cls, value):

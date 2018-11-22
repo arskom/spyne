@@ -47,8 +47,6 @@ from __future__ import print_function
 
 import socket
 
-from collections import namedtuple
-
 # List of known proxy server(s)
 TRUSTED_PROXIES = []
 
