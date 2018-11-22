@@ -71,6 +71,7 @@ from spyne.model.primitive.number import Int
 from spyne.model.primitive.number import Integer64
 from spyne.model.primitive.number import Long
 from spyne.model.primitive.number import Integer
+from spyne.model.primitive.number import NumberLimitsWarning
 
 from spyne.model.primitive.number import UnsignedInteger8
 from spyne.model.primitive.number import UnsignedByte
