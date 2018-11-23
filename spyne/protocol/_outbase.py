@@ -270,8 +270,14 @@ class OutProtocolBase(ProtocolMixin):
         return html.tostring(value, encoding='unicode')
 
     def uuid_to_bytes(self, cls, value, suggested_encoding=None, **_):
-        return self.uuid_to_unicode(cls, value,
-                     suggested_encoding=suggested_encoding, **_).encode('ascii')
+        ser_as = self.get_cls_attrs(cls).serialize_as
+        retval = self.uuid_to_unicode(cls, value,
+                                     suggested_encoding=suggested_encoding, **_)
+
+        if ser_as in ('bytes', 'bytes_le', 'fields', 'int', six.binary_type):
+            return retval
+
+        return retval.encode('ascii')
 
     def uuid_to_unicode(self, cls, value, suggested_encoding=None, **_):
         attr = self.get_cls_attrs(cls)
@@ -399,12 +405,16 @@ class OutProtocolBase(ProtocolMixin):
         return _datetime_smap[sa](cls, val)
 
     def datetime_to_bytes(self, cls, val, **_):
-        return self.datetime_to_unicode(cls, val, **_).encode("utf8")
+        retval = self.datetime_to_unicode(cls, val, **_)
+        sa = self.get_cls_attrs(cls).serialize_as
+        if sa is None or sa in (six.text_type, str, 'str'):
+            return retval.encode('ascii')
+        return retval
 
     def datetime_to_unicode(self, cls, val, **_):
         sa = self.get_cls_attrs(cls).serialize_as
 
-        if sa is None or sa in (str, 'str'):
+        if sa is None or sa in (six.text_type, str, 'str'):
             return self._datetime_to_unicode(cls, val)
 
         return _datetime_smap[sa](cls, val)
