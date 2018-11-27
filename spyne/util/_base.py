@@ -33,4 +33,12 @@ def get_version(package):
         package = __import__(package)
 
     verstr = getattr(package, '__version__')
-    return tuple([int(f) for f in verstr.split(".")])
+    retval = []
+
+    for f in verstr.split("."):
+        try:
+            retval.append(int(f))
+        except ValueError:
+            retval.append(f)
+
+    return tuple(retval)
