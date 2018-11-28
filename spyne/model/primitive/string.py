@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import unicode_literals
+
 import decimal
 import uuid
 
@@ -29,7 +31,7 @@ from spyne.model.primitive._base import re_match_with_span
 UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
                                                             {'x': '[a-fA-F0-9]'}
 
-LTREE_PATTERN = u"\w+(\\.\w+)*"
+LTREE_PATTERN = r"\w+(\\.\w+)*"
 
 # Actual ltree max size is 65536 but it's advised to keep it under 2048.
 LTREE_OPTIMAL_SIZE = 2048

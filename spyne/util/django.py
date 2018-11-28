@@ -40,7 +40,7 @@ from django.core.validators import (slug_re,
 try:
     from django.core.validators import comma_separated_int_list_re
 except ImportError:
-    comma_separated_int_list_re = re.compile('^[\d,]+$')
+    comma_separated_int_list_re = re.compile(r'^[\d,]+$')
 
 from spyne.error import (ResourceNotFoundError, ValidationError as
                          BaseValidationError, Fault)

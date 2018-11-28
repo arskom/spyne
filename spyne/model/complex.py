@@ -1492,7 +1492,7 @@ def TTableModel(metadata=None, base=None, metaclass=None):
 def Mandatory(cls, **_kwargs):
     """Customizes the given type to be a mandatory one. Has special cases for
     :class:`spyne.model.primitive.Unicode` and
-    :class:`spyne.model.complex.Array`\.
+    :class:`spyne.model.complex.Array`\\.
     """
 
     kwargs = dict(min_occurs=1, nillable=False)

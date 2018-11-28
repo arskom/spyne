@@ -57,8 +57,8 @@ class MacAddress(_MacBase):
         return SimpleModel.validate_native(cls, value)
 
 
-_PATT_IPV4_FRAG = "(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])"
-_PATT_IPV4 = "(%(P4)s\.){3,3}%(P4)s" % {'P4': _PATT_IPV4_FRAG}
+_PATT_IPV4_FRAG = r"(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])"
+_PATT_IPV4 = r"(%(P4)s\.){3,3}%(P4)s" % {'P4': _PATT_IPV4_FRAG}
 
 
 _ipv4_validate = {

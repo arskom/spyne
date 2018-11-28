@@ -114,7 +114,7 @@ class AutoReloader(object):
 
         If there are imported files you do *not* wish to monitor, you can
         adjust the ``match`` attribute, a regular expression. For example,
-        to stop monitoring cherrypy itself, try ``match=r'^(?!cherrypy).+'``\.
+        to stop monitoring cherrypy itself, try ``match=r'^(?!cherrypy).+'``\\.
         """
 
         self.frequency = frequency
