@@ -164,13 +164,13 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
         # verify that there is only one port
         ports = wrapper.get_port_list(service)
-        self.assertEquals(1, len(ports))
+        self.assertEqual(1, len(ports))
 
         # verify that the ports name matched the port specified in
         # the service class
         port = ports[0]
 
-        self.assertEquals('FirstPortType', port.get('name'))
+        self.assertEqual('FirstPortType', port.get('name'))
 
     def test_port_name(self):
         sa = build_app([TSinglePortService()], 'tns', name='SinglePortApp')
@@ -199,7 +199,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         wsdl.build_interface_document(self.url)
         sa_wsdl_el = wsdl.root_elt
 
-        self.assertEquals(1, len(sa_wsdl_el.findall(self.port_type_string)))
+        self.assertEqual(1, len(sa_wsdl_el.findall(self.port_type_string)))
         pl = sa_wsdl_el.findall(self.port_type_string)
         self.assertEqual(1, len(pl))
 
@@ -209,7 +209,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
         from lxml import etree
         print(etree.tostring(wsdl.root_elt, pretty_print=True))
-        self.assertEquals(2, len(wsdl.root_elt.findall(self.port_type_string)))
+        self.assertEqual(2, len(wsdl.root_elt.findall(self.port_type_string)))
 
 if __name__ == '__main__':
     unittest.main()

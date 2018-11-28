@@ -40,7 +40,7 @@ class TestBinary(unittest.TestCase):
         element = element[0]
 
         a2 = Soap11().from_element(None, ByteArray, element)
-        self.assertEquals(self.data, _bytes_join(a2))
+        self.assertEqual(self.data, _bytes_join(a2))
 
 if __name__ == '__main__':
     unittest.main()

@@ -87,9 +87,9 @@ class TestEnum(unittest.TestCase):
         print((etree.tostring(elt, pretty_print=True)))
         print(simple_type)
 
-        self.assertEquals(simple_type.attrib['name'], 'DaysOfWeekEnum')
-        self.assertEquals(simple_type[0].tag, XSD("restriction"))
-        self.assertEquals([e.attrib['value'] for e in simple_type[0]], vals)
+        self.assertEqual(simple_type.attrib['name'], 'DaysOfWeekEnum')
+        self.assertEqual(simple_type[0].tag, XSD("restriction"))
+        self.assertEqual([e.attrib['value'] for e in simple_type[0]], vals)
 
     def test_serialize(self):
         mo = DaysOfWeekEnum.Monday
@@ -100,7 +100,7 @@ class TestEnum(unittest.TestCase):
         elt = elt[0]
         ret = XmlDocument().from_element(None, DaysOfWeekEnum, elt)
 
-        self.assertEquals(mo, ret)
+        self.assertEqual(mo, ret)
 
     def test_serialize_complex_array(self):
         days = [
@@ -160,7 +160,7 @@ class TestEnum(unittest.TestCase):
         print((etree.tostring(elt, pretty_print=True)))
 
         ret = XmlDocument().from_element(None, SomeClass, elt)
-        self.assertEquals(t.days, ret.days)
+        self.assertEqual(t.days, ret.days)
 
 if __name__ == '__main__':
     unittest.main()

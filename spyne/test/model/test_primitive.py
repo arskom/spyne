@@ -137,7 +137,7 @@ class TestPrimitive(unittest.TestCase):
                                                                element, ns_test)
         element = element[0]
 
-        self.assertEquals(element.text, '$123456')
+        self.assertEqual(element.text, '$123456')
 
     def test_string(self):
         s = String()
@@ -145,9 +145,9 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent(None, String, 'value', element, ns_test)
         element = element[0]
 
-        self.assertEquals(element.text, 'value')
+        self.assertEqual(element.text, 'value')
         value = XmlDocument().from_element(None, String, element)
-        self.assertEquals(value, 'value')
+        self.assertEqual(value, 'value')
 
     def test_datetime(self):
         n = datetime.datetime.now(pytz.utc)
@@ -156,9 +156,9 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent(None, DateTime, n, element, ns_test)
         element = element[0]
 
-        self.assertEquals(element.text, n.isoformat())
+        self.assertEqual(element.text, n.isoformat())
         dt = XmlDocument().from_element(None, DateTime, element)
-        self.assertEquals(n, dt)
+        self.assertEqual(n, dt)
 
     def test_datetime_format(self):
         n = datetime.datetime.now().replace(microsecond=0)
@@ -216,11 +216,11 @@ class TestPrimitive(unittest.TestCase):
         element = element[0]
 
         c = n.astimezone(pytz.utc).replace(tzinfo=None)
-        self.assertEquals(element.text, c.isoformat())
+        self.assertEqual(element.text, c.isoformat())
         dt = XmlDocument().from_element(None, cls, element)
         assert dt.tzinfo is not None
         dt = dt.replace(tzinfo=None)
-        self.assertEquals(c, dt)
+        self.assertEqual(c, dt)
 
     def test_date_timezone(self):
         elt = etree.Element('wot')
@@ -234,10 +234,10 @@ class TestPrimitive(unittest.TestCase):
         n = datetime.time(1, 2, 3, 4)
 
         ret = ProtocolBase().to_bytes(Time, n)
-        self.assertEquals(ret, n.isoformat())
+        self.assertEqual(ret, n.isoformat())
 
         dt = ProtocolBase().from_unicode(Time, ret)
-        self.assertEquals(n, dt)
+        self.assertEqual(n, dt)
 
     def test_time_usec(self):
         # python's datetime and time only accept ints between [0, 1e6[
@@ -248,33 +248,33 @@ class TestPrimitive(unittest.TestCase):
 
         # rounding 0.1 µsec down
         t = ProtocolBase().from_unicode(Time, "12:12:12.0000001")
-        self.assertEquals(datetime.time(12, 12, 12), t)
+        self.assertEqual(datetime.time(12, 12, 12), t)
 
         # rounding 1.5 µsec up. 0.5 is rounded down by python 3 and up by
         # python 2 so we test with 1.5 µsec instead. frikkin' nonsense.
         t = ProtocolBase().from_unicode(Time, "12:12:12.0000015")
-        self.assertEquals(datetime.time(12, 12, 12, 2), t)
+        self.assertEqual(datetime.time(12, 12, 12, 2), t)
 
         # rounding 999998.8 µsec up
         t = ProtocolBase().from_unicode(Time, "12:12:12.9999988")
-        self.assertEquals(datetime.time(12, 12, 12, 999999), t)
+        self.assertEqual(datetime.time(12, 12, 12, 999999), t)
 
         # rounding 999999.1 µsec down
         t = ProtocolBase().from_unicode(Time, "12:12:12.9999991")
-        self.assertEquals(datetime.time(12, 12, 12, 999999), t)
+        self.assertEqual(datetime.time(12, 12, 12, 999999), t)
 
         # rounding 999999.8 µsec down, not up.
         t = ProtocolBase().from_unicode(Time, "12:12:12.9999998")
-        self.assertEquals(datetime.time(12, 12, 12, 999999), t)
+        self.assertEqual(datetime.time(12, 12, 12, 999999), t)
 
     def test_date(self):
         n = datetime.date(2011, 12, 13)
 
         ret = ProtocolBase().to_unicode(Date, n)
-        self.assertEquals(ret, n.isoformat())
+        self.assertEqual(ret, n.isoformat())
 
         dt = ProtocolBase().from_unicode(Date, ret)
-        self.assertEquals(n, dt)
+        self.assertEqual(n, dt)
 
     def test_utcdatetime(self):
         datestring = '2007-05-15T13:40:44Z'
@@ -283,9 +283,9 @@ class TestPrimitive(unittest.TestCase):
 
         dt = XmlDocument().from_element(None, DateTime, e)
 
-        self.assertEquals(dt.year, 2007)
-        self.assertEquals(dt.month, 5)
-        self.assertEquals(dt.day, 15)
+        self.assertEqual(dt.year, 2007)
+        self.assertEqual(dt.month, 5)
+        self.assertEqual(dt.day, 15)
 
         datestring = '2007-05-15T13:40:44.003Z'
         e = etree.Element('test')
@@ -293,9 +293,9 @@ class TestPrimitive(unittest.TestCase):
 
         dt = XmlDocument().from_element(None, DateTime, e)
 
-        self.assertEquals(dt.year, 2007)
-        self.assertEquals(dt.month, 5)
-        self.assertEquals(dt.day, 15)
+        self.assertEqual(dt.year, 2007)
+        self.assertEqual(dt.month, 5)
+        self.assertEqual(dt.day, 15)
 
     def test_date_exclusive_boundaries(self):
         test_model = Date.customize(gt=datetime.date(2016, 1, 1),
@@ -379,9 +379,9 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent(None, Integer, i, element, ns_test)
         element = element[0]
 
-        self.assertEquals(element.text, '12')
+        self.assertEqual(element.text, '12')
         value = XmlDocument().from_element(None, integer, element)
-        self.assertEquals(value, i)
+        self.assertEqual(value, i)
 
     def test_integer_limits(self):
         with warnings.catch_warnings(record=True) as w:
@@ -430,9 +430,9 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent(None, Integer, i, element, ns_test)
         element = element[0]
 
-        self.assertEquals(element.text, '128375873458473')
+        self.assertEqual(element.text, '128375873458473')
         value = XmlDocument().from_element(None, integer, element)
-        self.assertEquals(value, i)
+        self.assertEqual(value, i)
 
     def test_float(self):
         f = 1.22255645
@@ -441,10 +441,10 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent(None, Float, f, element, ns_test)
         element = element[0]
 
-        self.assertEquals(element.text, repr(f))
+        self.assertEqual(element.text, repr(f))
 
         f2 = XmlDocument().from_element(None, Float, element)
-        self.assertEquals(f2, f)
+        self.assertEqual(f2, f)
 
     def test_array(self):
         type = Array(String)
@@ -456,10 +456,10 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent(None, type, values, element, ns_test)
         element = element[0]
 
-        self.assertEquals(len(values), len(element.getchildren()))
+        self.assertEqual(len(values), len(element.getchildren()))
 
         values2 = XmlDocument().from_element(None, type, element)
-        self.assertEquals(values[3], values2[3])
+        self.assertEqual(values[3], values2[3])
 
     def test_array_empty(self):
         type = Array(String)
@@ -471,19 +471,19 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent(None, type, values, element, ns_test)
         element = element[0]
 
-        self.assertEquals(len(values), len(element.getchildren()))
+        self.assertEqual(len(values), len(element.getchildren()))
 
         values2 = XmlDocument().from_element(None, type, element)
-        self.assertEquals(len(values2), 0)
+        self.assertEqual(len(values2), 0)
 
     def test_unicode(self):
         s = u'\x34\x55\x65\x34'
-        self.assertEquals(4, len(s))
+        self.assertEqual(4, len(s))
         element = etree.Element('test')
         XmlDocument().to_parent(None, String, s, element, 'test_ns')
         element = element[0]
         value = XmlDocument().from_element(None, String, element)
-        self.assertEquals(value, s)
+        self.assertEqual(value, s)
 
     def test_unicode_pattern_mult_cust(self):
         assert Unicode(pattern='a').Attributes.pattern == 'a'
@@ -513,7 +513,7 @@ class TestPrimitive(unittest.TestCase):
         element = element[0]
         self.assertTrue(bool(element.attrib.get(ns.XSI('nil'))))
         value = XmlDocument().from_element(None, Null, element)
-        self.assertEquals(None, value)
+        self.assertEqual(None, value)
 
     def test_point(self):
         from spyne.model.primitive.spatial import _get_point_pattern
@@ -567,36 +567,36 @@ class TestPrimitive(unittest.TestCase):
         b = etree.Element('test')
         XmlDocument().to_parent(None, Boolean, True, b, ns_test)
         b = b[0]
-        self.assertEquals('true', b.text)
+        self.assertEqual('true', b.text)
 
         b = etree.Element('test')
         XmlDocument().to_parent(None, Boolean, 0, b, ns_test)
         b = b[0]
-        self.assertEquals('false', b.text)
+        self.assertEqual('false', b.text)
 
         b = etree.Element('test')
         XmlDocument().to_parent(None, Boolean, 1, b, ns_test)
         b = b[0]
-        self.assertEquals('true', b.text)
+        self.assertEqual('true', b.text)
 
         b = XmlDocument().from_element(None, Boolean, b)
-        self.assertEquals(b, True)
+        self.assertEqual(b, True)
 
         b = etree.Element('test')
         XmlDocument().to_parent(None, Boolean, False, b, ns_test)
         b = b[0]
-        self.assertEquals('false', b.text)
+        self.assertEqual('false', b.text)
 
         b = XmlDocument().from_element(None, Boolean, b)
-        self.assertEquals(b, False)
+        self.assertEqual(b, False)
 
         b = etree.Element('test')
         XmlDocument().to_parent(None, Boolean, None, b, ns_test)
         b = b[0]
-        self.assertEquals('true', b.get(ns.XSI('nil')))
+        self.assertEqual('true', b.get(ns.XSI('nil')))
 
         b = XmlDocument().from_element(None, Boolean, b)
-        self.assertEquals(b, None)
+        self.assertEqual(b, None)
 
     def test_new_type(self):
         """Customized primitives go into namespace based on module name."""
@@ -706,10 +706,10 @@ class TestPrimitive(unittest.TestCase):
         vs = '1881-01-01 00:00:00'
 
         dt = ProtocolBase().from_unicode(t, vs)
-        self.assertEquals(v, dt)
+        self.assertEqual(v, dt)
 
         dt = ProtocolBase().to_unicode(t, v)
-        self.assertEquals(vs, dt)
+        self.assertEqual(vs, dt)
 
     def test_custom_strftime(self):
         s = ProtocolBase.strftime(datetime.date(1800, 9, 23),
@@ -749,28 +749,28 @@ class TestPrimitive(unittest.TestCase):
         # rounding 0.1 µsec down
         dt = ProtocolBase().from_unicode(DateTime,
                                                   "2015-01-01 12:12:12.0000001")
-        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
+        self.assertEqual(datetime.datetime(2015, 1, 1, 12, 12, 12), dt)
 
         # rounding 1.5 µsec up. 0.5 is rounded down by python 3 and up by
         # python 2 so we test with 1.5 µsec instead. frikkin' nonsense.
         dt = ProtocolBase().from_unicode(DateTime,
                                                   "2015-01-01 12:12:12.0000015")
-        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 2), dt)
+        self.assertEqual(datetime.datetime(2015, 1, 1, 12, 12, 12, 2), dt)
 
         # rounding 999998.8 µsec up
         dt = ProtocolBase().from_unicode(DateTime,
                                                   "2015-01-01 12:12:12.9999988")
-        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
+        self.assertEqual(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
         # rounding 999999.1 µsec down
         dt = ProtocolBase().from_unicode(DateTime,
                                                   "2015-01-01 12:12:12.9999991")
-        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
+        self.assertEqual(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
         # rounding 999999.8 µsec down, not up.
         dt = ProtocolBase().from_unicode(DateTime,
                                                   "2015-01-01 12:12:12.9999998")
-        self.assertEquals(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
+        self.assertEqual(datetime.datetime(2015, 1, 1, 12, 12, 12, 999999), dt)
 
 
 ### Duration Data Type
@@ -807,7 +807,7 @@ class TestDurationPrimitive(unittest.TestCase):
         assert element[0].text == answer
 
         data = element.find('{%s}howlong' % gg.get_namespace()).text
-        self.assertEquals(data, answer)
+        self.assertEqual(data, answer)
         s1 = XmlDocument().from_element(None, SomeBlob, element)
         assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
 
@@ -840,7 +840,7 @@ class TestDurationPrimitive(unittest.TestCase):
             assert element[0].text == answer
 
             data = element.find('{%s}howlong' % gg.get_namespace()).text
-            self.assertEquals(data, answer)
+            self.assertEqual(data, answer)
             s1 = XmlDocument().from_element(None, SomeBlob, element)
             assert s1.howlong.total_seconds() == secs
 
@@ -861,7 +861,7 @@ class TestDurationPrimitive(unittest.TestCase):
                 assert element[0].text == answer
 
                 data = element.find('{%s}howlong' % gg.get_namespace()).text
-                self.assertEquals(data, answer)
+                self.assertEqual(data, answer)
                 s1 = XmlDocument().from_element(None, SomeBlob, element)
                 assert s1.howlong.total_seconds() == secs
 
@@ -879,7 +879,7 @@ class TestDurationPrimitive(unittest.TestCase):
         assert element[0].text == answer
 
         data = element.find('{%s}howlong' % gg.get_namespace()).text
-        self.assertEquals(data, answer)
+        self.assertEqual(data, answer)
         s1 = XmlDocument().from_element(None, SomeBlob, element)
         assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
 
@@ -897,7 +897,7 @@ class TestDurationPrimitive(unittest.TestCase):
         assert element[0].text == answer
 
         data = element.find('{%s}howlong' % gg.get_namespace()).text
-        self.assertEquals(data, answer)
+        self.assertEqual(data, answer)
         s1 = XmlDocument().from_element(None, SomeBlob, element)
         assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
 
@@ -915,7 +915,7 @@ class TestDurationPrimitive(unittest.TestCase):
         assert element[0].text == answer
 
         data = element.find('{%s}howlong' % gg.get_namespace()).text
-        self.assertEquals(data, answer)
+        self.assertEqual(data, answer)
         s1 = XmlDocument().from_element(None, SomeBlob, element)
         assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
 
@@ -926,10 +926,10 @@ class TestDurationPrimitive(unittest.TestCase):
         str1 = 'P400DT3672.8S'
         str2 = 'P1Y1M5DT1H1M12.8S'
 
-        self.assertEquals(dur, ProtocolBase().from_unicode(Duration, str1))
-        self.assertEquals(dur, ProtocolBase().from_unicode(Duration, str2))
+        self.assertEqual(dur, ProtocolBase().from_unicode(Duration, str1))
+        self.assertEqual(dur, ProtocolBase().from_unicode(Duration, str2))
 
-        self.assertEquals(dur, ProtocolBase().from_unicode(Duration,
+        self.assertEqual(dur, ProtocolBase().from_unicode(Duration,
                                       ProtocolBase().to_unicode(Duration, dur)))
 
 

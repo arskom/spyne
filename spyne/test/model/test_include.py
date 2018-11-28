@@ -69,7 +69,7 @@ class TestInclude(unittest.TestCase):
         result = response.getchildren()[0]
         r = XmlDocument().from_element(None, DownloadPartFileResult, result)
 
-        self.assertEquals(payload, r.Data)
+        self.assertEqual(payload, r.Data)
 
 if __name__ == '__main__':
     unittest.main()

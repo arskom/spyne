@@ -229,8 +229,8 @@ class TestSqlAlchemy(unittest.TestCase):
             print((_key, _key.text))
             print((_value, _value.text))
 
-            self.assertEquals(_key.text, key)
-            self.assertEquals(_value.text, value)
+            self.assertEqual(_key.text, key)
+            self.assertEqual(_value.text, value)
 
     def test_late_mapping(self):
         import sqlalchemy
@@ -243,8 +243,8 @@ class TestSqlAlchemy(unittest.TestCase):
         class User(TableModel, self.DeclarativeBase):
             __table__ = user_t
 
-        self.assertEquals(User._type_info['id'].__type_name__, 'integer')
-        self.assertEquals(User._type_info['name'].__type_name__, 'string')
+        self.assertEqual(User._type_info['id'].__type_name__, 'integer')
+        self.assertEqual(User._type_info['name'].__type_name__, 'string')
 
 
     def test_default_ctor(self):

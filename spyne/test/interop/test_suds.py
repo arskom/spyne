@@ -98,11 +98,11 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def test_echo_boolean(self):
         val = True
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val, ret)
+        self.assertEqual(val, ret)
 
         val = False
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val, ret)
+        self.assertEqual(val, ret)
 
     def test_enum(self):
         DaysOfWeekEnum = self.client.factory.create("DaysOfWeekEnum")
@@ -148,8 +148,8 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
 
         print(ret)
 
-        self.assertEquals(in_header.s, ret.s)
-        self.assertEquals(in_header.i, ret.i)
+        self.assertEqual(in_header.s, ret.s)
+        self.assertEqual(in_header.i, ret.i)
 
     def test_echo_in_complex_header(self):
         in_header = self.client.factory.create('InHeader')
@@ -166,10 +166,10 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
 
         print(ret)
 
-        self.assertEquals(in_header.s, ret[0].s)
-        self.assertEquals(in_header.i, ret[0].i)
-        self.assertEquals(in_trace_header.client, ret[1].client)
-        self.assertEquals(in_trace_header.callDate, ret[1].callDate)
+        self.assertEqual(in_header.s, ret[0].s)
+        self.assertEqual(in_header.i, ret[0].i)
+        self.assertEqual(in_trace_header.client, ret[1].client)
+        self.assertEqual(in_trace_header.callDate, ret[1].callDate)
 
     def test_send_out_header(self):
         out_header = self.client.factory.create('OutHeader')
@@ -179,8 +179,8 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         ret = self.client.service.send_out_header()
 
         self.assertTrue(isinstance(ret, type(out_header)))
-        self.assertEquals(ret.dt, out_header.dt)
-        self.assertEquals(ret.f, out_header.f)
+        self.assertEqual(ret.dt, out_header.dt)
+        self.assertEqual(ret.f, out_header.f)
 
     def test_send_out_complex_header(self):
         out_header = self.client.factory.create('OutHeader')
@@ -195,24 +195,24 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         ret = self.client.service.send_out_complex_header()
 
         self.assertTrue(isinstance(ret[0], type(out_header)))
-        self.assertEquals(ret[0].dt, out_header.dt)
-        self.assertEquals(ret[0].f, out_header.f)
+        self.assertEqual(ret[0].dt, out_header.dt)
+        self.assertEqual(ret[0].f, out_header.f)
         self.assertTrue(isinstance(ret[1], type(out_trace_header)))
-        self.assertEquals(ret[1].receiptDate, out_trace_header.receiptDate)
-        self.assertEquals(ret[1].returnDate, out_trace_header.returnDate)
+        self.assertEqual(ret[1].receiptDate, out_trace_header.receiptDate)
+        self.assertEqual(ret[1].returnDate, out_trace_header.returnDate)
         # Control the reply soap header (in an unelegant way but this is the
         # only way with suds)
         soapheaders = self.client.options.plugins[0].reply.getChild("Envelope").getChild("Header")
         soap_out_header = soapheaders.getChild('OutHeader')
-        self.assertEquals('T'.join((out_header.dt.date().isoformat(),
+        self.assertEqual('T'.join((out_header.dt.date().isoformat(),
                                     out_header.dt.time().isoformat())),
                           soap_out_header.getChild('dt').getText())
-        self.assertEquals(six.text_type(out_header.f), soap_out_header.getChild('f').getText())
+        self.assertEqual(six.text_type(out_header.f), soap_out_header.getChild('f').getText())
         soap_out_trace_header = soapheaders.getChild('OutTraceHeader')
-        self.assertEquals('T'.join((out_trace_header.receiptDate.date().isoformat(),
+        self.assertEqual('T'.join((out_trace_header.receiptDate.date().isoformat(),
                                     out_trace_header.receiptDate.time().isoformat())),
                           soap_out_trace_header.getChild('receiptDate').getText())
-        self.assertEquals('T'.join((out_trace_header.returnDate.date().isoformat(),
+        self.assertEqual('T'.join((out_trace_header.returnDate.date().isoformat(),
                                     out_trace_header.returnDate.time().isoformat())),
                           soap_out_trace_header.getChild('returnDate').getText())
 
@@ -220,7 +220,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         test_string = "OK"
         ret = self.client.service.echo_string(test_string)
 
-        self.assertEquals(ret, test_string)
+        self.assertEqual(ret, test_string)
 
     def __get_xml_test_val(self):
         return {
@@ -293,16 +293,16 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
 
         ret = self.client.service.echo_nested_class(val)
 
-        self.assertEquals(ret.i, val.i)
+        self.assertEqual(ret.i, val.i)
         self.assertEqual(ret.ai[0], val.ai[0])
-        self.assertEquals(ret.simple.SimpleClass[0].s, val.simple.SimpleClass[0].s)
+        self.assertEqual(ret.simple.SimpleClass[0].s, val.simple.SimpleClass[0].s)
         self.assertEqual(ret.other.dt, val.other.dt)
 
     def test_huge_number(self):
-        self.assertEquals(self.client.service.huge_number(), 2 ** int(1e5))
+        self.assertEqual(self.client.service.huge_number(), 2 ** int(1e5))
 
     def test_long_string(self):
-        self.assertEquals(self.client.service.long_string(),
+        self.assertEqual(self.client.service.long_string(),
                                                    ('0123456789abcdef' * 16384))
 
     def test_empty(self):
@@ -341,12 +341,12 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         ret = self.client.service.echo_extension_class(val)
         print(ret)
 
-        self.assertEquals(ret.i, val.i)
-        self.assertEquals(ret.s, val.s)
-        self.assertEquals(ret.f, val.f)
-        self.assertEquals(ret.simple.SimpleClass[0].i, val.simple.SimpleClass[0].i)
-        self.assertEquals(ret.other.dt, val.other.dt)
-        self.assertEquals(ret.p.s, val.p.s)
+        self.assertEqual(ret.i, val.i)
+        self.assertEqual(ret.s, val.s)
+        self.assertEqual(ret.f, val.f)
+        self.assertEqual(ret.simple.SimpleClass[0].i, val.simple.SimpleClass[0].i)
+        self.assertEqual(ret.other.dt, val.other.dt)
+        self.assertEqual(ret.p.s, val.p.s)
 
 
     def test_python_exception(self):
@@ -366,10 +366,10 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def test_complex_return(self):
         ret = self.client.service.complex_return()
 
-        self.assertEquals(ret.resultCode, 1)
-        self.assertEquals(ret.resultDescription, "Test")
-        self.assertEquals(ret.transactionId, 123)
-        self.assertEquals(ret.roles.RoleEnum[0], "MEMBER")
+        self.assertEqual(ret.resultCode, 1)
+        self.assertEqual(ret.resultDescription, "Test")
+        self.assertEqual(ret.transactionId, 123)
+        self.assertEqual(ret.roles.RoleEnum[0], "MEMBER")
 
     def test_return_invalid_data(self):
         try:
