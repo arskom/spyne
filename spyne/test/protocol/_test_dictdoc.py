@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import unicode_literals
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -1220,12 +1222,13 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     assert p.c.d == date(2018, 11, 22)
                     return p
 
-            inner = {"a": 1, "b": "s", "c": {"d": '2018-11-22'}}
+            inner = {"a": 1, "b": b"s", "c": {"d": b'2018-11-22'}}
             doc = {"some_call": [inner]}
             ctx = _dry_me([SomeService], doc, validator='soft')
 
+            print(ctx.out_document)
             assert ctx.out_document == ({"some_callResponse":
-                                                   {'some_callResult': inner}},)
+                                                  {'some_callResult': inner}},)
 
         def test_validation_freq_parent(self):
             class C(ComplexModel):

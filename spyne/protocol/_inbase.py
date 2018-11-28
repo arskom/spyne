@@ -394,8 +394,7 @@ class InProtocolBase(ProtocolMixin):
         if isinstance(string, six.binary_type):
             string = string.decode(self.default_string_encoding)
 
-        return self.time_from_unicode(cls,
-                                    string.decode(self.default_string_encoding))
+        return self.time_from_unicode(cls, string)
 
     def date_from_unicode_iso(self, cls, string):
         """This is used by protocols like SOAP who need ISO8601-formatted dates

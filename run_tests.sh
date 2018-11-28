@@ -190,5 +190,7 @@ set
 [ -e .coverage ] && rm -v .coverage
 [ -e .coverage ] && rm -v coverage.xml
 
+export PYTHONHASHSEED=0
+
 # ignore return value -- result information is in the produced xml files
 "$PYTHON" setup.py test || true;

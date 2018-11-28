@@ -199,9 +199,15 @@ class ExtendedTestCommand(TestCommand):
 
 class RunTests(ExtendedTestCommand):
     def run_tests(self):
-        print("Running tests")
-        ret = 0
+        cfn = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),
+                                                                      'tox.ini')
+        from collections import OrderedDict
+        djenvs = tuple(OrderedDict(((k, None) for k in
+                            re.findall('py%s-dj[0-9]+' % PYVER,
+                                open(cfn, 'rb').read().decode('utf8')))).keys())
 
+        print("Running tests, including djenvs", djenvs)
+        ret = 0
         tests = [
             'interface', 'model', 'multipython', 'protocol', 'util',
 
@@ -231,10 +237,8 @@ class RunTests(ExtendedTestCommand):
                                                     capture=self.capture) or ret
             ret = call_pytest_subprocess('interop/test_zeep.py',
                                                     capture=self.capture) or ret
-
-        ret = call_tox_subprocess('py%s-dj18' % PYVER) or ret
-        ret = call_tox_subprocess('py%s-dj110' % PYVER) or ret
-        ret = call_tox_subprocess('py%s-dj111' % PYVER) or ret
+        for djenv in djenvs:
+            ret = call_tox_subprocess(djenv) or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)
@@ -257,6 +261,8 @@ class RunPython3Tests(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
+        raise SystemExit(111)
+
         file_name = 'test_result_py3.xml'
         ret = run_tests_and_create_report(file_name,
             'multipython',
@@ -269,7 +275,6 @@ class RunPython3Tests(TestCommand):
             'protocol/test_soap11.py',
             'protocol/test_soap12.py',
         )
-        ret = call_tox_subprocess('py%s-dj1{8,9,10}' % PYVER) or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)

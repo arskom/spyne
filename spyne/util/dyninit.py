@@ -70,9 +70,9 @@ MAP = cdict({
         datetime: lambda _: _,
         object: lambda _:_,
         bytes: lambda s: None if s.strip() in ('', '0000-00-00 00:00:00')
-                           else _prot.datetime_from_unicode(DateTime, s.strip()),
+                          else _prot.datetime_from_unicode(DateTime, s.strip()),
         unicode: lambda s: None if s.strip() in (u'', u'0000-00-00 00:00:00')
-                           else _prot.datetime_from_unicode(DateTime, s.strip()),
+                          else _prot.datetime_from_unicode(DateTime, s.strip()),
     }),
 
     IpAddress: cdict({

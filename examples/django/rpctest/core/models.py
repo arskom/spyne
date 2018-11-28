@@ -26,14 +26,14 @@ class FieldContainer(models.Model):
     datetime_field = models.DateTimeField(auto_now_add=True)
 
     foreign_key = models.ForeignKey('self', null=True,
-                                    related_name='related_containers')
-    one_to_one_field = models.OneToOneField('self', null=True)
+                    related_name='related_containers', on_delete=models.CASCADE)
+    one_to_one_field = models.OneToOneField('self', null=True,
+                                                       on_delete=models.CASCADE)
 
-    custom_foreign_key = models.ForeignKey(
-        'RelatedFieldContainer', null=True,
-        related_name='related_fieldcontainers')
+    custom_foreign_key = models.ForeignKey('RelatedFieldContainer', null=True,
+               related_name='related_fieldcontainers', on_delete=models.CASCADE)
     custom_one_to_one_field = models.OneToOneField('RelatedFieldContainer',
-                                                   null=True)
+                                            null=True, on_delete=models.CASCADE)
 
     url_field = models.URLField(default='http://example.com')
     file_field = models.FileField(upload_to='test_file', null=True)
@@ -62,5 +62,5 @@ class UserProfile(models.Model):
 
     """Related model for tests of relation field mapper."""
 
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     data = models.CharField(max_length=50)
