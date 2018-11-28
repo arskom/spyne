@@ -488,7 +488,8 @@ def _process_child_attrs(cls, retval, kwargs):
 
         else:
             if 'exc' in child_attrs_all and child_attrs_all['exc'] != D_EXC:
-                logger.warning("Overriding child_attrs_all['exc'] to True")
+                logger.warning("Overriding child_attrs_all['exc'] to True "
+                                                                  "for %r", cls)
 
             child_attrs_all.update(D_EXC)
 
