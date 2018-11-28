@@ -251,42 +251,6 @@ class RunTests(ExtendedTestCommand):
         raise SystemExit(ret)
 
 
-class RunPython3Tests(TestCommand):
-    """Run tests compatible with different python implementations. """
-
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        raise SystemExit(111)
-
-        file_name = 'test_result_py3.xml'
-        ret = run_tests_and_create_report(file_name,
-            'multipython',
-            'interface/test_interface.py',
-            'interface/wsdl/test_wsdl_ports_services.py',
-            'model/test_enum.py',
-            'model/test_exception.py',
-            'model/test_include.py',
-            'protocol/test_xml.py',
-            'protocol/test_soap11.py',
-            'protocol/test_soap12.py',
-        )
-
-        if ret == 0:
-            print(GREEN + "All that glisters is not gold." + RESET)
-        else:
-            print(RED + "Something is rotten in the state of Denmark." + RESET)
-
-        print ("Generating coverage.xml")
-        call_coverage()
-
-        raise SystemExit(ret)
-
-
 # Testing stuff ends here.
 ###############################
 
@@ -336,6 +300,5 @@ setup(
 
     cmdclass = {
         'test': RunTests,
-        'test_python3': RunPython3Tests
     },
 )
