@@ -328,6 +328,11 @@ class ModelBase(object):
         """If `True`, this field will be excluded from the interface
         document."""
 
+        exc = False
+        """If `True`, this field will be excluded from all serialization or
+         deserialization operations. See `prot_attrs` to make this only appyl to
+         a speficic protocol class or instance."""
+
         logged = True
         """If `False`, this object will be ignored in ``log_repr``, mostly used
         for logging purposes.
