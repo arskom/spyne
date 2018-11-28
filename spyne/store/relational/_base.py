@@ -663,7 +663,8 @@ def _gen_array_simple(cls, props, subname, arrser_cust, storage):
     props["_" + subname] = relationship(cls_)
 
     # generate association proxy
-    setattr(cls, subname, association_proxy("_" + subname, child_right_col_name))
+    setattr(cls, subname,
+                         association_proxy("_" + subname, child_right_col_name))
 
 
 def _gen_array_o2m(cls, props, subname, arrser, arrser_cust, storage):

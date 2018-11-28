@@ -1018,7 +1018,7 @@ class XmlDocument(SubXmlBase):
 
             if issubclass(member.type, (ByteArray, File)):
                 value = self.from_unicode(member.type, value_str,
-                                                       self.binary_encoding)
+                                                           self.binary_encoding)
             else:
                 value = self.from_unicode(member.type, value_str)
 

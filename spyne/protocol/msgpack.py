@@ -279,7 +279,7 @@ class MessagePackRpc(MessagePackDocument):
         if ctx.out_error is not None:
             ctx.out_document = [
                 [MessagePackRpc.MSGPACK_RESPONSE, 0,
-                           Fault.to_dict(ctx.out_error.__class__, ctx.out_error)]
+                          Fault.to_dict(ctx.out_error.__class__, ctx.out_error)]
             ]
             return
 

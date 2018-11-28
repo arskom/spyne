@@ -354,8 +354,6 @@ class _SpyneJsonRpc1(JsonDocument):
 
         self.event_manager.fire_event('before_serialize', ctx)
 
-        # construct the soap response, and serialize it
-        nsmap = self.app.interface.nsmap
         ctx.out_document = {
             "ver": self.version,
         }
@@ -390,7 +388,7 @@ class _SpyneJsonRpc1(JsonDocument):
                 setattr(out_object, k, v)
 
             ctx.out_document[self.BODY] = ctx.out_body_doc = \
-                            self._object_to_doc(body_message_class, out_object)
+                             self._object_to_doc(body_message_class, out_object)
 
             # header
             if ctx.out_header is not None and header_message_class is not None:

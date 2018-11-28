@@ -325,8 +325,8 @@ class Soap11(XmlDocument):
                         v = None
 
                     setattr(out_object, k, v)
-                self.to_parent(ctx, body_message_class, out_object, out_body_doc,
-                                            body_message_class.get_namespace())
+                self.to_parent(ctx, body_message_class, out_object,
+                               out_body_doc, body_message_class.get_namespace())
 
             else:
                 out_object = ctx.out_object[0]

@@ -513,7 +513,7 @@ def _process_child_attrs(cls, retval, kwargs):
             for k, v in child_attrs_noexc.items():
                 if k in child_attrs:
                     logger.warning("Overriding child_attrs for %s.%s from "
-                                   "child_attrs_noexc", cls.get_type_name(), k)
+                                    "child_attrs_noexc", cls.get_type_name(), k)
 
                 child_attrs[k] = v
 
