@@ -125,8 +125,8 @@ class HierDictDocument(DictDocument):
             out_instance = out_type()
 
             for i, (k, v) in enumerate(out_type_info.items()):
-                attr_name = k
-                out_instance._safe_set(attr_name, ctx.out_object[i], v)
+                attrs = self.get_cls_attrs(v)
+                out_instance._safe_set(k, ctx.out_object[i], v, attrs)
 
         ctx.out_document = self._object_to_doc(out_type, out_instance, set()),
 
@@ -268,9 +268,9 @@ class HierDictDocument(DictDocument):
                 if member is None:
                     continue
 
-            attr = self.get_cls_attrs(member)
+            member_attrs = self.get_cls_attrs(member)
 
-            mo = attr.max_occurs
+            mo = member_attrs.max_occurs
             if mo > 1:
                 subinst = getattr(inst, k, None)
                 if subinst is None:
@@ -283,7 +283,7 @@ class HierDictDocument(DictDocument):
             else:
                 subinst = self._from_dict_value(ctx, k, member, v, validator)
 
-            inst._safe_set(k, subinst, member)
+            inst._safe_set(k, subinst, member, member_attrs)
 
             frequencies[k] += 1
 

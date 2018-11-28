@@ -583,24 +583,25 @@ class XmlDocument(SubXmlBase):
 
             # assign raw result to its wrapper, result_message
             if ctx.descriptor.body_style == BODY_STYLE_WRAPPED:
-                result_message = result_message_class()
+                result_inst = result_message_class()
 
-                for i, attr_name in enumerate(
-                                        result_message_class._type_info.keys()):
-                    setattr(result_message, attr_name, ctx.out_object[i])
+                for i, (k, v) in enumerate(
+                                       result_message_class._type_info.items()):
+                    attrs = self.get_cls_attrs(v)
+                    result_inst._safe_set(k, ctx.out_object[i], v, attrs)
 
             else:
-                result_message = ctx.out_object
+                result_inst = ctx.out_object
 
             if ctx.out_stream is None:
                 tmp_elt = etree.Element('punk')
                 retval = self.to_parent(ctx, result_message_class,
-                          result_message, tmp_elt, self.app.interface.get_tns())
+                          result_inst, tmp_elt, self.app.interface.get_tns())
                 ctx.out_document = tmp_elt[0]
 
             else:
                 retval = self.incgen(ctx, result_message_class,
-                                  result_message, self.app.interface.get_tns())
+                                  result_inst, self.app.interface.get_tns())
 
         if self.cleanup_namespaces and ctx.out_document is not None:
             etree.cleanup_namespaces(ctx.out_document)
@@ -950,20 +951,21 @@ class XmlDocument(SubXmlBase):
 
         if cls_attrs._xml_tag_body_as is not None:
             for xtba_key, xtba_type in cls_attrs._xml_tag_body_as:
+                xtba_attrs = self.get_cls_attrs(xtba_type.type)
                 if issubclass(xtba_type.type, (ByteArray, File)):
                     value = self.from_unicode(xtba_type.type, elt.text,
                                                         self.binary_encoding)
                 else:
                     value = self.from_unicode(xtba_type.type, elt.text)
 
-                setattr(inst, xtba_key, value)
+                inst._safe_set(xtba_key, value, xtba_type.type, xtba_attrs)
 
         # parse input to set incoming data to related attributes.
         for c in elt:
             if isinstance(c, etree._Comment):
                 continue
 
-            key = c.tag.split('}')[-1]
+            key = c.tag.split('}', 1)[-1]
             frequencies[key] += 1
 
             member = flat_type_info.get(key, None)
@@ -974,7 +976,8 @@ class XmlDocument(SubXmlBase):
                     if member is None:
                         continue
 
-            mo = member.Attributes.max_occurs
+            member_attrs = self.get_cls_attrs(member)
+            mo = member_attrs.max_occurs
             if mo > 1:
                 value = getattr(inst, key, None)
                 if value is None:
@@ -985,27 +988,29 @@ class XmlDocument(SubXmlBase):
             else:
                 value = self.from_element(ctx, member, c)
 
-            setattr(inst, key, value)
+            inst._safe_set(key, value, member, member_attrs)
 
             for key, value_str in c.attrib.items():
-                member = flat_type_info.get(key, None)
-                if member is None:
-                    member, key = cls._type_info_alt.get(key, (None, key))
-                    if member is None:
+                submember = flat_type_info.get(key, None)
+
+                if submember is None:
+                    submember, key = cls._type_info_alt.get(key, (None, key))
+                    if submember is None:
                         continue
 
-                mo = member.Attributes.max_occurs
+                submember_attrs = self.get_cls_attrs(submember)
+                mo = submember_attrs.max_occurs
                 if mo > 1:
                     value = getattr(inst, key, None)
                     if value is None:
                         value = []
 
-                    value.append(self.from_unicode(member.type, value_str))
+                    value.append(self.from_unicode(submember.type, value_str))
 
                 else:
-                    value = self.from_unicode(member.type, value_str)
+                    value = self.from_unicode(submember.type, value_str)
 
-                setattr(inst, key, value)
+                inst._safe_set(key, value, submember.type, submember_attrs)
 
         for key, value_str in elt.attrib.items():
             member = flat_type_info.get(key, None)
@@ -1013,6 +1018,7 @@ class XmlDocument(SubXmlBase):
                 member, key = cls._type_info_alt.get(key, (None, key))
                 if member is None:
                     continue
+
             if not issubclass(member, XmlAttribute):
                 continue
 
@@ -1022,12 +1028,13 @@ class XmlDocument(SubXmlBase):
             else:
                 value = self.from_unicode(member.type, value_str)
 
-            setattr(inst, key, value)
+            member_attrs = self.get_cls_attrs(member.type)
+            inst._safe_set(key, value, member.type, member_attrs)
 
         if self.validator is self.SOFT_VALIDATION:
             for key, c in flat_type_info.items():
                 val = frequencies.get(key, 0)
-                attr = c.Attributes
+                attr = self.get_cls_attrs(c)
                 if val < attr.min_occurs or val > attr.max_occurs:
                     raise Fault('Client.ValidationError', '%r member does not '
                                          'respect frequency constraints.' % key)

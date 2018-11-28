@@ -807,7 +807,8 @@ class ComplexModelBase(ModelBase):
             for arg, (xtba_key, xtba_type) in \
                                            zip(args, cls_attr._xml_tag_body_as):
                 if xtba_key is not None and len(args) == 1:
-                    self._safe_set(xtba_key, arg, xtba_type)
+                    self._safe_set(xtba_key, arg, xtba_type,
+                                                           xtba_type.Attributes)
                 elif len(args) > 0:
                     raise TypeError(
                                 "Positional argument is only for ComplexModels "
@@ -815,11 +816,11 @@ class ComplexModelBase(ModelBase):
                                 "arguments in any other case.")
 
         for k, v in fti.items():
+            attr = v.Attributes
             if k in kwargs:
-                self._safe_set(k, kwargs[k], v)
+                self._safe_set(k, kwargs[k], v, attr)
 
             elif not k in self.__dict__:
-                attr = v.Attributes
                 def_val = attr.default
                 def_fac = attr.default_factory
 
@@ -873,8 +874,8 @@ class ComplexModelBase(ModelBase):
                     for k in self.__class__.get_flat_type_info(self.__class__)
                     if self.__dict__.get(k, None) is not None]))
 
-    def _safe_set(self, key, value, t):
-        if t.Attributes.read_only:
+    def _safe_set(self, key, value, t, attrs):
+        if attrs.read_only or attrs.exc:
             return False
 
         try:
@@ -1251,15 +1252,12 @@ class ComplexModelBase(ModelBase):
         retval = (cls if cls.__orig__ is None else cls.__orig__)()
 
         for k, v in cls._type_info.items():
-            if v.Attributes.read_only:
-                continue
-
             try:
                 if k in kwargs:
-                    setattr(retval, k, kwargs[k])
+                    retval._safe_set(k, kwargs[k], v, v.Attributes)
 
                 elif hasattr(other, k):
-                    setattr(retval, k, getattr(other, k))
+                    retval._safe_set(k, getattr(other, k), v, v.Attributes)
 
             except AttributeError as e:
                 logger.warning("Error setting %s: %r", k, e)

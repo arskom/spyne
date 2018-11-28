@@ -372,6 +372,7 @@ class _SpyneJsonRpc1(JsonDocument):
             # assign raw result to its wrapper, result_message
             out_type_info = body_message_class._type_info
             out_object = body_message_class()
+            bm_attrs = self.get_cls_attrs(body_message_class)
 
             keys = iter(out_type_info)
             values = iter(ctx.out_object)
@@ -385,7 +386,7 @@ class _SpyneJsonRpc1(JsonDocument):
                 except StopIteration:
                     v = None
 
-                setattr(out_object, k, v)
+                out_object._safe_set(k, v, body_message_class, bm_attrs)
 
             ctx.out_document[self.BODY] = ctx.out_body_doc = \
                              self._object_to_doc(body_message_class, out_object)

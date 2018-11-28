@@ -311,6 +311,7 @@ class Soap11(XmlDocument):
             if ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
                 out_type_info = body_message_class._type_info
                 out_object = body_message_class()
+                bm_attrs = self.get_cls_attrs(body_message_class)
 
                 keys = iter(out_type_info)
                 values = iter(ctx.out_object)
@@ -324,7 +325,8 @@ class Soap11(XmlDocument):
                     except StopIteration:
                         v = None
 
-                    setattr(out_object, k, v)
+                    out_object._safe_set(k, v, body_message_class, bm_attrs)
+
                 self.to_parent(ctx, body_message_class, out_object,
                                out_body_doc, body_message_class.get_namespace())
 

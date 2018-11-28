@@ -307,8 +307,8 @@ class MessagePackRpc(MessagePackDocument):
 
         # assign raw result to its wrapper, result_message
         for i, (k, v) in enumerate(out_type_info.items()):
-            attr_name = k
-            out_instance._safe_set(attr_name, ctx.out_object[i], v)
+            attrs = self.get_cls_attrs(v)
+            out_instance._safe_set(k, ctx.out_object[i], v, attrs)
 
         # transform the results into a dict:
         if out_type.Attributes.max_occurs > 1:
