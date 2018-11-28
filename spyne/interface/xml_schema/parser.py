@@ -384,7 +384,7 @@ class XmlSchemaParser(object):
 
         kwargs = {}
         if a.default is not None:
-            kwargs['default'] = _prot.from_string(t, a.default)
+            kwargs['default'] = _prot.from_unicode(t, a.default)
 
         if len(kwargs) > 0:
             t = t.customize(**kwargs)
@@ -424,14 +424,14 @@ class XmlSchemaParser(object):
                     kwargs['nillable'] = e.nillable
 
                 if e.default is not None:
-                    kwargs['default'] = _prot.from_string(t, e.default)
+                    kwargs['default'] = _prot.from_unicode(t, e.default)
 
                 if len(kwargs) > 0:
                     t = t.customize(**kwargs)
 
             if attribute is not None:
                 if attribute.default is not None:
-                    kwargs['default'] = _prot.from_string(t, a.default)
+                    kwargs['default'] = _prot.from_unicode(t, a.default)
 
                 if len(kwargs) > 0:
                     t = t.customize(**kwargs)

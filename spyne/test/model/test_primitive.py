@@ -651,9 +651,9 @@ class TestPrimitive(unittest.TestCase):
                 '12345678123456781234567812345678') == value
         assert ProtocolBase().from_unicode(Uuid(serialize_as='urn'),
                 'urn:uuid:12345678-1234-5678-1234-567812345678') == value
-        assert ProtocolBase().from_string(Uuid(serialize_as='bytes'),
+        assert ProtocolBase().from_bytes(Uuid(serialize_as='bytes'),
                 b'\x124Vx\x124Vx\x124Vx\x124Vx') == value
-        assert ProtocolBase().from_string(Uuid(serialize_as='bytes_le'),
+        assert ProtocolBase().from_bytes(Uuid(serialize_as='bytes_le'),
                 b'xV4\x124\x12xV\x124Vx\x124Vx') == value
         assert ProtocolBase().from_unicode(Uuid(serialize_as='fields'),
                 (305419896, 4660, 22136, 18, 52, 95073701484152)) == value

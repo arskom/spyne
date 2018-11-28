@@ -59,7 +59,7 @@ class MessagePackDocument(HierDictDocument):
     type.add('msgpack')
 
     default_string_encoding = 'UTF-8'
-    from_serstr = HierDictDocument.from_string
+    from_serstr = HierDictDocument.from_bytes
     to_serstr = HierDictDocument.to_bytes
 
     # flags to be used in tests
@@ -81,9 +81,9 @@ class MessagePackDocument(HierDictDocument):
 
         self.use_list = use_list
 
-        self._from_string_handlers[Double] = self._ret_number
-        self._from_string_handlers[Boolean] = self._ret_bool
-        self._from_string_handlers[Integer] = self.integer_from_string
+        self._from_bytes_handlers[Double] = self._ret_number
+        self._from_bytes_handlers[Boolean] = self._ret_bool
+        self._from_bytes_handlers[Integer] = self.integer_from_bytes
 
         self._to_bytes_handlers[Double] = self._ret_number
         self._to_bytes_handlers[Boolean] = self._ret_bool
@@ -147,12 +147,11 @@ class MessagePackDocument(HierDictDocument):
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
-    def integer_from_string(self, cls, value):
+    def integer_from_bytes(self, cls, value):
         if isinstance(value, (six.text_type, six.binary_type)):
             return super(MessagePackDocument, self) \
-                                                .integer_from_string(cls, value)
-        else:
-            return value
+                                                .integer_from_bytes(cls, value)
+        return value
 
     def integer_to_bytes(self, cls, value, **_):
         # if it's inside the range msgpack can deal with

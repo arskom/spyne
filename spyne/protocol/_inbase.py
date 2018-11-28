@@ -115,32 +115,32 @@ class InProtocolBase(ProtocolMixin):
             self.mime_type = mime_type
 
         fsh = {
-            Null: self.null_from_string,
-            File: self.file_from_string,
-            Array: self.array_from_string,
-            Double: self.double_from_string,
-            String: self.string_from_string,
-            AnyXml: self.any_xml_from_string,
-            Boolean: self.boolean_from_string,
-            Integer: self.integer_from_string,
-            Unicode: self.unicode_from_string,
-            AnyHtml: self.any_html_from_string,
-            ByteArray: self.byte_array_from_string,
-            EnumBase: self.enum_base_from_string,
-            ModelBase: self.model_base_from_string,
-            XmlAttribute: self.xmlattribute_from_string,
-            ComplexModelBase: self.complex_model_base_from_string
+            Null: self.null_from_bytes,
+            File: self.file_from_bytes,
+            Array: self.array_from_bytes,
+            Double: self.double_from_bytes,
+            String: self.string_from_bytes,
+            AnyXml: self.any_xml_from_bytes,
+            Boolean: self.boolean_from_bytes,
+            Integer: self.integer_from_bytes,
+            Unicode: self.unicode_from_bytes,
+            AnyHtml: self.any_html_from_bytes,
+            ByteArray: self.byte_array_from_bytes,
+            EnumBase: self.enum_base_from_bytes,
+            ModelBase: self.model_base_from_bytes,
+            XmlAttribute: self.xmlattribute_from_bytes,
+            ComplexModelBase: self.complex_model_base_from_bytes
         }
 
-        self._from_string_handlers = cdict(fsh)
+        self._from_bytes_handlers = cdict(fsh)
         self._from_unicode_handlers = cdict(fsh)
 
-        self._from_string_handlers[Date] = self.date_from_string
-        self._from_string_handlers[Time] = self.time_from_string
-        self._from_string_handlers[Uuid] = self.uuid_from_string
-        self._from_string_handlers[Decimal] = self.decimal_from_string
-        self._from_string_handlers[DateTime] = self.datetime_from_string
-        self._from_string_handlers[Duration] = self.duration_from_string
+        self._from_bytes_handlers[Date] = self.date_from_bytes
+        self._from_bytes_handlers[Time] = self.time_from_bytes
+        self._from_bytes_handlers[Uuid] = self.uuid_from_bytes
+        self._from_bytes_handlers[Decimal] = self.decimal_from_bytes
+        self._from_bytes_handlers[DateTime] = self.datetime_from_bytes
+        self._from_bytes_handlers[Duration] = self.duration_from_bytes
 
         self._from_unicode_handlers[Date] = self.date_from_unicode
         self._from_unicode_handlers[Uuid] = self.uuid_from_unicode
@@ -224,7 +224,7 @@ class InProtocolBase(ProtocolMixin):
 
         self.validator = None
 
-    def from_string(self, class_, string, *args, **kwargs):
+    def from_bytes(self, class_, string, *args, **kwargs):
         if string is None:
             return None
 
@@ -232,7 +232,7 @@ class InProtocolBase(ProtocolMixin):
                            len(string) == 0 and class_.Attributes.empty_is_none:
             return None
 
-        handler = self._from_string_handlers[class_]
+        handler = self._from_bytes_handlers[class_]
         return handler(class_, string, *args, **kwargs)
 
     def from_unicode(self, class_, string, *args, **kwargs):
@@ -251,16 +251,16 @@ class InProtocolBase(ProtocolMixin):
         handler = self._from_unicode_handlers[class_]
         return handler(class_, string, *args, **kwargs)
 
-    def null_from_string(self, cls, value):
+    def null_from_bytes(self, cls, value):
         return None
 
-    def any_xml_from_string(self, cls, string):
+    def any_xml_from_bytes(self, cls, string):
         try:
             return etree.fromstring(string)
         except etree.XMLSyntaxError as e:
             raise ValidationError(string, "%%r: %r" % e)
 
-    def any_html_from_string(self, cls, string):
+    def any_html_from_bytes(self, cls, string):
         try:
             return html.fromstring(string)
         except etree.ParserError as e:
@@ -289,7 +289,7 @@ class InProtocolBase(ProtocolMixin):
 
         return retval
 
-    def uuid_from_string(self, cls, string, suggested_encoding=None, **kwargs):
+    def uuid_from_bytes(self, cls, string, suggested_encoding=None, **_):
         attr = self.get_cls_attrs(cls)
         ser_as = attr.serialize_as
         encoding = attr.encoding
@@ -301,6 +301,8 @@ class InProtocolBase(ProtocolMixin):
 
         if ser_as in ('bytes', 'bytes_le'):
             retval, = binary_decoding_handlers[encoding](string)
+        elif isinstance(string, six.binary_type):
+            retval = string.decode('ascii')
 
         try:
             retval = _uuid_deserialize[ser_as](retval)
@@ -309,7 +311,7 @@ class InProtocolBase(ProtocolMixin):
 
         return retval
 
-    def unicode_from_string(self, cls, value):
+    def unicode_from_bytes(self, cls, value):
         retval = value
         cls_attrs = self.get_cls_attrs(cls)
         if isinstance(value, six.binary_type):
@@ -321,7 +323,7 @@ class InProtocolBase(ProtocolMixin):
                                            errors=cls_attrs.unicode_errors)
         return retval
 
-    def string_from_string(self, cls, value):
+    def string_from_bytes(self, cls, value):
         retval = value
         cls_attrs = self.get_cls_attrs(cls)
         if isinstance(value, six.text_type):
@@ -345,17 +347,17 @@ class InProtocolBase(ProtocolMixin):
         except InvalidOperation as e:
             raise ValidationError(string, "%%r: %r" % e)
 
-    def decimal_from_string(self, cls, string):
+    def decimal_from_bytes(self, cls, string):
         return self.decimal_from_unicode(cls,
                                     string.decode(self.default_string_encoding))
 
-    def double_from_string(self, cls, string):
+    def double_from_bytes(self, cls, string):
         try:
             return float(string)
         except (TypeError, ValueError) as e:
             raise ValidationError(string, "%%r: %r" % e)
 
-    def integer_from_string(self, cls, string):
+    def integer_from_bytes(self, cls, string):
         cls_attrs = self.get_cls_attrs(cls)
 
         if isinstance(string, (six.text_type, six.binary_type)) and \
@@ -388,7 +390,10 @@ class InProtocolBase(ProtocolMixin):
         return time(int(fields['hr']), int(fields['min']),
                                                    int(fields['sec']), microsec)
 
-    def time_from_string(self, cls, string):
+    def time_from_bytes(self, cls, string):
+        if isinstance(string, six.binary_type):
+            string = string.decode(self.default_string_encoding)
+
         return self.time_from_unicode(cls,
                                     string.decode(self.default_string_encoding))
 
@@ -412,14 +417,14 @@ class InProtocolBase(ProtocolMixin):
 
             raise ValidationError(string)
 
-    def enum_base_from_string(self, cls, value):
+    def enum_base_from_bytes(self, cls, value):
         if self.validator is self.SOFT_VALIDATION and not (
                                         cls.validate_string(cls, value)):
             raise ValidationError(value)
         return getattr(cls, value)
 
-    def model_base_from_string(self, cls, value):
-        return cls.from_string(value)
+    def model_base_from_bytes(self, cls, value):
+        return cls.from_bytes(value)
 
     def datetime_from_unicode_iso(self, cls, string):
         astz = self.get_cls_attrs(cls).as_timezone
@@ -457,11 +462,17 @@ class InProtocolBase(ProtocolMixin):
         serialize_as = self.get_cls_attrs(cls).serialize_as
         return self._datetime_dsmap[serialize_as](cls, string)
 
-    def datetime_from_string(self, cls, string):
+    def datetime_from_bytes(self, cls, string):
+        if isinstance(string, six.binary_type):
+            string = string.decode(self.default_string_encoding)
+
         serialize_as = self.get_cls_attrs(cls).serialize_as
         return self._datetime_dsmap[serialize_as](cls, string)
 
-    def date_from_string(self, cls, string):
+    def date_from_bytes(self, cls, string):
+        if isinstance(string, six.binary_type):
+            string = string.decode(self.default_string_encoding)
+
         date_format = self._get_date_format(self.get_cls_attrs(cls))
         try:
             if date_format is not None:
@@ -521,30 +532,32 @@ class InProtocolBase(ProtocolMixin):
 
         return delta
 
-    def duration_from_string(self, cls, string):
-        return self.duration_from_unicode(cls,
-                                    string.decode(self.default_string_encoding))
+    def duration_from_bytes(self, cls, string):
+        if isinstance(string, six.binary_type):
+            string = string.decode(self.default_string_encoding)
 
-    def boolean_from_string(self, cls, string):
+        return self.duration_from_unicode(cls, string)
+
+    def boolean_from_bytes(self, cls, string):
         return string.lower() in ('true', '1')
 
-    def byte_array_from_string(self, cls, value, suggested_encoding=None):
+    def byte_array_from_bytes(self, cls, value, suggested_encoding=None):
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
         return binary_decoding_handlers[encoding](value)
 
-    def file_from_string(self, cls, value, suggested_encoding=None):
+    def file_from_bytes(self, cls, value, suggested_encoding=None):
         encoding = self.get_cls_attrs(cls).encoding
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
 
         return File.Value(data=binary_decoding_handlers[encoding](value))
 
-    def complex_model_base_from_string(self, cls, string, **_):
+    def complex_model_base_from_bytes(self, cls, string, **_):
         raise TypeError("Only primitives can be deserialized from string.")
 
-    def array_from_string(self, cls, string, **_):
+    def array_from_bytes(self, cls, string, **_):
         if self.get_cls_attrs(cls).serialize_as != 'sd-list':
             raise TypeError("Only primitives can be deserialized from string.")
 
@@ -552,12 +565,12 @@ class InProtocolBase(ProtocolMixin):
         retval = []
         inner_type, = cls._type_info.values()
         for s in string.split():
-            retval.append(self.from_string(inner_type, s))
+            retval.append(self.from_bytes(inner_type, s))
 
         return retval
 
-    def xmlattribute_from_string(self, cls, value):
-        return self.from_string(cls.type, value)
+    def xmlattribute_from_bytes(self, cls, value):
+        return self.from_bytes(cls.type, value)
 
     def _datetime_from_unicode(self, cls, string):
         cls_attrs = self.get_cls_attrs(cls)
