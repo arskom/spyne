@@ -145,8 +145,8 @@ class HierDictDocument(DictDocument):
         if validator is self.SOFT_VALIDATION:
             self.validate(key, cls, inst)
 
-        cls_attr = self.get_cls_attrs(cls)
-        complex_as = self.get_complex_as(cls_attr)
+        cls_attrs = self.get_cls_attrs(cls)
+        complex_as = self.get_complex_as(cls_attrs)
 
         if issubclass(cls, (Any, AnyDict)):
             retval = inst
@@ -173,9 +173,10 @@ class HierDictDocument(DictDocument):
                 retval = self.from_serstr(cls, inst)
 
         # validate native type
-        if validator is self.SOFT_VALIDATION and \
-                                           not cls.validate_native(cls, retval):
-            raise ValidationError([key, retval])
+        if validator is self.SOFT_VALIDATION:
+            retval = self._sanitize(cls_attrs, retval)
+            if not cls.validate_native(cls, retval):
+                raise ValidationError([key, retval])
 
         return retval
 

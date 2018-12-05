@@ -134,9 +134,12 @@ class SimpleDictDocument(DictDocument):
                                   "Validation failed for %s.%s: %%s" % (ns, k))
 
             # validate native data (after deserialization)
-            if (validator is self.SOFT_VALIDATION and not
-                           member.type.validate_native(member.type, native_v2)):
-                raise ValidationError([orig_k, v2])
+            if validator is self.SOFT_VALIDATION:
+                cls_attrs = self.get_cls_attrs(member.type)
+                native_v2 = self._sanitize(cls_attrs, native_v2)
+
+                if not member.type.validate_native(member.type, native_v2):
+                    raise ValidationError([orig_k, v2])
 
             value.append(native_v2)
 
