@@ -77,6 +77,11 @@ class ProtocolMixin(object):
             return cls_attrs.cast(inst)
         return inst
 
+    def _sanitize(self, cls_attrs, inst):
+        if cls_attrs.sanitizer is not None:
+            return cls_attrs.sanitizer(inst)
+        return inst
+
     def _datetime_from_sec(self, cls, value):
         try:
             return datetime.fromtimestamp(value)

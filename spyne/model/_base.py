@@ -664,6 +664,10 @@ class ModelBase(object):
                 setattr(Attributes, k, staticmethod(v))
                 _log_debug("setting %s=%r", k, v)
 
+            elif k in ('sanitize', 'sanitizer'):
+                setattr(Attributes, 'sanitizer', staticmethod(v))
+                _log_debug("setting %s=%r as sanitizer=%r", k, v, v)
+
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
                 _log_debug("setting Annotations.%s=%r", k, v)
