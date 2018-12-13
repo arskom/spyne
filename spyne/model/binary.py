@@ -35,10 +35,9 @@ from binascii import hexlify
 from binascii import unhexlify
 from os.path import abspath, isdir, isfile, basename
 
-from spyne.util.six import StringIO
 from spyne.error import ValidationError
 from spyne.util import _bytes_join
-from spyne.model import ModelBase, ComplexModel, Unicode
+from spyne.model import ComplexModel, Unicode
 from spyne.model import SimpleModel
 from spyne.util import six
 
