@@ -188,6 +188,12 @@ _BINARY = type('FileTypeBinary', (object,), {})
 _TEXT = type('FileTypeText', (object,), {})
 
 
+class SanitizationError(ValidationError):
+    def __init__(self, obj):
+        super(SanitizationError, self).__init__(
+                                         obj, "%r was not sanitized before use")
+
+
 class _FileValue(ComplexModel):
     """The class for values marked as ``File``.
 
@@ -207,15 +213,17 @@ class _FileValue(ComplexModel):
     ]
 
     def __init__(self, name=None, path=None, type='application/octet-stream',
-                                            data=None, handle=None, move=False):
+                             data=None, handle=None, move=False, sanitize=True):
 
         self.name = name
         """The file basename, no directory information here."""
 
-        if self.name is not None:
+        if self.name is not None and sanitize:
             if not os.path.basename(self.name) == self.name:
                 raise ValidationError(self.name,
                     "File name %r should not contain any directory information")
+
+        self.sanitized = sanitize
 
         self.path = path
         """Relative path of the file."""
@@ -249,6 +257,9 @@ class _FileValue(ComplexModel):
         incoming data to the file object and points the ``data`` iterable
         to the contents of this file.
         """
+
+        if not self.sanitized:
+            raise SanitizationError(self)
 
         if self.data is not None:
             if self.path is None:
