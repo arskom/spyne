@@ -46,9 +46,10 @@ from django.views.decorators.csrf import csrf_exempt
 
 try:
     from django.http import StreamingHttpResponse
-except ImportError as e:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def StreamingHttpResponse(*args, **kwargs):
-        raise e
+        raise _local_import_error
 
 class DjangoApplication(WsgiApplication):
     """You should use this for regular RPC."""

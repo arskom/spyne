@@ -36,13 +36,15 @@ try:
     from lxml import html
     from spyne.util.xml import get_object_as_xml, get_xml_as_object
 
-except ImportError as e:
+except ImportError as _import_error :
     etree = None
     html = None
+
+    _local_import_error = _import_error
     def get_object_as_xml(*_, **__):
-        raise e
+        raise _local_import_error
     def get_xml_as_object(*_, **__):
-        raise e
+        raise _local_import_error
 
 from sqlalchemy.sql.type_api import UserDefinedType
 
