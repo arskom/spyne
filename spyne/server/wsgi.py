@@ -34,12 +34,11 @@ from spyne.util.six.moves.urllib.parse import unquote, quote
 
 try:
     from werkzeug.formparser import parse_form_data
-except ImportError as import_error:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def parse_form_data(*args, **kwargs):
-        raise import_error
+        raise _local_import_error
 
-
-from spyne.util.six import string_types, BytesIO
 from spyne.util.six.moves.http_cookies import SimpleCookie
 
 from spyne.application import get_fault_string_from_exception
@@ -63,9 +62,10 @@ from spyne.const.http import HTTP_500
 
 try:
     from spyne.protocol.soap.mime import apply_mtom
-except ImportError as e:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def apply_mtom(*args, **kwargs):
-        raise e
+        raise _local_import_error
 
 
 def _parse_qs(qs):
