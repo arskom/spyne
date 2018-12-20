@@ -2,6 +2,10 @@
 Changelog
 =========
 
+spyne-2.12.15
+-------------
+* Fix graceful import failures for Python 3
+
 spyne-2.12.14
 -------------
 * Fixed inclusive ranges for DateTime and friends. #506
