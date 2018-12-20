@@ -153,7 +153,8 @@ class HierDictDocument(DictDocument):
 
         # get native type
         elif issubclass(cls, File) and isinstance(inst, complex_as):
-            retval = self._doc_to_object(ctx, cls.Attributes.type, inst, validator)
+            retval = self._doc_to_object(ctx, cls.Attributes.type, inst,
+                                                                      validator)
 
         elif issubclass(cls, ComplexModelBase):
             retval = self._doc_to_object(ctx, cls, inst, validator)
@@ -324,9 +325,9 @@ class HierDictDocument(DictDocument):
                         # even when there is ONE already-serialized instance,
                         # we throw the whole thing away.
                         logger.debug("Throwing the whole array away because "
-                                    "found %d", id(subinst))
+                                                        "found %d", id(subinst))
 
-                        # enabling this is DANGEROUS
+                        # this is DANGEROUS
                         logger.debug("Said array: %r", inst)
 
                         return None
@@ -377,9 +378,9 @@ class HierDictDocument(DictDocument):
 
     def _to_dict_value(self, cls, inst, tags):
         cls, switched = self.get_polymorphic_target(cls, inst)
-        cls_attr = self.get_cls_attrs(cls)
+        cls_attrs = self.get_cls_attrs(cls)
 
-        inst = self._cast(cls_attr, inst)
+        inst = self._cast(cls_attrs, inst)
 
         if issubclass(cls, (Any, AnyDict)):
             return inst
@@ -394,7 +395,7 @@ class HierDictDocument(DictDocument):
         if issubclass(cls, File) and isinstance(inst, cls.Attributes.type):
             retval = self._complex_to_doc(cls.Attributes.type, inst, tags)
 
-            complex_as = self.get_complex_as(cls_attr)
+            complex_as = self.get_complex_as(cls_attrs)
 
             if complex_as is dict and not self.ignore_wrappers:
                 retval = next(iter(retval.values()))
