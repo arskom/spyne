@@ -561,6 +561,80 @@ def recust_selfref(selfref, cls):
     return cls
 
 
+def _set_member_default(inst, key, cls, attr):
+    def_val = attr.default
+    def_fac = attr.default_factory
+
+    if def_fac is None and def_val is None:
+        return False
+
+    if def_fac is not None:
+        if six.PY2 and hasattr(def_fac, 'im_func'):
+            # unbound-method error workaround. huh.
+            def_fac = def_fac.im_func
+
+        dval = def_fac()
+
+        # should not check for read-only for default values
+        setattr(inst, key, dval)
+
+    elif def_val is not None:
+        # should not check for read-only for default values
+        setattr(inst, key, def_val)
+
+    else:
+        assert False
+
+    return True
+
+
+def _is_sqla_array(cls, attr):
+    # inner object is complex
+    ret1 = issubclass(cls, Array) and \
+                              hasattr(cls.get_inner_type(), '_sa_class_manager')
+
+    # inner object is primitive
+    ret2 = issubclass(cls, Array) and attr.store_as is not None
+
+    # object is a bare array
+    ret3 = attr.max_occurs > 1 and hasattr(cls, '_sa_class_manager')
+
+    return ret1 or ret2 or ret3
+
+
+def _init_member(inst, key, cls, attr):
+    cls_getattr_ret = getattr(inst.__class__, key, None)
+    if isinstance(cls_getattr_ret, property) and cls_getattr_ret.fset is None:
+        return  # we skip read-only properties
+
+    if _set_member_default(inst, key, cls, attr):
+       return
+
+    # sqlalchemy objects do their own init.
+    if _is_sqla_array(cls, attr):
+        # except the attributes that sqlalchemy doesn't know about
+        if attr.exc_db:
+            setattr(inst, key, None)
+
+        elif attr.store_as is None:
+            setattr(inst, key, None)
+
+        return
+
+    # sqlalchemy objects do their own init.
+    if hasattr(cls, '_sa_class_manager'):
+        # except the attributes that sqlalchemy doesn't know about
+        if attr.exc_db:
+            setattr(inst, key, None)
+
+        elif issubclass(cls, ComplexModelBase) and attr.store_as is None:
+            setattr(inst, key, None)
+
+        return
+
+    setattr(inst, key, None)
+
+
 class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
     """This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
@@ -806,7 +880,10 @@ class ComplexModelBase(ModelBase):
         if cls_attr._xml_tag_body_as is not None:
             for arg, (xtba_key, xtba_type) in \
                                            zip(args, cls_attr._xml_tag_body_as):
+
                 if xtba_key is not None and len(args) == 1:
+                    attr = xtba_type.Attributes
+                    _init_member(self, xtba_key, xtba_type, attr)
                     self._safe_set(xtba_key, arg, xtba_type,
                                                            xtba_type.Attributes)
                 elif len(args) > 0:
@@ -817,42 +894,11 @@ class ComplexModelBase(ModelBase):
 
         for k, v in fti.items():
             attr = v.Attributes
+            if not k in self.__dict__:
+                _init_member(self, k, v, attr)
+
             if k in kwargs:
                 self._safe_set(k, kwargs[k], v, attr)
-
-            elif not k in self.__dict__:
-                def_val = attr.default
-                def_fac = attr.default_factory
-
-                cls_getattr_ret = getattr(self.__class__, k, None)
-                if isinstance(cls_getattr_ret, property) and \
-                                                   cls_getattr_ret.fset is None:
-                    continue  # we skip read-only properties
-
-                elif def_fac is not None:
-                    if six.PY2 and hasattr(def_fac, 'im_func'):
-                        # unbound-method error workaround. huh.
-                        def_fac = def_fac.im_func
-                    dval = def_fac()
-
-                    # should not check for read-only for default values
-                    setattr(self, k, dval)
-
-                elif def_val is not None:
-                    # should not check for read-only for default values
-                    setattr(self, k, def_val)
-
-                # sqlalchemy objects do their own init.
-                elif hasattr(cls, '_sa_class_manager'):
-                    # except the attributes that sqlalchemy doesn't know about
-                    if v.Attributes.exc_db:
-                        setattr(self, k, None)
-
-                    elif issubclass(v, ComplexModelBase) and \
-                                                  v.Attributes.store_as is None:
-                        setattr(self, k, None)
-                else:
-                    setattr(self, k, None)
 
     def __len__(self):
         return len(self._type_info)
@@ -875,7 +921,7 @@ class ComplexModelBase(ModelBase):
                     if self.__dict__.get(k, None) is not None]))
 
     def _safe_set(self, key, value, t, attrs):
-        if attrs.read_only or attrs.exc:
+        if attrs.read_only:
             return False
 
         try:
