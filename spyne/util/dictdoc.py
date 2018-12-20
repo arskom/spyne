@@ -24,21 +24,26 @@ from spyne.protocol.dictdoc import SimpleDictDocument
 
 try:
     from spyne.protocol.json import JsonDocument
-except ImportError as e:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def JsonDocument(*args, **kwargs):
-        raise e
+        raise _local_import_error
+
 
 try:
     from spyne.protocol.yaml import YamlDocument
-except ImportError as e:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def YamlDocument(*args, **kwargs):
-        raise e
+        raise _local_import_error
+
 
 try:
     from spyne.protocol.msgpack import MessagePackDocument
-except ImportError as e:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def MessagePackDocument(*args, **kwargs):
-        raise e
+        raise _local_import_error
 
 
 from spyne.model.primitive import Double

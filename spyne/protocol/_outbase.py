@@ -45,18 +45,14 @@ from spyne.model import ModelBase, XmlAttribute, SimpleModel, Null, \
     ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, Decimal, \
     Double, Integer, Time, DateTime, Uuid, Duration, Boolean, AnyDict, \
     AnyUri, PushBase, Date
-
 from spyne.const.http import HTTP_400, HTTP_401, HTTP_404, HTTP_405, HTTP_413, \
     HTTP_500
-
 from spyne.error import Fault, InternalError, ResourceNotFoundError, \
     RequestTooLongError, RequestNotAllowed, InvalidCredentialsError
-
 from spyne.model.binary import binary_encoding_handlers, \
     BINARY_ENCODING_USE_DEFAULT
 
 from spyne.util import six
-
 from spyne.util.cdict import cdict
 
 

@@ -57,15 +57,17 @@ from spyne.const.http import HTTP_500
 
 try:
     from spyne.protocol.soap.mime import apply_mtom
-except ImportError as _import_error_1:
+except ImportError as _import_error:
+    _local_import_error_1 = _import_error_1  # python 3 workaround
     def apply_mtom(*args, **kwargs):
-        raise _import_error_1
+        raise _local_import_error_1
 
 try:
     from werkzeug.formparser import parse_form_data
-except ImportError as _import_error_2:
+except ImportError as _import_error:
+    _local_import_error_2 = _import_error_2  # python 3 workaround
     def parse_form_data(*args, **kwargs):
-        raise _import_error_2
+        raise _local_import_error_2
 
 
 def _reconstruct_url(environ, protocol=True, server_name=True, path=True,
