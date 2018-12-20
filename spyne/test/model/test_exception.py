@@ -68,7 +68,7 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(child.find('faultcode').text, '%s:Server' % soap_env)
         self.assertEqual(child.find('faultstring').text, 'Fault')
         self.assertEqual(child.find('faultactor').text, '')
-        self.failIf(child.findall('detail'))
+        self.assertFalse(child.findall('detail'))
 
     def test_to_parent_w_detail(self):
         from lxml.etree import Element
@@ -80,7 +80,7 @@ class FaultTests(unittest.TestCase):
         XmlDocument().to_parent(None, cls, fault, element, 'urn:ignored')
 
         (child,) = element.getchildren()
-        self.failUnless(child.find('detail').find('something') is detail)
+        self.assertTrue(child.find('detail').find('something') is detail)
 
     def test_from_xml_wo_detail(self):
         from lxml.etree import Element
@@ -120,7 +120,7 @@ class FaultTests(unittest.TestCase):
 
         fault = XmlDocument().from_element(None, Fault, element)
 
-        self.failUnless(fault.detail is detail)
+        self.assertTrue(fault.detail is detail)
 
     def test_add_to_schema_no_extends(self):
         from spyne.const.xml import XSD
@@ -142,7 +142,7 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(len(schema.types), 1)
         c_cls = interface.classes['{ns}cls']
         c_elt = schema.types[0]
-        self.failUnless(c_cls is cls)
+        self.assertTrue(c_cls is cls)
         self.assertEqual(c_elt.tag, XSD('complexType'))
         self.assertEqual(c_elt.get('name'), 'cls')
 
@@ -158,9 +158,11 @@ class FaultTests(unittest.TestCase):
 
         class base(Fault):
             __namespace__ = 'ns'
+
             @classmethod
             def get_type_name_ns(self, app):
                 return 'testing:Base'
+
         class cls(Fault):
             __namespace__ = 'ns'
             @classmethod
@@ -181,7 +183,7 @@ class FaultTests(unittest.TestCase):
         c_cls = next(iter(interface.classes.values()))
         c_elt = next(iter(schema.types.values()))
 
-        self.failUnless(c_cls is cls)
+        self.assertTrue(c_cls is cls)
         self.assertEqual(c_elt.tag, XSD('complexType'))
         self.assertEqual(c_elt.get('name'), 'cls')
 

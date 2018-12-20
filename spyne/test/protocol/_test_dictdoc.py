@@ -1287,6 +1287,24 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
 
             assert s == d
 
+        def test_exclude(self):
+            class C(ComplexModel):
+                s1 = Unicode(exc=True)
+                s2 = Unicode
+
+            class SomeService(Service):
+                @srpc(C, _returns=C)
+                def some_call(sc):
+                    assert sc.s1 is None, "sc={}".format(sc)
+                    assert sc.s2 == "s2"
+                    return C(s1="s1", s2="s2")
+
+            doc = [{"C": {"s1": "s1","s2": "s2"}}]
+            ctx = _dry_me([SomeService], {"some_call": doc})
+
+            assert ctx.out_document[0] == \
+                {'some_callResponse': {'some_callResult': {'C': {'s2': u's2'}}}}
+
         def test_polymorphic_deserialization(self):
             class P(ComplexModel):
                 sig = Unicode
