@@ -272,6 +272,9 @@ class HierDictDocument(DictDocument):
 
             member_attrs = self.get_cls_attrs(member)
 
+            if member_attrs.exc:
+                continue
+
             mo = member_attrs.max_occurs
             if mo > 1:
                 subinst = getattr(inst, k, None)
@@ -302,6 +305,11 @@ class HierDictDocument(DictDocument):
         if tags is None:
             tags = set()
         retval = None
+
+        cls_attrs = self.get_cls_attrs(cls)
+
+        if cls_attrs.exc:
+            return
 
         if self.ignore_wrappers:
             ti = getattr(cls, '_type_info', {})
