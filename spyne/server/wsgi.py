@@ -24,9 +24,6 @@ logic.
 """
 
 import logging
-
-from spyne import Address
-
 logger = logging.getLogger(__name__)
 
 import cgi
@@ -35,6 +32,7 @@ import threading
 from inspect import isgenerator
 from itertools import chain
 
+from spyne import Address
 from spyne.util.six.moves.http_cookies import SimpleCookie
 from spyne.util.six.moves.urllib.parse import unquote, quote
 
