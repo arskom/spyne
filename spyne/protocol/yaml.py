@@ -93,7 +93,8 @@ class YamlDocument(HierDictDocument):
                                         polymorphic=False,
                                         # YamlDocument specific
                                         safe=True,
-                                        out_string_encoding='UTF-8',
+                                        encoding='UTF-8',
+                                        allow_unicode=True,
                                         **kwargs):
 
         super(YamlDocument, self).__init__(app, validator, mime_type,
@@ -107,22 +108,29 @@ class YamlDocument(HierDictDocument):
         self._to_unicode_handlers[Boolean] = self._ret
         self._to_unicode_handlers[Integer] = self._ret
 
+        loader = Loader
+        dumper = Dumper
+        if safe:
+            loader = SafeLoader
+            dumper =  SafeDumper
+
         self.in_kwargs = dict(kwargs)
         self.out_kwargs = dict(kwargs)
 
-        self.in_kwargs['Loader'] = Loader
-        self.out_kwargs['Dumper'] =  Dumper
-        if safe:
-            self.in_kwargs['Loader'] = SafeLoader
-            self.out_kwargs['Dumper'] =  SafeDumper
+        self.in_kwargs['Loader'] = loader
+        self.out_kwargs['Dumper'] = dumper
+
+        loader.add_constructor('tag:yaml.org,2002:python/unicode',
+                                                                _unicode_loader)
+
+        self.out_kwargs['encoding'] = encoding
+        self.out_kwargs['allow_unicode'] = allow_unicode
 
         if not 'indent' in self.out_kwargs:
             self.out_kwargs['indent'] = 4
 
         if not 'default_flow_style' in self.out_kwargs:
             self.out_kwargs['default_flow_style'] = False
-
-        self.out_string_encoding = out_string_encoding
 
     def _ret(self, _, value):
         return value
@@ -159,18 +167,22 @@ class YamlDocument(HierDictDocument):
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
 
-        if self.out_string_encoding is None:
+        if out_string_encoding is None:
             ctx.out_string = (yaml.dump(o, **self.out_kwargs)
                                                       for o in ctx.out_document)
         else:
             ctx.out_string = (
-                yaml.dump(o, **self.out_kwargs).encode(self.out_string_encoding)
+                yaml.dump(o, **self.out_kwargs).encode(out_string_encoding)
                                                       for o in ctx.out_document)
 
+
+def _unicode_loader(loader, node):
+    return node.value
 
 
 def _decimal_to_bytes():
     pass
+
 
 def _decimal_from_bytes():
     pass
