@@ -17,14 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import gc
 import unittest
 
 from lxml import etree
 
+from spyne import const
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.xml import XmlDocument
 
 from spyne.model.complex import Array
+from spyne.model.primitive import Boolean
 from spyne.model.primitive import String
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -100,6 +103,32 @@ class TestNullServer(unittest.TestCase):
         queue.clear()
         ostr_server.service.send_message("zobaaa", s="hobaa")
         assert set([("hobaa", None)]) == queue
+
+    def test_no_gc_collect(self):
+        class PingService(Service):
+            @srpc(_returns=Boolean)
+            def ping():
+                return True
+
+        application = Application(
+            [PingService], 'some_tns',
+            in_protocol=XmlDocument(), out_protocol=XmlDocument())
+
+        server = NullServer(application)
+        origin_collect = gc.collect
+        origin_MIN_GC_INTERVAL = const.MIN_GC_INTERVAL
+        try:
+            gc.collect = lambda : 1/0
+            with self.assertRaises(ZeroDivisionError):
+                const.MIN_GC_INTERVAL = 0
+                server.service.ping()
+            # No raise
+            const.MIN_GC_INTERVAL = float('inf')
+            server.service.ping()
+        finally:
+            gc.collect = origin_collect
+            const.MIN_GC_INTERVAL = origin_MIN_GC_INTERVAL
+
 
 if __name__ == '__main__':
     unittest.main()
