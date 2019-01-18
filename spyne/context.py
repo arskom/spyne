@@ -24,7 +24,7 @@ from time import time
 from copy import copy
 from collections import deque, defaultdict
 
-from spyne.const import MIN_GC_INTERVAL
+from spyne import const
 
 
 _LAST_GC_RUN = 0.0
@@ -393,7 +393,7 @@ class MethodContext(object):
 
         # this is important to have file descriptors returned in a timely manner
         t = time()
-        if (t - _LAST_GC_RUN) > MIN_GC_INTERVAL:
+        if (t - _LAST_GC_RUN) > const.MIN_GC_INTERVAL:
             gc.collect()
 
             dt = (time() - t)
