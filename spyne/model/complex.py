@@ -622,7 +622,7 @@ def _init_member(inst, key, cls, attr):
         return
 
     # sqlalchemy objects do their own init.
-    if hasattr(cls, '_sa_class_manager'):
+    if hasattr(inst.__class__, '_sa_class_manager'):
         # except the attributes that sqlalchemy doesn't know about
         if attr.exc_db:
             setattr(inst, key, None)

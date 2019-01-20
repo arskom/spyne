@@ -54,6 +54,19 @@ TableModel = TTableModel()
 
 
 class TestSqlAlchemyTypeMappings(unittest.TestCase):
+    def test_init(self):
+        fn = inspect.stack()[0][3]
+        from sqlalchemy.inspection import inspect as sqla_inspect
+
+        class SomeClass1(TableModel):
+            __tablename__ = "%s_%d" % (fn, 1)
+            i = Integer32(pk=True)
+            e = Unicode(32)
+
+        from spyne.util.dictdoc import get_dict_as_object
+        inst = get_dict_as_object(dict(i=4), SomeClass1)
+        assert not sqla_inspect(inst).attrs.e.history.has_changes()
+
     def test_bool(self):
         fn = inspect.stack()[0][3]
 
