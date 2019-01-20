@@ -138,7 +138,11 @@ class AutoReloader(object):
                 ):
                     f = m.__loader__.archive
                 else:
-                    f = getattr(m, '__file__', None)
+                    try:
+                        f = getattr(m, '__file__', None)
+                    except ImportError:
+                        f = None
+
                     if f is not None and not os.path.isabs(f):
                         # ensure absolute paths so a os.chdir() in the app
                         # doesn't break me
