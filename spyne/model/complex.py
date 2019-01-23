@@ -578,14 +578,15 @@ def _set_member_default(inst, key, cls, attr):
         # should not check for read-only for default values
         setattr(inst, key, dval)
 
-    elif def_val is not None:
+        return True
+
+    if def_val is not None:
         # should not check for read-only for default values
         setattr(inst, key, def_val)
 
-    else:
-        assert False
+        return True
 
-    return True
+    assert False, "Invalid application state"
 
 
 def _is_sqla_array(cls, attr):
@@ -604,6 +605,7 @@ def _is_sqla_array(cls, attr):
 
 def _init_member(inst, key, cls, attr):
     cls_getattr_ret = getattr(inst.__class__, key, None)
+
     if isinstance(cls_getattr_ret, property) and cls_getattr_ret.fset is None:
         return  # we skip read-only properties
 
@@ -622,7 +624,7 @@ def _init_member(inst, key, cls, attr):
         return
 
     # sqlalchemy objects do their own init.
-    if hasattr(cls, '_sa_class_manager'):
+    if hasattr(inst.__class__, '_sa_class_manager'):
         # except the attributes that sqlalchemy doesn't know about
         if attr.exc_db:
             setattr(inst, key, None)
