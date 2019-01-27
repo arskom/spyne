@@ -622,6 +622,7 @@ class ModelBase(object):
 
         if cls.Attributes.translations is None:
             Attributes.translations = {}
+
         if cls.Attributes.sqla_column_args is None:
             Attributes.sqla_column_args = (), {}
         else:
@@ -646,8 +647,10 @@ class ModelBase(object):
         prot = kwargs.get('protocol', None)
         if prot is None:
             prot = kwargs.get('prot', None)
+
         if prot is None:
             prot = kwargs.get('p', None)
+
         if prot is not None and len(prot.type_attrs) > 0:
             # if there is a class customization from protocol, do it
 
