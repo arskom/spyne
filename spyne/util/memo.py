@@ -101,6 +101,27 @@ class memoize(object):
         self.memo = {}
 
 
+class memoize_first(object):
+    """A memoization decorator that keeps the first call without conditiion."""
+
+    registry = []
+
+    def __init__(self, func):
+        self.func = func
+        self.lock = threading.RLock()
+        memoize.registry.append(self)
+
+    def __call__(self, *args, **kwargs):
+        if not hasattr(self, 'memo'):
+            value = self.func(*args, **kwargs)
+            self.memo = value
+            return value
+        return self.memo
+
+    def reset(self):
+        del self.memo
+
+
 def memoize_ignore(values):
     """A memoization decorator that does memoization unless the returned
     value is in the 'values' iterable. eg let `values = (2,)` and
