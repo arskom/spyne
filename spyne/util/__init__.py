@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 from spyne.util import six
 
+from spyne.util.coopmt import keepfirst
 from spyne.util.coopmt import coroutine
 from spyne.util.coopmt import Break
 
