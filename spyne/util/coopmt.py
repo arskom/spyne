@@ -27,6 +27,7 @@ decorator.
 import logging
 logger = logging.getLogger(__name__)
 
+from itertools import chain
 from inspect import isgeneratorfunction
 
 
@@ -64,5 +65,38 @@ def coroutine(func):
             raise
 
         return ret
+
+    return start
+
+
+def keepfirst(func):
+    assert isgeneratorfunction(func)
+
+    def start(*args, **kwargs):
+        try:
+            ret = func(*args, **kwargs)
+        except TypeError as e:
+            logger.error("Function %r at %s:%d got error %r", func.func_name,
+                         func.__module__, func.__code__.co_firstlineno, e)
+            raise
+
+        try:
+            first = next(ret)
+
+        except StopIteration:
+            return None
+
+        except Exception as e:
+            if not hasattr(e, 'logged'):
+                logger.error("Exception in coroutine")
+                logger.exception(e)
+                try:
+                    e.logged = True
+                except:
+                    pass
+
+            raise
+
+        return chain((first,), ret)
 
     return start
