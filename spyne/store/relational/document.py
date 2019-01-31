@@ -264,7 +264,7 @@ class PGFileJson(PGObjectJson):
                         raise ValidationError(value.path, "Path %r contains "
                                           "relative path operators (e.g. '..')")
 
-                    data = mmap(value.handle.fileno(), 0)  # 0 = whole file
+                    data = mmap(value.handle.fileno(), 0, access=ACCESS_READ)
                     with open(fp, 'wb') as out_file:
                         out_file.write(data)
                         data.close()
