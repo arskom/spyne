@@ -18,15 +18,15 @@
 #
 
 """The ``spyne.model.binary`` package contains binary type markers."""
-
 import logging
 logger = logging.getLogger(__name__)
 
 import os
 import base64
 import tempfile
+import errno
 
-from mmap import mmap, ACCESS_READ
+from mmap import mmap, ACCESS_READ, error as MmapError
 from base64 import b64encode
 from base64 import b64decode
 from base64 import urlsafe_b64encode
@@ -275,7 +275,17 @@ class _FileValue(ComplexModel):
                 self.handle.write(d)
 
         elif self.handle is not None:
-            self.data = (mmap(self.handle.fileno(), 0),)  # 0 = whole file
+            try:
+                # 0 = whole file
+                self.data = (mmap(self.handle.fileno(), 0),)
+
+            except MmapError as e:
+                if e.errno == errno.EACCES:
+                    self.data = (
+                        mmap(self.handle.fileno(), 0, access=ACCESS_READ),
+                    )
+                else:
+                    raise
 
         elif self.path is not None:
             if not isfile(self.path):
