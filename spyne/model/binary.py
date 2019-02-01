@@ -212,17 +212,17 @@ class _FileValue(ComplexModel):
     ]
 
     def __init__(self, name=None, path=None, type='application/octet-stream',
-                             data=None, handle=None, move=False, sanitize=True):
+                            data=None, handle=None, move=False, _sanitize=True):
 
         self.name = name
         """The file basename, no directory information here."""
 
-        if self.name is not None and sanitize:
+        if self.name is not None and _sanitize:
             if not os.path.basename(self.name) == self.name:
                 raise ValidationError(self.name,
                     "File name %r should not contain any directory information")
 
-        self.sanitized = sanitize
+        self.sanitized = _sanitize
 
         self.path = path
         """Relative path of the file."""
