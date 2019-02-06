@@ -161,8 +161,14 @@ class TwistedMessagePackProtocol(Protocol):
         self.disconnecting = False
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_lost", self)
+        self._cancel_idle_timer()
+
+    def _cancel_idle_timer(self):
         if self.idle_timer is not None:
-            self.idle_timer.cancel()
+            if not self.idle_timer.called:
+                self.idle_timer.cancel()
+
+            self.idle_timer = None
 
     def dataReceived(self, data):
         self._buffer.feed(data)
@@ -178,17 +184,26 @@ class TwistedMessagePackProtocol(Protocol):
 
     def _reset_idle_timer(self):
         if self.idle_timer is not None:
-            self.idle_timer.cancel()
+            t = self.idle_timer
+            self.idle_timer = None
+            if not t.called:
+                t.cancel()
 
         if self.IDLE_TIMEOUT_SEC is not None and self.IDLE_TIMEOUT_SEC > 0:
             self.idle_timer = deferLater(reactor, self.IDLE_TIMEOUT_SEC,
                                    self.loseConnection, self.IDLE_TIMEOUT_MSG) \
-                .addErrback(self._err_idle_cancelled)
+                .addErrback(self._err_idle_cancelled) \
+                .addErrback(self._err_idle_cancelled_unknown_error)
 
     def _err_idle_cancelled(self, err):
         err.trap(CancelledError)
 
         # do nothing.
+
+    def _err_idle_cancelled_unknown_error(self, err):
+        logger.error("Sessid %s error cancelling idle timer: %s",
+                                                self.sessid, err.getTraceback())
+        self.idle_timer = None
 
     def loseConnection(self, reason=None):
         self.disconnecting = True
