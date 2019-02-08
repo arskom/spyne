@@ -306,6 +306,11 @@ class ModelBase(object):
         type is seriazed under a ComplexModel.
         """
 
+        part_name = None
+        """This specifies which string should be used as message part name when this
+            type is serialized under a ComplexModel. Many clients expect "parameters"
+        """
+
         sqla_column_args = None
         """A dict that will be passed to SQLAlchemy's ``Column`` constructor as
         ``**kwargs``.
@@ -558,6 +563,10 @@ class ModelBase(object):
     @classmethod
     def get_element_name(cls):
         return cls.Attributes.sub_name or cls.get_type_name()
+    
+    @classmethod
+    def get_part_name(cls):
+        return cls.Attributes.part_name or cls.get_element_name()
 
     @classmethod
     def get_element_name_ns(cls, interface):
