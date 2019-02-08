@@ -166,7 +166,14 @@ class TwistedMessagePackProtocol(Protocol):
     def _cancel_idle_timer(self):
         if self.idle_timer is not None:
             if not self.idle_timer.called:
-                self.idle_timer.cancel()
+                # FIXME: Workaround for a bug in Twisted 18.9.0 when
+                #        DelayedCall.debug == True
+                try:
+                    self.idle_timer.cancel()
+                except AttributeError:
+                    del self.idle_timer.func
+                    del self.idle_timer.args
+                    del self.idle_timer.kw
 
             self.idle_timer = None
 
