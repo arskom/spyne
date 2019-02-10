@@ -306,9 +306,9 @@ class ModelBase(object):
         type is seriazed under a ComplexModel.
         """
 
-        part_name = None
-        """This specifies which string should be used as message part name when this
-            type is serialized under a ComplexModel. Many clients expect "parameters"
+        wsdl_part_name = None
+        """This specifies which string should be used as wsdl message part name when this
+            type is serialized under a ComplexModel ie."parameters".
         """
 
         sqla_column_args = None
@@ -565,8 +565,8 @@ class ModelBase(object):
         return cls.Attributes.sub_name or cls.get_type_name()
     
     @classmethod
-    def get_part_name(cls):
-        return cls.Attributes.part_name or cls.get_element_name()
+    def get_wsdl_part_name(cls):
+        return cls.Attributes.wsdl_part_name or cls.get_element_name()
 
     @classmethod
     def get_element_name_ns(cls, interface):

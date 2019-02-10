@@ -323,7 +323,7 @@ class Wsdl11(XmlSchema):
 
             for obj in objs:
                 part = SubElement(message, WSDL11("part"))
-                part.set('name', obj.get_part_name())
+                part.set('name', obj.get_wsdl_part_name())
                 part.set('element', obj.get_element_name_ns(self.interface))
 
     def add_messages_for_methods(self, service, root, messages):
