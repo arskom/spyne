@@ -3,8 +3,9 @@
 This is the Python Spyne portion of a [benchmarking tests suite](../../)
 comparing a variety of frameworks.
 
-All test implementations are located within a single file 
-([app.py](app.py)).
+The latest version is at https://github.com/arskom/spyne/tree/master/examples/tfb
+
+All test implementations are located within ([app.py](app.py))
 
 ## Description
 
@@ -12,15 +13,14 @@ Spyne + SQLAlchemy
 
 ### Database
 
-PostgreSQL (psycopg2 on CPython, ? on PyPy)
+PostgreSQL (psycopg2 on CPython)
 
 ### Server
 
 * gunicorn+wsgi on CPython
-* Twisted on PyPy
 
 ## Test URLs
-### JSON Encoding 
+### JSON Encoding
 
 http://localhost:8080/json
 
