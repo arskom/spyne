@@ -101,12 +101,12 @@ def get_object_as_simple_dict(o, cls=None, hier_delim='.', prefix=None):
 
 
 def get_object_as_json(o, cls=None, ignore_wrappers=True, complex_as=list,
-                                            encoding='utf8', polymorphic=False):
+                     encoding='utf8', polymorphic=False, indent=None, **kwargs):
     if cls is None:
         cls = o.__class__
 
     prot = JsonDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
-                                                        polymorphic=polymorphic)
+                               polymorphic=polymorphic, indent=indent, **kwargs)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls, o)])
     prot.create_out_string(ctx, encoding)
     return b''.join(ctx.out_string)
