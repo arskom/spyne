@@ -8,3 +8,4 @@ pytz
 SQLAlchemy
 Twisted
 txpostgres
+colorama
