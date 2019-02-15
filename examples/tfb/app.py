@@ -213,6 +213,8 @@ def init_app(config):
         out_protocol=JsonDocument(),
         config=config,
     )
+    if subconfig.subapps is None:
+        subconfig.subapps = {}
 
     subconfig.subapps.update({'': app})
 
