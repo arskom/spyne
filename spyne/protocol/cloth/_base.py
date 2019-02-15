@@ -178,8 +178,27 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         logger.debug("Starting file with %r %r", args, kwargs)
         return etree.xmlfile(*args, **kwargs)
 
+    def _get_doctype(self, cloth):
+        if self.doctype is not None:
+            return self.doctype
+
+        if cloth is not None:
+            return cloth.getroottree().docinfo.doctype
+
+        if self._root_cloth is not None:
+            return self._root_cloth.getroottree().docinfo.doctype
+
+        if self._cloth is not None:
+            return self._cloth.getroottree().docinfo.doctype
+
     def write_doctype(self, ctx, parent, cloth=None):
-        pass  # FIXME: write it
+        dt = self._get_doctype(cloth)
+        if dt is None:
+            return
+
+        parent.write_doctype(dt)
+        ctx.outprot_ctx.doctype_written = True
+        logger.debug("Doctype written as: '%s'", dt)
 
     @staticmethod
     def get_class_cloth(cls):
