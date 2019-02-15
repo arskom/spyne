@@ -114,14 +114,14 @@ class HtmlMicroFormat(HtmlBase):
         """This is what subserialize calls"""
 
         # if no doctype was written, write it
-        if not getattr(ctx.protocol, 'doctype_written', False):
+        if not getattr(ctx.outprot_ctx, 'doctype_written', False):
             if len(ctx.protocol.prot_stack) == 1:
                 if self.doctype is not None:
                     parent.write_doctype(self.doctype)
 
             # set this to true as no doctype can be written after this
             # stage anyway.
-            ctx.protocol.doctype_written = True
+            ctx.outprot_ctx.doctype_written = True
 
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 

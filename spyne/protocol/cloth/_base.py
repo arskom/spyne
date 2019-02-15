@@ -27,7 +27,7 @@ from inspect import isgenerator
 from lxml import etree
 from lxml.etree import LxmlSyntaxError
 
-from spyne import ProtocolContext, BODY_STYLE_WRAPPED, ByteArray, File
+from spyne import ProtocolContext, BODY_STYLE_WRAPPED, ByteArray, File, Array
 from spyne.util import Break, coroutine
 from spyne.protocol import ProtocolMixin
 
@@ -152,7 +152,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         try:
             with self.docfile(ctx.out_stream, encoding=self.encoding) as xf:
-                ctx.protocol.doctype_written = False
+                ctx.outprot_ctx.doctype_written = False
                 ctx.protocol.prot_stack = tlist([], ProtocolMixin)
                 ret = self.subserialize(ctx, cls, inst, xf, name)
 
@@ -212,7 +212,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         c = self.get_class_root_cloth(cls)
         eltstack = getattr(ctx.protocol, 'eltstack', [])
         if c is not None and len(eltstack) == 0 and not (eltstack[-1] is c):
-            if not ctx.protocol.doctype_written:
+            if not ctx.outprot_ctx.doctype_written:
                 self.write_doctype(ctx, parent, c)
 
             logger.debug("to object root cloth")
@@ -220,7 +220,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                                                        **kwargs)
         c = self.get_class_cloth(cls)
         if c is not None:
-            if not ctx.protocol.doctype_written:
+            if not ctx.outprot_ctx.doctype_written:
                 self.write_doctype(ctx, parent, c)
 
             logger.debug("to object cloth")
