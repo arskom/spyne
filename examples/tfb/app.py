@@ -232,14 +232,8 @@ def init(config):
 
 def parse_config(argv):
     from neurons.daemon.main import boot
+
     retcode, config = boot('tfb', argv, init, bootstrapper=TfbBootstrap)
-
-    #db = config.get_main_store()
-    #db.conn_str = \
-    #    '{}://benchmarkdbuser:benchmarkdbpass@{}/hello_world?charset=utf8' \
-    #        .format(DBDRIVER, DBHOST)
-
-    #db.pool_pre_ping = False
 
     if retcode is not None:
         sys.exit(retcode)
