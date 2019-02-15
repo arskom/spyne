@@ -2,7 +2,7 @@ gunicorn
 meinheld
 lxml
 spyne==2.13.5a0
-neurons
+neurons==0.8.0
 psycopg2
 pytz
 SQLAlchemy
