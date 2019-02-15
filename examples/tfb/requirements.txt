@@ -1,0 +1,10 @@
+gunicorn
+meinheld
+lxml
+spyne==2.13.5a0
+neurons
+psycopg2
+pytz
+SQLAlchemy
+Twisted
+txpostgres
