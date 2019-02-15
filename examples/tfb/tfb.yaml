@@ -26,7 +26,7 @@ ServiceDaemon:
     services:
     -   HttpServer:
             backlog: 50
-            disabled: false
+            disabled: true
             host: 127.0.0.1
             name: root
             port: 8080
