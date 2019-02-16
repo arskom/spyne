@@ -225,6 +225,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 # Prevent primitive attrs like spyne-attr from interfering
                 # with elt descent
                 ids.add(id(elt))
+
             yield elt
 
     def _get_clean_elt(self, elt, what):
@@ -316,7 +317,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         logger_c.debug("entering %s %r nsmap=%r attrib=%r skip=%s method=%s",
                      cloth.tag, cloth.attrib, cloth.nsmap, attrib, skip, method)
 
-        if not ctx.protocol.doctype_written:
+        if not ctx.outprot_ctx.doctype_written:
             self.write_doctype(ctx, parent, cloth)
 
         tags = ctx.protocol.tags

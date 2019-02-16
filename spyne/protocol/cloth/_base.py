@@ -27,7 +27,7 @@ from inspect import isgenerator
 from lxml import etree
 from lxml.etree import LxmlSyntaxError
 
-from spyne import ProtocolContext, BODY_STYLE_WRAPPED, ByteArray, File
+from spyne import ProtocolContext, BODY_STYLE_WRAPPED, ByteArray, File, Array
 from spyne.util import Break, coroutine
 from spyne.protocol import ProtocolMixin
 
@@ -152,7 +152,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         try:
             with self.docfile(ctx.out_stream, encoding=self.encoding) as xf:
-                ctx.protocol.doctype_written = False
+                ctx.outprot_ctx.doctype_written = False
                 ctx.protocol.prot_stack = tlist([], ProtocolMixin)
                 ret = self.subserialize(ctx, cls, inst, xf, name)
 
@@ -178,8 +178,27 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         logger.debug("Starting file with %r %r", args, kwargs)
         return etree.xmlfile(*args, **kwargs)
 
+    def _get_doctype(self, cloth):
+        if self.doctype is not None:
+            return self.doctype
+
+        if cloth is not None:
+            return cloth.getroottree().docinfo.doctype
+
+        if self._root_cloth is not None:
+            return self._root_cloth.getroottree().docinfo.doctype
+
+        if self._cloth is not None:
+            return self._cloth.getroottree().docinfo.doctype
+
     def write_doctype(self, ctx, parent, cloth=None):
-        pass  # FIXME: write it
+        dt = self._get_doctype(cloth)
+        if dt is None:
+            return
+
+        parent.write_doctype(dt)
+        ctx.outprot_ctx.doctype_written = True
+        logger.debug("Doctype written as: '%s'", dt)
 
     @staticmethod
     def get_class_cloth(cls):
@@ -193,7 +212,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         c = self.get_class_root_cloth(cls)
         eltstack = getattr(ctx.protocol, 'eltstack', [])
         if c is not None and len(eltstack) == 0 and not (eltstack[-1] is c):
-            if not ctx.protocol.doctype_written:
+            if not ctx.outprot_ctx.doctype_written:
                 self.write_doctype(ctx, parent, c)
 
             logger.debug("to object root cloth")
@@ -201,7 +220,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                                                        **kwargs)
         c = self.get_class_cloth(cls)
         if c is not None:
-            if not ctx.protocol.doctype_written:
+            if not ctx.outprot_ctx.doctype_written:
                 self.write_doctype(ctx, parent, c)
 
             logger.debug("to object cloth")

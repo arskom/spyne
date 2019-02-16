@@ -569,7 +569,7 @@ class XmlSchemaParser(object):
 
             e = ti.elements.get(qn)
             if e:
-                if ":" in e.type:
+                if e.type and ":" in e.type:
                     return self.get_type(e.type)
                 else:
                     retval = self.get_type("{%s}%s" % (ns, e.type))

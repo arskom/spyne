@@ -73,7 +73,7 @@ class ToParentMixin(OutProtocolBase):
         """This is what subserialize calls"""
 
         # if no doctype was written, write it
-        if not getattr(ctx.protocol, 'doctype_written', False):
+        if not ctx.outprot_ctx.doctype_written:
             self.write_doctype(ctx, parent)
 
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)

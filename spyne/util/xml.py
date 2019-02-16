@@ -158,7 +158,7 @@ def get_object_as_xml_cloth(inst, cls=None, no_namespace=False, encoding='utf8')
     xml_cloth = XmlCloth(use_ns=(not no_namespace))
     ctx = FakeContext()
     with etree.xmlfile(ostr, encoding=encoding) as xf:
-        ctx.protocol.doctype_written = False
+        ctx.outprot_ctx.doctype_written = False
         ctx.protocol.prot_stack = tlist([], ProtocolMixin)
         tn = cls.get_type_name()
         ret = xml_cloth.subserialize(ctx, cls, inst, xf, tn)

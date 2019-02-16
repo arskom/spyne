@@ -49,7 +49,8 @@ from spyne.const import add_request_suffix
 
 
 def _produce_input_message(f, params, in_message_name, in_variable_names,
-                       no_ctx, no_self, argnames, body_style_str, self_ref_cls):
+                       no_ctx, no_self, argnames, body_style_str, self_ref_cls,
+                       in_wsdl_part_name):
     arg_start = 0
     if no_ctx is False:
         arg_start += 1
@@ -130,6 +131,9 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
         message = ComplexModel.produce(type_name=in_message_name,
                                        namespace=ns, members=in_params)
         message.__namespace__ = ns
+    
+    if in_wsdl_part_name:
+        message = message.customize(wsdl_part_name=in_wsdl_part_name)
 
     return message
 
@@ -191,6 +195,8 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
                (body_style_str == 'wrapped' or _is_out_message_name_overridden):
         _out_message_name = '%s.%s' % \
                                (self_ref_cls.get_type_name(), _out_message_name)
+    
+    _out_wsdl_part_name = kparams.pop('_wsdl_part_name', None)
 
     out_params = TypeInfo()
 
@@ -230,6 +236,9 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
 
         message.Attributes._wrapper = True
         message.__namespace__ = ns  # FIXME: is this necessary?
+    
+    if _out_wsdl_part_name:
+        message = message.customize(wsdl_part_name=_out_wsdl_part_name)
 
     return message
 
@@ -354,6 +363,8 @@ def rpc(*params, **kparams):
         to override it for ``@rpc`` methods. It could be necessary to override
         it for ``@mrpc`` methods to add events and other goodies.
     :param _service: Same as ``_service``.
+    :param _wsdl_part_name: Overrides the part name attribute within wsdl input/output
+        messages eg "parameters"
     """
 
     params = list(params)
@@ -457,6 +468,8 @@ def rpc(*params, **kparams):
 
             else:
                 _udd = {}
+            
+            _wsdl_part_name = kparams.get('_wsdl_part_name', None)
 
             body_style = BODY_STYLE_WRAPPED
             body_style_str = _validate_body_style(kparams)
@@ -468,7 +481,8 @@ def rpc(*params, **kparams):
 
             in_message = _produce_input_message(f, params,
                     _in_message_name, _in_arg_names, _no_ctx, _no_self,
-                                   _args, body_style_str, _self_ref_replacement)
+                                   _args, body_style_str, _self_ref_replacement,
+                                   _wsdl_part_name)
 
             out_message = _produce_output_message(function_name,
                        body_style_str, _self_ref_replacement, _no_self, kparams)

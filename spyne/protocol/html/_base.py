@@ -85,22 +85,6 @@ class HtmlCloth(XmlCloth):
         logger.debug("Starting file with %r %r", args, kwargs)
         return etree.htmlfile(*args, **kwargs)
 
-    def write_doctype(self, ctx, parent, cloth=None):
-        if self.doctype is not None:
-            dt = self.doctype
-        elif cloth is not None:
-            dt = cloth.getroottree().docinfo.doctype
-        elif self._root_cloth is not None:
-            dt = self._root_cloth.getroottree().docinfo.doctype
-        elif self._cloth is not None:
-            dt = self._cloth.getroottree().docinfo.doctype
-        else:
-            return
-
-        parent.write_doctype(dt)
-        ctx.protocol.doctype_written = True
-        logger.debug("Doctype written as: '%s'", dt)
-
     def get_context(self, parent, transport):
         return HtmlClothProtocolContext(parent, transport)
 
