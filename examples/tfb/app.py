@@ -2,10 +2,10 @@
 import sys
 
 import spyne.const
+spyne.const.MIN_GC_INTERVAL = float('inf')
+
 from lxml import html
 from spyne.protocol.html import HtmlCloth
-
-spyne.const.MIN_GC_INTERVAL = float('inf')
 
 from random import randint, shuffle, choice
 from contextlib import closing
@@ -28,8 +28,8 @@ _is_pypy = hasattr(sys, 'pypy_version_info')
 DBDRIVER = 'postgresql+psycopg2cffi' if _is_pypy else 'postgresql+psycopg2'
 DBHOST = 'tfb-database'
 
-# models
 
+# models
 class DbSessionManager(object):
     def __init__(self, config):
         self.session = config.get_main_store().Session()
@@ -78,7 +78,6 @@ class TfbSimpleService(ServiceBase):
         """Test 6: Plaintext"""
         ctx.out_protocol = outprot_plain
         return b'Hello, World!'
-
 
 
 class TfbOrmService(ServiceBase):
