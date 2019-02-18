@@ -168,6 +168,65 @@ class TestSqlAlchemySchema(unittest.TestCase):
             if 's' in idx.columns:
                 assert idx.unique
 
+    def test_colname_simple(self):
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True, autoincrement=False)
+            s = Unicode(64, sqla_column_args=dict(name='ss'))
+
+        t = SomeClass.__table__
+        self.metadata.create_all()  # not needed, just nice to see.
+
+        assert 'ss' in t.c
+
+    def test_colname_complex_table(self):
+        class SomeOtherClass(TableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = (
+                {"sqlite_autoincrement": True},
+            )
+
+            id = Integer32(primary_key=True)
+            o = SomeOtherClass.customize(store_as='table',
+                                               sqla_column_args=dict(name='oo'))
+
+        t = SomeClass.__table__
+        self.metadata.create_all()  # not needed, just nice to see.
+
+        assert 'oo_id' in t.c
+
+    def test_colname_complex_json(self):
+        class SomeOtherClass(TableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = (
+                {"sqlite_autoincrement": True},
+            )
+
+            id = Integer32(primary_key=True)
+            o = SomeOtherClass.customize(store_as='json',
+                                               sqla_column_args=dict(name='oo'))
+
+        t = SomeClass.__table__
+        self.metadata.create_all()  # not needed, just nice to see.
+
+        assert 'oo' in t.c
+
     def test_nested_sql(self):
         class SomeOtherClass(TableModel):
             __tablename__ = 'some_other_class'

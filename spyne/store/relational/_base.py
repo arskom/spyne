@@ -298,6 +298,9 @@ def _get_col_o2o(parent, subname, subcls, fk_col_name, deferrable=None,
     pk_sqla_type = _get_sqlalchemy_type(pk_spyne_type)
 
     # generate a fk to it from the current object (cls)
+    if 'name' in col_kwargs:
+        subname = col_kwargs.pop('name')
+
     if fk_col_name is None:
         fk_col_name = subname + "_" + pk_key
 
@@ -305,10 +308,13 @@ def _get_col_o2o(parent, subname, subcls, fk_col_name, deferrable=None,
         "The column name for the foreign key must be different from the " \
         "column name for the object itself."
 
-    fk = ForeignKey('%s.%s' % (subcls.Attributes.table_name, pk_key), use_alter=True,
-          name='%s_%s_fkey' % (subcls.Attributes.table_name, fk_col_name),
-          deferrable=deferrable, initially=initially,
-          ondelete=ondelete, onupdate=onupdate)
+    fk = ForeignKey(
+        '%s.%s' % (subcls.Attributes.table_name, pk_key),
+        use_alter=True,
+        name='%s_%s_fkey' % (subcls.Attributes.table_name, fk_col_name),
+        deferrable=deferrable, initially=initially,
+        ondelete=ondelete, onupdate=onupdate,
+    )
 
     return Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
 
@@ -477,6 +483,10 @@ def _add_simple_type(cls, props, table, subname, subcls, sqla_type):
     _sp_attrs_to_sqla_constraints(cls, subcls, col_kwargs)
 
     mp = getattr(subcls.Attributes, 'mapper_property', None)
+
+    if 'name' in col_kwargs:
+        subname = col_kwargs.pop('name')
+
     if not subcls.Attributes.exc_db:
         if subname in table.c:
             col = table.c[subname]
@@ -811,6 +821,9 @@ def _add_complex_type_as_table(cls, props, table, subname, subcls, storage,
 
 def _add_complex_type_as_xml(cls, props, table, subname, subcls, storage,
                                                           col_args, col_kwargs):
+    if 'name' in col_kwargs:
+        subname = col_kwargs.pop('name')
+
     if subname in table.c:
         col = table.c[subname]
     else:
@@ -825,6 +838,9 @@ def _add_complex_type_as_xml(cls, props, table, subname, subcls, storage,
 
 def _add_complex_type_as_json(cls, props, table, subname, subcls, storage,
                                                      col_args, col_kwargs, dbt):
+    if 'name' in col_kwargs:
+        subname = col_kwargs.pop('name')
+
     if subname in table.c:
         col = table.c[subname]
 

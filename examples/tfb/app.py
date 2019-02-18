@@ -50,7 +50,7 @@ class World(TableModel):
     __tablename__ = "world"
     _type_info = [
         ('id', Integer32(primary_key=True)),
-        ('randomNumber', Integer32),
+        ('randomNumber', Integer32(sqla_column_args=dict(name='randomnumber'))),
     ]
 
 
