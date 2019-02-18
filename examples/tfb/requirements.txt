@@ -19,7 +19,7 @@ pytz==2018.9
 PyYAML==4.2b4
 six==1.12.0
 slimit==0.8.1
-spyne==2.13.6a0
+spyne==2.13.7a0
 SQLAlchemy==1.2.17
 Twisted==18.9.0
 txpostgres==1.6.0
