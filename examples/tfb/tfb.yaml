@@ -38,7 +38,7 @@ ServiceDaemon:
     -   RelationalStore:
             async_pool: true
             backend: sqlalchemy
-            conn_str: postgresql://benchmarkdbuser:benchmarkdbpass@{}/hello_world?charset=utf8
+            conn_str: postgresql://benchmarkdbuser:benchmarkdbpass@tfb-database/hello_world
             echo_pool: false
             max_overflow: 3
             name: sql_main
