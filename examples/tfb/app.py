@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import sys
 
 import spyne.const
@@ -80,15 +81,23 @@ class TfbSimpleService(ServiceBase):
         return b'Hello, World!'
 
 
+def _force_int(v):
+    try:
+        return min(500, max(int(v), 1))
+    except:
+        return 1
+
+
+NumQueriesType = Any(sanitizer=_force_int)
+
+
 class TfbOrmService(ServiceBase):
     @rpc(_returns=World)
     def db(ctx):
         return ctx.udc.session.query(World).get(randint(1, 10000))
 
-    @rpc(Integer(default=1), _returns=Array(World))
+    @rpc(NumQueriesType, _returns=Array(World))
     def dbs(ctx, queries):
-        queries = min(500, max(queries, 1))
-
         q = ctx.udc.session.query(World)
         return [q.get(randint(1, 10000)) for _ in xrange(queries)]
 
@@ -109,7 +118,7 @@ class TfbOrmService(ServiceBase):
 
         return fortunes
 
-    @rpc(Integer, _returns=Array(World))
+    @rpc(NumQueriesType, _returns=Array(World))
     def updates(ctx, queries):
         """Test 5: Database Updates"""
 
@@ -129,7 +138,7 @@ class TfbOrmService(ServiceBase):
 
 class TfbRawService(ServiceBase):
     # returning both Any+dict or ObjectMarker+ListOfLists works
-    @rpc(Integer(default=1), _returns=Any)
+    @rpc(NumQueriesType, _returns=Any)
     def dbsraw(ctx, queries):
         queries = min(500, max(queries, 1))
 
@@ -138,7 +147,7 @@ class TfbRawService(ServiceBase):
         for i in xrange(queries):
             wid = randint(1, 10000)
             result = conn.execute(
-                "SELECT id, randomNumber FROM world WHERE id = %s", wid) \
+                     "SELECT id, randomNumber FROM world WHERE id = %s", wid) \
                 .fetchone()
             retval.append(dict(id=result[0], randomNumber=result[1]))
 
@@ -164,7 +173,7 @@ class TfbRawService(ServiceBase):
 
         return fortunes
 
-    @rpc(Integer(default=1), _returns=Any)
+    @rpc(NumQueriesType, _returns=Any)
     def updatesraw(ctx, queries):
         """Test 5: Database Updates"""
         queries = min(500, max(queries, 1))
