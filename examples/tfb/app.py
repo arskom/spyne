@@ -50,7 +50,7 @@ class World(TableModel):
     __tablename__ = "world"
     _type_info = [
         ('id', Integer32(primary_key=True)),
-        ('random_number', Integer32(sub_name='randomNumber')),
+        ('randomNumber', Integer32),
     ]
 
 
@@ -89,7 +89,7 @@ class TfbOrmService(ServiceBase):
     def dbs(ctx, queries):
         queries = min(500, max(queries, 1))
 
-        q = ctx.session.query(World)
+        q = ctx.udc.session.query(World)
         return [q.get(randint(1, 10000)) for _ in xrange(queries)]
 
     @rpc(_returns=Array(Fortune, html_cloth=T_INDEX), _body_style='out_bare')
@@ -119,7 +119,7 @@ class TfbOrmService(ServiceBase):
         q = ctx.udc.session.query(World)
         for id in (randint(1, 10000) for _ in xrange(queries)):
             world = q.get(id)
-            world.random_number = randint(1, 10000)
+            world.randomNumber = randint(1, 10000)
             retval.append(world)
 
         ctx.udc.session.commit()
@@ -138,7 +138,7 @@ class TfbRawService(ServiceBase):
         for i in xrange(queries):
             wid = randint(1, 10000)
             result = conn.execute(
-                "SELECT id, random_number FROM world WHERE id = %s", wid) \
+                "SELECT id, randomNumber FROM world WHERE id = %s", wid) \
                 .fetchone()
             retval.append(dict(id=result[0], randomNumber=result[1]))
 
@@ -176,7 +176,7 @@ class TfbRawService(ServiceBase):
         retval = []
         for i in ids:
             wid, rn = conn.execute(
-                         "SELECT id, random_number FROM world WHERE id=%s", i) \
+                         "SELECT id, randomNumber FROM world WHERE id=%s", i) \
                 .fetchone()
 
             rn = randint(1, 10000)
@@ -258,7 +258,7 @@ class TfbBootstrap(Bootstrapper):
             ints = list(range(10000))
             shuffle(ints)
             for _ in range(10000):
-                session.add(World(random_number=ints.pop()))
+                session.add(World(randomNumber=ints.pop()))
 
             for _ in range(100):
                 session.add(Fortune(
