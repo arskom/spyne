@@ -167,10 +167,9 @@ class YamlDocument(HierDictDocument):
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
 
-        if out_string_encoding is None:
-            ctx.out_string = (yaml.dump(o, **self.out_kwargs)
+        ctx.out_string = (yaml.dump(o, **self.out_kwargs)
                                                       for o in ctx.out_document)
-        else:
+        if six.PY2 and out_string_encoding is not None:
             ctx.out_string = (
                 yaml.dump(o, **self.out_kwargs).encode(out_string_encoding)
                                                       for o in ctx.out_document)
