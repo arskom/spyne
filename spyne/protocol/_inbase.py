@@ -43,7 +43,7 @@ except ImportError:
 from spyne.protocol._base import ProtocolMixin
 from spyne.model import ModelBase, XmlAttribute, Array, Null, \
     ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, String, \
-    Decimal, Double, Integer, Time, DateTime, Uuid, Date, Duration, Boolean
+    Decimal, Double, Integer, Time, DateTime, Uuid, Date, Duration, Boolean, Any
 
 from spyne.error import ValidationError
 
@@ -115,6 +115,7 @@ class InProtocolBase(ProtocolMixin):
             self.mime_type = mime_type
 
         fsh = {
+            Any: self.any_from_bytes,
             Null: self.null_from_bytes,
             File: self.file_from_bytes,
             Array: self.array_from_bytes,
@@ -244,8 +245,10 @@ class InProtocolBase(ProtocolMixin):
         #        "Invalid type passed to `from_unicode`: {}".format(
         #                                         (class_, type(string), string))
 
+        cls_attrs = self.get_cls_attrs(class_)
+
         if isinstance(string, six.string_types) and len(string) == 0 and \
-                                                class_.Attributes.empty_is_none:
+                                                        cls_attrs.empty_is_none:
             return None
 
         handler = self._from_unicode_handlers[class_]
@@ -253,6 +256,9 @@ class InProtocolBase(ProtocolMixin):
 
     def null_from_bytes(self, cls, value):
         return None
+
+    def any_from_bytes(self, cls, value):
+        return value
 
     def any_xml_from_bytes(self, cls, string):
         try:
