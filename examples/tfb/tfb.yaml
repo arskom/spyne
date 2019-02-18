@@ -30,7 +30,9 @@ ServiceDaemon:
             host: 127.0.0.1
             name: root
             port: 8080
-            subapps: []
+            subapps:
+            -   HttpApplication:
+                    url: ''
             type: tcp4
     stores:
     -   RelationalStore:
