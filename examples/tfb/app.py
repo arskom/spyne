@@ -6,7 +6,6 @@ import spyne.const
 spyne.const.MIN_GC_INTERVAL = float('inf')
 
 from lxml import html
-from spyne.protocol.html import HtmlCloth
 
 from random import randint, shuffle, choice
 from contextlib import closing
@@ -17,6 +16,7 @@ from neurons.daemon import ServiceDefinition, HttpServer, StaticFileServer
 from neurons.daemon.main import Bootstrapper
 
 from spyne import Integer32, Unicode, rpc, ServiceBase, Integer, Array, Any
+from spyne.protocol.html import HtmlCloth
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.json import JsonDocument
 from spyne.server.wsgi import WsgiApplication
@@ -98,6 +98,9 @@ class TfbOrmService(ServiceBase):
 
     @rpc(NumQueriesType, _returns=Array(World))
     def dbs(ctx, queries):
+        if queries is None:
+            queries = 1
+
         q = ctx.udc.session.query(World)
         return [q.get(randint(1, 10000)) for _ in xrange(queries)]
 
@@ -122,7 +125,8 @@ class TfbOrmService(ServiceBase):
     def updates(ctx, queries):
         """Test 5: Database Updates"""
 
-        queries = min(500, max(queries, 1))
+        if queries is None:
+            queries = 1
 
         retval = []
         q = ctx.udc.session.query(World)
@@ -140,7 +144,8 @@ class TfbRawService(ServiceBase):
     # returning both Any+dict or ObjectMarker+ListOfLists works
     @rpc(NumQueriesType, _returns=Any)
     def dbsraw(ctx, queries):
-        queries = min(500, max(queries, 1))
+        if queries is None:
+            queries = 1
 
         retval = []
         conn = ctx.udc.conn
@@ -176,7 +181,8 @@ class TfbRawService(ServiceBase):
     @rpc(NumQueriesType, _returns=Any)
     def updatesraw(ctx, queries):
         """Test 5: Database Updates"""
-        queries = min(500, max(queries, 1))
+        if queries is None:
+            queries = 1
 
         conn = ctx.udc.conn
 
