@@ -253,6 +253,7 @@ words = 'some random words for you and me somebody else if then the'.split()
 class TfbBootstrap(Bootstrapper):
     # noinspection PyUnresolvedReferences
     def after_tables(self, config):
+        print("Generating data...")
         with closing(config.get_main_store().Session()) as session:
             ints = list(range(10000))
             shuffle(ints)
