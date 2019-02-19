@@ -71,7 +71,7 @@ outprot_plain = HttpRpc(mime_type='text/plain')
 class TfbSimpleService(ServiceBase):
     @rpc(_returns=Any)
     def json(ctx):
-        ctx.transport.add_header('Date', formatdate())
+        ctx.transport.add_header('Date', formatdate(usegmt=True))
         return dict(message=u'Hello, World!')
 
     @rpc(_returns=Any)
@@ -94,7 +94,9 @@ NumQueriesType = Any(sanitizer=_force_int)
 class TfbOrmService(ServiceBase):
     @rpc(_returns=World)
     def db(ctx):
-        return ctx.udc.session.query(World).get(randint(1, 10000))
+        retval = ctx.udc.session.query(World).get(randint(1, 10000))
+        import ipdb; ipdb.set_trace()
+        return retval
 
     @rpc(NumQueriesType, _returns=Array(World))
     def dbs(ctx, queries):
@@ -213,12 +215,12 @@ class TfbRawService(ServiceBase):
 
 
 def _on_method_call_db_sess(ctx):
-    ctx.transport.add_header('Date', formatdate())
+    ctx.transport.add_header('Date', formatdate(usegmt=True))
     ctx.udc = DbSessionManager(ctx.app.config)
 
 
 def _on_method_call_db_conn(ctx):
-    ctx.transport.add_header('Date', formatdate())
+    ctx.transport.add_header('Date', formatdate(usegmt=True))
     ctx.udc = DbConnectionManager(ctx.app.config)
 
 
