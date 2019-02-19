@@ -493,8 +493,8 @@ def _add_simple_type(cls, props, table, subname, subcls, sqla_type):
         colname = subname
 
     if not subcls.Attributes.exc_db:
-        if subname in table.c:
-            col = table.c[subname]
+        if colname in table.c:
+            col = table.c[colname]
 
         else:
             col = Column(colname, sqla_type, **col_kwargs)
@@ -831,8 +831,8 @@ def _add_complex_type_as_xml(cls, props, table, subname, subcls, storage,
     else:
         colname = subname
 
-    if subname in table.c:
-        col = table.c[subname]
+    if colname in table.c:
+        col = table.c[colname]
     else:
         t = PGObjectXml(subcls, storage.root_tag, storage.no_ns,
                                                            storage.pretty_print)
@@ -850,8 +850,8 @@ def _add_complex_type_as_json(cls, props, table, subname, subcls, storage,
     else:
         colname = subname
 
-    if subname in table.c:
-        col = table.c[subname]
+    if colname in table.c:
+        col = table.c[colname]
 
     else:
         t = PGObjectJson(subcls, ignore_wrappers=storage.ignore_wrappers,
