@@ -239,7 +239,7 @@ class MethodDescriptor(object):
     def gen_interface_key(self, cls):
         # this is a regular service method decorated by @rpc
         if issubclass(cls, ServiceBaseBase):
-            return '{}.{}.{}'.format(cls.__module__,
+            return u'{}.{}.{}'.format(cls.__module__,
                                             self.get_owner_name(cls), self.name)
 
         # this is a member method decorated by @mrpc
@@ -250,10 +250,10 @@ class MethodDescriptor(object):
             dn = self.name
             # prevent duplicate class name. this happens when the class is a
             # direct subclass of ComplexModel
-            if dn.split('.', 1)[0] != on:
-                return '.'.join( (mn, on, dn) )
+            if dn.split(u'.', 1)[0] != on:
+                return u'.'.join( (mn, on, dn) )
 
-            return '.'.join( (mn, dn) )
+            return u'.'.join( (mn, dn) )
 
     @staticmethod
     def _get_class_module_name(cls):
