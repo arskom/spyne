@@ -95,7 +95,6 @@ class TfbOrmService(ServiceBase):
     @rpc(_returns=World)
     def db(ctx):
         retval = ctx.udc.session.query(World).get(randint(1, 10000))
-        import ipdb; ipdb.set_trace()
         return retval
 
     @rpc(NumQueriesType, _returns=Array(World))
@@ -272,7 +271,8 @@ def parse_config(argv):
 
 def gen_wsgi_app():
     config = parse_config([])
-    return WsgiApplication(config.services['root'].subapps[''])
+    app = config.services['root'].subapps[''].app
+    return WsgiApplication(app)
 
 
 words = 'some random words for you and me somebody else if then the'.split()
