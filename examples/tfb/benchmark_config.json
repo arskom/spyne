@@ -25,10 +25,10 @@
       "versus": "wsgi"
     },
     "raw": {
-      "db_url": "/dbsraw",
-      "query_url": "/dbraw?queries=",
+      "db_url": "/dbraw",
+      "query_url": "/dbsraw?queries=",
       "fortune_url": "/fortunesraw",
-      "update_url": "/raw-updates?queries=",
+      "update_url": "/updatesraw?queries=",
       "port": 8080,
       "approach": "Realistic",
       "classification": "Micro",
@@ -47,8 +47,8 @@
     },
     "nginx-uwsgi": {
       "json_url": "/json",
-      "db_url": "/dbs",
-      "query_url": "/db?queries=",
+      "db_url": "/db",
+      "query_url": "/dbs?queries=",
       "fortune_url": "/fortunes",
       "update_url": "/updates?queries=",
       "plaintext_url": "/plaintext",
