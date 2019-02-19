@@ -4,7 +4,7 @@
     "default": {
       "json_url": "/json",
       "db_url": "/dbs",
-      "query_url": "/db?queries=",
+      "query_url": "/dbs?queries=",
       "fortune_url": "/fortunes",
       "update_url": "/updates?queries=",
       "plaintext_url": "/plaintext",
@@ -25,7 +25,7 @@
       "versus": "wsgi"
     },
     "raw": {
-      "db_url": "/dbraw",
+      "db_url": "/dbsraw",
       "query_url": "/dbsraw?queries=",
       "fortune_url": "/fortunesraw",
       "update_url": "/updatesraw?queries=",
