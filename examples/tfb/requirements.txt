@@ -25,3 +25,4 @@ Twisted==18.9.0
 txpostgres==1.6.0
 Werkzeug==0.14.1
 zope.interface==4.6.0
+uwsgi==2.0.18
