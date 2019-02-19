@@ -102,7 +102,8 @@ class memoize(object):
 
 
 class memoize_first(object):
-    """A memoization decorator that keeps the first call without conditiion."""
+    """A memoization decorator that keeps the first call without condition, aka
+    a singleton accessor."""
 
     registry = []
 
