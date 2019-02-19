@@ -150,7 +150,10 @@ def _get_http_headers(req_env):
 
     for k, v in req_env.items():
         if k.startswith("HTTP_"):
-            retval[k[5:].lower()]= [v]
+            key = k[5:].lower()
+            val = [v]
+            retval[key]= val
+            logger.debug("Add http header %r = %r", key, val)
 
     return retval
 
