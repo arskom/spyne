@@ -141,6 +141,15 @@ class TfbOrmService(ServiceBase):
 
 
 class TfbRawService(ServiceBase):
+    @rpc(_returns=World)
+    def dbraw(ctx):
+        conn = ctx.udc.conn
+
+        wid = randint(1, 10000)
+        return conn.execute(
+                     "SELECT id, randomNumber FROM world WHERE id = %s", wid) \
+                                                                     .fetchone()
+
     # returning both Any+dict or ObjectMarker+ListOfLists works
     @rpc(NumQueriesType, _returns=Any)
     def dbsraw(ctx, queries):
