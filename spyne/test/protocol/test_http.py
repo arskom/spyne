@@ -842,19 +842,25 @@ class ParseCookieTest(unittest.TestCase):
         """
         # Chunks without an equals sign appear as unnamed values per
         # https://bugzilla.mozilla.org/show_bug.cgi?id=169091
-        self.assertIn('django_language', _parse_cookie('abc=def; unnamed; django_language=en').keys())
+        self.assertIn('django_language',
+                   _parse_cookie('abc=def; unnamed; django_language=en').keys())
         # Even a double quote may be an unamed value.
-        self.assertEqual(_parse_cookie('a=b; "; c=d'), {'a': 'b', '': '"', 'c': 'd'})
+        self.assertEqual(
+                   _parse_cookie('a=b; "; c=d'), {'a': 'b', '': '"', 'c': 'd'})
         # Spaces in names and values, and an equals sign in values.
-        self.assertEqual(_parse_cookie('a b c=d e = f; gh=i'), {'a b c': 'd e = f', 'gh': 'i'})
+        self.assertEqual(_parse_cookie('a b c=d e = f; gh=i'),
+                                                {'a b c': 'd e = f', 'gh': 'i'})
         # More characters the spec forbids.
-        self.assertEqual(_parse_cookie('a   b,c<>@:/[]?{}=d  "  =e,f g'), {'a   b,c<>@:/[]?{}': 'd  "  =e,f g'})
+        self.assertEqual(_parse_cookie('a   b,c<>@:/[]?{}=d  "  =e,f g'),
+                                          {'a   b,c<>@:/[]?{}': 'd  "  =e,f g'})
         # Unicode characters. The spec only allows ASCII.
-        self.assertEqual(_parse_cookie(u'saint=André Bessette'), {u'saint': u'André Bessette'})
+        self.assertEqual(_parse_cookie(u'saint=André Bessette'),
+                                                  {u'saint': u'André Bessette'})
         # Browsers don't send extra whitespace or semicolons in Cookie headers,
         # but _parse_cookie() should parse whitespace the same way
         # document.cookie parses whitespace.
-        self.assertEqual(_parse_cookie('  =  b  ;  ;  =  ;   c  =  ;  '), {'': 'b', 'c': ''})
+        self.assertEqual(_parse_cookie('  =  b  ;  ;  =  ;   c  =  ;  '),
+                                                             {'': 'b', 'c': ''})
 
 
 if __name__ == '__main__':
