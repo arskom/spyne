@@ -34,8 +34,8 @@ OWN_PATH = abspath(inspect.getfile(inspect.currentframe()))
 EXAMPLES_DIR = join(dirname(OWN_PATH), 'examples')
 PYVER = ''.join([str(i) for i in sys.version_info[:2]])
 
-v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
-VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
+with io.open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r') as v:
+    VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 
 SHORT_DESC="A transport and architecture agnostic rpc library that focuses on" \
 " exposing public services with a well-defined API."
