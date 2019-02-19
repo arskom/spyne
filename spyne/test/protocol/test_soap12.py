@@ -5,10 +5,10 @@ import unittest
 from lxml import etree
 from lxml.doctestcompare import LXMLOutputChecker, PARSE_XML
 
-from spyne import Fault
+from spyne import Fault, Unicode, ByteArray
 from spyne.util.six import BytesIO
 from spyne.application import Application
-from spyne.decorator import srpc
+from spyne.decorator import srpc, rpc
 from spyne.interface import Wsdl11
 from spyne.server.wsgi import WsgiApplication
 from spyne.protocol.soap.soap12 import Soap12
@@ -19,6 +19,35 @@ from spyne.test.protocol.test_soap11 import TestService, TestSingle, \
 
 def start_response(code, headers):
     print(code, headers)
+
+
+MTOM_REQUEST = b"""
+--uuid:2e53e161-b47f-444a-b594-eb6b72e76997
+Content-Type: application/xop+xml; charset=UTF-8; 
+  type="application/soap+xml"; action="sendDocument";
+Content-Transfer-Encoding: binary
+Content-ID: <root.message@cxf.apache.org>
+
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+  <soap:Body>
+    <ns3:documentRequest xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:ns3="http://gib.gov.tr/vedop3/eFatura">
+      <fileName>EA055406-5881-4F02-A3DC-9A5A7510D018.dat</fileName>
+      <binaryData xmime:contentType="application/octet-stream">
+        <xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" href="cid:04dfbca1-54b8-4631-a556-4addea6716ed-223384@cxf.apache.org"/>
+      </binaryData>
+      <hash>26981FCD51C95FA47780400B7A45132F</hash>
+    </ns3:documentRequest>
+  </soap:Body>
+</soap:Envelope>
+
+--uuid:2e53e161-b47f-444a-b594-eb6b72e76997
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: binary
+Content-ID: <04dfbca1-54b8-4631-a556-4addea6716ed-223384@cxf.apache.org>
+
+sample data
+--uuid:2e53e161-b47f-444a-b594-eb6b72e76997--
+"""
 
 
 class TestSingleSoap12(TestSingle):
@@ -116,6 +145,43 @@ class TestSoap12(unittest.TestCase):
             </soap12env:Envelope>"""
         if not LXMLOutputChecker().check_output(expected, response_str, PARSE_XML):
             raise Exception("Got: %s but expected: %s" % (response_str, expected))
+
+    def test_mtom(self):
+        FILE_NAME = 'EA055406-5881-4F02-A3DC-9A5A7510D018.dat'
+        TNS = 'http://gib.gov.tr/vedop3/eFatura'
+        class SomeService(Service):
+            @rpc(Unicode(sub_name="fileName"), ByteArray(sub_name='binaryData'),
+                 ByteArray(sub_name="hash"), _returns=Unicode)
+            def documentRequest(ctx, file_name, file_data, data_hash):
+                assert file_name == FILE_NAME
+                assert file_data == ('sample data',)
+
+                return file_name
+
+        app = Application([SomeService], tns=TNS,
+                                    in_protocol=Soap12(), out_protocol=Soap12())
+
+        server = WsgiApplication(app)
+        response = etree.fromstring(b''.join(server({
+            'QUERY_STRING': '',
+            'PATH_INFO': '/call',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'Content-Type: multipart/related; '
+                            'type="application/xop+xml"; '
+                            'boundary="uuid:2e53e161-b47f-444a-b594-eb6b72e76997"; '
+                            'start="<root.message@cxf.apache.org>"; '
+                            'start-info="application/soap+xml"; action="sendDocument"',
+            'wsgi.input': BytesIO(MTOM_REQUEST.replace(b"\n", b"\r\n"))
+        }, start_response, "http://null")))
+
+        response_str = etree.tostring(response, pretty_print=True)
+        print(response_str)
+
+        nsdict = dict(tns=TNS)
+
+        assert etree.fromstring(response_str) \
+            .xpath(".//tns:documentRequestResult/text()", namespaces=nsdict) \
+                == [FILE_NAME]
 
 
 if __name__ == '__main__':

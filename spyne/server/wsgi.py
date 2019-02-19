@@ -185,6 +185,8 @@ class WsgiTransportContext(HttpTransportContext):
         self.req_method = req_env.get('REQUEST_METHOD', None)
         """HTTP Request verb, as a convenience to users."""
 
+        self.headers = _get_http_headers(self.req_env)
+
     def get_path(self):
         return self.req_env['PATH_INFO']
 
@@ -586,7 +588,7 @@ class WsgiApplication(HttpBase):
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
-        ctx.in_header_doc = _get_http_headers(wsgi_env)
+        ctx.in_header_doc = ctx.transport.headers
         ctx.in_body_doc = _parse_qs(wsgi_env['QUERY_STRING'])
 
         for k, v in params.items():

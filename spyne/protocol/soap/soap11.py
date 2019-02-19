@@ -20,8 +20,8 @@
 """The ``spyne.protocol.soap.soap11`` module contains the implementation of a
 subset of the Soap 1.1 standard.
 
-Except the binary optimizations (MtoM, attachments, etc) that mostly
-**do not work**, this protocol is production quality.
+Except the binary optimizations (MtoM, attachments, etc) that are beta quality,
+this protocol is production quality.
 
 One must specifically enable the debug output for the Xml protocol to see the
 actual document exchange. That's because the xml formatting code is run only
@@ -170,6 +170,9 @@ class Soap11(XmlDocument):
     type = set(XmlDocument.type)
     type.update(('soap', 'soap11'))
 
+    ns_soap_env = ns.NS_SOAP11_ENV
+    ns_soap_enc = ns.NS_SOAP11_ENC
+
     def __init__(self, *args, **kwargs):
         super(Soap11, self).__init__(*args, **kwargs)
 
@@ -184,7 +187,7 @@ class Soap11(XmlDocument):
 
     def create_in_document(self, ctx, charset=None):
         if isinstance(ctx.transport, HttpTransportContext):
-            # according to the soap via http standard, soap requests must only
+            # according to the soap-via-http standard, soap requests must only
             # work with proper POST requests.
             content_type = ctx.transport.get_request_content_type()
             http_verb = ctx.transport.get_request_method()
@@ -195,7 +198,7 @@ class Soap11(XmlDocument):
                         "header properly set.")
 
             content_type = cgi.parse_header(content_type)
-            collapse_swa(content_type, ctx.in_string)
+            ctx.in_string = collapse_swa(ctx, content_type, self.ns_soap_env)
 
         ctx.in_document = _parse_xml_string(ctx.in_string,
                                             XMLParser(**self.parser_kwargs),

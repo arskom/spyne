@@ -50,7 +50,7 @@ from spyne.util.six import text_type, string_types
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import etree_to_dict, dict_to_etree,\
     root_dict_to_etree
-from spyne.const.xml import XSI
+from spyne.const.xml import XSI, NS_SOAP11_ENC
 
 from spyne.error import Fault
 from spyne.error import ValidationError
@@ -280,6 +280,7 @@ class XmlDocument(SubXmlBase):
 
     soap_env = PREFMAP[NS_SOAP11_ENV]
     ns_soap_env = NS_SOAP11_ENV
+    ns_soap_enc = NS_SOAP11_ENC
 
     def __init__(self, app=None, validator=None,
                 replace_null_with_default=True,
