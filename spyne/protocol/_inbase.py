@@ -408,7 +408,7 @@ class InProtocolBase(ProtocolMixin):
         """
 
         try:
-            return date(*(strptime(string, '%Y-%m-%d')[0:3]))
+            return date(*(strptime(string, u'%Y-%m-%d')[0:3]))
 
         except ValueError:
             match = cls._offset_re.match(string)
