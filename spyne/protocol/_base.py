@@ -233,7 +233,7 @@ class ProtocolMixin(object):
         """
 
         name = ctx.method_request_string
-        if not name.startswith("{"):
+        if not name.startswith(u"{"):
             name = u'{%s}%s' % (self.app.interface.get_tns(), name)
 
         call_handles = self.app.interface.service_method_map.get(name, [])

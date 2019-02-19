@@ -29,6 +29,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from __future__ import print_function
+
 
 """This shows the async push capabilities of Spyne using twisted in async mode.
 
@@ -69,7 +71,7 @@ class HelloWorldService(Service):
                 times[0] -= 1
 
                 data = u'Hello, %s' % name
-                print data
+                print(data)
 
                 # The object passed to the append() method is immediately
                 # serialized to bytes and pushed to the response stream's

@@ -329,11 +329,14 @@ class TwistedHttpTransport(HttpBase):
         if postpath is None:
             postpath = request.path
 
+        if postpath is not None:
+            postpath = _decode_path(postpath)
+
         params = self.match_pattern(ctx, request.method, postpath,
                                                      request.getHeader(b'Host'))
 
         if ctx.method_request_string is None: # no pattern match
-            ctx.method_request_string = 'u{%s}%s' % (
+            ctx.method_request_string = u'{%s}%s' % (
                                  self.app.interface.get_tns(),
                                  _decode_path(request.path.rsplit(b'/', 1)[-1]))
 
