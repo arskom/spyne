@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -37,7 +38,7 @@ from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.model import ByteArray, DateTime, Uuid, String, Integer, Integer8, \
     ComplexModel, Array
-from spyne.protocol.http import HttpRpc, HttpPattern
+from spyne.protocol.http import HttpRpc, HttpPattern, _parse_cookie
 from spyne.service import Service
 from spyne.server.wsgi import WsgiApplication, WsgiMethodContext
 from spyne.server.http import HttpTransportContext
@@ -662,54 +663,6 @@ class Test(unittest.TestCase):
         s = b''.join(list(ctx.out_string))
         assert s == b"CCM(i=1, c=['a', 'b'], s='s')"
 
-    def test_cookie_parse(self):
-        string = 'some_string'
-        class RequestHeader(ComplexModel):
-            some_field = String
-
-        class SomeService(Service):
-            __in_header__ = RequestHeader
-
-            @rpc(String)
-            def some_call(ctx, s):
-                assert ctx.in_header.some_field == string
-
-        def start_response(code, headers):
-            assert code == HTTP_200
-
-        c = SimpleCookie()
-        c['some_field'] = string
-
-        app = Application([SomeService], 'tns',
-            in_protocol=HttpRpc(parse_cookie=True), out_protocol=HttpRpc())
-
-        wsgi_app = WsgiApplication(app)
-
-        req_dict = {
-            'SCRIPT_NAME': '',
-            'QUERY_STRING': '',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-            'SERVER_NAME': 'localhost',
-            'SERVER_PORT': "9999",
-            'HTTP_COOKIE': str(c),
-            'wsgi.url_scheme': 'http',
-            'wsgi.version': (1,0),
-            'wsgi.input': StringIO(),
-            'wsgi.errors': StringIO(),
-            'wsgi.multithread': False,
-            'wsgi.multiprocess': False,
-            'wsgi.run_once': True,
-        }
-
-        ret = wsgi_app(req_dict, start_response)
-        print(ret)
-
-        wsgi_app = wsgiref_validator(wsgi_app)
-
-        ret = wsgi_app(req_dict, start_response)
-        print(ret)
-
     def test_http_headers(self):
         d = datetime(year=2013, month=1, day=1)
         string = ['hey', 'yo']
@@ -805,6 +758,103 @@ class TestHttpPatterns(unittest.TestCase):
 
         server.get_out_object(ctx)
         assert ctx.out_error is None
+
+
+class ParseCookieTest(unittest.TestCase):
+    def test_cookie_parse(self):
+        string = 'some_string'
+        class RequestHeader(ComplexModel):
+            some_field = String
+
+        class SomeService(Service):
+            __in_header__ = RequestHeader
+
+            @rpc(String)
+            def some_call(ctx, s):
+                assert ctx.in_header.some_field == string
+
+        def start_response(code, headers):
+            assert code == HTTP_200
+
+        c = 'some_field=%s'% (string,)
+
+        app = Application([SomeService], 'tns',
+            in_protocol=HttpRpc(parse_cookie=True), out_protocol=HttpRpc())
+
+        wsgi_app = WsgiApplication(app)
+
+        req_dict = {
+            'SCRIPT_NAME': '',
+            'QUERY_STRING': '',
+            'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': "9999",
+            'HTTP_COOKIE': c,
+            'wsgi.url_scheme': 'http',
+            'wsgi.version': (1,0),
+            'wsgi.input': StringIO(),
+            'wsgi.errors': StringIO(),
+            'wsgi.multithread': False,
+            'wsgi.multiprocess': False,
+            'wsgi.run_once': True,
+        }
+
+        ret = wsgi_app(req_dict, start_response)
+        print(ret)
+
+        wsgi_app = wsgiref_validator(wsgi_app)
+
+        ret = wsgi_app(req_dict, start_response)
+        print(ret)
+
+    # These tests copied from Django:
+    # https://github.com/django/django/pull/6277/commits/da810901ada1cae9fc1f018f879f11a7fb467b28
+    def test_python_cookies(self):
+        """
+        Test cases copied from Python's Lib/test/test_http_cookies.py
+        """
+        self.assertEqual(_parse_cookie('chips=ahoy; vienna=finger'), {'chips': 'ahoy', 'vienna': 'finger'})
+        # Here _parse_cookie() differs from Python's cookie parsing in that it
+        # treats all semicolons as delimiters, even within quotes.
+        self.assertEqual(
+            _parse_cookie('keebler="E=mc2; L=\\"Loves\\"; fudge=\\012;"'),
+            {'keebler': '"E=mc2', 'L': '\\"Loves\\"', 'fudge': '\\012', '': '"'}
+        )
+        # Illegal cookies that have an '=' char in an unquoted value.
+        self.assertEqual(_parse_cookie('keebler=E=mc2'), {'keebler': 'E=mc2'})
+        # Cookies with ':' character in their name.
+        self.assertEqual(_parse_cookie('key:term=value:term'), {'key:term': 'value:term'})
+        # Cookies with '[' and ']'.
+        self.assertEqual(_parse_cookie('a=b; c=[; d=r; f=h'), {'a': 'b', 'c': '[', 'd': 'r', 'f': 'h'})
+
+    def test_cookie_edgecases(self):
+        # Cookies that RFC6265 allows.
+        self.assertEqual(_parse_cookie('a=b; Domain=example.com'), {'a': 'b', 'Domain': 'example.com'})
+        # _parse_cookie() has historically kept only the last cookie with the
+        # same name.
+        self.assertEqual(_parse_cookie('a=b; h=i; a=c'), {'a': 'c', 'h': 'i'})
+
+    def test_invalid_cookies(self):
+        """
+        Cookie strings that go against RFC6265 but browsers will send if set
+        via document.cookie.
+        """
+        # Chunks without an equals sign appear as unnamed values per
+        # https://bugzilla.mozilla.org/show_bug.cgi?id=169091
+        self.assertIn('django_language', _parse_cookie('abc=def; unnamed; django_language=en').keys())
+        # Even a double quote may be an unamed value.
+        self.assertEqual(_parse_cookie('a=b; "; c=d'), {'a': 'b', '': '"', 'c': 'd'})
+        # Spaces in names and values, and an equals sign in values.
+        self.assertEqual(_parse_cookie('a b c=d e = f; gh=i'), {'a b c': 'd e = f', 'gh': 'i'})
+        # More characters the spec forbids.
+        self.assertEqual(_parse_cookie('a   b,c<>@:/[]?{}=d  "  =e,f g'), {'a   b,c<>@:/[]?{}': 'd  "  =e,f g'})
+        # Unicode characters. The spec only allows ASCII.
+        self.assertEqual(_parse_cookie(u'saint=André Bessette'), {u'saint': u'André Bessette'})
+        # Browsers don't send extra whitespace or semicolons in Cookie headers,
+        # but _parse_cookie() should parse whitespace the same way
+        # document.cookie parses whitespace.
+        self.assertEqual(_parse_cookie('  =  b  ;  ;  =  ;   c  =  ;  '), {'': 'b', 'c': ''})
 
 
 if __name__ == '__main__':
