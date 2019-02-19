@@ -241,6 +241,8 @@ def init_app(config):
 
     subconfig.subapps.update({'': app})
 
+    return subconfig.gen_site()
+
 
 def init(config):
     return {
