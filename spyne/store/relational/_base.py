@@ -299,12 +299,14 @@ def _get_col_o2o(parent, subname, subcls, fk_col_name, deferrable=None,
 
     # generate a fk to it from the current object (cls)
     if 'name' in col_kwargs:
-        subname = col_kwargs.pop('name')
+        colname = col_kwargs.pop('name')
+    else:
+        colname = subname
 
     if fk_col_name is None:
-        fk_col_name = subname + "_" + pk_key
+        fk_col_name = colname + "_" + pk_key
 
-    assert fk_col_name != subname, \
+    assert fk_col_name != colname, \
         "The column name for the foreign key must be different from the " \
         "column name for the object itself."
 
@@ -316,7 +318,7 @@ def _get_col_o2o(parent, subname, subcls, fk_col_name, deferrable=None,
         ondelete=ondelete, onupdate=onupdate,
     )
 
-    return Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
+    return Column(fk_col_name, pk_sqla_type, fk, **col_kwargs)
 
 
 def _get_col_o2m(cls, fk_col_name, deferrable=None, initially=None,
@@ -346,7 +348,7 @@ def _get_col_o2m(cls, fk_col_name, deferrable=None, initially=None,
     fk = ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key),
                                      deferrable=deferrable, initially=initially,
                                            ondelete=ondelete, onupdate=onupdate)
-    col = Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
+    col = Column(fk_col_name, pk_sqla_type, fk, **col_kwargs)
 
     yield col
 
@@ -408,10 +410,11 @@ def _gen_index_info(table, col, k, v):
         index_args = (index_name, col), dict(unique=unique)
     else:
         index_args = (index_name, col), dict(unique=unique,
-                                  postgresql_using=index_method)
+                                                  postgresql_using=index_method)
 
     if isinstance(table, _FakeTable):
         table.indexes.append(index_args)
+
     else:
         indexes = dict([(idx.name, idx) for idx in col.table.indexes])
         existing_idx = indexes.get(index_name, None)
@@ -479,20 +482,22 @@ def _check_table(cls):
 
 
 def _add_simple_type(cls, props, table, subname, subcls, sqla_type):
-    col_args, col_kwargs = sanitize_args(subcls.Attributes.sqla_column_args)
+    _, col_kwargs = sanitize_args(subcls.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, subcls, col_kwargs)
 
     mp = getattr(subcls.Attributes, 'mapper_property', None)
 
     if 'name' in col_kwargs:
-        subname = col_kwargs.pop('name')
+        colname = col_kwargs.pop('name')
+    else:
+        colname = subname
 
     if not subcls.Attributes.exc_db:
         if subname in table.c:
             col = table.c[subname]
 
         else:
-            col = Column(subname, sqla_type, *col_args, **col_kwargs)
+            col = Column(colname, sqla_type, **col_kwargs)
             table.append_column(col)
             _gen_index_info(table, col, subname, subcls)
 
@@ -822,14 +827,16 @@ def _add_complex_type_as_table(cls, props, table, subname, subcls, storage,
 def _add_complex_type_as_xml(cls, props, table, subname, subcls, storage,
                                                           col_args, col_kwargs):
     if 'name' in col_kwargs:
-        subname = col_kwargs.pop('name')
+        colname = col_kwargs.pop('name')
+    else:
+        colname = subname
 
     if subname in table.c:
         col = table.c[subname]
     else:
         t = PGObjectXml(subcls, storage.root_tag, storage.no_ns,
                                                            storage.pretty_print)
-        col = Column(subname, t, *col_args, **col_kwargs)
+        col = Column(colname, t, **col_kwargs)
 
     props[subname] = col
     if not subname in table.c:
@@ -839,7 +846,9 @@ def _add_complex_type_as_xml(cls, props, table, subname, subcls, storage,
 def _add_complex_type_as_json(cls, props, table, subname, subcls, storage,
                                                      col_args, col_kwargs, dbt):
     if 'name' in col_kwargs:
-        subname = col_kwargs.pop('name')
+        colname = col_kwargs.pop('name')
+    else:
+        colname = subname
 
     if subname in table.c:
         col = table.c[subname]
@@ -847,7 +856,7 @@ def _add_complex_type_as_json(cls, props, table, subname, subcls, storage,
     else:
         t = PGObjectJson(subcls, ignore_wrappers=storage.ignore_wrappers,
                                          complex_as=storage.complex_as, dbt=dbt)
-        col = Column(subname, t, *col_args, **col_kwargs)
+        col = Column(colname, t, **col_kwargs)
 
     props[subname] = col
     if not subname in table.c:
@@ -969,7 +978,7 @@ def _add_file_type(cls, props, table, subname, subcls):
             else:
                 raise NotImplementedError(storage.db_format)
 
-            col = Column(subname, t, *col_args, **col_kwargs)
+            col = Column(subname, t, **col_kwargs)
 
         props[subname] = col
         if not subname in table.c:
