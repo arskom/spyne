@@ -70,7 +70,7 @@ def _from_soap(in_envelope_xml, xmlids=None, **kwargs):
 
     if in_envelope_xml.tag != '{%s}Envelope' % ns_soap:
         raise Fault('Client.SoapError', 'No {%s}Envelope element was found!' %
-                                                            ns_soap)
+                                                                        ns_soap)
 
     header_envelope = in_envelope_xml.xpath('e:Header',
                                           namespaces={'e': ns_soap})
