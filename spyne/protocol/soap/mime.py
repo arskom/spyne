@@ -75,6 +75,9 @@ def _join_attachment(ns_soap_env, href_id, envelope, payload, prefix=True):
     soaptree = etree.fromstring(envelope)
     soapbody = soaptree.find("{%s}Body" % ns_soap_env)
 
+    if soapbody is None:
+        raise ValidationError(None, "SOAP Body tag not found")
+
     message = None
     for child in list(soapbody):
         if child.tag != "{%s}Fault" % ns_soap_env:
@@ -182,7 +185,9 @@ def collapse_swa(ctx, content_type, ns_soap_env):
                                             ns_soap_env, cloc, soapmsg, payload,
                                                                           False)
 
-    assert soapmsg is not None
+    if soapmsg is None:
+        raise ValidationError(None, "Invalid MtoM request")
+
     return (soapmsg,)
 
 
