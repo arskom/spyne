@@ -1,20 +1,28 @@
 #!/usr/bin/env python
 
+from __future__ import unicode_literals
+
 import unittest
 
 from lxml import etree
 from lxml.doctestcompare import LXMLOutputChecker, PARSE_XML
 
 from spyne import Fault, Unicode, ByteArray
-from spyne.util.six import BytesIO
 from spyne.application import Application
+from spyne.const import xml as ns
+from spyne.const.xml import NS_SOAP11_ENV
 from spyne.decorator import srpc, rpc
 from spyne.interface import Wsdl11
-from spyne.server.wsgi import WsgiApplication
+from spyne.model.complex import ComplexModel
+from spyne.model.primitive import Integer, String
+from spyne.protocol.soap.mime import _join_attachment
 from spyne.protocol.soap.soap12 import Soap12
+from spyne.protocol.xml import XmlDocument
+from spyne.server.wsgi import WsgiApplication
 from spyne.service import Service
 from spyne.test.protocol.test_soap11 import TestService, TestSingle, \
     TestMultiple, MultipleReturnService
+from spyne.util.six import BytesIO
 
 
 def start_response(code, headers):
@@ -23,7 +31,7 @@ def start_response(code, headers):
 
 MTOM_REQUEST = b"""
 --uuid:2e53e161-b47f-444a-b594-eb6b72e76997
-Content-Type: application/xop+xml; charset=UTF-8; 
+Content-Type: application/xop+xml; charset=UTF-8;
   type="application/soap+xml"; action="sendDocument";
 Content-Transfer-Encoding: binary
 Content-ID: <root.message@cxf.apache.org>
@@ -48,6 +56,13 @@ Content-ID: <04dfbca1-54b8-4631-a556-4addea6716ed-223384@cxf.apache.org>
 sample data
 --uuid:2e53e161-b47f-444a-b594-eb6b72e76997--
 """
+
+
+# Service Classes
+class DownloadPartFileResult(ComplexModel):
+    ErrorCode = Integer
+    ErrorMessage = String
+    Data = String
 
 
 class TestSingleSoap12(TestSingle):
@@ -181,7 +196,41 @@ class TestSoap12(unittest.TestCase):
 
         assert etree.fromstring(response_str) \
             .xpath(".//tns:documentRequestResult/text()", namespaces=nsdict) \
-                == [FILE_NAME]
+                                                                  == [FILE_NAME]
+
+    def test_bytes_join_attachment(self):
+        href_id = "http://tempuri.org/1/634133419330914808"
+        payload = b"ANJNSLJNDYBC SFDJNIREMX:CMKSAJN"
+        envelope = '''
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Body>
+    <DownloadPartFileResponse xmlns="http://tempuri.org/">
+      <DownloadPartFileResult
+            xmlns:a="http://schemas.datacontract.org/2004/07/KlanApi.Common"
+            xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <a:ErrorCode>0</a:ErrorCode>
+        <a:ErrorMessage i:nil="true"/>
+        <a:Data>
+          <xop:Include href="cid:%s"
+                             xmlns:xop="http://www.w3.org/2004/08/xop/include"/>
+        </a:Data>
+      </DownloadPartFileResult>
+    </DownloadPartFileResponse>
+  </s:Body>
+</s:Envelope>
+        ''' % href_id
+
+        (joinedmsg, numreplaces) = _join_attachment(NS_SOAP11_ENV,
+                                                     href_id, envelope, payload)
+
+        soaptree = etree.fromstring(joinedmsg)
+
+        body = soaptree.find(ns.SOAP11_ENV("Body"))
+        response = body.getchildren()[0]
+        result = response.getchildren()[0]
+        r = XmlDocument().from_element(None, DownloadPartFileResult, result)
+
+        self.assertEqual(payload, r.Data)
 
 
 if __name__ == '__main__':
