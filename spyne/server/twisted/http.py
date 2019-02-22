@@ -157,7 +157,7 @@ def _reconstruct_url(request):
         url_scheme = 'https'
     else:
         url_scheme = 'http'
-    uri = _decode_path(unquote_to_bytes(request.uri).decode('utf8'))
+    uri = _decode_path(request.uri)
     return ''.join([url_scheme, "://", server_name, uri])
 
 
