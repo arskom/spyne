@@ -36,5 +36,6 @@ class TestSpyneZmqClient(SpyneClientTestBase, unittest.TestCase):
                                                              soap11_application)
         self.ns = "spyne.test.interop.server._service"
 
+
 if __name__ == '__main__':
     unittest.main()

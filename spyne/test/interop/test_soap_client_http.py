@@ -30,7 +30,7 @@ class TestSpyneHttpClient(SpyneClientTestBase, unittest.TestCase):
 
         port, = server_started.keys()
 
-        self.client = HttpClient('http://localhost:%d/' % port,
+        self.client = HttpClient(b'http://localhost:%d/' % port,
                                                              soap11_application)
         self.ns = "spyne.test.interop.server"
 
