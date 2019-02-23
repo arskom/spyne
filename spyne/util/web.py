@@ -25,6 +25,9 @@ If you're using this for anything serious, you're insane.
 
 from __future__ import absolute_import
 
+import logging
+logger = logging.getLogger(__name__)
+
 from inspect import isclass
 
 from spyne import rpc, Any, AnyDict, NATIVE_MAP, M, Array, ComplexModelBase, \
@@ -132,6 +135,14 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
                 l = str(given_len)
 
         return "<len=%s>" % l
+
+    if callable(cls_attrs.logged):
+        try:
+            return cls_attrs.logged(obj)
+        except Exception as e:
+            logger.error("Exception %r in log_repr transformer ignored", e)
+            logger.exception(e)
+            pass
 
     if issubclass(cls, AnyDict):
         retval = []

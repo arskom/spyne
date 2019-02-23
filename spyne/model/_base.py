@@ -679,7 +679,11 @@ class ModelBase(object):
 
             elif k in ('sanitize', 'sanitizer'):
                 setattr(Attributes, 'sanitizer', staticmethod(v))
-                _log_debug("setting %s=%r as sanitizer=%r", k, v, v)
+                _log_debug("setting %s=%r as sanitizer", k, v)
+
+            elif k in ('logged'):
+                setattr(Attributes, 'logged', staticmethod(v))
+                _log_debug("setting %s=%r as log sanitizer", k, v)
 
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
