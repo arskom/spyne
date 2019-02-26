@@ -2,6 +2,18 @@
 Changelog
 =========
 
+
+spyne-2.13.11-alpha
+------------------
+* SOAP: Repaired MtoM parsing.
+
+spyne-2.13.10-alpha
+------------------
+* ``sqla_column_args`` is now only a dict. It can override column name without
+  changing mapped object attribute name.
+* Various Python 3 fixes for the Twisted frontend.
+
+
 spyne-2.13.4-alpha
 ------------------
 * ``Date(format="%Y")`` no longer works. Use ``Date(date_format="%Y")`` just
