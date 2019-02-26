@@ -53,6 +53,7 @@ application = Application([GIBSoapService], tns=tns,
                           in_protocol=Soap12(),
                           out_protocol=Soap12())
 
+
 gib_application = WsgiApplication(application)
 
 
