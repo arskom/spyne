@@ -92,8 +92,9 @@ class DictDocument(ProtocolBase):
             logger.debug('\tbody   : %r' % (ctx.in_body_doc))
 
             if not isinstance(doc, dict) or len(doc) != 1:
-                raise ValidationError("Need a dictionary with exactly one key "
-                                      "as method name.")
+                raise ValidationError(doc,
+                       "Need a dictionary with exactly one key as method name.")
+
             if len(doc) == 0:
                 raise Fault("Client", "Empty request")
 

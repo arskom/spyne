@@ -83,7 +83,7 @@ class ExceptionHandlingService(DjangoService):
 
     @rpc(_returns=Container)
     def raise_validation_error(ctx):
-        raise ValidationError('Is not valid.')
+        raise ValidationError(None, 'Invalid.')
 
 
 app = Application([HelloWorldService, ContainerService,

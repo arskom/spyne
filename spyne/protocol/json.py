@@ -279,16 +279,16 @@ class _SpyneJsonRpc1(JsonDocument):
     def decompose_incoming_envelope(self, ctx, message=JsonDocument.REQUEST):
         indoc = ctx.in_document
         if not isinstance(indoc, dict):
-            raise ValidationError("Invalid Request")
+            raise ValidationError(indoc, "Invalid Request")
 
         ver = indoc.get(self.VERSION)
         if ver is None:
-            raise ValidationError("Unknown Version")
+            raise ValidationError(ver, "Unknown Version")
 
         body = indoc.get(self.BODY)
         err = indoc.get(self.FAULT)
         if body is None and err is None:
-            raise ValidationError("Request data not found")
+            raise ValidationError((body, err), "Request data not found")
 
         ctx.protocol.error = False
         if err is not None:
@@ -296,9 +296,9 @@ class _SpyneJsonRpc1(JsonDocument):
             ctx.protocol.error = True
         else:
             if not isinstance(body, dict):
-                raise ValidationError("Request body not found")
+                raise ValidationError(body, "Request body not found")
             if not len(body) == 1:
-                raise ValidationError("Need len(body) == 1")
+                raise ValidationError(body, "Need len(body) == 1")
 
             ctx.in_header_doc = indoc.get(self.HEAD)
             if not isinstance(ctx.in_header_doc, list):

@@ -458,7 +458,7 @@ class XmlDocument(SubXmlBase):
         if bool(element.get(XSI('nil'))):
             if self.validator is self.SOFT_VALIDATION and not \
                                                              cls_attrs.nillable:
-                raise ValidationError('')
+                raise ValidationError(None)
 
             if self.replace_null_with_default:
                 return cls_attrs.default

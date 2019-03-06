@@ -206,7 +206,7 @@ class HierDictDocument(DictDocument):
         cls_attrs = self.get_cls_attrs(cls)
         if not self.ignore_wrappers and not cls_attrs.not_wrapped:
             if not isinstance(doc, dict):
-                raise ValidationError("Wrapper documents must be dicts")
+                raise ValidationError(doc, "Wrapper documents must be dicts")
             if len(doc) == 0:
                 return None
             if len(doc) > 1:
