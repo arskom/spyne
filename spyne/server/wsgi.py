@@ -36,15 +36,12 @@ from spyne import Address
 from spyne.util.six.moves.http_cookies import SimpleCookie
 from spyne.util.six.moves.urllib.parse import unquote, quote
 
+from spyne import File, Fault
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
-from spyne.model.binary import File
-from spyne.model.fault import Fault
 from spyne.protocol.http import HttpRpc
-from spyne.server.http import HttpBase
-from spyne.server.http import HttpMethodContext
-from spyne.server.http import HttpTransportContext
+from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
 from spyne.util.odict import odict
 from spyne.util.address import address_parser
 
