@@ -73,8 +73,8 @@ class ProtocolMixin(object):
         self._sortcache = WeakKeyDictionary()
 
     def _cast(self, cls_attrs, inst):
-        if cls_attrs.cast is not None:
-            return cls_attrs.cast(inst)
+        if cls_attrs.parser is not None:
+            return cls_attrs.parser(inst)
         return inst
 
     def _sanitize(self, cls_attrs, inst):

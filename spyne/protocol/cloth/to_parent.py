@@ -99,7 +99,7 @@ class ToParentMixin(OutProtocolBase):
         cls, switched = self.get_polymorphic_target(cls, inst)
         cls_attrs = self.get_cls_attrs(cls)
 
-        inst = self._cast(cls_attrs, inst)
+        inst = self._sanitize(cls_attrs, inst)
 
         # if there is a subprotocol, switch to it
         subprot = self.get_subprot(ctx, cls_attrs, nosubprot)

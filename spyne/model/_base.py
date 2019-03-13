@@ -362,6 +362,14 @@ class ModelBase(object):
         logged.
         """
 
+        sanitizer = None
+        """A callable that takes the associated native type and returns the
+        parsed value. Only called during serialization."""
+
+        parser = None
+        """A callable that takes the associated native type and returns the
+        parsed value. Only called during deserialization."""
+
         unique = None
         """If True, this object will be set as unique in the database schema
         with default indexing options. If the value is a string, it will be
@@ -674,7 +682,7 @@ class ModelBase(object):
                 _log_debug("setting voa=%r", v)
 
             elif k in ('parser', 'cast'):
-                setattr(Attributes, k, staticmethod(v))
+                setattr(Attributes, 'parser', staticmethod(v))
                 _log_debug("setting %s=%r", k, v)
 
             elif k in ('sanitize', 'sanitizer'):

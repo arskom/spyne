@@ -200,11 +200,6 @@ class OutProtocolBase(ProtocolMixin):
         if value is None:
             return None
 
-        # TODO: I don't think we need these here because likes of to_parent
-        # should be responsible for doing it.
-        # cls_attrs = self.get_cls_attrs(cls)
-        # value = self._cast(cls_attrs, value)
-
         handler = self._to_bytes_handlers[cls]
         retval = handler(cls, value, *args, **kwargs)
 
@@ -218,11 +213,6 @@ class OutProtocolBase(ProtocolMixin):
     def to_unicode(self, cls, value, *args, **kwargs):
         if value is None:
             return None
-
-        # TODO: I don't think we need these here because likes of to_parent
-        # should be responsible for doing it.
-        # cls_attrs = self.get_cls_attrs(cls)
-        # value = self._cast(cls_attrs, value)
 
         handler = self._to_unicode_handlers[cls]
         retval = handler(cls, value, *args, **kwargs)
