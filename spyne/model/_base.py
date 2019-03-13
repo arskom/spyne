@@ -75,8 +75,30 @@ class AttributesMeta(type(object)):
         if not 'sqla_mapper_args' in cls_dict:
             cls_dict['sqla_mapper_args'] = None
 
-        return super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases,
+        rd = {}
+        for k in list(cls_dict.keys()):
+            if k in ('parser', 'cast'):
+                rd['parser'] = cls_dict.pop(k)
+                continue
+
+            if k in ('sanitize', 'sanitizer'):
+                rd['sanitizer'] = cls_dict.pop(k)
+                continue
+
+            if k == 'logged':
+                rd['logged'] = cls_dict.pop(k)
+                continue
+
+        retval = super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases,
                                                                        cls_dict)
+
+        for k, v in rd.items():
+            if v is None:
+                setattr(retval, k, None)
+            else:
+                setattr(retval, k, staticmethod(v))
+
+        return retval
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         # you will probably want to look at ModelBase._s_customize as well.
@@ -668,6 +690,8 @@ class ModelBase(object):
                                             kwargs, type_attrs, prot.type_attrs)
             kwargs = type_attrs
 
+        # the ones that wrap values in staticmethod() should be added to
+        # AttributesMeta initializer
         for k, v in kwargs.items():
             if k.startswith('_'):
                 _log_debug("ignoring '%s' because of leading underscore", k)
@@ -689,7 +713,7 @@ class ModelBase(object):
                 setattr(Attributes, 'sanitizer', staticmethod(v))
                 _log_debug("setting %s=%r as sanitizer", k, v)
 
-            elif k in ('logged'):
+            elif k == 'logged':
                 setattr(Attributes, 'logged', staticmethod(v))
                 _log_debug("setting %s=%r as log sanitizer", k, v)
 
