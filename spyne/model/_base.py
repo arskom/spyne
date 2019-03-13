@@ -257,7 +257,7 @@ class ModelBase(object):
         """The default value if the input is None.
 
         Please note that this default is UNCONDITIONALLY applied in class
-        initializer. It's recommended to at least make an effort to use this 
+        initializer. It's recommended to at least make an effort to use this
         only in customized classes and not in original models.
         """
 
@@ -572,7 +572,7 @@ class ModelBase(object):
     @classmethod
     def get_element_name(cls):
         return cls.Attributes.sub_name or cls.get_type_name()
-    
+
     @classmethod
     def get_wsdl_part_name(cls):
         return cls.Attributes.wsdl_part_name or cls.get_element_name()
