@@ -174,7 +174,6 @@ class HierDictDocument(DictDocument):
                 retval = self.from_serstr(cls, inst)
 
         # validate native type
-        retval = self._sanitize(cls_attrs, retval)
         if validator is self.SOFT_VALIDATION:
             if not cls.validate_native(cls, retval):
                 raise ValidationError([key, retval])
