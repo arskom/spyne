@@ -74,6 +74,8 @@ class HierDictDocument(DictDocument):
             body_class = ctx.descriptor.in_message
         elif message is self.RESPONSE:
             body_class = ctx.descriptor.out_message
+        else:
+            raise ValueError(message)  # should be impossible
 
         if body_class:
             # assign raw result to its wrapper, result_message
@@ -82,6 +84,7 @@ class HierDictDocument(DictDocument):
             class_name = self.get_class_name(body_class)
             if self.ignore_wrappers:
                 doc = doc.get(class_name, None)
+
             result_message = self._doc_to_object(ctx, body_class, doc,
                                                                  self.validator)
             ctx.in_object = result_message
