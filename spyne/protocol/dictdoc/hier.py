@@ -392,6 +392,24 @@ class HierDictDocument(DictDocument):
 
         inst = self._sanitize(cls_attrs, inst)
 
+        if issubclass(cls, File):
+            if isinstance(inst, cls_attrs.type):
+                retval = self._complex_to_doc(cls_attrs.type, inst, tags)
+
+                complex_as = self.get_complex_as(cls_attrs)
+
+                if complex_as is dict and not self.ignore_wrappers:
+                    retval = next(iter(retval.values()))
+
+                return retval
+
+            else:
+                return self.to_serstr(cls, inst, self.binary_encoding)
+
+        # this is done before File type because it uses .type its own way. Not
+        # to mention this is a HUGE HACK!!.
+        cls = cls_attrs.type or cls
+
         if issubclass(cls, (Any, AnyDict)):
             return inst
 
@@ -402,17 +420,7 @@ class HierDictDocument(DictDocument):
         if issubclass(cls, ComplexModelBase):
             return self._complex_to_doc(cls, inst, tags)
 
-        if issubclass(cls, File) and isinstance(inst, cls.Attributes.type):
-            retval = self._complex_to_doc(cls.Attributes.type, inst, tags)
-
-            complex_as = self.get_complex_as(cls_attrs)
-
-            if complex_as is dict and not self.ignore_wrappers:
-                retval = next(iter(retval.values()))
-
-            return retval
-
-        if issubclass(cls, (ByteArray, File, Uuid)):
+        if issubclass(cls, (ByteArray, Uuid)):
             return self.to_serstr(cls, inst, self.binary_encoding)
 
         return self.to_serstr(cls, inst)
