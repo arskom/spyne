@@ -694,7 +694,8 @@ class OutProtocolBase(ProtocolMixin):
         return retval
 
     # Format a datetime through its full proleptic Gregorian date range.
-    # http://code.activestate.com/recipes/306860-proleptic-gregorian-dates-and-strftime-before-1900/
+    # http://code.activestate.com/recipes/
+    #                306860-proleptic-gregorian-dates-and-strftime-before-1900/
     # http://stackoverflow.com/a/32206673
     #
     # >>> strftime(datetime.date(1850, 8, 2), "%Y/%M/%d was a %A")
