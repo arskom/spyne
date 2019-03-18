@@ -563,7 +563,7 @@ class OutProtocolBase(ProtocolMixin):
         if encoding is BINARY_ENCODING_USE_DEFAULT:
             encoding = suggested_encoding
 
-        if encoding is None and cls_attrs.type is File.BINARY:
+        if encoding is None and cls_attrs.mode is File.TEXT:
             raise ValueError("Arbitrary binary data can't be serialized to "
                              "unicode.")
 

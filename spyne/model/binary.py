@@ -310,7 +310,7 @@ class File(SimpleModel):
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
     BINARY = _BINARY
-    TEXT = _BINARY
+    TEXT = _TEXT
     Value = _FileValue
 
     class Attributes(SimpleModel.Attributes):
@@ -325,8 +325,8 @@ class File(SimpleModel):
         """The native type used to serialize the information in the file object.
         """
 
-        contents = _BINARY
-        """Set this to type=File.TEXT if you're sure you're handling unicode
+        mode = _BINARY
+        """Set this to mode=File.TEXT if you're sure you're handling unicode
         data. This lets serializers like HtmlCloth avoid base64 encoding. Do
         note that you still need to set encoding attribute explicitly to None!..
 
