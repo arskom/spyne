@@ -56,10 +56,9 @@ class HierDictDocument(DictDocument):
         return class_name
 
     def get_complex_as(self, attr):
-        complex_as = self.complex_as
-        if attr.complex_as is not None:
-            complex_as = attr.complex_as
-        return complex_as
+        if attr.complex_as is None:
+            return self.complex_as
+        return attr.complex_as
 
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
@@ -151,30 +150,39 @@ class HierDictDocument(DictDocument):
         cls_attrs = self.get_cls_attrs(cls)
         complex_as = self.get_complex_as(cls_attrs)
 
-        if issubclass(cls, (Any, AnyDict)):
-            retval = inst
-
         # get native type
-        elif issubclass(cls, File) and isinstance(inst, complex_as):
-            retval = self._doc_to_object(ctx, cls.Attributes.type, inst,
-                                                                      validator)
+        if issubclass(cls, File):
+            if isinstance(inst, complex_as):
+                cls = cls_attrs.type or cls
+                inst = self._parse(cls_attrs, inst)
+                retval = self._doc_to_object(ctx, cls, inst, validator)
 
-        elif issubclass(cls, ComplexModelBase):
-            retval = self._doc_to_object(ctx, cls, inst, validator)
+            else:
+                retval = self.from_serstr(cls, inst, self.binary_encoding)
 
         else:
-            if cls.Attributes.empty_is_none and inst in (u'', b''):
-                inst = None
+            cls = cls_attrs.type or cls
+            inst = self._parse(cls_attrs, inst)
 
-            if (validator is self.SOFT_VALIDATION
+            if issubclass(cls, (Any, AnyDict)):
+                retval = inst
+
+            elif issubclass(cls, ComplexModelBase):
+                retval = self._doc_to_object(ctx, cls, inst, validator)
+
+            else:
+                if cls_attrs.empty_is_none and inst in (u'', b''):
+                    inst = None
+
+                if (validator is self.SOFT_VALIDATION
                                         and isinstance(inst, six.string_types)
                                         and not cls.validate_string(cls, inst)):
-                raise ValidationError([key, inst])
+                    raise ValidationError([key, inst])
 
-            if issubclass(cls, (ByteArray, File, Uuid)):
-                retval = self.from_serstr(cls, inst, self.binary_encoding)
-            else:
-                retval = self.from_serstr(cls, inst)
+                if issubclass(cls, (ByteArray, Uuid)):
+                    retval = self.from_serstr(cls, inst, self.binary_encoding)
+                else:
+                    retval = self.from_serstr(cls, inst)
 
         # validate native type
         if validator is self.SOFT_VALIDATION:

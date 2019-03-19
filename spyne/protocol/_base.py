@@ -77,6 +77,8 @@ class ProtocolMixin(object):
             return cls_attrs.parser(inst)
         return inst
 
+    _parse = _cast
+
     def _sanitize(self, cls_attrs, inst):
         if cls_attrs.sanitizer is not None:
             return cls_attrs.sanitizer(inst)
