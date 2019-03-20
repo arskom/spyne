@@ -161,7 +161,6 @@ class HierDictDocument(DictDocument):
                 retval = self.from_serstr(cls, inst, self.binary_encoding)
 
         else:
-            cls = cls_attrs.type or cls
             inst = self._parse(cls_attrs, inst)
 
             if issubclass(cls, (Any, AnyDict)):
@@ -414,9 +413,9 @@ class HierDictDocument(DictDocument):
             else:
                 return self.to_serstr(cls, inst, self.binary_encoding)
 
-        # this is done before File type because it uses .type its own way. Not
-        # to mention this is a HUGE HACK!!.
-        cls = cls_attrs.type or cls
+        # this is done before File type because File does its own type mangling.
+        # so yes in fact this is a HUGE HACK!!..
+        cls = cls_attrs.out_type or cls
 
         if issubclass(cls, (Any, AnyDict)):
             return inst

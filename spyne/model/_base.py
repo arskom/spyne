@@ -275,6 +275,12 @@ class ModelBase(object):
         _explicit_type_name = False
         # set to true when type_name is passed to customize() call.
 
+        out_type = None
+        """Override serialization type. Usually, this designates the return type 
+        of the callable in the `sanitizer` attribute. If this is a two-way type, 
+        it may be a good idea to also use the `parser` attribute to perform 
+        reverse conversion."""
+
         default = None
         """The default value if the input is None.
 
@@ -458,6 +464,7 @@ class ModelBase(object):
         polymap = {}
         """A dict of classes that override polymorphic substitions for classes
         given as keys to classes given as values."""
+
 
     class Annotations(object):
         """The class that holds the annotations for the given type."""
