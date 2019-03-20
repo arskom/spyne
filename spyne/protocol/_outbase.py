@@ -469,7 +469,14 @@ class OutProtocolBase(ProtocolMixin):
             else:
                 encoding = suggested_encoding
 
-        retval = binary_encoding_handlers[encoding](value)
+        if encoding is None and isinstance(value, (list, tuple)) \
+                             and len(value) == 1 and isinstance(value[0], mmap):
+            return value[0]
+
+        encoder = binary_encoding_handlers[encoding]
+        logger.debug("Using binary encoder %r for encoding %r",
+                                                              encoder, encoding)
+        retval = encoder(value)
         if encoding is not None and isinstance(retval, six.text_type):
             retval = retval.encode('ascii')
 
