@@ -19,6 +19,7 @@
 
 from __future__ import absolute_import
 
+import io
 import logging
 logger = logging.getLogger(__name__)
 
@@ -125,8 +126,16 @@ class TwistedMessagePackProtocol(Protocol):
     @staticmethod
     def gen_chunks(l, n):
         """Yield successive n-sized chunks from l."""
-        for i in range(0, len(l), n):
-            yield l[i:i+n]
+        if isinstance(l, io.BufferedIOBase):
+            while True:
+                data = l.read(n)
+                if not data:
+                    break
+                yield data
+
+        else:
+            for i in range(0, len(l), n):
+                yield l[i:i+n]
 
     def gen_sessid(self, *args):
         """It's up to you to use this in a subclass."""
@@ -273,13 +282,24 @@ class TwistedMessagePackProtocol(Protocol):
 
         self.process_inactive()
 
-    def out_write(self, data):
+    def out_write(self, reqdata):
         if self.out_chunk_size == 0:
-            self.transport.write(data)
-            self.sent_bytes += len(data)
+            if isinstance(reqdata, io.BufferedIOBase):
+                nbytes = reqdata.tell()
+                reqdata.seek(0)
+                self.transport.write(reqdata.read())
+            else:
+                nbytes = len(reqdata)
+                self.transport.write(reqdata)
+
+            self.sent_bytes += nbytes
 
         else:
-            self.out_chunks.append(self.gen_chunks(data, self.out_chunk_size))
+            if isinstance(reqdata, io.BufferedIOBase):
+                reqdata.seek(0)
+
+            chunks = self.gen_chunks(reqdata, self.out_chunk_size)
+            self.out_chunks.append(chunks)
             self._write_single_chunk()
 
     def _wait_for_next_chunk(self):
