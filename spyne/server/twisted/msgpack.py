@@ -132,6 +132,7 @@ class TwistedMessagePackProtocol(Protocol):
                 if not data:
                     break
                 yield data
+            l.close()
 
         else:
             for i in range(0, len(l), n):
