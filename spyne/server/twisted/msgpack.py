@@ -300,7 +300,7 @@ class TwistedMessagePackProtocol(Protocol):
 
             chunks = self.gen_chunks(reqdata, self.out_chunk_size)
             self.out_chunks.append(chunks)
-            self._write_single_chunk()
+            deferLater(reactor, 0, self._write_single_chunk)
 
     def _wait_for_next_chunk(self):
         return deferLater(reactor, self.out_chunk_delay_sec,
