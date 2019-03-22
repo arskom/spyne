@@ -66,7 +66,7 @@ class Unicode(SimpleModel):
         See: https://docs.python.org/2/library/re.html#re.UNICODE"""
 
         encoding = None
-        """The encoding of `str` objects this class may have to deal with."""
+        """The encoding of binary data this class may have to deal with."""
 
         unicode_errors = 'strict'
         """The argument to the ``unicode`` builtin; one of 'strict', 'replace'
