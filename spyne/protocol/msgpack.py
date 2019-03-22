@@ -26,6 +26,8 @@ Initially released in 2.8.0-rc.
 
 from __future__ import absolute_import
 
+from mmap import mmap
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -74,12 +76,14 @@ class MessagePackDocument(HierDictDocument):
                                         ordered=False,
                                         polymorphic=False,
                                         # MessagePackDocument specific
-                                        use_list=False):
+                                        use_list=False,
+                                        mw_unpacker=msgpack.Unpacker):
 
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
                 ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
 
         self.use_list = use_list
+        self.mw_unpacker = mw_unpacker
 
         self._from_bytes_handlers[Double] = self._ret_number
         self._from_bytes_handlers[Boolean] = self._ret_bool
@@ -120,17 +124,20 @@ class MessagePackDocument(HierDictDocument):
             argument is ignored.
         """
 
-        # TODO: Use feed api as msgpack's implementation reads everything in one
-        # go anyway.
-
         # handle mmap objects from in ctx.in_string as returned by
         # TwistedWebResource.handle_rpc.
-        in_string = ((s.read(s.size()) if hasattr(s, 'read') else s)
-                                                         for s in ctx.in_string)
-        try:
-            ctx.in_document = msgpack.unpackb(b''.join(in_string))
-        except ValueError as e:
-            raise MessagePackDecodeError(''.join(e.args))
+        if isinstance(ctx.in_string, (list, tuple)) \
+                               and len(ctx.in_string) == 1 \
+                               and isinstance(ctx.in_string[0], memoryview):
+            unpacker = self.mw_unpacker(use_list=self.use_list)
+            unpacker.feed(ctx.in_string[0])
+            ctx.in_document = next(x for x in unpacker)
+
+        else:
+            try:
+                ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string))
+            except ValueError as e:
+                raise MessagePackDecodeError(' '.join(e.args))
 
     def gen_method_request_string(self, ctx):
         """Uses information in context object to return a method_request_string.

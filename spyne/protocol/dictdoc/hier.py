@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
+from mmap import mmap
 from collections import defaultdict, Iterable as AbcIterable
 
 from spyne.util import six
@@ -43,6 +44,9 @@ class HierDictDocument(DictDocument):
 
     Implement ``create_in_document()`` and ``create_out_string()`` to use this.
     """
+
+    VALID_UNICODE_SOURCES = (six.text_type, six.binary_type, memoryview,
+                                                                mmap, bytearray)
 
     from_serstr = DictDocument.from_unicode
     to_serstr = DictDocument.to_unicode
@@ -139,8 +143,8 @@ class HierDictDocument(DictDocument):
         if inst is None and self.get_cls_attrs(cls).nullable:
             pass
 
-        elif issubclass(cls, Unicode) and not isinstance(inst,(six.text_type,
-                                                               six.binary_type)):
+        elif issubclass(cls, Unicode) and not isinstance(inst,
+                                                    self.VALID_UNICODE_SOURCES):
             raise ValidationError([key, inst])
 
     def _from_dict_value(self, ctx, key, cls, inst, validator):
@@ -180,6 +184,23 @@ class HierDictDocument(DictDocument):
 
                 if issubclass(cls, (ByteArray, Uuid)):
                     retval = self.from_serstr(cls, inst, self.binary_encoding)
+
+                elif issubclass(cls, Unicode):
+                    if isinstance(inst, bytearray):
+                        retval = six.text_type(inst,
+                                encoding=cls_attrs.encoding or 'ascii',
+                                                        errors=cls_attrs.unicode_errors)
+                    elif isinstance(inst, memoryview):
+                        retval = inst.tobytes().decode(cls_attrs.encoding or 'ascii',
+                                                        errors=cls_attrs.unicode_errors)
+
+                    elif isinstance(inst, mmap):
+                        retval = mmap[:].decode(cls_attrs.encoding,
+                                                        errors=cls_attrs.unicode_errors)
+
+                    else:
+                        retval = inst
+
                 else:
                     retval = self.from_serstr(cls, inst)
 
@@ -271,8 +292,6 @@ class HierDictDocument(DictDocument):
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
-            if not six.PY2 and isinstance(k, bytes):
-                k = k.decode('utf8')
             member = flat_type_info.get(k, None)
             if member is None:
                 member, k = flat_type_info.alt.get(k, (None, k))

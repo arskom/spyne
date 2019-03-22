@@ -19,10 +19,12 @@
 
 from __future__ import absolute_import
 
+from mmap import mmap
+
 import logging
 logger = logging.getLogger(__name__)
 
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 
 import msgpack
 
@@ -40,7 +42,7 @@ MSGPACK_SHELL_OVERHEAD = 10
 def _process_v1_msg(prot, msg):
     header = None
     body = msg[1]
-    if not isinstance(body, binary_type):
+    if not isinstance(body, (binary_type, mmap, memoryview)):
         raise ValidationError(body, "Body must be a bytestream.")
 
     if len(msg) > 2:
@@ -72,11 +74,24 @@ class MessagePackTransportContext(TransportContext):
             return Address.from_twisted_address(peer)
 
 
+MessagePackOobMethodContext = namedtuple("MessagePackOobMethodContext",
+                                                                  'f mm buffer')
+
+
 class MessagePackMethodContext(MethodContext):
     def __init__(self, transport, way):
+        self.oob_ctx = None
+
         super(MessagePackMethodContext, self).__init__(transport, way)
 
         self.transport = MessagePackTransportContext(self, transport)
+
+    def close(self):
+        super(MessagePackMethodContext, self).close()
+
+        if self.oob_ctx is not None:
+            self.oob_ctx.mm.close()
+            self.oob_ctx.f.close()
 
 
 class MessagePackTransportBase(ServerBase):
@@ -100,7 +115,7 @@ class MessagePackTransportBase(ServerBase):
         :param msg: Parsed request in this format: `[IN_REQUEST, body, header]`
         """
 
-        if not isinstance(msg, list):
+        if not isinstance(msg, (list, tuple)):
             logger.debug("Incoming request: %r", msg)
             raise ValidationError(msg, "Request must be a list")
 

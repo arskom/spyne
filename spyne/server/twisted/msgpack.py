@@ -106,7 +106,8 @@ class TwistedMessagePackProtocol(Protocol):
         assert isinstance(tpt, MessagePackTransportBase)
 
         self.spyne_tpt = tpt
-        self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
+        self._buffer = msgpack.Unpacker(raw=True,
+                                                max_buffer_size=max_buffer_size)
         self.out_chunk_size = out_chunk_size
         self.out_chunk_delay_sec = out_chunk_delay_sec
         self.max_in_queue_size = max_in_queue_size
@@ -228,8 +229,9 @@ class TwistedMessagePackProtocol(Protocol):
         logger.debug("Aborting connection because %s", reason)
         self.transport.abortConnection()
 
-    def process_incoming_message(self, msg):
+    def process_incoming_message(self, msg, oob):
         p_ctx, others = self.spyne_tpt.produce_contexts(msg)
+        p_ctx.oob_ctx = oob
         p_ctx.transport.remote_addr = Address.from_twisted_address(
                                                        self.transport.getPeer())
         p_ctx.transport.protocol = self
