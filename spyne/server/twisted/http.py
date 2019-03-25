@@ -294,10 +294,10 @@ class TwistedHttpTransport(HttpBase):
                 .addErrback(_eb_push_close) \
                 .addErrback(err)
 
+        super(TwistedHttpTransport, self).pusher_try_close(ctx, pusher, retval)
+
         if not pusher.interim:
             retval = ctx.out_stream.finish()
-
-        super(TwistedHttpTransport, self).pusher_try_close(ctx, pusher, retval)
 
         return retval
 
