@@ -181,6 +181,7 @@ class ProtocolMixin(object):
                           cls if clsorig is None else clsorig)
 
     def get_cls_attrs(self, cls):
+        logger.debug("%r attrcache size: %d", self, len(self._attrcache))
         attr = self._attrcache.get(cls, None)
         if attr is not None:
             return attr
@@ -382,6 +383,7 @@ class ProtocolMixin(object):
         return trdict.get(locale, default)
 
     def sort_fields(self, cls=None, items=None):
+        logger.debug("%r sortcache size: %d", self, len(self._sortcache))
         retval = self._sortcache.get(cls, None)
         if retval is not None:
             return retval
