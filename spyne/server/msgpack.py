@@ -87,7 +87,9 @@ class MessagePackMethodContext(MethodContext):
 
     def close(self):
         super(MessagePackMethodContext, self).close()
-
+        if self.transport is not None:
+            self.transport.protocol = None
+            self.transport = None
         if self.oob_ctx is not None:
             self.oob_ctx.mm.close()
             self.oob_ctx.f.close()
