@@ -62,6 +62,13 @@ class EventManager(object):
         handlers.add(handler)
         self.handlers[event_name] = handlers
 
+    def del_listener(self, event_name, handler=None):
+        if handler is None:
+            del self.handlers[event_name]
+        else:
+            self.handlers[event_name].remove(handler)
+
+
     def fire_event(self, event_name, ctx, *args, **kwargs):
         """Run all the handlers for a given event name.
 
