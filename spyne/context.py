@@ -105,6 +105,7 @@ class MethodContext(object):
 
     SERVER = type("SERVER", (object,), {})
     CLIENT = type("CLIENT", (object,), {})
+    TransportContext = TransportContext
 
     frozen = False
 
@@ -166,9 +167,12 @@ class MethodContext(object):
         self.udc = None
         """The user defined context. Use it to your liking."""
 
-        self.transport = TransportContext(self, transport)
+        self.transport = None
         """The transport-specific context. Transport implementors can use this
         to their liking."""
+
+        if self.TransportContext is not None:
+            self.transport = self.TransportContext(self, transport)
 
         self.outprot_ctx = None
         """The output-protocol-specific context. Protocol implementors can use

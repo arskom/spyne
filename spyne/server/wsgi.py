@@ -226,11 +226,8 @@ class WsgiMethodContext(HttpMethodContext):
     the transport attribute using the :class:`WsgiTransportContext` class.
     """
 
-    def __init__(self, transport, req_env, content_type):
-        super(WsgiMethodContext, self).__init__(transport, req_env, content_type)
-
-        self.transport = WsgiTransportContext(self, transport, req_env, content_type)
-        """Holds the WSGI-specific information"""
+    TransportContext = None
+    HttpTransportContext = WsgiTransportContext
 
 
 class WsgiApplication(HttpBase):

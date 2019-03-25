@@ -128,9 +128,10 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
         try:
             if isinstance(obj, (list, tuple)):
                 l = str(sum([len(o) for o in obj]))
+
             else:
                 l = str(len(obj))
-        except TypeError:
+        except (TypeError, ValueError):
             if given_len is not None:
                 l = str(given_len)
 

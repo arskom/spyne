@@ -213,7 +213,7 @@ class TwistedHttpTransportContext(HttpTransportContext):
 
 
 class TwistedHttpMethodContext(HttpMethodContext):
-    default_transport_context = TwistedHttpTransportContext
+    HttpTransportContext = TwistedHttpTransportContext
 
 
 def _decode_path(fragment):

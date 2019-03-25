@@ -135,7 +135,7 @@ class DjangoHttpTransportContext(HttpTransportContext):
 
 
 class DjangoHttpMethodContext(HttpMethodContext):
-    default_transport_context = DjangoHttpTransportContext
+    HttpTransportContext = DjangoHttpTransportContext
 
 
 class DjangoServer(HttpBase):

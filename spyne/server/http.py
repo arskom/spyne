@@ -210,14 +210,17 @@ class HttpMethodContext(MethodContext):
     the transport attribute using the :class:`HttpTransportContext` class.
     """
 
-    default_transport_context = HttpTransportContext
+    # because ctor signatures differ between TransportContext and
+    # HttpTransportContext, we needed a new variable
+    TransportContext = None
+    HttpTransportContext = HttpTransportContext
 
     def __init__(self, transport, req_env, content_type):
         super(HttpMethodContext, self).__init__(transport, MethodContext.SERVER)
 
-        self.transport = self.default_transport_context(self, transport,
+        self.transport = self.HttpTransportContext(self, transport,
                                                           req_env, content_type)
-        """Holds the WSGI-specific information"""
+        """Holds the HTTP-specific information"""
 
     def set_out_protocol(self, what):
         self._out_protocol = what

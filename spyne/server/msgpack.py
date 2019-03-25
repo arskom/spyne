@@ -79,12 +79,11 @@ MessagePackOobMethodContext = namedtuple("MessagePackOobMethodContext",
 
 
 class MessagePackMethodContext(MethodContext):
+    TransportContext = MessagePackTransportContext
     def __init__(self, transport, way):
         self.oob_ctx = None
 
         super(MessagePackMethodContext, self).__init__(transport, way)
-
-        self.transport = MessagePackTransportContext(self, transport)
 
     def close(self):
         super(MessagePackMethodContext, self).close()
