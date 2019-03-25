@@ -189,14 +189,20 @@ class HierDictDocument(DictDocument):
                     if isinstance(inst, bytearray):
                         retval = six.text_type(inst,
                                 encoding=cls_attrs.encoding or 'ascii',
-                                                        errors=cls_attrs.unicode_errors)
+                                                errors=cls_attrs.unicode_errors)
+
                     elif isinstance(inst, memoryview):
-                        retval = inst.tobytes().decode(cls_attrs.encoding or 'ascii',
-                                                        errors=cls_attrs.unicode_errors)
+                        # FIXME: memoryview needs a .decode() function to avoid
+                        #        needless copying here
+                        retval = inst.tobytes().decode(
+                            cls_attrs.encoding or 'ascii',
+                                                errors=cls_attrs.unicode_errors)
 
                     elif isinstance(inst, mmap):
+                        # FIXME: mmap needs a .decode() function to avoid
+                        #        needless copying here
                         retval = mmap[:].decode(cls_attrs.encoding,
-                                                        errors=cls_attrs.unicode_errors)
+                                                errors=cls_attrs.unicode_errors)
 
                     else:
                         retval = inst
