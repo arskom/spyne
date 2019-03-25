@@ -160,6 +160,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.out_chunks = deque()
         self.inreq_queue = OrderedDict()
         self.inactive_queue = list()
+        self.active_queue = dict()
         self.disconnecting = False  # FIXME: should we use this to raise an
                                     # invalid connection state exception ?
 
@@ -252,6 +253,7 @@ class TwistedMessagePackProtocol(Protocol):
         if self.max_in_queue_size == 0:
             while self.num_inactive_contexts > 0:
                 p_ctx, others = self.inactive_queue.pop()
+                self.active_queue[id(p_ctx)] = p_ctx
 
                 self.inreq_queue[id(p_ctx)] = None
                 self.process_contexts(p_ctx, others)
@@ -260,6 +262,7 @@ class TwistedMessagePackProtocol(Protocol):
             while self.num_active_contexts < self.max_in_queue_size and \
                                                  self.num_inactive_contexts > 0:
                 p_ctx, others = self.inactive_queue.pop()
+                self.active_queue[id(p_ctx)] = p_ctx
 
                 self.inreq_queue[id(p_ctx)] = None
                 self.process_contexts(p_ctx, others)
@@ -280,8 +283,10 @@ class TwistedMessagePackProtocol(Protocol):
             self.out_write(v)
             self.spyne_tpt.event_manager.fire_event('outresp_flushed',
                                                                      None, k, v)
-
             del self.inreq_queue[k]
+            self.active_queue[k].close()
+            del self.active_queue[k]
+
 
         self.process_inactive()
 
