@@ -83,6 +83,7 @@ def _cha(*args):
 class TwistedMessagePackProtocol(Protocol):
     IDLE_TIMEOUT_SEC = 0
     IDLE_TIMEOUT_MSG = 'idle timeout'
+    MAX_INACTIVE_CONTEXTS = float('inf')
 
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, out_chunk_size=0,
                       out_chunk_delay_sec=1, max_in_queue_size=0, factory=None):
@@ -269,7 +270,12 @@ class TwistedMessagePackProtocol(Protocol):
 
             peer = self.transport.getPeer()
             addr_str = Address.from_twisted_address(peer)
-            logger.debug("%s active %d inactive %d", addr_str,
+            if self.num_active_contexts > self.MAX_INACTIVE_CONTEXTS:
+                logger.error("%s Too many inactive contexts. "
+                                                "Closing connection.", addr_str)
+                self.loseConnection("Too many inactive contexts")
+
+        logger.debug("%s active %d inactive %d", addr_str,
                            self.num_active_contexts, self.num_inactive_contexts)
 
     def enqueue_outresp_data(self, ctxid, data):
@@ -286,7 +292,6 @@ class TwistedMessagePackProtocol(Protocol):
             del self.inreq_queue[k]
             self.active_queue[k].close()
             del self.active_queue[k]
-
 
         self.process_inactive()
 
