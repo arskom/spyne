@@ -351,10 +351,9 @@ class TwistedMessagePackProtocol(Protocol):
             error, msgpack.packb(data),
         ])
 
-        self.enqueue_outresp_data(id(p_ctx), out_string)
-
         p_ctx.transport.resp_length = len(out_string)
-        p_ctx.close()
+
+        self.enqueue_outresp_data(id(p_ctx), out_string)
 
         try:
             process_contexts(self, others, p_ctx, error=error)
