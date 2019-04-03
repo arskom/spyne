@@ -251,6 +251,9 @@ class TwistedMessagePackProtocol(Protocol):
         return len(self.inactive_queue)
 
     def process_inactive(self):
+        peer = self.transport.getPeer()
+        addr_str = Address.from_twisted_address(peer)
+
         if self.max_in_queue_size == 0:
             while self.num_inactive_contexts > 0:
                 p_ctx, others = self.inactive_queue.pop()
@@ -268,8 +271,6 @@ class TwistedMessagePackProtocol(Protocol):
                 self.inreq_queue[id(p_ctx)] = None
                 self.process_contexts(p_ctx, others)
 
-            peer = self.transport.getPeer()
-            addr_str = Address.from_twisted_address(peer)
             if self.num_active_contexts > self.MAX_INACTIVE_CONTEXTS:
                 logger.error("%s Too many inactive contexts. "
                                                 "Closing connection.", addr_str)
