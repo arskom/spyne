@@ -19,14 +19,13 @@
 
 from __future__ import absolute_import
 
-from mmap import mmap
-
 import logging
 logger = logging.getLogger(__name__)
 
-from collections import OrderedDict, namedtuple
-
 import msgpack
+
+from mmap import mmap
+from collections import OrderedDict
 
 from spyne import MethodContext, TransportContext, Address
 from spyne.auxproc import process_contexts
@@ -34,6 +33,8 @@ from spyne.error import ValidationError
 from spyne.model import Fault
 from spyne.server import ServerBase
 from spyne.util.six import binary_type
+
+from twisted.internet.defer import Deferred
 
 
 MSGPACK_SHELL_OVERHEAD = 10
@@ -74,8 +75,15 @@ class MessagePackTransportContext(TransportContext):
             return Address.from_twisted_address(peer)
 
 
-MessagePackOobMethodContext = namedtuple("MessagePackOobMethodContext",
-                                                                  'f mm buffer')
+class MessagePackOobMethodContext(object):
+    __slots__ = 'd'
+
+    def __init__(self):
+        self.d = Deferred()
+
+    def close(self):
+        if not self.d.called:
+            self.d.cancel()
 
 
 class MessagePackMethodContext(MethodContext):
@@ -90,9 +98,9 @@ class MessagePackMethodContext(MethodContext):
         if self.transport is not None:
             self.transport.protocol = None
             self.transport = None
+
         if self.oob_ctx is not None:
-            self.oob_ctx.mm.close()
-            self.oob_ctx.f.close()
+            self.oob_ctx.close()
 
 
 class MessagePackTransportBase(ServerBase):

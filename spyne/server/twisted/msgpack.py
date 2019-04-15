@@ -19,9 +19,10 @@
 
 from __future__ import absolute_import
 
-import io
 import logging
 logger = logging.getLogger(__name__)
+
+import io
 
 import msgpack
 
@@ -353,18 +354,21 @@ class TwistedMessagePackProtocol(Protocol):
         if isinstance(data, dict):
             data = list(data.values())
 
-        out_string = msgpack.packb([
-            error, msgpack.packb(data),
-        ])
+        out_object = (error, msgpack.packb(data),)
+        if p_ctx.oob_ctx is not None:
+            p_ctx.oob_ctx.d.callback(out_object)
+            return
 
+        out_string = msgpack.packb(out_object)
         p_ctx.transport.resp_length = len(out_string)
-
         self.enqueue_outresp_data(id(p_ctx), out_string)
 
         try:
             process_contexts(self, others, p_ctx, error=error)
+
         except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
+            logger.error("Exception ignored from auxiliary method: %r", e)
             logger.exception(e)
 
     def process_contexts(self, p_ctx, others):
@@ -383,18 +387,7 @@ class TwistedMessagePackProtocol(Protocol):
             self.handle_error(p_ctx, others, p_ctx.out_error)
             return
 
-        if p_ctx.descriptor.is_out_bare():
-            # out_bare methods must have exactly 1 return value.
-            ret, = p_ctx.out_object
-
-        else:
-            # these CAN have more. However we still need to check whether
-            # there is a deferred as the first return value.
-            if len(p_ctx.descriptor.out_message._type_info) > 1:
-                ret = p_ctx.out_object
-            else:
-                ret = p_ctx.out_object[0]
-
+        ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, self, p_ctx, others)
             ret.addErrback(_eb_deferred, self, p_ctx, others)
@@ -418,13 +411,12 @@ def _eb_deferred(fail, prot, p_ctx, others):
 
 
 def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
-    # if there is one return value or the output is bare (which means there
-    # can't be anything other than 1 return value case) use the enclosing list.
-    # otherwise, the return value is a tuple anyway, so leave it alone.
-    if nowrap:
-        p_ctx.out_object = ret
-
-    else:
+    # this means callback is not invoked directly instead of as part of a
+    # deferred chain
+    if not nowrap:
+        # if there is one return value or the output is bare (which means there
+        # can't be anything other than 1 return value case) use the enclosing
+        # list. otherwise, the return value is a tuple anyway, so leave it be.
         if p_ctx.descriptor.is_out_bare():
             p_ctx.out_object = [ret]
 
@@ -433,6 +425,12 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
                 p_ctx.out_object = ret
             else:
                 p_ctx.out_object = [ret]
+
+    if p_ctx.oob_ctx is not None:
+        assert isinstance(p_ctx.oob_ctx.d, Deferred)
+
+        p_ctx.oob_ctx.d.callback(p_ctx.out_object)
+        return
 
     try:
         prot.spyne_tpt.get_out_string(p_ctx)
