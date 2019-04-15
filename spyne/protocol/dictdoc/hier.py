@@ -153,10 +153,14 @@ class HierDictDocument(DictDocument):
 
         cls_attrs = self.get_cls_attrs(cls)
         complex_as = self.get_complex_as(cls_attrs)
+        if complex_as is list or complex_as is tuple:
+            check_complex_as = (list, tuple)
+        else:
+            check_complex_as = complex_as
 
         # get native type
         if issubclass(cls, File):
-            if isinstance(inst, complex_as):
+            if isinstance(inst, check_complex_as):
                 cls = cls_attrs.type or cls
                 inst = self._parse(cls_attrs, inst)
                 retval = self._doc_to_object(ctx, cls, inst, validator)
