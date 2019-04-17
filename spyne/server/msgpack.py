@@ -29,12 +29,14 @@ from collections import OrderedDict
 
 from spyne import MethodContext, TransportContext, Address
 from spyne.auxproc import process_contexts
-from spyne.error import ValidationError
-from spyne.model import Fault
+from spyne.error import ValidationError, InternalError
 from spyne.server import ServerBase
 from spyne.util.six import binary_type
 
-from twisted.internet.defer import Deferred
+try:
+    from twisted.internet.defer import Deferred
+except ImportError as e:
+    def Deferred(*_, **__): raise e
 
 
 MSGPACK_SHELL_OVERHEAD = 10
@@ -79,15 +81,19 @@ class MessagePackOobMethodContext(object):
     __slots__ = 'd'
 
     def __init__(self):
-        self.d = Deferred()
+        if Deferred is not None:
+            self.d = Deferred()
+        else:
+            self.d = None
 
     def close(self):
-        if not self.d.called:
+        if self.d is not None and not self.d.called:
             self.d.cancel()
 
 
 class MessagePackMethodContext(MethodContext):
     TransportContext = MessagePackTransportContext
+
     def __init__(self, transport, way):
         self.oob_ctx = None
 
