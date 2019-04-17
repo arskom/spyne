@@ -140,7 +140,7 @@ class MessagePackTransportBase(ServerBase):
 
         processor = self._version_map.get(msg[0], None)
         if processor is None:
-            logger.debug("Incoming request: %r", msg)
+            logger.debug("Invalid incoming request: %r", msg)
             raise ValidationError(msg[0], "Unknown request type %r")
 
         msglen = len(msg[1])
@@ -178,7 +178,7 @@ class MessagePackTransportBase(ServerBase):
 
         except Exception as e:
             logger.exception(e)
-            contexts.out_error = Fault('Server', "Internal serialization Error.")
+            contexts.out_error = InternalError("Serialization Error.")
             return self.handle_error(contexts, others, contexts.out_error)
 
     def handle_error(self, p_ctx, others, error):
