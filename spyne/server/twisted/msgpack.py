@@ -337,10 +337,16 @@ class TwistedMessagePackProtocol(Protocol):
             self.transport.write(chunk)
             self.sent_bytes += len(chunk)
 
-            self._delaying = self._wait_for_next_chunk()
+            if self.connected and not self.disconnecting:
+                self._delaying = self._wait_for_next_chunk()
 
-            logger.debug("%s One chunk of %d bytes written. "
-                           "Waiting for next chunk...", self.sessid, len(chunk))
+                logger.debug("%s One chunk of %d bytes written. Delaying "
+                          "before next chunk write...", self.sessid, len(chunk))
+
+            else:
+                logger.debug("%s Disconnection detected, discarding "
+                                                "remaining chunks", self.sessid)
+                self.out_chunks.clear()
 
     def handle_error(self, p_ctx, others, exc):
         self.spyne_tpt.get_out_string(p_ctx)
