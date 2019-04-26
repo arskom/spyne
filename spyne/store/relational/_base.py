@@ -482,7 +482,7 @@ def _check_table(cls):
 
 
 def _add_simple_type(cls, props, table, subname, subcls, sqla_type):
-    _, col_kwargs = sanitize_args(subcls.Attributes.sqla_column_args)
+    col_args, col_kwargs = sanitize_args(subcls.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, subcls, col_kwargs)
 
     mp = getattr(subcls.Attributes, 'mapper_property', None)
@@ -497,7 +497,7 @@ def _add_simple_type(cls, props, table, subname, subcls, sqla_type):
             col = table.c[colname]
 
         else:
-            col = Column(colname, sqla_type, **col_kwargs)
+            col = Column(colname, sqla_type, *col_args, **col_kwargs)
             table.append_column(col)
             _gen_index_info(table, col, subname, subcls)
 

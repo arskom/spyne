@@ -866,6 +866,27 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert ''.join([scc.s for scc in sc.children]) == 'p|q'
         assert sum([scc.i for scc in sc.children]) == 619
 
+    def test_simple_fk(self):
+        class SomeChildClass(TableModel):
+            __tablename__ = 'some_child_class'
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+            i = Integer32
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+
+            id = Integer32(primary_key=True)
+            child_id = Integer32(fk='some_child_class.id')
+
+        foreign_keys = SomeClass.__table__.c['child_id'].foreign_keys
+        assert len(foreign_keys) == 1
+        fk, = foreign_keys
+        assert fk._colspec == 'some_child_class.id'
+
+
+
     def test_reflection(self):
         class SomeClass(TableModel):
             __tablename__ = 'some_class'
