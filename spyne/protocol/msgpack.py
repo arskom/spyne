@@ -26,8 +26,6 @@ Initially released in 2.8.0-rc.
 
 from __future__ import absolute_import
 
-from mmap import mmap
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -245,8 +243,8 @@ class MessagePackRpc(MessagePackDocument):
         else:
             ctx.in_body_doc = msgparams
 
-        logger.debug('\theader : %r', ctx.in_header_doc)
-        logger.debug('\tbody   : %r', ctx.in_body_doc)
+        # logger.debug('\theader : %r', ctx.in_header_doc)
+        # logger.debug('\tbody   : %r', ctx.in_body_doc)
 
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)

@@ -88,8 +88,8 @@ class DictDocument(ProtocolBase):
         ctx.in_body_doc = doc
 
         if message is ProtocolBase.REQUEST:
-            logger.debug('\theader : %r' % (ctx.in_header_doc))
-            logger.debug('\tbody   : %r' % (ctx.in_body_doc))
+            #logger.debug('\theader : %r', ctx.in_header_doc)
+            #logger.debug('\tbody   : %r', ctx.in_body_doc)
 
             if not isinstance(doc, dict) or len(doc) != 1:
                 raise ValidationError(doc,
