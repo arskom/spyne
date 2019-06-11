@@ -26,6 +26,7 @@
 from pprint import pformat
 
 try:
+    # Python 3
     from functools import reduce
 except:
     pass
@@ -33,7 +34,7 @@ except:
 
 def toposort2(data):
     if len(data) == 0:
-        raise StopIteration()
+        return
 
     for k, v in data.items():
         v.discard(k) # Ignore self dependencies

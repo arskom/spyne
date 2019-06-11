@@ -336,7 +336,7 @@ class File(SimpleModel):
     @classmethod
     def to_base64(cls, value):
         if value is None:
-            raise StopIteration()
+            return
 
         assert value.path, "You need to write data to persistent storage first " \
                            "if you want to read it back."
