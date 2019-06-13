@@ -19,10 +19,20 @@
 
 from datetime import date, datetime
 
-from spyne import D, Integer, ModelBase, Date, DateTime, IpAddress, Decimal
+from spyne import D, Integer, ModelBase, Date, DateTime, IpAddress, Decimal, \
+    Boolean
 from spyne.protocol import ProtocolBase
 from spyne.util import six
 from spyne.util.cdict import cdict
+
+
+BOOL_VALUES_BYTES_TRUE  = (b't', b'1', b'on', b'yes', b'true')
+BOOL_VALUES_STR_TRUE    = (u't', u'1', u'on', u'yes', u'true')
+
+BOOL_VALUES_BYTES_FALSE = (b'f', b'0', b'off', b'no', b'false')
+BOOL_VALUES_STR_FALSE   = (u'f', u'0', u'off', u'no', u'false')
+
+BOOL_VALUES_NONE = (None, '')
 
 
 if six.PY2:
@@ -33,6 +43,40 @@ else:
 
 _prot = ProtocolBase()
 
+def _bool_from_int(i):
+    if i in (0, 1):
+        return i == 1
+    raise ValueError(i)
+
+
+def _bool_from_bytes(s):
+    if s in BOOL_VALUES_NONE:
+        return None
+
+    s = s.strip()
+    if s in BOOL_VALUES_NONE:
+        return None
+    s = s.lower()
+    if s in BOOL_VALUES_BYTES_TRUE:
+        return True
+    if s in BOOL_VALUES_BYTES_FALSE:
+        return False
+    raise ValueError(s)
+
+
+def _bool_from_str(s):
+    if s in BOOL_VALUES_NONE:
+        return None
+
+    s = s.strip()
+    if s in BOOL_VALUES_NONE:
+        return None
+    if s in BOOL_VALUES_STR_TRUE:
+        return True
+    if s in BOOL_VALUES_STR_FALSE:
+        return False
+    raise ValueError(s)
+
 
 MAP = cdict({
     ModelBase: cdict({
@@ -42,10 +86,17 @@ MAP = cdict({
     }),
 
     Decimal: cdict({
-        D: lambda _: _,
-        int: lambda _: D(_),
+        D: lambda d: d,
+        int: lambda i: D(i),
         bytes: lambda s: None if s.strip() == '' else D(s.strip()),
         unicode: lambda s: None if s.strip() == u'' else D(s.strip()),
+    }),
+
+    Boolean: cdict({
+        D: lambda d: _bool_from_int(int(d)),
+        int: _bool_from_int,
+        bytes: _bool_from_bytes,
+        unicode: _bool_from_str,
     }),
 
     Integer: cdict({
