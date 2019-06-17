@@ -78,21 +78,25 @@ class Fault(ComplexModelBase, Exception):
 
     @staticmethod
     def to_dict(cls, value):
-        if issubclass(cls, Fault):
-            retval =  {
-                "faultcode": value.faultcode,
-                "faultstring": value.faultstring,
-            }
-            if value.detail is not None:
-                retval["detail"] = value.detail
-            return retval
-
-        else:
+        if not issubclass(cls, Fault):
             return {
-                "faultcode": str(cls),
-                "faultstring": cls.__class__.__name__,
+                "faultcode": "Server.Unknown",
+                "faultstring": cls.__name__,
                 "detail": str(value),
             }
+
+        retval =  {
+            "faultcode": value.faultcode,
+            "faultstring": value.faultstring,
+        }
+
+        if value.faultactor is not None:
+            retval["faultactor"] = value.faultactor
+
+        if value.detail is not None:
+            retval["detail"] = value.detail
+
+        return retval
 
     @classmethod
     def to_bytes_iterable(cls, value):
