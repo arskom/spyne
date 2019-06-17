@@ -73,7 +73,7 @@ class Fault(ComplexModelBase, Exception):
     def __repr__(self):
         if self.detail is None:
             return "Fault(%s: %r)" % (self.faultcode, self.faultstring)
-        return "Fault(%s: %r for %r)" % (self.faultcode, self.faultstring,
+        return "Fault(%s: %r detail: %r)" % (self.faultcode, self.faultstring,
                                                                     self.detail)
 
     @staticmethod
