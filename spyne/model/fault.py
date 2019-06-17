@@ -98,6 +98,41 @@ class Fault(ComplexModelBase, Exception):
 
         return retval
 
+    #
+    # From http://schemas.xmlsoap.org/soap/envelope/
+    #
+    # <xs:element name="faultcode" type="xs:QName"/>
+    # <xs:element name="faultstring" type="xs:string"/>
+    # <xs:element name="faultactor" type="xs:anyURI" minOccurs="0"/>
+    # <xs:element name="detail" type="tns:detail" minOccurs="0"/>
+    #
+    @staticmethod
+    def to_list(cls, value):
+        if not issubclass(cls, Fault):
+            return [
+                "Server.Unknown",  # faultcode
+                cls.__name__,      # faultstring
+                "",                # faultactor
+                str(value),        # detail
+            ]
+
+        retval = [
+            value.faultcode,
+            value.faultstring,
+        ]
+
+        if value.faultactor is not None:
+            retval.append(value.faultactor)
+        else:
+            retval.append("")
+
+        if value.detail is not None:
+            retval.append(value.detail)
+        else:
+            retval.append("")
+
+        return retval
+
     @classmethod
     def to_bytes_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]

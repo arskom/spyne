@@ -103,8 +103,19 @@ class HierDictDocument(DictDocument):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [Fault.to_dict(ctx.out_error.__class__,
+            if self.complex_as is list:
+                ctx.out_document = [Fault.to_list(ctx.out_error.__class__,
                                                                  ctx.out_error)]
+
+            elif self.complex_as is tuple:
+                fault_as_list = [Fault.to_list(ctx.out_error.__class__,
+                                                                 ctx.out_error)]
+                ctx.out_document = tuple(fault_as_list)
+
+            else:
+                ctx.out_document = [Fault.to_dict(ctx.out_error.__class__,
+                                                                 ctx.out_error)]
+
             return
 
         # get the result message
