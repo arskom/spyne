@@ -174,6 +174,7 @@ class MessagePackRpc(MessagePackDocument):
     MSGPACK_REQUEST = 0
     MSGPACK_RESPONSE = 1
     MSGPACK_NOTIFY = 2
+    MSGPACK_ERROR = 3
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
@@ -282,7 +283,7 @@ class MessagePackRpc(MessagePackDocument):
 
         if ctx.out_error is not None:
             ctx.out_document = [
-                [MessagePackRpc.MSGPACK_RESPONSE, 0,
+                [MessagePackRpc.MSGPACK_ERROR, 0,
                           Fault.to_dict(ctx.out_error.__class__, ctx.out_error)]
             ]
             return
