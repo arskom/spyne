@@ -57,7 +57,7 @@ class Fault(ComplexModelBase, Exception):
     __type_name__ = "Fault"
 
     def __init__(self, faultcode='Server', faultstring="", faultactor="",
-                 detail=None, lang=spyne.DEFAULT_LANGUAGE):
+                                      detail=None, lang=spyne.DEFAULT_LANGUAGE):
         self.faultcode = faultcode
         self.faultstring = faultstring or self.get_type_name()
         self.faultactor = faultactor
