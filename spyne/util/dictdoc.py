@@ -77,7 +77,8 @@ class _UtilProtocol(HierDictDocument):
 def get_doc_as_object(d, cls, ignore_wrappers=True, complex_as=list,
                                     protocol=_UtilProtocol, protocol_inst=None):
     if protocol_inst is None:
-        protocol(ignore_wrappers=ignore_wrappers, complex_as=complex_as)
+        protocol_inst = protocol(ignore_wrappers=ignore_wrappers,
+                                                          complex_as=complex_as)
 
     return protocol_inst._doc_to_object(None, cls, d)
 

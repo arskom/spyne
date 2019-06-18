@@ -102,7 +102,7 @@ class HierDictDocument(DictDocument):
             cls = Fault
 
         if self.complex_as is list:
-            return [Fault.to_list(inst.__class__, inst, self)]
+            return [cls.to_list(inst.__class__, inst, self)]
 
         elif self.complex_as is tuple:
             fault_as_list = [Fault.to_list(inst.__class__, inst, self)]
@@ -117,7 +117,8 @@ class HierDictDocument(DictDocument):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = self._fault_do_doc(ctx.out_error)
+            ctx.out_document = self._fault_to_doc(ctx.out_error)
+            return
 
         # get the result message
         if message is self.REQUEST:
