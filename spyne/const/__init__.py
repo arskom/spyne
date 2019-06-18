@@ -72,6 +72,10 @@ DEFAULT_LOCALE = 'en_US'
 """Locale code to use for the translation subsystem when locale information is
 missing in an incoming request."""
 
+WARN_ON_DUPLICATE_FAULTCODE = True
+"""Warn about duplicate faultcodes in all Fault subclasses globally. Only works
+when CODE class attribute is set for every Fault subclass."""
+
 
 def add_request_suffix(string):
     """Concatenates REQUEST_SUFFIX to end of string"""

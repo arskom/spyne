@@ -97,26 +97,27 @@ class HierDictDocument(DictDocument):
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
+    def _fault_to_doc(self, inst, cls=None):
+        if cls is None:
+            cls = Fault
+
+        if self.complex_as is list:
+            return [Fault.to_list(inst.__class__, inst, self)]
+
+        elif self.complex_as is tuple:
+            fault_as_list = [Fault.to_list(inst.__class__, inst, self)]
+            return tuple(fault_as_list)
+
+        else:
+            return [Fault.to_dict(inst.__class__, inst, self)]
+
     def serialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            if self.complex_as is list:
-                ctx.out_document = [Fault.to_list(ctx.out_error.__class__,
-                                                                 ctx.out_error)]
-
-            elif self.complex_as is tuple:
-                fault_as_list = [Fault.to_list(ctx.out_error.__class__,
-                                                                 ctx.out_error)]
-                ctx.out_document = tuple(fault_as_list)
-
-            else:
-                ctx.out_document = [Fault.to_dict(ctx.out_error.__class__,
-                                                                 ctx.out_error)]
-
-            return
+            ctx.out_document = self._fault_do_doc(ctx.out_error)
 
         # get the result message
         if message is self.REQUEST:
@@ -355,8 +356,15 @@ class HierDictDocument(DictDocument):
             tags = set()
         retval = None
 
-        cls_attrs = self.get_cls_attrs(cls)
+        if isinstance(inst, Fault):
+            retval = None
+            inst_id = id(inst)
+            if not (inst_id in tags):
+                retval = self._fault_to_doc(inst, cls)
+                tags.add(inst_id)
+            return retval
 
+        cls_attrs = self.get_cls_attrs(cls)
         if cls_attrs.exc:
             return
 

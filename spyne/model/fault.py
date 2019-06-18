@@ -17,8 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import spyne
+from warnings import warn
+from collections import defaultdict
+
 import spyne.const
+
+from spyne.model.primitive import Any
 
 from spyne.util.six import add_metaclass
 
@@ -26,7 +30,21 @@ from spyne.model.complex import ComplexModelMeta
 from spyne.model.complex import ComplexModelBase
 
 
-@add_metaclass(ComplexModelMeta)
+class FaultMeta(ComplexModelMeta):
+    def __init__(self, cls_name, cls_bases, cls_dict):
+        super(FaultMeta, self).__init__(cls_name, cls_bases, cls_dict)
+
+        code = cls_dict.get('CODE', None)
+
+        if code is not None:
+            target = Fault.REGISTERED[code]
+            target.add(self)
+            if spyne.const.WARN_ON_DUPLICATE_FAULTCODE and len(target) > 1:
+                warn("Duplicate faultcode {} detected for classes {}"
+                                                          .format(code, target))
+
+
+@add_metaclass(FaultMeta)
 class Fault(ComplexModelBase, Exception):
     """Use this class as a base for all public exceptions.
     The Fault object adheres to the
@@ -54,7 +72,15 @@ class Fault(ComplexModelBase, Exception):
     :param lang: Language code corresponding to the language of faultstring.
     """
 
+    REGISTERED = defaultdict(set)
+    """Class-level variable that holds a multimap of all fault codes and the 
+    associated classes."""
+
     __type_name__ = "Fault"
+
+    CODE = None
+
+    detail_type = Any
 
     def __init__(self, faultcode='Server', faultstring="", faultactor="",
                                       detail=None, lang=spyne.DEFAULT_LANGUAGE):
@@ -72,12 +98,14 @@ class Fault(ComplexModelBase, Exception):
 
     def __repr__(self):
         if self.detail is None:
-            return "Fault(%s: %r)" % (self.faultcode, self.faultstring)
-        return "Fault(%s: %r detail: %r)" % (self.faultcode, self.faultstring,
-                                                                    self.detail)
+            return "%s(%s: %r)" % (self.__class__.__name__,
+                                               self.faultcode, self.faultstring)
+
+        return "%s(%s: %r detail: %r)" % (self.__class__.__name__,
+                                  self.faultcode, self.faultstring, self.detail)
 
     @staticmethod
-    def to_dict(cls, value):
+    def to_dict(cls, value, prot):
         if not issubclass(cls, Fault):
             return {
                 "faultcode": "Server.Unknown",
@@ -94,7 +122,7 @@ class Fault(ComplexModelBase, Exception):
             retval["faultactor"] = value.faultactor
 
         if value.detail is not None:
-            retval["detail"] = value.detail
+            retval["detail"] = value.detail_to_doc(prot)
 
         return retval
 
@@ -107,7 +135,7 @@ class Fault(ComplexModelBase, Exception):
     # <xs:element name="detail" type="tns:detail" minOccurs="0"/>
     #
     @staticmethod
-    def to_list(cls, value):
+    def to_list(cls, value, prot=None):
         if not issubclass(cls, Fault):
             return [
                 "Server.Unknown",  # faultcode
@@ -127,7 +155,7 @@ class Fault(ComplexModelBase, Exception):
             retval.append("")
 
         if value.detail is not None:
-            retval.append(value.detail)
+            retval.append(value.detail_to_doc(prot))
         else:
             retval.append("")
 
@@ -136,3 +164,9 @@ class Fault(ComplexModelBase, Exception):
     @classmethod
     def to_bytes_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]
+
+    def detail_to_doc(self, prot):
+        return self.detail
+
+    def detail_from_doc(self, prot, doc):
+        self.detail = doc

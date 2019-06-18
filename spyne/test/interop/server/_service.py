@@ -36,7 +36,7 @@ class SimpleClass(ComplexModel):
 class DocumentedFault(Fault):
     def __init__(self):
         super(DocumentedFault, self).__init__(
-                faultcode="Documented",
+                faultcode="Client.Documented",
                 faultstring="A documented fault",
                 faultactor='http://faultactor.example.com',
             )

@@ -96,9 +96,10 @@ def _gen_tagname(ns, name):
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
 
+    CODE = 'Client.SchemaValidationError'
+
     def __init__(self, faultstring):
-        super(SchemaValidationError, self) \
-                          .__init__('Client.SchemaValidationError', faultstring)
+        super(SchemaValidationError, self).__init__(self.CODE, faultstring)
 
 
 class SubXmlBase(ProtocolBase):

@@ -41,9 +41,11 @@ from spyne.protocol.dictdoc import HierDictDocument
 
 
 class MessagePackDecodeError(Fault):
+    CODE = "Client.MessagePackDecodeError"
+
     def __init__(self, data=None):
         super(MessagePackDecodeError, self) \
-                                .__init__("Client.MessagePackDecodeError", data)
+                                .__init__(self.CODE, data)
 
 
 NON_NUMBER_TYPES = tuple({list, dict, six.text_type, six.binary_type})
