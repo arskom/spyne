@@ -232,7 +232,7 @@ class TwistedMessagePackProtocol(Protocol):
         logger.debug("Aborting connection because %s", reason)
         self.transport.abortConnection()
 
-    def process_incoming_message(self, msg, oob):
+    def process_incoming_message(self, msg, oob=None):
         p_ctx, others = self.spyne_tpt.produce_contexts(msg)
         p_ctx.oob_ctx = oob
         p_ctx.transport.remote_addr = Address.from_twisted_address(
