@@ -82,6 +82,7 @@ from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
+from spyne.server.twisted import log_and_let_go
 
 from spyne.util.address import address_parser
 from spyne.util.six import text_type, string_types
@@ -287,12 +288,13 @@ class TwistedHttpTransport(HttpBase):
 
                 return r \
                     .addCallback(_cb_push_close) \
-                    .addErrback(_eb_inner)
+                    .addErrback(_eb_inner) \
+                    .addErrback(log_and_let_go, logger)
 
             return retval \
                 .addCallback(_cb_push_close) \
-                .addErrback(_eb_push_close) \
-                .addErrback(err)
+                .addErrback(_eb_push_close)  \
+                .addErrback(log_and_let_go, logger)
 
         super(TwistedHttpTransport, self).pusher_try_close(ctx, pusher, retval)
 
@@ -546,6 +548,7 @@ class TwistedWebResource(Resource):
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, request, p_ctx, others, resource=self)
             ret.addErrback(_eb_deferred, request, p_ctx, others, resource=self)
+            ret.addErrback(log_and_let_go, logger)
 
         elif isinstance(ret, PushBase):
             self.http_transport.init_root_push(ret, p_ctx, others)
@@ -556,7 +559,11 @@ class TwistedWebResource(Resource):
                                                                  self, cb=False)
             except Exception as e:
                 logger_server.exception(e)
-                _eb_deferred(Failure(), request, p_ctx, others, resource=self)
+                try:
+                    _eb_deferred(Failure(), request, p_ctx, others,
+                                                                  resource=self)
+                except Exception as e:
+                    logger_server.exception(e)
 
         return retval
 
@@ -655,35 +662,45 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
             def _close_only_context(ret):
                 p_ctx.close()
 
-            request.notifyFinish().addCallback(_close_only_context)
-            request.notifyFinish().addErrback(_eb_request_finished, request, p_ctx)
+            request.notifyFinish() \
+                .addCallback(_close_only_context) \
+                .addErrback(_eb_request_finished, request, p_ctx) \
+                .addErrback(log_and_let_go, logger)
 
     else:
         ret = resource.http_transport.get_out_string(p_ctx)
 
         if not isinstance(ret, Deferred):
             producer = Producer(p_ctx.out_string, request)
-            producer.deferred.addCallback(_cb_request_finished, request, p_ctx)
-            producer.deferred.addErrback(_eb_request_finished, request, p_ctx)
+            producer.deferred \
+                .addCallback(_cb_request_finished, request, p_ctx) \
+                .addErrback(_eb_request_finished, request, p_ctx) \
+                .addErrback(log_and_let_go, logger)
 
             try:
                 request.registerProducer(producer, False)
             except Exception as e:
                 logger_server.exception(e)
-                _eb_deferred(Failure(), request, p_ctx, others, resource)
+                try:
+                    _eb_deferred(Failure(), request, p_ctx, others, resource)
+                except Exception as e:
+                    logger_server.exception(e)
+                    raise
 
         else:
             def _cb(ret):
                 if isinstance(ret, Deferred):
                     return ret \
                         .addCallback(_cb) \
-                        .addErrback(_eb_request_finished, request, p_ctx)
+                        .addErrback(_eb_request_finished, request, p_ctx) \
+                        .addErrback(log_and_let_go, logger)
                 else:
                     return _cb_request_finished(ret, request, p_ctx)
 
             ret \
                 .addCallback(_cb) \
-                .addErrback(_eb_request_finished, request, p_ctx)
+                .addErrback(_eb_request_finished, request, p_ctx) \
+                .addErrback(log_and_let_go, logger)
 
     process_contexts(resource.http_transport, others, p_ctx)
 

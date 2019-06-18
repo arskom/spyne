@@ -17,5 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
+def log_and_let_go(err, logger):
+    logger.error(err.getTraceback())
+    return err
+
+
 from spyne.server.twisted.http import TwistedWebResource
 from spyne.server.twisted.websocket import TwistedWebSocketResource

@@ -41,6 +41,7 @@ from twisted.python.failure import Failure
 from spyne import EventManager, Address, ServerBase, Fault
 from spyne.auxproc import process_contexts
 from spyne.error import InternalError
+from spyne.server.twisted import log_and_let_go
 
 
 class TwistedMessagePackProtocolFactory(Factory):
@@ -395,8 +396,10 @@ class TwistedMessagePackProtocol(Protocol):
 
         ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
-            ret.addCallback(_cb_deferred, self, p_ctx, others)
-            ret.addErrback(_eb_deferred, self, p_ctx, others)
+            ret \
+                .addCallback(_cb_deferred, self, p_ctx, others) \
+                .addErrback(_eb_deferred, self, p_ctx, others) \
+                .addErrback(log_and_let_go, logger)
 
         else:
             _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
@@ -413,7 +416,11 @@ def _eb_deferred(fail, prot, p_ctx, others):
         if not getattr(fail, 'logged', False):
             fail.printTraceback()
 
-    prot.handle_error(p_ctx, others, p_ctx.out_error)
+    try:
+        prot.handle_error(p_ctx, others, p_ctx.out_error)
+    except Exception as e:
+        logger.exception(e)
+        raise
 
 
 def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
