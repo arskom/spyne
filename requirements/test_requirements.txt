@@ -20,3 +20,4 @@ tox
 pyparsing>=2.0.2
 suds-jurko
 zeep
+pandas
