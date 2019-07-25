@@ -1019,6 +1019,9 @@ def _parent_mapper_has_property(cls, cls_bases, k):
         return False
 
     for b in cls_bases:
+        if not hasattr(b, 'Attributes'):
+            continue
+
         mapper = b.Attributes.sqla_mapper
         if mapper is not None and mapper.has_property(k):
             # print("    Skipping mapping field", "%s.%s" % (cls.__name__, k),
