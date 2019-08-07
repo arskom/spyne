@@ -358,7 +358,8 @@ class _SpyneJsonRpc1(JsonDocument):
             "ver": self.version,
         }
         if ctx.out_error is not None:
-            ctx.out_document[self.FAULT] = Fault.to_dict(Fault, ctx.out_error)
+            ctx.out_document[self.FAULT] = Fault.to_dict(Fault,
+                                                            ctx.out_error, self)
 
         else:
             if message is self.REQUEST:
