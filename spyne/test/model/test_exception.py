@@ -43,14 +43,6 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(fault.faultstring, 'Testing')
         self.assertEqual(repr(fault), "Fault(Server: 'Testing')")
 
-    def test_ctor_no_faultstring_overridden_get_type_name(self):
-        class Derived(Fault):
-            def get_type_name(self):
-                return 'Overridden'
-        fault = Derived()
-        self.assertEqual(fault.faultstring, 'Overridden')
-        self.assertEqual(repr(fault), "Fault(Server: 'Overridden')")
-
     def test_to_parent_wo_detail(self):
         from lxml.etree import Element
         import spyne.const.xml

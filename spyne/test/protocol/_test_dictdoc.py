@@ -459,25 +459,6 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             print(d)
             assert s == d
 
-        def test_string(self):
-            d = 'some string'
-
-            class SomeService(Service):
-                @srpc(String(encoding='utf8'), _returns=String)
-                def some_call(p):
-                    print(p)
-                    print(type(p))
-                    assert isinstance(p, str)
-                    return p
-
-            ctx = _dry_me([SomeService], {"some_call":[d]})
-
-            s = self.loads(b''.join(ctx.out_string))
-            d = {"some_callResponse": {"some_callResult": d}}
-            print(s)
-            print(d)
-            assert s == d
-
         def test_any_uri(self):
             d = 'http://example.com/?asd=b12&df=aa#tag'
 
