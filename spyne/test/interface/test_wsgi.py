@@ -53,8 +53,8 @@ class Test(unittest.TestCase):
         def on_wsdl_document_built(doc):
             self.h += 1
 
-        self.wsgi_app.doc.wsdl11.event_manager.add_listener("wsdl_document_built",
-                                                         on_wsdl_document_built)
+        self.wsgi_app.doc.wsdl11.event_manager.add_listener(
+                                  "wsdl_document_built", on_wsdl_document_built)
         self.wsgi_app.doc.wsdl11.build_interface_document("http://some_url/")
 
         assert self.h == 1

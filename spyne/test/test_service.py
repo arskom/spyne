@@ -46,7 +46,6 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.model import Array, SelfReference, Iterable, ComplexModel, String, \
     Unicode
 
-
 Application.transport = 'test'
 
 
@@ -69,7 +68,8 @@ class MultipleMethods2(Service):
 class TestMultipleMethods(unittest.TestCase):
     def test_single_method(self):
         try:
-            Application([MultipleMethods1,MultipleMethods2], 'tns', in_protocol=Soap11(), out_protocol=Soap11())
+            Application([MultipleMethods1, MultipleMethods2], 'tns',
+                                    in_protocol=Soap11(), out_protocol=Soap11())
 
         except ValueError:
             pass
@@ -92,14 +92,14 @@ class TestMultipleMethods(unittest.TestCase):
             def call(s):
                 data.append(s)
 
-        app = Application([SomeService, AuxService], 'tns','name', Soap11(), Soap11())
+        app = Application([SomeService, AuxService], 'tns', 'name', Soap11(),
+                                                                       Soap11())
         server = NullServer(app)
         server.service.call("hey")
 
         assert data == ['hey', 'hey']
 
     def test_namespace_in_message_name(self):
-
         class S(Service):
             @srpc(String, _in_message_name='{tns}inMessageName')
             def call(s):
@@ -124,6 +124,7 @@ class TestMultipleMethods(unittest.TestCase):
 
         app = Application([SomeService, AuxService], 'tns',
                                   in_protocol=HttpRpc(), out_protocol=HttpRpc())
+
         server = WsgiApplication(app)
         server({
             'QUERY_STRING': 's=hey',
@@ -139,6 +140,7 @@ class TestMultipleMethods(unittest.TestCase):
     def test_thread_aux_wsgi(self):
         import logging
         logging.basicConfig(level=logging.DEBUG)
+
         data = set()
 
         class SomeService(Service):
@@ -220,7 +222,9 @@ class TestMultipleMethods(unittest.TestCase):
                 ctx.out_header.Elem1 = 'Test1'
 
         elt, nsmap = self.__run_service(SomeService)
-        query = '/soap11env:Envelope/soap11env:Header/tns:RespHeader/tns:Elem1/text()'
+        query = '/soap11env:Envelope/soap11env:Header/tns:RespHeader' \
+                                                             '/tns:Elem1/text()'
+
         assert elt.xpath(query, namespaces=nsmap)[0] == 'Test1'
 
         # test header in decorator
@@ -231,7 +235,8 @@ class TestMultipleMethods(unittest.TestCase):
                 ctx.out_header.Elem1 = 'Test1'
 
         elt, nsmap = self.__run_service(SomeService)
-        query = '/soap11env:Envelope/soap11env:Header/tns:RespHeader/tns:Elem1/text()'
+        query = '/soap11env:Envelope/soap11env:Header/tns:RespHeader/tns' \
+                ':Elem1/text()'
         assert elt.xpath(query, namespaces=nsmap)[0] == 'Test1'
 
         # test no header
@@ -242,7 +247,8 @@ class TestMultipleMethods(unittest.TestCase):
                 ctx.out_header.Elem1 = 'Test1'
 
         elt, nsmap = self.__run_service(SomeService)
-        query = '/soap11env:Envelope/soap11env:Header/tns:RespHeader/tns:Elem1/text()'
+        query = '/soap11env:Envelope/soap11env:Header/tns:RespHeader' \
+                                                             '/tns:Elem1/text()'
         assert len(elt.xpath(query, namespaces=nsmap)) == 0
 
 
@@ -253,7 +259,10 @@ class TestNativeTypes(unittest.TestCase):
                 @rpc(t)
                 def some_call(ctx, arg):
                     pass
-            nt, = SomeService.public_methods['some_call'].in_message._type_info.values()
+
+            nt, = SomeService.public_methods['some_call'].in_message \
+                                                            ._type_info.values()
+
             assert issubclass(nt, NATIVE_MAP[t])
 
     def test_native_types_in_arrays(self):
@@ -263,12 +272,14 @@ class TestNativeTypes(unittest.TestCase):
                 def some_call(ctx, arg):
                     pass
 
-            nt, = SomeService.public_methods['some_call'].in_message._type_info.values()
+            nt, = SomeService.public_methods['some_call'].in_message \
+                                                            ._type_info.values()
             nt, = nt._type_info.values()
             assert issubclass(nt, NATIVE_MAP[t])
 
 
 class TestBodyStyle(unittest.TestCase):
+
     def test_soap_bare_empty_output(self):
         class SomeService(Service):
             @rpc(String, _body_style='bare')
@@ -276,15 +287,15 @@ class TestBodyStyle(unittest.TestCase):
                 assert s == 'abc'
 
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
-                                   out_protocol=Soap11(cleanup_namespaces=True))
+            out_protocol=Soap11(cleanup_namespaces=True))
 
         req = b"""
-        <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
-                        xmlns:tns="tns">
-            <soap11env:Body>
-                <tns:some_call>abc</tns:some_call>
-            </soap11env:Body>
-        </soap11env:Envelope>
+<soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
+                     xmlns:tns="tns">
+    <soap11env:Body>
+        <tns:some_call>abc</tns:some_call>
+    </soap11env:Body>
+</soap11env:Envelope>
         """
 
         server = WsgiApplication(app)
@@ -301,11 +312,12 @@ class TestBodyStyle(unittest.TestCase):
 
         assert resp[0].tag == '{http://schemas.xmlsoap.org/soap/envelope/}Body'
         assert len(resp[0]) == 1
-        assert resp[0][0].tag == '{tns}some_call'+ RESPONSE_SUFFIX
+        assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
         assert len(resp[0][0]) == 0
 
     def test_soap_bare_empty_input(self):
         class SomeService(Service):
+
             @rpc(_body_style='bare', _returns=String)
             def some_call(ctx):
                 return 'abc'
@@ -342,6 +354,7 @@ class TestBodyStyle(unittest.TestCase):
     def test_soap_bare_empty_model_input_method_name(self):
         class EmptyRequest(ComplexModel):
             pass
+
         try:
             class SomeService(Service):
                 @rpc(EmptyRequest, _body_style='bare', _returns=String)
@@ -365,7 +378,7 @@ class TestBodyStyle(unittest.TestCase):
 
         try:
             Application([SomeService], 'tns', in_protocol=Soap11(),
-                                out_protocol=Soap11(cleanup_namespaces=True))
+                                   out_protocol=Soap11(cleanup_namespaces=True))
         except ValueError as e:
             print(e)
         else:
@@ -378,15 +391,15 @@ class TestBodyStyle(unittest.TestCase):
                 return ['abc', 'def']
 
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
-                                out_protocol=Soap11(cleanup_namespaces=True))
+                                   out_protocol=Soap11(cleanup_namespaces=True))
 
         req = b"""
-        <soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
-                        xmlns:tns="tns">
-            <soap11env:Body>
-                <tns:some_call/>
-            </soap11env:Body>
-        </soap11env:Envelope>
+<soap11env:Envelope  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
+                     xmlns:tns="tns">
+    <soap11env:Body>
+        <tns:some_call/>
+    </soap11env:Body>
+</soap11env:Envelope>
         """
 
         server = WsgiApplication(app)
@@ -412,7 +425,7 @@ class TestBodyStyle(unittest.TestCase):
                 pass
 
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
-                                out_protocol=Soap11(cleanup_namespaces=True))
+                                   out_protocol=Soap11(cleanup_namespaces=True))
 
         server = WsgiApplication(app)
 
@@ -427,5 +440,7 @@ class TestBodyStyle(unittest.TestCase):
         else:
             raise Exception("Must fail with: "
                         "'SelfReference can't be used inside @rpc and its ilk'")
+
+
 if __name__ == '__main__':
     unittest.main()

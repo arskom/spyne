@@ -709,7 +709,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
 def _eb_deferred(ret, request, p_ctx, others, resource):
     # DRY this with what's in Application.process_request
-    if issubclass(ret.type, Redirect):
+    if ret.check(Redirect):
         try:
             ret.value.do_redirect()
 
@@ -727,7 +727,7 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
 
             p_ctx.fire_event('method_redirect_exception')
 
-    elif issubclass(ret.type, Fault):
+    elif ret.check(Fault):
         p_ctx.out_error = ret.value
 
         ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
