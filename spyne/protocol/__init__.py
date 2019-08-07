@@ -37,3 +37,5 @@ class ProtocolBase(InProtocolBase, OutProtocolBase):
         OutProtocolBase.__init__(self, app=app, mime_type=mime_type,
                      ignore_wrappers=ignore_wrappers, ignore_uncap=ignore_uncap,
                                                 binary_encoding=binary_encoding)
+
+        self.ignore_empty_faultactor = True

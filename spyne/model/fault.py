@@ -119,7 +119,8 @@ class Fault(ComplexModelBase, Exception):
         }
 
         if value.faultactor is not None:
-            retval["faultactor"] = value.faultactor
+            if len(value.faultactor) > 0 or (not prot.ignore_empty_faultactor):
+                retval["faultactor"] = value.faultactor
 
         if value.detail is not None:
             retval["detail"] = value.detail_to_doc(prot)
