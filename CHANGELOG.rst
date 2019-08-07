@@ -2,13 +2,11 @@
 Changelog
 =========
 
-
-spyne-2.13.11-alpha
-------------------
-* SOAP: Repaired MtoM parsing.
-
 spyne-2.13.10-alpha
-------------------
+-------------------
+* SOAP: Repaired MtoM parsing.
+* Faults: The Fault api is now much more consistent.
+* Various fixes across the board.
 * ``sqla_column_args`` is now only a dict. It can override column name without
   changing mapped object attribute name.
 * Various Python 3 fixes for the Twisted frontend.
