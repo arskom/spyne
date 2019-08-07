@@ -65,6 +65,60 @@ class MultipleMethods2(Service):
         return "%r multi 2" % s
 
 
+class TestEvents(unittest.TestCase):
+    def test_method_exception(self):
+        from spyne.protocol.xml import XmlDocument
+
+        h = [0]
+
+        def on_method_exception_object(ctx):
+            assert ctx.out_error is not None
+            from spyne.protocol.xml import SchemaValidationError
+            assert isinstance(ctx.out_error, SchemaValidationError)
+            logging.error(repr(ctx.out_error))
+            h[0] += 1
+
+        class SomeService(Service):
+            @rpc(Unicode(5))
+            def some_call(ctx, some_str):
+                print(some_str)
+
+        app = Application([SomeService], "some_tns",
+               in_protocol=XmlDocument(validator='lxml'), out_protocol=Soap11())
+
+        app.event_manager.add_listener(
+                          "method_exception_object", on_method_exception_object)
+
+        # this shouldn't be called because:
+        # 1. document isn't validated
+        # 2. hence; document can't be parsed
+        # 3. hence; document can't be mapped to a function
+        # 4. hence; document can't be mapped to a service class
+        # 5. hence; no handlers from the service class is invoked.
+        # 6. hence; the h[0] == 1 check (instead of 2)
+        SomeService.event_manager.add_listener(
+                          "method_exception_object", on_method_exception_object)
+
+        wsgi_app = WsgiApplication(app)
+
+        xml_request = b"""
+            <tns:some_call xmlns:tns="some_tns">
+                <tns:some_str>123456</tns:some_str>
+            </tns:some_call>
+        """
+
+        _ = b''.join(wsgi_app({
+            'PATH_INFO': '/',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': '7000',
+            'REQUEST_METHOD': 'POST',
+            'wsgi.url_scheme': 'http',
+            'wsgi.input': BytesIO(xml_request),
+        }, start_response))
+
+        assert h[0] == 1
+
+
 class TestMultipleMethods(unittest.TestCase):
     def test_single_method(self):
         try:

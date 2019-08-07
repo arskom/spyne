@@ -80,7 +80,7 @@ class Fault(ComplexModelBase, Exception):
 
     CODE = None
 
-    detail_type = Any
+    _detail_type = Any
 
     def __init__(self, faultcode='Server', faultstring="", faultactor="",
                                       detail=None, lang=spyne.DEFAULT_LANGUAGE):
