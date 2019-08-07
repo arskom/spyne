@@ -2,7 +2,7 @@
 Changelog
 =========
 
-spyne-2.13.10-alpha
+spyne-2.13.11-alpha
 -------------------
 * SOAP: Repaired MtoM parsing.
 * Faults: The Fault api is now much more consistent.
