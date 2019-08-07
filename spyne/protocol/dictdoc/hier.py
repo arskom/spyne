@@ -221,6 +221,9 @@ class HierDictDocument(DictDocument):
                         retval = mmap[:].decode(cls_attrs.encoding,
                                                 errors=cls_attrs.unicode_errors)
 
+                    elif isinstance(inst, six.binary_type):
+                        retval = self.unicode_from_bytes(cls, inst)
+
                     else:
                         retval = inst
 
