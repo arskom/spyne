@@ -712,11 +712,11 @@ class ModelBase(object):
                 Attributes.validate_on_assignment = v
                 _log_debug("setting voa=%r", v)
 
-            elif k in ('parser', 'cast'):
+            elif k in ('parser', 'in_cast'):
                 setattr(Attributes, 'parser', staticmethod(v))
                 _log_debug("setting %s=%r", k, v)
 
-            elif k in ('sanitize', 'sanitizer'):
+            elif k in ('sanitize', 'sanitizer', 'out_cast'):
                 setattr(Attributes, 'sanitizer', staticmethod(v))
                 _log_debug("setting %s=%r as sanitizer", k, v)
 
