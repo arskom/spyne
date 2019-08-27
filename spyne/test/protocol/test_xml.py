@@ -461,6 +461,12 @@ class TestXml(unittest.TestCase):
         print(eltstr)
         assert b'<detail><this>that</this></detail>' in eltstr
 
+    def test_xml_encoding(self):
+        ctx = FakeContext(out_document=E.rain(u"yağmur"))
+        XmlDocument(encoding='iso-8859-9').create_out_string(ctx)
+        s = b''.join(ctx.out_string)
+        assert u"ğ".encode('iso-8859-9') in s
+
     def test_default(self):
         class SomeComplexModel(ComplexModel):
             _type_info = [
