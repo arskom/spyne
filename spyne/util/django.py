@@ -265,8 +265,7 @@ class DjangoModelMapper(object):
         field_names = set(exclude) if exclude is not None else set()
         meta = django_model._meta  # pylint: disable=W0212
         unknown_fields_names = field_names.difference(
-            meta.get_all_field_names())
-
+                                            [f.name for f in meta.get_fields()])
         if unknown_fields_names:
             raise ImproperlyConfigured(
                 'Unknown field names: {0}'
