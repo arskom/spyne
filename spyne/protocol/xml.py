@@ -722,7 +722,14 @@ class XmlDocument(SubXmlBase):
                                                                       add_type):
         attrib = {}
         if add_type:
-            attrib[XSI_TYPE] = cls.get_type_name_ns(self.app.interface)
+            tnn = cls.get_type_name_ns(self.app.interface)
+            if tnn != None:
+                attrib[XSI_TYPE] = tnn
+            else:
+                # this only happens on incomplete interface states for eg.
+                # get_object_as_xml where the full init is not performed for
+                # perf reasons
+                attrib[XSI_TYPE] = cls.get_type_name()
 
         if isinstance(parent, etree._Element):
             elt = etree.SubElement(parent, tag_name, attrib=attrib)

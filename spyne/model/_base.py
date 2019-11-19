@@ -712,11 +712,11 @@ class ModelBase(object):
                 Attributes.validate_on_assignment = v
                 _log_debug("setting voa=%r", v)
 
-            elif k in ('parser', 'cast'):
+            elif k in ('parser', 'in_cast'):
                 setattr(Attributes, 'parser', staticmethod(v))
                 _log_debug("setting %s=%r", k, v)
 
-            elif k in ('sanitize', 'sanitizer'):
+            elif k in ('sanitize', 'sanitizer', 'out_cast'):
                 setattr(Attributes, 'sanitizer', staticmethod(v))
                 _log_debug("setting %s=%r as sanitizer", k, v)
 
@@ -984,10 +984,10 @@ class table:
         value is used as the name of the intermediate table.
     :param left: Name of the left join column.
     :param right: Name of the right join column.
-    :param backref: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.backref
-    :param cascade: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.cascade
-    :param lazy: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.lazy
-    :param back_populates: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.back_populates
+    :param backref: See https://docs.sqlalchemy.org/en/13/orm/relationship_api.html?highlight=lazy#sqlalchemy.orm.relationship.params.backref
+    :param cascade: https://docs.sqlalchemy.org/en/13/orm/relationship_api.html?highlight=lazy#sqlalchemy.orm.relationship.params.cascade
+    :param lazy: See https://docs.sqlalchemy.org/en/13/orm/relationship_api.html?highlight=lazy#sqlalchemy.orm.relationship.params.lazy
+    :param back_populates: See https://docs.sqlalchemy.org/en/13/orm/relationship_api.html?highlight=lazy#sqlalchemy.orm.relationship.params.back_populates
     """
 
     def __init__(self, multi=False, left=None, right=None, backref=None,

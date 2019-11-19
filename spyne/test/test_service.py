@@ -75,7 +75,15 @@ class TestEvents(unittest.TestCase):
             assert ctx.out_error is not None
             from spyne.protocol.xml import SchemaValidationError
             assert isinstance(ctx.out_error, SchemaValidationError)
-            logging.error(repr(ctx.out_error))
+            logging.error("method_exception_object: %r", repr(ctx.out_error))
+            h[0] += 1
+
+        def on_method_exception_document(ctx):
+            assert ctx.out_error is not None
+            from spyne.protocol.xml import SchemaValidationError
+            assert isinstance(ctx.out_error, SchemaValidationError)
+            logging.error("method_exception_document: %r",
+                                               etree.tostring(ctx.out_document))
             h[0] += 1
 
         class SomeService(Service):
@@ -89,13 +97,16 @@ class TestEvents(unittest.TestCase):
         app.event_manager.add_listener(
                           "method_exception_object", on_method_exception_object)
 
+        app.event_manager.add_listener(
+                      "method_exception_document", on_method_exception_document)
+
         # this shouldn't be called because:
         # 1. document isn't validated
         # 2. hence; document can't be parsed
         # 3. hence; document can't be mapped to a function
         # 4. hence; document can't be mapped to a service class
         # 5. hence; no handlers from the service class is invoked.
-        # 6. hence; the h[0] == 1 check (instead of 2)
+        # 6. hence; the h[0] == 2 check (instead of 3)
         SomeService.event_manager.add_listener(
                           "method_exception_object", on_method_exception_object)
 
@@ -116,7 +127,7 @@ class TestEvents(unittest.TestCase):
             'wsgi.input': BytesIO(xml_request),
         }, start_response))
 
-        assert h[0] == 1
+        assert h[0] == 2
 
 
 class TestMultipleMethods(unittest.TestCase):

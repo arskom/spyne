@@ -60,12 +60,12 @@ PYNAME=python$PYVER;
 
 if [ -z "$FN" ]; then
     declare -A URLS;
-    URLS["cpy27"]="2.7.15/Python-2.7.15.tar.xz";
-    URLS["cpy34"]="3.4.9/Python-3.4.9.tar.xz";
-    URLS["cpy35"]="3.5.6/Python-3.5.6.tar.xz";
-    URLS["cpy36"]="3.6.8/Python-3.6.8.tar.xz";
-    URLS["cpy37"]="3.7.2/Python-3.7.2.tar.xz";
-    URLS["jyt27"]="2.7-b2/jython-installer-2.7-b2.jar";
+    URLS["cpy27"]="2.7.16/Python-2.7.16.tar.xz";
+    URLS["cpy35"]="3.5.7/Python-3.5.7.tar.xz";
+    URLS["cpy36"]="3.6.9/Python-3.6.9.tar.xz";
+    URLS["cpy37"]="3.7.4/Python-3.7.4.tar.xz";
+    URLS["cpy38"]="3.8.0/Python-3.8.0b3.tar.xz";
+    URLS["jyt27"]="2.7.1/jython-installer-2.7.1.jar";
     URLS["ipy27"]="ipy-2.7.4.zip";
 
     FN="${URLS["$PYFLAV"]}";
@@ -185,7 +185,14 @@ fi;
 set
 
 
-"$PIP" install -rrequirements/test_requirements.txt || exit 1;
+if [ "$PYVER" == "2.7" ]; then
+    "$PIP" install numpy\<1.16.99 || exit 1;
+    "$PIP" install -rrequirements/test_requirements_py27.txt || exit 12;
+
+else 
+    "$PIP" install -rrequirements/test_requirements.txt || exit 1;
+
+fi
 
 [ -e .coverage ] && rm -v .coverage
 [ -e .coverage ] && rm -v coverage.xml

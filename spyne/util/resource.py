@@ -19,6 +19,8 @@
 
 import os.path
 
+import spyne.util.autorel
+
 
 def get_resource_path(ns, fn):
     try:
@@ -27,15 +29,18 @@ def get_resource_path(ns, fn):
         from pkg_resources import resource_filename
 
     resfn = resource_filename(ns, fn)
+    spyne.util.autorel.AutoReloader.FILES.add(resfn)
     path = os.path.abspath(resfn)
     return path
 
 
-def read_resource_contents(ns, fn, enc=None):
-    import spyne.util.autorel
+def get_resource_file(ns, fn):
+    return open(get_resource_path(ns, fn), 'rb')
 
+
+def get_resource_file_contents(ns, fn, enc=None):
     resfn = get_resource_path(ns, fn)
-    spyne.util.autorel.AutoReloader.FILES.add(resfn)
+
     if enc is None:
         return open(resfn, 'rb').read()
     else:
@@ -45,23 +50,23 @@ def read_resource_contents(ns, fn, enc=None):
 def parse_xml_resource(ns, fn):
     from lxml import etree
 
-    retval = etree.fromstring(read_resource_contents(ns, fn))
+    retval = etree.parse(get_resource_file(ns, fn))
 
-    return retval
+    return retval.getroot()
 
 
 def parse_html_resource(ns, fn):
     from lxml import html
 
-    retval = html.fromstring(read_resource_contents(ns, fn))
+    retval = html.parse(get_resource_file(ns, fn))
 
-    return retval
+    return retval.getroot()
 
 
 def parse_cloth_resource(ns, fn):
     from lxml import html
 
-    retval = html.fragment_fromstring(read_resource_contents(ns, fn),
+    retval = html.fragment_fromstring(get_resource_file_contents(ns, fn),
                                                      create_parent='spyne-root')
     retval.attrib['spyne-tagbag'] = ''
     return retval

@@ -132,11 +132,9 @@ class ResourceAlreadyExistsError(Fault):
 
     CODE = 'Client.ResourceAlreadyExists'
 
-    def __init__(self, fault_object,
-            fault_string="Resource %r already exists"):
-
+    def __init__(self, fault_object, fault_string="Resource %r already exists"):
         super(ResourceAlreadyExistsError, self) \
-                               .__init__(self.code, fault_string % fault_object)
+                               .__init__(self.CODE, fault_string % fault_object)
 
 
 class Redirect(Fault):
