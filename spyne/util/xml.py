@@ -105,7 +105,7 @@ def _dig(par):
 _xml_object = XmlDocument()
 
 
-def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=None):
+def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=False):
     """Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
@@ -118,12 +118,6 @@ def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=None):
 
     if cls is None:
         cls = inst.__class__
-
-    if cls.get_namespace() is None and no_namespace is None:
-        no_namespace = True
-
-    if no_namespace is None:
-        no_namespace = False
 
     parent = etree.Element("parent")
     _xml_object.to_parent(None, cls, inst, parent, cls.get_namespace(),
@@ -136,7 +130,7 @@ def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=None):
 
 
 def get_object_as_xml_polymorphic(inst, cls=None, root_tag_name=None,
-                                                             no_namespace=None):
+                                                            no_namespace=False):
     """Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
@@ -149,9 +143,6 @@ def get_object_as_xml_polymorphic(inst, cls=None, root_tag_name=None,
 
     if cls is None:
         cls = inst.__class__
-
-    if no_namespace is None:
-        no_namespace = False
 
     if no_namespace:
         app = Application([ServiceBase], tns="",

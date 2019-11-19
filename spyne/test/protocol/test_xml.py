@@ -397,7 +397,7 @@ class TestXml(unittest.TestCase):
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
     def test_bare_sub_name_ns(self):
-        class Action (ComplexModel):
+        class Action(ComplexModel):
             class Attributes(ComplexModel.Attributes):
                 sub_ns = "SOME_NS"
                 sub_name = "Action"
