@@ -101,7 +101,7 @@ def _dig(par):
         _dig(elt)
 
 
-xml_object = XmlDocument()
+_xml_object = XmlDocument()
 
 
 def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=False):
@@ -125,7 +125,7 @@ def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=False):
         no_namespace = False
 
     parent = etree.Element("parent")
-    xml_object.to_parent(None, cls, inst, parent, cls.get_namespace(),
+    _xml_object.to_parent(None, cls, inst, parent, cls.get_namespace(),
                                                                   root_tag_name)
     if no_namespace:
         _dig(parent)
@@ -175,7 +175,7 @@ def get_xml_as_object(elt, cls):
     :param elt: The xml document to be deserialized.
     :param cls: The class the xml document represents.
     """
-    return xml_object.from_element(None, cls, elt)
+    return _xml_object.from_element(None, cls, elt)
 
 
 def parse_schema_string(s, files={}, repr_=Thier_repr(with_ns=False),
