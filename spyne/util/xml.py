@@ -104,7 +104,7 @@ def _dig(par):
 _xml_object = XmlDocument()
 
 
-def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=False):
+def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=None):
     """Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
