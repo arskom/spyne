@@ -45,7 +45,8 @@ class tlist(list):
                 raise TypeError("%s is not a type" % repr(item))
 
         self._types = types
-        map(self._type_check, iterable)
+        for i in iterable:
+            self._type_check(i)
         list.__init__(self, iterable)
 
     def types(self):
