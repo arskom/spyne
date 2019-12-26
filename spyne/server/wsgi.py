@@ -297,6 +297,8 @@ class WsgiApplication(HttpBase):
             url = _reconstruct_url(req_env).split('.wsdl')[0]
 
         if self.is_wsdl_request(req_env):
+            # Format the url for location
+            url = url.split('?')[0].split('.wsdl')[0]
             return self.handle_wsdl_request(req_env, start_response, url)
 
         else:
@@ -310,7 +312,7 @@ class WsgiApplication(HttpBase):
         return (
             req_env['REQUEST_METHOD'].upper() == 'GET'
             and (
-                   req_env['QUERY_STRING'].lower() == 'wsdl'
+                   req_env['QUERY_STRING'].split('=')[0].lower() == 'wsdl'
                 or req_env['PATH_INFO'].endswith('.wsdl')
             )
         )
