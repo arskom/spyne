@@ -35,7 +35,7 @@ from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Unicode
 from spyne.protocol.msgpack import MessagePackDocument
 from spyne.protocol.msgpack import MessagePackRpc
-from spyne.util.six import BytesIO
+from spyne.util.six import BytesIO, PY2
 from spyne.server import ServerBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.test.protocol._test_dictdoc import TDictDocumentTest
@@ -111,12 +111,19 @@ class TestMessagePackRpc(unittest.TestCase):
         ret = b''.join(ret)
         print(repr(ret))
         print(msgpack.unpackb(ret))
-        s = msgpack.packb([1, 0, None, {'get_valuesResponse': {
-            'get_valuesResult': [
-                  {"KeyValuePair": {'value': 'b', 'key': 'a'}},
-                  {"KeyValuePair": {'value': 'd', 'key': 'c'}},
-                ]
-            }}
+        if PY2:
+            values_result = [
+                {"KeyValuePair": {'value': 'b', 'key': 'a'}},
+                {"KeyValuePair": {'value': 'd', 'key': 'c'}},
+            ]
+        else:
+            values_result = [
+                {"KeyValuePair": {'key': 'a', 'value': 'b'}},
+                {"KeyValuePair": {'key': 'c', 'value': 'd'}},
+            ]
+
+        s = msgpack.packb([1, 0, None, {'get_valuesResponse':
+            {'get_valuesResult': values_result}}
         ])
         print(s)
         assert ret == s
