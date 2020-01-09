@@ -97,19 +97,17 @@ class InProtocolBase(ProtocolMixin):
     """
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                                   ignore_wrappers=False, binary_encoding=None):
+             ignore_wrappers=False, binary_encoding=None, string_encoding=None):
 
         self.validator = None
 
         super(InProtocolBase, self).__init__(app=app, mime_type=mime_type,
-               ignore_wrappers=ignore_wrappers, binary_encoding=binary_encoding)
+            ignore_wrappers=ignore_wrappers,
+               binary_encoding=binary_encoding, string_encoding=string_encoding)
 
         self.message = None
         self.validator = None
         self.set_validator(validator)
-
-        if self.binary_encoding is None:
-            self.binary_encoding = self.default_binary_encoding
 
         if mime_type is not None:
             self.mime_type = mime_type
@@ -319,14 +317,21 @@ class InProtocolBase(ProtocolMixin):
 
     def unicode_from_bytes(self, cls, value):
         retval = value
-        cls_attrs = self.get_cls_attrs(cls)
+
         if isinstance(value, six.binary_type):
-            if cls_attrs.encoding is None:
-                retval = six.text_type(value,
-                                           errors=cls_attrs.unicode_errors)
-            else:
+            cls_attrs = self.get_cls_attrs(cls)
+
+            if cls_attrs.encoding is not None:
                 retval = six.text_type(value, cls_attrs.encoding,
-                                           errors=cls_attrs.unicode_errors)
+                                                errors=cls_attrs.unicode_errors)
+
+            elif self.string_encoding is not None:
+                retval = six.text_type(value, self.string_encoding,
+                                                errors=cls_attrs.unicode_errors)
+
+            else:
+                retval = six.text_type(value, errors=cls_attrs.unicode_errors)
+
         return retval
 
     def string_from_bytes(self, cls, value):

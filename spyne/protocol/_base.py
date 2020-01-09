@@ -56,7 +56,7 @@ class ProtocolMixin(object):
     """Default customizations to be passed to underlying classes."""
 
     def __init__(self, app=None, mime_type=None, ignore_wrappers=None,
-                 binary_encoding=None):
+                                    binary_encoding=None, string_encoding=None):
         self.__app = None
         self.set_app(app)
 
@@ -65,6 +65,10 @@ class ProtocolMixin(object):
         self.binary_encoding = binary_encoding
         if self.binary_encoding is None:
             self.binary_encoding = self.default_binary_encoding
+
+        self.string_encoding = string_encoding
+        if self.string_encoding is None:
+            self.string_encoding = self.default_string_encoding
 
         if mime_type is not None:
             self.mime_type = mime_type
