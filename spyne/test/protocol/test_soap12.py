@@ -187,7 +187,7 @@ class TestSoap12(unittest.TestCase):
                  ByteArray(sub_name="hash"), _returns=Unicode)
             def documentRequest(ctx, file_name, file_data, data_hash):
                 assert file_name == FILE_NAME
-                assert file_data == ('sample data',)
+                assert file_data == (b'sample data',)
 
                 return file_name
 
@@ -218,7 +218,7 @@ class TestSoap12(unittest.TestCase):
 
     def test_bytes_join_attachment(self):
         href_id = "http://tempuri.org/1/634133419330914808"
-        payload = b"ANJNSLJNDYBC SFDJNIREMX:CMKSAJN"
+        payload = "ANJNSLJNDYBC SFDJNIREMX:CMKSAJN"
         envelope = '''
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
   <s:Body>

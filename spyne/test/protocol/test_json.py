@@ -175,7 +175,7 @@ class TestJsonP(unittest.TestCase):
         ret = list(ret)
         print(b''.join(ret))
         assert b''.join(ret) == b''.join((callback_name.encode('utf8'), b'(',
-                                    json.dumps({"i": 42, "s": "foo"}) , b');'))
+                                    json.dumps({"i": 42, "s": "foo"}).encode('utf-8') , b');'))
 
 
     def test_wrapped_array_in_wrapped_response(self):
@@ -201,7 +201,7 @@ class TestJsonP(unittest.TestCase):
                             out_protocol=JsonDocument(ignore_wrappers=False))
 
         server = NullServer(app, ostr=True)
-        retstr = ''.join(server.service.yay())
+        retstr = b''.join(server.service.yay()).decode('utf-8')
         print(retstr)
         assert retstr == '{"yayResponse": {"yayResult": [' \
             '{"Permission": {"application": "app", "feature": "f1"}}, ' \

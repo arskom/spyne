@@ -1203,7 +1203,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
                     assert p.c.d == date(2018, 11, 22)
                     return p
 
-            inner = {"a": 1, "b": b"s", "c": {"d": b'2018-11-22'}}
+            inner = {"a": 1, "b": "s", "c": {"d": '2018-11-22'}}
             doc = {"some_call": [inner]}
             ctx = _dry_me([SomeService], doc, validator='soft')
 

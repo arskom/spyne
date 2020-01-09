@@ -115,7 +115,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def test_bytearray(self):
         val = b"\x00\x01\x02\x03\x04"
         # suds doesn't support base64 encoding, so we do it manually
-        ret = self.client.service.echo_bytearray(b64encode(val))
+        ret = self.client.service.echo_bytearray(b64encode(val).decode())
 
         assert val == b64decode(ret)
 

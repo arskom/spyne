@@ -29,7 +29,7 @@ class TestSpyneHttpClient(unittest.TestCase):
 
         port, = server_started.keys()
 
-        self.ns = "spyne.test.interop.server._service"
+        self.ns = b"spyne.test.interop.server._service"
         self.client = TwistedHttpClient(b'http://localhost:%d/' % port,
                                                              soap11_application)
 

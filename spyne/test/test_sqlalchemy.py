@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import unicode_literals
-
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -805,7 +803,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
     def test_scalar_collection(self):
         class SomeClass(TableModel):
-            __tablename__ = b'some_class'
+            __tablename__ = 'some_class'
 
             id = Integer32(primary_key=True)
             values = Array(Unicode).store_as('table')
