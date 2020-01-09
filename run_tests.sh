@@ -174,24 +174,24 @@ fi;
 
 
 # Set up pip
-$PYTHON -m ensurepip --upgrade || exit 1;
+$PYTHON -m ensurepip --upgrade || exit 10;
 
 # Set up tox
 if [ ! -x "$TOX" ]; then
-   $PIP install tox || exit 1;
+   $PIP install tox || exit 11;
 fi;
 
 
 set
 
-"$PIP" install cython
+"$PIP" install cython || exit 12
 
 if [ "$PYVER" == "2.7" ]; then
-    "$PIP" install numpy\<1.16.99 || exit 1;
-    "$PIP" install -rrequirements/test_requirements_py27.txt || exit 12;
+    "$PIP" install numpy\<1.16.99 || exit 13;
+    "$PIP" install -rrequirements/test_requirements_py27.txt || exit 14;
 
 else 
-    "$PIP" install -rrequirements/test_requirements.txt || exit 1;
+    "$PIP" install -rrequirements/test_requirements.txt || exit 15;
 
 fi
 
