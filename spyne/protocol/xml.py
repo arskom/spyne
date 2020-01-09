@@ -50,7 +50,7 @@ from spyne.util.six import text_type, string_types
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import etree_to_dict, dict_to_etree,\
     root_dict_to_etree
-from spyne.const.xml import XSI
+from spyne.const.xml import XSI, NS_SOAP11_ENC
 
 from spyne.error import Fault
 from spyne.error import ValidationError
@@ -67,6 +67,13 @@ from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.enum import EnumBase
 
 from spyne.protocol import ProtocolBase
+
+from spyne.util import six
+
+if six.PY2:
+    STR_TYPES = (str, unicode)
+else:
+    STR_TYPES = (str, bytes)
 
 
 NIL_ATTR = {XSI('nil'): 'true'}
@@ -89,9 +96,10 @@ def _gen_tagname(ns, name):
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
 
+    CODE = 'Client.SchemaValidationError'
+
     def __init__(self, faultstring):
-        super(SchemaValidationError, self) \
-                          .__init__('Client.SchemaValidationError', faultstring)
+        super(SchemaValidationError, self).__init__(self.CODE, faultstring)
 
 
 class SubXmlBase(ProtocolBase):
@@ -131,7 +139,7 @@ class XmlDocument(SubXmlBase):
 
     Spyne's ```lxml.etree.XMLParser``` instance has ```resolve_pis```,
     ```load_dtd```, ```resolve_entities```, ```dtd_validation```,
-    ```huge_tree``` off by default.
+    ```huge_tree``` Defaults to ``False``
 
     Having ```resolve_entities``` disabled will prevent the 'lxml' validation
     for documents with custom xml entities defined in the DTD. See the example
@@ -143,15 +151,21 @@ class XmlDocument(SubXmlBase):
     Xml security in Python world.
 
     :param app: The owner application instance.
+
     :param validator: One of (None, 'soft', 'lxml', 'schema',
-                ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
-                Both ``'lxml'`` and ``'schema'`` values are equivalent to
-                ``XmlDocument.SCHEMA_VALIDATION``.
-    :param replace_null_with_default: If False, does not replace incoming
+        ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
+        Both ``'lxml'`` and ``'schema'`` values are equivalent to
+        ``XmlDocument.SCHEMA_VALIDATION``.
+
+        Defaults to ``None``.
+
+    :param replace_null_with_default: If ``False``, does not replace incoming
         explicit null values with denoted default values. This is against Xml
         Schema standard but consistent with other Spyne protocol
         implementations. Set this to False if you want cross-protocol
         compatibility.
+
+        Defaults to ``True``.
 
         Relevant quote from xml schema primer
         (http://www.w3.org/TR/xmlschema-0/):
@@ -170,45 +184,91 @@ class XmlDocument(SubXmlBase):
             missing, and default element values apply when elements are empty.
 
     :param xml_declaration: Whether to add xml_declaration to the responses
-        Default is 'True'.
+
+        Defaults to ``True``.
+
     :param cleanup_namespaces: Whether to add clean up namespace declarations
-        in the response document. Default is 'True'.
+        in the response document.
+
+        Defaults to ``True``.
+
     :param encoding: The suggested string encoding for the returned xml
         documents. The transport can override this.
+
+        Defaults to ``None``.
+
     :param pretty_print: When ``True``, returns the document in a pretty-printed
         format.
-    :param parse_xsi_type: Set to ``False`` to disable parsing of ``xsi:type``
-        attribute, effectively disabling polymorphism. Defaults to True.
 
-    The following are passed straight to the XMLParser() instance. Docs are
-    plagiarized from the lxml documentation. Please note that some of the
-    defaults are different to make parsing safer by default.
+        Defaults to ``False``.
+
+    :param parse_xsi_type: Set to ``False`` to disable parsing of ``xsi:type``
+        attribute, effectively disabling polymorphism.
+
+        Defaults to ``True``.
+
+    The following are passed straight to the ``XMLParser()`` instance from
+    lxml. Docs are also plagiarized from the lxml documentation. Please note
+    that some of the defaults are different to make parsing safer by default.
 
     :param attribute_defaults: read the DTD (if referenced by the document) and
-        add the default attributes from it. Off by default.
-    :param dtd_validation: validate while parsing (if a DTD was referenced). Off
-        by default.
+        add the default attributes from it.
+
+        Defaults to ``False``
+
+    :param dtd_validation: validate while parsing (if a DTD was referenced).
+
+        Defaults to ``False``
+
     :param load_dtd: load and parse the DTD while parsing (no validation is
-        performed). Off by default.
+        performed).
+
+        Defaults to ``False``.
+
     :param no_network: prevent network access when looking up external
-        documents. On by default.
-    :param ns_clean: try to clean up redundant namespace declarations. Off by
-        default. The note that this is for incoming documents. The
-        ```cleanup_namespaces``` parameter is for output documents, which is
-        that's on by default.
-    :param recover: try hard to parse through broken Xml. Off by default.
+        documents.
+
+        Defaults to ``True``.
+
+    :param ns_clean: try to clean up redundant namespace declarations.
+        Please note that this is for incoming documents.
+        See ``cleanup_namespaces`` parameter for output documents.
+
+        Defaults to ``False``.
+
+    :param recover: try hard to parse through broken Xml.
+
+        Defaults to ``False``.
+
     :param remove_blank_text: discard blank text nodes between tags, also known
         as ignorable whitespace. This is best used together with a DTD or schema
         (which tells data and noise apart), otherwise a heuristic will be
-        applied. Off by default.
-    :param remove_pis: discard processing instructions. On by default.
-    :param strip_cdata: replace CDATA sections by normal text content. On by
-        default.
-    :param resolve_entities: replace entities by their text value. Off by
-        default.
+        applied.
+
+        Defaults to ``False``.
+
+    :param remove_pis: When ``True`` xml parser discards processing
+        instructions.
+
+        Defaults to ``True``.
+
+    :param strip_cdata: replace CDATA sections by normal text content.
+
+        Defaults to ``True``
+
+    :param resolve_entities: replace entities by their text value.
+
+        Defaults to ``False``.
+
     :param huge_tree: disable security restrictions and support very deep trees
-        and very long text content. (only affects libxml2 2.7+) Off by default.
-    :param compact: use compact storage for short text content. On by default.
+        and very long text content. (only affects libxml2 2.7+)
+
+        Defaults to ``False``.
+
+    :param compact: use compact storage for short text content.
+
+        Defaults to ``True``.
+
     """
 
     SCHEMA_VALIDATION = type("Schema", (object,), {})
@@ -221,6 +281,7 @@ class XmlDocument(SubXmlBase):
 
     soap_env = PREFMAP[NS_SOAP11_ENV]
     ns_soap_env = NS_SOAP11_ENV
+    ns_soap_enc = NS_SOAP11_ENC
 
     def __init__(self, app=None, validator=None,
                 replace_null_with_default=True,
@@ -246,6 +307,7 @@ class XmlDocument(SubXmlBase):
         super(XmlDocument, self).__init__(app, validator,
                                                 binary_encoding=binary_encoding)
 
+        self.validation_schema = None
         self.xml_declaration = xml_declaration
         self.cleanup_namespaces = cleanup_namespaces
         self.replace_null_with_default = replace_null_with_default
@@ -397,7 +459,7 @@ class XmlDocument(SubXmlBase):
         if bool(element.get(XSI('nil'))):
             if self.validator is self.SOFT_VALIDATION and not \
                                                              cls_attrs.nillable:
-                raise ValidationError('')
+                raise ValidationError(None)
 
             if self.replace_null_with_default:
                 return cls_attrs.default
@@ -523,24 +585,25 @@ class XmlDocument(SubXmlBase):
 
             # assign raw result to its wrapper, result_message
             if ctx.descriptor.body_style == BODY_STYLE_WRAPPED:
-                result_message = result_message_class()
+                result_inst = result_message_class()
 
-                for i, attr_name in enumerate(
-                                        result_message_class._type_info.keys()):
-                    setattr(result_message, attr_name, ctx.out_object[i])
+                for i, (k, v) in enumerate(
+                                       result_message_class._type_info.items()):
+                    attrs = self.get_cls_attrs(v)
+                    result_inst._safe_set(k, ctx.out_object[i], v, attrs)
 
             else:
-                result_message = ctx.out_object
+                result_inst = ctx.out_object
 
             if ctx.out_stream is None:
                 tmp_elt = etree.Element('punk')
                 retval = self.to_parent(ctx, result_message_class,
-                          result_message, tmp_elt, self.app.interface.get_tns())
+                          result_inst, tmp_elt, self.app.interface.get_tns())
                 ctx.out_document = tmp_elt[0]
 
             else:
                 retval = self.incgen(ctx, result_message_class,
-                                  result_message, self.app.interface.get_tns())
+                                  result_inst, self.app.interface.get_tns())
 
         if self.cleanup_namespaces and ctx.out_document is not None:
             etree.cleanup_namespaces(ctx.out_document)
@@ -659,7 +722,14 @@ class XmlDocument(SubXmlBase):
                                                                       add_type):
         attrib = {}
         if add_type:
-            attrib[XSI_TYPE] = cls.get_type_name_ns(self.app.interface)
+            tnn = cls.get_type_name_ns(self.app.interface)
+            if tnn != None:
+                attrib[XSI_TYPE] = tnn
+            else:
+                # this only happens on incomplete interface states for eg.
+                # get_object_as_xml where the full init is not performed for
+                # perf reasons
+                attrib[XSI_TYPE] = cls.get_type_name()
 
         if isinstance(parent, etree._Element):
             elt = etree.SubElement(parent, tag_name, attrib=attrib)
@@ -859,7 +929,7 @@ class XmlDocument(SubXmlBase):
         self.modelbase_to_parent(ctx, cls, str(inst), parent, ns, name, **kwargs)
 
     def any_xml_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
-        if isinstance(inst, str) or isinstance(inst, unicode):
+        if isinstance(inst, STR_TYPES):
             inst = etree.fromstring(inst)
 
         _append(parent, E(_gen_tagname(ns, name), inst))
@@ -890,17 +960,21 @@ class XmlDocument(SubXmlBase):
 
         if cls_attrs._xml_tag_body_as is not None:
             for xtba_key, xtba_type in cls_attrs._xml_tag_body_as:
+                xtba_attrs = self.get_cls_attrs(xtba_type.type)
                 if issubclass(xtba_type.type, (ByteArray, File)):
                     value = self.from_unicode(xtba_type.type, elt.text,
                                                         self.binary_encoding)
                 else:
                     value = self.from_unicode(xtba_type.type, elt.text)
 
-                setattr(inst, xtba_key, value)
+                inst._safe_set(xtba_key, value, xtba_type.type, xtba_attrs)
 
         # parse input to set incoming data to related attributes.
         for c in elt:
-            key = c.tag.split('}')[-1]
+            if isinstance(c, etree._Comment):
+                continue
+
+            key = c.tag.split('}', 1)[-1]
             frequencies[key] += 1
 
             member = flat_type_info.get(key, None)
@@ -911,7 +985,8 @@ class XmlDocument(SubXmlBase):
                     if member is None:
                         continue
 
-            mo = member.Attributes.max_occurs
+            member_attrs = self.get_cls_attrs(member)
+            mo = member_attrs.max_occurs
             if mo > 1:
                 value = getattr(inst, key, None)
                 if value is None:
@@ -922,27 +997,29 @@ class XmlDocument(SubXmlBase):
             else:
                 value = self.from_element(ctx, member, c)
 
-            setattr(inst, key, value)
+            inst._safe_set(key, value, member, member_attrs)
 
             for key, value_str in c.attrib.items():
-                member = flat_type_info.get(key, None)
-                if member is None:
-                    member, key = cls._type_info_alt.get(key, (None, key))
-                    if member is None:
+                submember = flat_type_info.get(key, None)
+
+                if submember is None:
+                    submember, key = cls._type_info_alt.get(key, (None, key))
+                    if submember is None:
                         continue
 
-                mo = member.Attributes.max_occurs
+                submember_attrs = self.get_cls_attrs(submember)
+                mo = submember_attrs.max_occurs
                 if mo > 1:
                     value = getattr(inst, key, None)
                     if value is None:
                         value = []
 
-                    value.append(self.from_unicode(member.type, value_str))
+                    value.append(self.from_unicode(submember.type, value_str))
 
                 else:
-                    value = self.from_unicode(member.type, value_str)
+                    value = self.from_unicode(submember.type, value_str)
 
-                setattr(inst, key, value)
+                inst._safe_set(key, value, submember.type, submember_attrs)
 
         for key, value_str in elt.attrib.items():
             member = flat_type_info.get(key, None)
@@ -950,21 +1027,23 @@ class XmlDocument(SubXmlBase):
                 member, key = cls._type_info_alt.get(key, (None, key))
                 if member is None:
                     continue
+
             if not issubclass(member, XmlAttribute):
                 continue
 
             if issubclass(member.type, (ByteArray, File)):
                 value = self.from_unicode(member.type, value_str,
-                                                       self.binary_encoding)
+                                                           self.binary_encoding)
             else:
                 value = self.from_unicode(member.type, value_str)
 
-            setattr(inst, key, value)
+            member_attrs = self.get_cls_attrs(member.type)
+            inst._safe_set(key, value, member.type, member_attrs)
 
         if self.validator is self.SOFT_VALIDATION:
             for key, c in flat_type_info.items():
                 val = frequencies.get(key, 0)
-                attr = c.Attributes
+                attr = self.get_cls_attrs(c)
                 if val < attr.min_occurs or val > attr.max_occurs:
                     raise Fault('Client.ValidationError', '%r member does not '
                                          'respect frequency constraints.' % key)

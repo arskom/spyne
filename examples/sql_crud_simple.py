@@ -37,7 +37,7 @@ logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.yaml import YamlDocument
 from spyne import Application, rpc, Mandatory as M, Unicode, UnsignedInteger32, \
-    Array, Iterable, TTableModel, ServiceBase
+    Array, Iterable, TTableModel, Service
 
 from spyne.util import memoize
 
@@ -78,7 +78,7 @@ class User(TableModel):
 
 @memoize
 def TCrudService(T, T_name):
-    class CrudService(ServiceBase):
+    class CrudService(Service):
         @rpc(Mandatory.UnsignedInteger32, _returns=T)
         def get(ctx, obj_id):
             return ctx.udc.session.query(T).filter_by(id=obj_id).one()

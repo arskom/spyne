@@ -18,15 +18,15 @@
 #
 
 """The ``spyne.model.binary`` package contains binary type markers."""
-
 import logging
 logger = logging.getLogger(__name__)
 
 import os
 import base64
 import tempfile
+import errno
 
-from mmap import mmap, ACCESS_READ
+from mmap import mmap, ACCESS_READ, error as MmapError
 from base64 import b64encode
 from base64 import b64decode
 from base64 import urlsafe_b64encode
@@ -35,10 +35,9 @@ from binascii import hexlify
 from binascii import unhexlify
 from os.path import abspath, isdir, isfile, basename
 
-from spyne.util.six import StringIO
 from spyne.error import ValidationError
 from spyne.util import _bytes_join
-from spyne.model import ModelBase, ComplexModel, Unicode
+from spyne.model import ComplexModel, Unicode
 from spyne.model import SimpleModel
 from spyne.util import six
 
@@ -188,6 +187,12 @@ _BINARY = type('FileTypeBinary', (object,), {})
 _TEXT = type('FileTypeText', (object,), {})
 
 
+class SanitizationError(ValidationError):
+    def __init__(self, obj):
+        super(SanitizationError, self).__init__(
+                                         obj, "%r was not sanitized before use")
+
+
 class _FileValue(ComplexModel):
     """The class for values marked as ``File``.
 
@@ -207,15 +212,17 @@ class _FileValue(ComplexModel):
     ]
 
     def __init__(self, name=None, path=None, type='application/octet-stream',
-                                            data=None, handle=None, move=False):
+                            data=None, handle=None, move=False, _sanitize=True):
 
         self.name = name
         """The file basename, no directory information here."""
 
-        if self.name is not None:
+        if self.name is not None and _sanitize:
             if not os.path.basename(self.name) == self.name:
                 raise ValidationError(self.name,
                     "File name %r should not contain any directory information")
+
+        self.sanitized = _sanitize
 
         self.path = path
         """Relative path of the file."""
@@ -250,6 +257,9 @@ class _FileValue(ComplexModel):
         to the contents of this file.
         """
 
+        if not self.sanitized:
+            raise SanitizationError(self)
+
         if self.data is not None:
             if self.path is None:
                 self.handle = tempfile.NamedTemporaryFile()
@@ -265,7 +275,17 @@ class _FileValue(ComplexModel):
                 self.handle.write(d)
 
         elif self.handle is not None:
-            self.data = (mmap(self.handle.fileno(), 0),)  # 0 = whole file
+            try:
+                # 0 = whole file
+                self.data = (mmap(self.handle.fileno(), 0),)
+
+            except MmapError as e:
+                if e.errno == errno.EACCES:
+                    self.data = (
+                        mmap(self.handle.fileno(), 0, access=ACCESS_READ),
+                    )
+                else:
+                    raise
 
         elif self.path is not None:
             if not isfile(self.path):
@@ -290,7 +310,7 @@ class File(SimpleModel):
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
     BINARY = _BINARY
-    TEXT = _BINARY
+    TEXT = _TEXT
     Value = _FileValue
 
     class Attributes(SimpleModel.Attributes):
@@ -305,8 +325,8 @@ class File(SimpleModel):
         """The native type used to serialize the information in the file object.
         """
 
-        contents = _BINARY
-        """Set this to type=File.TEXT if you're sure you're handling unicode
+        mode = _BINARY
+        """Set this to mode=File.TEXT if you're sure you're handling unicode
         data. This lets serializers like HtmlCloth avoid base64 encoding. Do
         note that you still need to set encoding attribute explicitly to None!..
 
@@ -316,7 +336,7 @@ class File(SimpleModel):
     @classmethod
     def to_base64(cls, value):
         if value is None:
-            raise StopIteration()
+            return
 
         assert value.path, "You need to write data to persistent storage first " \
                            "if you want to read it back."

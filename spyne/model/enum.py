@@ -69,7 +69,7 @@ def Enum(*values, **kwargs):
     maximum = len(values) # to make __invert__ work
 
     class EnumValue(object):
-        __slots__ = ('__value')
+        __slots__ = ('__value',)
 
         def __init__(self, value):
             self.__value = value

@@ -28,7 +28,7 @@ from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.decorator import srpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.model.complex import Array
 from spyne.model.primitive import String
 from spyne.model.complex import ComplexModel
@@ -50,7 +50,7 @@ TestMessagePackDocument  = TDictDocumentTest(msgpack, MessagePackDocument,
 
 class TestMessagePackRpc(unittest.TestCase):
     def test_invalid_input(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc()
             def yay():
                 pass
@@ -73,7 +73,7 @@ class TestMessagePackRpc(unittest.TestCase):
             key = Unicode
             value = Unicode
 
-        class Service(ServiceBase):
+        class SomeService(Service):
             @rpc(String(max_occurs='unbounded'),
                     _returns=Array(KeyValuePair),
                     _in_variable_names={
@@ -84,7 +84,7 @@ class TestMessagePackRpc(unittest.TestCase):
                 for k in keys:
                     yield KeyValuePair(key=k, value=data[k])
 
-        application = Application([Service],
+        application = Application([SomeService],
             in_protocol=MessagePackRpc(),
             out_protocol=MessagePackRpc(ignore_wrappers=False),
             name='Service', tns='tns')

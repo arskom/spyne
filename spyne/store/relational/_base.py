@@ -50,9 +50,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 
 from spyne.store.relational.simple import PGLTree
 from spyne.store.relational.document import PGXml, PGObjectXml, PGObjectJson, \
-    PGFileJson
-from spyne.store.relational.document import PGHtml
-from spyne.store.relational.document import PGJson
+    PGFileJson, PGJsonB, PGHtml, PGJson
 from spyne.store.relational.spatial import PGGeometry
 
 # internal types
@@ -60,20 +58,25 @@ from spyne.model.enum import EnumBase
 from spyne.model.complex import XmlModifier
 
 # Config types
-from spyne.model.complex import xml as c_xml
-from spyne.model.complex import json as c_json
-from spyne.model.complex import table as c_table
-from spyne.model.complex import msgpack as c_msgpack
+from spyne.model import xml as c_xml
+from spyne.model import json as c_json
+from spyne.model import jsonb as c_jsonb
+from spyne.model import table as c_table
+from spyne.model import msgpack as c_msgpack
 from spyne.model.binary import HybridFileStore
 
 # public types
-from spyne.model import SimpleModel, AnyDict, Enum, ByteArray, Array, \
-    ComplexModelBase, AnyXml, AnyHtml, Uuid, Date, Time, DateTime, Float, \
-    Double, Decimal, String, Unicode, Boolean, Integer, Integer8, Integer16, \
-    Integer32, Integer64, Point, Line, Polygon, MultiPoint, MultiLine, \
-    MultiPolygon, UnsignedInteger, UnsignedInteger8, UnsignedInteger16, \
-    UnsignedInteger32, UnsignedInteger64, File, Ltree, Ipv6Address, Ipv4Address, \
-    IpAddress, Duration
+from spyne.model import SimpleModel, Enum, Array, ComplexModelBase, \
+    Any, AnyDict, AnyXml, AnyHtml, \
+    Date, Time, DateTime, Duration, \
+    ByteArray, String, Unicode, Uuid, Boolean, \
+    Point, Line, Polygon, MultiPoint, MultiLine, MultiPolygon, \
+    Float, Double, Decimal, \
+    Integer, Integer8, Integer16, Integer32, Integer64, \
+    UnsignedInteger, UnsignedInteger8, UnsignedInteger16, UnsignedInteger32, \
+                                                            UnsignedInteger64, \
+    Ipv6Address, Ipv4Address, IpAddress, \
+    File, Ltree
 
 from spyne.util import sanitize_args
 
@@ -124,6 +127,7 @@ _sq2sp_type_map = {
 
     PGUuid: Uuid,
     PGLTree: Ltree,
+    PGInet: IpAddress,
 }
 
 
@@ -206,11 +210,15 @@ def _get_sqlalchemy_type(cls):
     if issubclass(cls, AnyHtml):
         return PGHtml
 
-    if issubclass(cls, AnyDict):
+    if issubclass(cls, (Any, AnyDict)):
         sa = cls.Attributes.store_as
+        if sa is None:
+            return None
         if isinstance(sa, c_json):
             return PGJson
-        raise NotImplementedError(dict(cls=AnyDict, store_as=sa))
+        if isinstance(sa, c_jsonb):
+            return PGJsonB
+        raise NotImplementedError(dict(cls=cls, store_as=sa))
 
     if issubclass(cls, ByteArray):
         return sqlalchemy.LargeBinary
@@ -290,19 +298,27 @@ def _get_col_o2o(parent, subname, subcls, fk_col_name, deferrable=None,
     pk_sqla_type = _get_sqlalchemy_type(pk_spyne_type)
 
     # generate a fk to it from the current object (cls)
-    if fk_col_name is None:
-        fk_col_name = subname + "_" + pk_key
+    if 'name' in col_kwargs:
+        colname = col_kwargs.pop('name')
+    else:
+        colname = subname
 
-    assert fk_col_name != subname, \
+    if fk_col_name is None:
+        fk_col_name = colname + "_" + pk_key
+
+    assert fk_col_name != colname, \
         "The column name for the foreign key must be different from the " \
         "column name for the object itself."
 
-    fk = ForeignKey('%s.%s' % (subcls.Attributes.table_name, pk_key), use_alter=True,
-          name='%s_%s_fkey' % (subcls.Attributes.table_name, fk_col_name),
-          deferrable=deferrable, initially=initially,
-          ondelete=ondelete, onupdate=onupdate)
+    fk = ForeignKey(
+        '%s.%s' % (subcls.Attributes.table_name, pk_key),
+        use_alter=True,
+        name='%s_%s_fkey' % (subcls.Attributes.table_name, fk_col_name),
+        deferrable=deferrable, initially=initially,
+        ondelete=ondelete, onupdate=onupdate,
+    )
 
-    return Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
+    return Column(fk_col_name, pk_sqla_type, fk, **col_kwargs)
 
 
 def _get_col_o2m(cls, fk_col_name, deferrable=None, initially=None,
@@ -332,7 +348,7 @@ def _get_col_o2m(cls, fk_col_name, deferrable=None, initially=None,
     fk = ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key),
                                      deferrable=deferrable, initially=initially,
                                            ondelete=ondelete, onupdate=onupdate)
-    col = Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
+    col = Column(fk_col_name, pk_sqla_type, fk, **col_kwargs)
 
     yield col
 
@@ -394,10 +410,11 @@ def _gen_index_info(table, col, k, v):
         index_args = (index_name, col), dict(unique=unique)
     else:
         index_args = (index_name, col), dict(unique=unique,
-                                  postgresql_using=index_method)
+                                                  postgresql_using=index_method)
 
     if isinstance(table, _FakeTable):
         table.indexes.append(index_args)
+
     else:
         indexes = dict([(idx.name, idx) for idx in col.table.indexes])
         existing_idx = indexes.get(index_name, None)
@@ -469,12 +486,18 @@ def _add_simple_type(cls, props, table, subname, subcls, sqla_type):
     _sp_attrs_to_sqla_constraints(cls, subcls, col_kwargs)
 
     mp = getattr(subcls.Attributes, 'mapper_property', None)
+
+    if 'name' in col_kwargs:
+        colname = col_kwargs.pop('name')
+    else:
+        colname = subname
+
     if not subcls.Attributes.exc_db:
-        if subname in table.c:
-            col = table.c[subname]
+        if colname in table.c:
+            col = table.c[colname]
 
         else:
-            col = Column(subname, sqla_type, *col_args, **col_kwargs)
+            col = Column(colname, sqla_type, *col_args, **col_kwargs)
             table.append_column(col)
             _gen_index_info(table, col, subname, subcls)
 
@@ -655,7 +678,8 @@ def _gen_array_simple(cls, props, subname, arrser_cust, storage):
     props["_" + subname] = relationship(cls_)
 
     # generate association proxy
-    setattr(cls, subname, association_proxy("_" + subname, child_right_col_name))
+    setattr(cls, subname,
+                         association_proxy("_" + subname, child_right_col_name))
 
 
 def _gen_array_o2m(cls, props, subname, arrser, arrser_cust, storage):
@@ -802,12 +826,17 @@ def _add_complex_type_as_table(cls, props, table, subname, subcls, storage,
 
 def _add_complex_type_as_xml(cls, props, table, subname, subcls, storage,
                                                           col_args, col_kwargs):
-    if subname in table.c:
-        col = table.c[subname]
+    if 'name' in col_kwargs:
+        colname = col_kwargs.pop('name')
+    else:
+        colname = subname
+
+    if colname in table.c:
+        col = table.c[colname]
     else:
         t = PGObjectXml(subcls, storage.root_tag, storage.no_ns,
                                                            storage.pretty_print)
-        col = Column(subname, t, *col_args, **col_kwargs)
+        col = Column(colname, t, **col_kwargs)
 
     props[subname] = col
     if not subname in table.c:
@@ -815,13 +844,19 @@ def _add_complex_type_as_xml(cls, props, table, subname, subcls, storage,
 
 
 def _add_complex_type_as_json(cls, props, table, subname, subcls, storage,
-                                                          col_args, col_kwargs):
-    if subname in table.c:
-        col = table.c[subname]
+                                                     col_args, col_kwargs, dbt):
+    if 'name' in col_kwargs:
+        colname = col_kwargs.pop('name')
+    else:
+        colname = subname
+
+    if colname in table.c:
+        col = table.c[colname]
+
     else:
         t = PGObjectJson(subcls, ignore_wrappers=storage.ignore_wrappers,
-                                                  complex_as=storage.complex_as)
-        col = Column(subname, t, *col_args, **col_kwargs)
+                                         complex_as=storage.complex_as, dbt=dbt)
+        col = Column(colname, t, **col_kwargs)
 
     props[subname] = col
     if not subname in table.c:
@@ -844,7 +879,10 @@ def _add_complex_type(cls, props, table, subname, subcls):
                                                   storage, col_args, col_kwargs)
     if isinstance(storage, c_json):
         return _add_complex_type_as_json(cls, props, table, subname, subcls,
-                                                  storage, col_args, col_kwargs)
+                                         storage, col_args, col_kwargs, 'json')
+    if isinstance(storage, c_jsonb):
+        return _add_complex_type_as_json(cls, props, table, subname, subcls,
+                                         storage, col_args, col_kwargs, 'jsonb')
     if isinstance(storage, c_msgpack):
         raise NotImplementedError(c_msgpack)
 
@@ -933,10 +971,14 @@ def _add_file_type(cls, props, table, subname, subcls):
             #FIXME: Add support for storage markers from spyne.model.complex
             if storage.db_format == 'json':
                 t = PGFileJson(storage.store, storage.type)
+
+            elif storage.db_format == 'jsonb':
+                t = PGFileJson(storage.store, storage.type, dbt='jsonb')
+
             else:
                 raise NotImplementedError(storage.db_format)
 
-            col = Column(subname, t, *col_args, **col_kwargs)
+            col = Column(subname, t, **col_kwargs)
 
         props[subname] = col
         if not subname in table.c:
@@ -977,6 +1019,9 @@ def _parent_mapper_has_property(cls, cls_bases, k):
         return False
 
     for b in cls_bases:
+        if not hasattr(b, 'Attributes'):
+            continue
+
         mapper = b.Attributes.sqla_mapper
         if mapper is not None and mapper.has_property(k):
             # print("    Skipping mapping field", "%s.%s" % (cls.__name__, k),

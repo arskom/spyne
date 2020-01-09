@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import io
 import os
 import re
 import sys
@@ -33,11 +34,11 @@ OWN_PATH = abspath(inspect.getfile(inspect.currentframe()))
 EXAMPLES_DIR = join(dirname(OWN_PATH), 'examples')
 PYVER = ''.join([str(i) for i in sys.version_info[:2]])
 
-v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
-VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
+with io.open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r') as v:
+    VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 
-SHORT_DESC="""A transport and architecture agnostic rpc library that focuses on
-exposing public services with a well-defined API."""
+SHORT_DESC="A transport and architecture agnostic rpc library that focuses on" \
+" exposing public services with a well-defined API."
 
 LONG_DESC = """Homepage: http://spyne.io
 
@@ -49,7 +50,8 @@ protocols and transports.
 
 try:
     os.stat('CHANGELOG.rst')
-    LONG_DESC += "\n\n" + open('CHANGELOG.rst', 'r').read()
+    with io.open('CHANGELOG.rst', 'rb') as f:
+        LONG_DESC += u"\n\n" + f.read().decode('utf8')
 except OSError:
     pass
 
@@ -111,7 +113,6 @@ def run_tests_and_create_report(report_name, *tests, **kwargs):
 
     args = [
         '--verbose',
-        '--twisted',
         '--cov-report=', '--cov', 'spyne',
         '--cov-append',
         '--tb=short',
@@ -150,7 +151,6 @@ def call_pytest_subprocess(*tests, **kwargs):
 
     args = [
         '--verbose',
-        '--twisted',
         '--cov-append',
         '--cov-report=',
         '--cov', 'spyne',
@@ -199,11 +199,17 @@ class ExtendedTestCommand(TestCommand):
 
 class RunTests(ExtendedTestCommand):
     def run_tests(self):
-        print("Running tests")
-        ret = 0
+        cfn = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),
+                                                                      'tox.ini')
+        from collections import OrderedDict
+        djenvs = tuple(OrderedDict(((k, None) for k in
+                            re.findall('py%s-dj[0-9]+' % PYVER,
+                                open(cfn, 'rb').read().decode('utf8')))).keys())
 
+        print("Running tests, including djenvs", djenvs)
+        ret = 0
         tests = [
-            'interface', 'model', 'multipython', 'protocol',
+            'interface', 'model', 'multipython', 'protocol', 'util',
 
             'interop/test_pyramid.py',
             'interop/test_soap_client_http_twisted.py',
@@ -213,7 +219,6 @@ class RunTests(ExtendedTestCommand):
             'test_null_server.py',
             'test_service.py',
             'test_soft_validation.py',
-            'test_util.py',
             'test_sqlalchemy.py',
             'test_sqlalchemy_deprecated.py',
         ]
@@ -232,45 +237,8 @@ class RunTests(ExtendedTestCommand):
                                                     capture=self.capture) or ret
             ret = call_pytest_subprocess('interop/test_zeep.py',
                                                     capture=self.capture) or ret
-
-        ret = call_tox_subprocess('py%s-dj18' % PYVER) or ret
-        ret = call_tox_subprocess('py%s-dj19' % PYVER) or ret
-        ret = call_tox_subprocess('py%s-dj110' % PYVER) or ret
-
-        if ret == 0:
-            print(GREEN + "All that glisters is not gold." + RESET)
-        else:
-            print(RED + "Something is rotten in the state of Denmark." + RESET)
-
-        print ("Generating coverage.xml")
-        call_coverage()
-
-        raise SystemExit(ret)
-
-
-class RunPython3Tests(TestCommand):
-    """Run tests compatible with different python implementations. """
-
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        file_name = 'test_result_py3.xml'
-        ret = run_tests_and_create_report(file_name,
-            'multipython',
-            'interface/test_interface.py',
-            'interface/wsdl/test_wsdl_ports_services.py',
-            'model/test_enum.py',
-            'model/test_exception.py',
-            'model/test_include.py',
-            'protocol/test_xml.py',
-            'protocol/test_soap11.py',
-            'protocol/test_soap12.py',
-        )
-        ret = call_tox_subprocess('py%s-dj1{8,9,10}' % PYVER) or ret
+        for djenv in djenvs:
+            ret = call_tox_subprocess(djenv) or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)
@@ -301,6 +269,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         #'Programming Language :: Python :: Implementation :: Jython',
         'Programming Language :: Python :: Implementation :: PyPy',
@@ -310,9 +279,8 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    keywords=('soap', 'wsdl', 'wsgi', 'zeromq', 'rest', 'rpc', 'json', 'http',
-              'msgpack', 'xml', 'django', 'pyramid', 'postgresql', 'sqlalchemy',
-              'twisted', 'yaml'),
+    keywords='soap wsdl wsgi zeromq rest rpc json http msgpack xml'
+             ' django pyramid postgresql sqlalchemy twisted yaml',
     author='Burak Arslan',
     author_email='burak+package@spyne.io',
     maintainer='Burak Arslan',
@@ -332,6 +300,5 @@ setup(
 
     cmdclass = {
         'test': RunTests,
-        'test_python3': RunPython3Tests
     },
 )

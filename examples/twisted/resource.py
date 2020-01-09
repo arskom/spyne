@@ -75,7 +75,7 @@ from twisted.internet.task import deferLater
 from twisted.python import log
 
 from spyne import Unicode, Integer, Double, ByteArray, Iterable, rpc, \
-    ServiceBase, Application
+    Service, Application
 from spyne.server.twisted import TwistedWebResource
 from spyne.protocol.http import HttpRpc
 
@@ -83,7 +83,7 @@ HOST = '0.0.0.0'
 PORT = 9758
 
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc(Integer, _returns=Integer)
     def block(ctx, seconds):
         """Blocks the current thread for given number of seconds."""
@@ -91,7 +91,7 @@ class SomeService(ServiceBase):
         return seconds
 
 
-class SomeNonBlockingService(ServiceBase):
+class SomeNonBlockingService(Service):
     @rpc(Integer, _returns=Unicode)
     def sleep(ctx, seconds):
         """Waits without blocking reactor for given number of seconds by

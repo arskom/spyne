@@ -41,8 +41,11 @@ from spyne.protocol.dictdoc import HierDictDocument
 
 
 class MessagePackDecodeError(Fault):
+    CODE = "Client.MessagePackDecodeError"
+
     def __init__(self, data=None):
-        super(MessagePackDecodeError, self).__init__("Client.MessagePackDecodeError", data)
+        super(MessagePackDecodeError, self) \
+                                .__init__(self.CODE, data)
 
 
 NON_NUMBER_TYPES = tuple({list, dict, six.text_type, six.binary_type})
@@ -58,7 +61,7 @@ class MessagePackDocument(HierDictDocument):
     type.add('msgpack')
 
     default_string_encoding = 'UTF-8'
-    from_serstr = HierDictDocument.from_string
+    from_serstr = HierDictDocument.from_bytes
     to_serstr = HierDictDocument.to_bytes
 
     # flags to be used in tests
@@ -73,16 +76,18 @@ class MessagePackDocument(HierDictDocument):
                                         ordered=False,
                                         polymorphic=False,
                                         # MessagePackDocument specific
-                                        use_list=False):
+                                        use_list=False,
+                                        mw_unpacker=msgpack.Unpacker):
 
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
                 ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
 
         self.use_list = use_list
+        self.mw_unpacker = mw_unpacker
 
-        self._from_string_handlers[Double] = self._ret_number
-        self._from_string_handlers[Boolean] = self._ret_bool
-        self._from_string_handlers[Integer] = self.integer_from_string
+        self._from_bytes_handlers[Double] = self._ret_number
+        self._from_bytes_handlers[Boolean] = self._ret_bool
+        self._from_bytes_handlers[Integer] = self.integer_from_bytes
 
         self._to_bytes_handlers[Double] = self._ret_number
         self._to_bytes_handlers[Boolean] = self._ret_bool
@@ -119,17 +124,20 @@ class MessagePackDocument(HierDictDocument):
             argument is ignored.
         """
 
-        # TODO: Use feed api as msgpack's implementation reads everything in one
-        # go anyway.
-
         # handle mmap objects from in ctx.in_string as returned by
         # TwistedWebResource.handle_rpc.
-        in_string = ((s.read(s.size()) if hasattr(s, 'read') else s)
-                                                         for s in ctx.in_string)
-        try:
-            ctx.in_document = msgpack.unpackb(b''.join(in_string))
-        except ValueError as e:
-            raise MessagePackDecodeError(''.join(e.args))
+        if isinstance(ctx.in_string, (list, tuple)) \
+                               and len(ctx.in_string) == 1 \
+                               and isinstance(ctx.in_string[0], memoryview):
+            unpacker = self.mw_unpacker(use_list=self.use_list)
+            unpacker.feed(ctx.in_string[0])
+            ctx.in_document = next(x for x in unpacker)
+
+        else:
+            try:
+                ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string))
+            except ValueError as e:
+                raise MessagePackDecodeError(' '.join(e.args))
 
     def gen_method_request_string(self, ctx):
         """Uses information in context object to return a method_request_string.
@@ -138,7 +146,7 @@ class MessagePackDocument(HierDictDocument):
         """
 
         mrs, = ctx.in_body_doc.keys()
-        if six.PY3:
+        if not six.PY2:
             mrs = mrs.decode('utf8')
 
         return '{%s}%s' % (self.app.interface.get_tns(), mrs)
@@ -146,12 +154,11 @@ class MessagePackDocument(HierDictDocument):
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
-    def integer_from_string(self, cls, value):
+    def integer_from_bytes(self, cls, value):
         if isinstance(value, (six.text_type, six.binary_type)):
             return super(MessagePackDocument, self) \
-                                                .integer_from_string(cls, value)
-        else:
-            return value
+                                                .integer_from_bytes(cls, value)
+        return value
 
     def integer_to_bytes(self, cls, value, **_):
         # if it's inside the range msgpack can deal with
@@ -169,6 +176,7 @@ class MessagePackRpc(MessagePackDocument):
     MSGPACK_REQUEST = 0
     MSGPACK_RESPONSE = 1
     MSGPACK_NOTIFY = 2
+    MSGPACK_ERROR = 3
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
@@ -238,8 +246,8 @@ class MessagePackRpc(MessagePackDocument):
         else:
             ctx.in_body_doc = msgparams
 
-        logger.debug('\theader : %r', ctx.in_header_doc)
-        logger.debug('\tbody   : %r', ctx.in_body_doc)
+        # logger.debug('\theader : %r', ctx.in_header_doc)
+        # logger.debug('\tbody   : %r', ctx.in_body_doc)
 
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
@@ -277,8 +285,8 @@ class MessagePackRpc(MessagePackDocument):
 
         if ctx.out_error is not None:
             ctx.out_document = [
-                [MessagePackRpc.MSGPACK_RESPONSE, 0,
-                           Fault.to_dict(ctx.out_error.__class__, ctx.out_error)]
+                [MessagePackRpc.MSGPACK_ERROR, 0,
+                          Fault.to_dict(ctx.out_error.__class__, ctx.out_error)]
             ]
             return
 
@@ -306,8 +314,8 @@ class MessagePackRpc(MessagePackDocument):
 
         # assign raw result to its wrapper, result_message
         for i, (k, v) in enumerate(out_type_info.items()):
-            attr_name = k
-            out_instance._safe_set(attr_name, ctx.out_object[i], v)
+            attrs = self.get_cls_attrs(v)
+            out_instance._safe_set(k, ctx.out_object[i], v, attrs)
 
         # transform the results into a dict:
         if out_type.Attributes.max_occurs > 1:

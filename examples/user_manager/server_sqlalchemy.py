@@ -53,7 +53,7 @@ from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
 from spyne.model.primitive import UnsignedInteger32
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 
 db = create_engine('sqlite:///:memory:')
@@ -87,7 +87,7 @@ class User(TableModel):
     permissions = Array(Permission).store_as('table')
 
 
-class UserManagerService(ServiceBase):
+class UserManagerService(Service):
     @rpc(Mandatory.UnsignedInteger32, _returns=User)
     def get_user(ctx, user_id):
         return ctx.udc.session.query(User).filter_by(id=user_id).one()
@@ -158,11 +158,11 @@ class MyApplication(Application):
         except NoResultFound:
             raise ResourceNotFoundError(ctx.in_object)
 
-        except Fault, e:
+        except Fault as e:
             logging.error(e)
             raise
 
-        except Exception, e:
+        except Exception as e:
             logging.exception(e)
             raise InternalError(e)
 

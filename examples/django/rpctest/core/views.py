@@ -36,11 +36,11 @@ from spyne.error import ResourceNotFoundError, ResourceAlreadyExistsError
 from spyne.server.django import DjangoApplication
 from spyne.model.primitive import Unicode, Integer
 from spyne.model.complex import Iterable
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.protocol.soap import Soap11
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.util.django import DjangoComplexModel, DjangoServiceBase
+from spyne.util.django import DjangoComplexModel, DjangoService
 
 from rpctest.core.models import FieldContainer
 
@@ -51,14 +51,14 @@ class Container(DjangoComplexModel):
         django_exclude = ['excluded_field']
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(ctx, name, times):
         for i in range(times):
             yield 'Hello, %s' % name
 
 
-class ContainerService(ServiceBase):
+class ContainerService(Service):
     @rpc(Integer, _returns=Container)
     def get_container(ctx, pk):
         try:
@@ -73,7 +73,7 @@ class ContainerService(ServiceBase):
         except IntegrityError:
             raise ResourceAlreadyExistsError('Container')
 
-class ExceptionHandlingService(DjangoServiceBase):
+class ExceptionHandlingService(DjangoService):
 
     """Service for testing exception handling."""
 
@@ -83,7 +83,7 @@ class ExceptionHandlingService(DjangoServiceBase):
 
     @rpc(_returns=Container)
     def raise_validation_error(ctx):
-        raise ValidationError('Is not valid.')
+        raise ValidationError(None, 'Invalid.')
 
 
 app = Application([HelloWorldService, ContainerService,

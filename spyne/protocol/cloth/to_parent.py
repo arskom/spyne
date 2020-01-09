@@ -73,7 +73,7 @@ class ToParentMixin(OutProtocolBase):
         """This is what subserialize calls"""
 
         # if no doctype was written, write it
-        if not getattr(ctx.protocol, 'doctype_written', False):
+        if not ctx.outprot_ctx.doctype_written:
             self.write_doctype(ctx, parent)
 
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
@@ -99,7 +99,7 @@ class ToParentMixin(OutProtocolBase):
         cls, switched = self.get_polymorphic_target(cls, inst)
         cls_attrs = self.get_cls_attrs(cls)
 
-        inst = self._cast(cls_attrs, inst)
+        inst = self._sanitize(cls_attrs, inst)
 
         # if there is a subprotocol, switch to it
         subprot = self.get_subprot(ctx, cls_attrs, nosubprot)
@@ -167,7 +167,8 @@ class ToParentMixin(OutProtocolBase):
                     # of instances at hand.
                     ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
                     pushed = True
-                    logger.debug("%s %r pushed %r %r", R("$"), self, cls, inst)
+                    logger.debug("%s %r pushed %r using %r",
+                                                     R("$"), self, cls, handler)
 
                     # disabled for performance reasons
                     # from spyne.util.web import log_repr
@@ -177,8 +178,7 @@ class ToParentMixin(OutProtocolBase):
                     # logger.debug("Writing %s using %s for %s. Inst: %r", name,
                     #                  identifier, cls.get_type_name(), log_str)
 
-                    # finally, serialize the value. retval is the coroutine
-                    # handle if any
+                    # finally, serialize the value. ret is the coroutine handle
                     ret = handler(ctx, cls, inst, parent, name, **kwargs)
 
         if isgenerator(ret):
@@ -230,7 +230,8 @@ class ToParentMixin(OutProtocolBase):
                 while True:
                     sv = (yield)
 
-                    ctx.protocol.inst_stack.append(sv)
+                    # disabled because to_parent is supposed to take care of this
+                    #ctx.protocol.inst_stack.append((cls, sv, True))
                     kwargs['from_arr'] = True
                     kwargs['array_index'] = i
 
@@ -254,15 +255,17 @@ class ToParentMixin(OutProtocolBase):
                                 pass
 
                         finally:
-                            popped_val = ctx.protocol.inst_stack.pop()
-                            assert popped_val is sv
+                            # disabled because to_parent is supposed to take care of this
+                            #popped_val = ctx.protocol.inst_stack.pop()
+                            #assert popped_val is sv
 
                             if ser_subprot is not None:
                                 ser_subprot.column_table_before_row(ctx, cls,
                                                    inst, parent, name, **kwargs)
                     else:
-                        popped_val = ctx.protocol.inst_stack.pop()
-                        assert popped_val is sv
+                        # disabled because to_parent is supposed to take care of this
+                        #popped_val = ctx.protocol.inst_stack.pop()
+                        #assert popped_val is sv
 
                         if ser_subprot is not None:
                             ser_subprot.column_table_after_row(ctx, cls, inst,
@@ -276,7 +279,8 @@ class ToParentMixin(OutProtocolBase):
             assert isinstance(inst, Iterable), ("%r is not iterable" % (inst,))
 
             for i, sv in enumerate(inst):
-                ctx.protocol.inst_stack.append(sv)
+                # disabled because to_parent is supposed to take care of this
+                #ctx.protocol.inst_stack.append((cls, sv, True)
                 kwargs['from_arr'] = True
                 kwargs['array_index'] = i
 
@@ -298,16 +302,18 @@ class ToParentMixin(OutProtocolBase):
                             pass
 
                     finally:
-                        popped_val = ctx.protocol.inst_stack.pop()
-                        assert popped_val is sv
+                        # disabled because to_parent is supposed to take care of this
+                        #popped_val = ctx.protocol.inst_stack.pop()
+                        #assert popped_val is sv
 
                         if ser_subprot is not None:
                             ser_subprot.column_table_after_row(ctx, cls, inst,
                                                          parent, name, **kwargs)
 
                 else:
-                    popped_val = ctx.protocol.inst_stack.pop()
-                    assert popped_val is sv
+                    # disabled because to_parent is supposed to take care of this
+                    #popped_val = ctx.protocol.inst_stack.pop()
+                    #assert popped_val is sv
 
                     if ser_subprot is not None:
                         ser_subprot.column_table_after_row(ctx, cls, inst,

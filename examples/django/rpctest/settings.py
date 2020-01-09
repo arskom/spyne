@@ -42,6 +42,8 @@ MANAGERS = ADMINS
 
 db_name = os.path.join(tempfile.gettempdir(), 'rpctest.sqlite')
 
+ALLOWED_HOSTS = ['newtestserver']
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.

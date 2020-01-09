@@ -40,7 +40,7 @@ _mac_validate = {
 
 _MacBase = Unicode(max_len=17, min_len=17, pattern=_PATT_MAC)
 class MacAddress(_MacBase):
-    """Unicode subclass for Universially-Unique Identifiers."""
+    """Unicode subclass for a MAC address."""
 
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'addr_mac'
@@ -57,8 +57,8 @@ class MacAddress(_MacBase):
         return SimpleModel.validate_native(cls, value)
 
 
-_PATT_IPV4_FRAG = "(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])"
-_PATT_IPV4 = "(%(P4)s\.){3,3}%(P4)s" % {'P4': _PATT_IPV4_FRAG}
+_PATT_IPV4_FRAG = r"(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])"
+_PATT_IPV4 = r"(%(P4)s\.){3,3}%(P4)s" % {'P4': _PATT_IPV4_FRAG}
 
 
 _ipv4_validate = {
@@ -69,7 +69,7 @@ _ipv4_validate = {
 
 _Ipv4Base = Unicode(15, pattern=_PATT_IPV4)
 class Ipv4Address(_Ipv4Base):
-    """Unicode subclass for Universially-Unique Identifiers."""
+    """Unicode subclass for an IPv4 address."""
 
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'addr_ipv4'
@@ -112,7 +112,7 @@ _ipv6_validate = {
 
 _Ipv6Base = Unicode(45, pattern=_PATT_IPV6)
 class Ipv6Address(_Ipv6Base):
-    """Unicode subclass for Universially-Unique Identifiers."""
+    """Unicode subclass for an IPv6 address."""
 
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'addr_ipv6'
@@ -140,12 +140,12 @@ _ip_validate = {
 
 _IpAddressBase = Unicode(45, pattern=_PATT_IPV4V6)
 class IpAddress(_IpAddressBase):
-    """Unicode subclass for Universially-Unique Identifiers."""
+    """Unicode subclass for an IPv4 or IPv6 address."""
 
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'addr_ip'
 
-    class Attributes(_Ipv6Base.Attributes):
+    class Attributes(_IpAddressBase.Attributes):
         serialize_as = None
 
     @staticmethod
@@ -155,4 +155,3 @@ class IpAddress(_IpAddressBase):
     @staticmethod
     def validate_native(cls, value):
         return SimpleModel.validate_native(cls, value)
-

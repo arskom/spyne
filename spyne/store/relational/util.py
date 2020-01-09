@@ -97,13 +97,13 @@ def database_exists(url):
     Performs backend-specific testing to quickly determine if a database
     exists on the server. ::
 
-        database_exists('postgres://postgres@localhost/name')  #=> False
-        create_database('postgres://postgres@localhost/name')
-        database_exists('postgres://postgres@localhost/name')  #=> True
+        database_exists('postgresql://postgres@localhost/name')  #=> False
+        create_database('postgresql://postgres@localhost/name')
+        database_exists('postgresql://postgres@localhost/name')  #=> True
 
     Supports checking against a constructed URL as well. ::
 
-        engine = create_engine('postgres://postgres@localhost/name')
+        engine = create_engine('postgresql://postgres@localhost/name')
         database_exists(engine.url)  #=> False
         create_database(engine.url)
         database_exists(engine.url)  #=> True
@@ -112,9 +112,9 @@ def database_exists(url):
 
     url = copy(make_url(url))
     database = url.database
-    if url.drivername.startswith('postgresql'):
-        url.database = 'template1'
-    else:
+    if url.drivername.startswith('postgres'):
+        url.database = 'postgres'
+    elif not url.drivername.startswith('sqlite'):
         url.database = None
 
     engine = create_engine(url)
@@ -143,19 +143,20 @@ def database_exists(url):
             return False
 
 
-def create_database(url, encoding='utf8', template=None):
+def create_database(url, encoding='utf8', psql_template='template1'):
     """Issue the appropriate CREATE DATABASE statement.
 
     :param url: A SQLAlchemy engine URL.
     :param encoding: The encoding to create the database as.
-    :param template:
-        The name of the template from which to create the new database. At the
-        moment only supported by PostgreSQL driver.
+    :param psql_template:
+        The name of the template from which to create the new database,
+        only supported by PostgreSQL driver. As per Postgresql docs, defaults to
+        "template1".
 
     To create a database, you can pass a simple URL that would have
     been passed to ``create_engine``. ::
 
-        create_database('postgres://postgres@localhost/name')
+        create_database('postgresql://postgres@localhost/name')
 
     You may also pass the url from an existing engine. ::
 
@@ -169,8 +170,8 @@ def create_database(url, encoding='utf8', template=None):
 
     database = url.database
 
-    if url.drivername.startswith('postgresql'):
-        url.database = 'template1'
+    if url.drivername.startswith('postgres'):
+        url.database = 'postgres'
     elif not url.drivername.startswith('sqlite'):
         url.database = None
 
@@ -183,13 +184,10 @@ def create_database(url, encoding='utf8', template=None):
                 ISOLATION_LEVEL_AUTOCOMMIT
             )
 
-        if not template:
-            template = 'template0'
-
         text = "CREATE DATABASE {0} ENCODING '{1}' TEMPLATE {2}".format(
             quote(engine, database),
             encoding,
-            quote(engine, template)
+            quote(engine, psql_template)
         )
         engine.execute(text)
 
@@ -216,7 +214,7 @@ def drop_database(url):
     Works similar to the :ref:`create_database` method in that both url text
     and a constructed url are accepted. ::
 
-        drop_database('postgres://postgres@localhost/name')
+        drop_database('postgresql://postgres@localhost/name')
         drop_database(engine.url)
 
     """

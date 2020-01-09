@@ -20,23 +20,25 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import sys
-import datetime
-
 from spyne.util import six
 
-from spyne.util.six import PY3
-
+from spyne.util.coopmt import keepfirst
 from spyne.util.coopmt import coroutine
 from spyne.util.coopmt import Break
 
 from spyne.util.memo import memoize
+from spyne.util.memo import memoize_first
+from spyne.util.memo import memoize_ignore
+from spyne.util.memo import memoize_ignore_none
 from spyne.util.memo import memoize_id
-from spyne.util.memo import memoize_id_method
 
 from spyne.util.attrdict import AttrDict
 from spyne.util.attrdict import AttrDictColl
 from spyne.util.attrdict import DefaultAttrDict
+
+from spyne.util._base import utctime
+from spyne.util._base import get_version
+
 
 try:
     import thread
@@ -57,10 +59,6 @@ def split_url(url):
     scheme, remainder = splittype(url)
     host, path = splithost(remainder)
     return scheme.lower(), host, path
-
-
-def check_pyversion(*minversion):
-    return sys.version_info[:3] >= minversion
 
 
 def sanitize_args(a):
@@ -87,18 +85,9 @@ def sanitize_args(a):
     return args, kwargs
 
 
-if PY3:
-    def _bytes_join(val, joiner=b''):
-        return joiner.join(val)
-else:
+if six.PY2:
     def _bytes_join(val, joiner=''):
         return joiner.join(val)
-
-if hasattr(datetime.timedelta, 'total_seconds'):
-    total_seconds = datetime.timedelta.total_seconds
-
 else:
-    def total_seconds(td):
-        return (td.microseconds +
-                            (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
-
+    def _bytes_join(val, joiner=b''):
+        return joiner.join(val)

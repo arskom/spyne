@@ -42,7 +42,7 @@ $ curl http://localhost:8000/say_hello?name=Dave\&times=3
 import sys
 import logging
 
-from spyne import Application, rpc, ServiceBase, Iterable, UnsignedInteger, \
+from spyne import Application, rpc, Service, Iterable, UnsignedInteger, \
     String
 
 from spyne.protocol.json import JsonDocument
@@ -51,7 +51,7 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.util.cherry import cherry_graft_and_start
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(String, UnsignedInteger, _returns=Iterable(String))
     def say_hello(ctx, name, times):
         """

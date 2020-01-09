@@ -25,6 +25,7 @@ import pytz
 
 from datetime import datetime
 
+from spyne.test.interop._test_soap_client_base import server_started
 from spyne.util import thread, urlencode, urlopen, Request, HTTPError
 
 
@@ -34,10 +35,10 @@ _server_started = False
 class TestHttpRpc(unittest.TestCase):
     def setUp(self):
         global _server_started
+        from spyne.test.interop.server.httprpc_pod_basic import main, port
 
         if not _server_started:
             def run_server():
-                from spyne.test.interop.server.httprpc_pod_basic import main
                 main()
 
             thread.start_new_thread(run_server, ())
@@ -47,66 +48,68 @@ class TestHttpRpc(unittest.TestCase):
 
             _server_started = True
 
+        self.base_url = 'http://localhost:%d' % port[0]
+
     def test_404(self):
-        url = 'http://localhost:9751/404'
+        url = '%s/404' % self.base_url
         try:
             data = urlopen(url).read()
         except HTTPError as e:
             assert e.code == 404
 
     def test_413(self):
-        url = "http://localhost:9751"
+        url = self.base_url
         try:
             data = Request(url,("foo"*3*1024*1024))
         except HTTPError as e:
             assert e.code == 413
 
     def test_500(self):
-        url = 'http://localhost:9751/python_exception'
+        url = '%s/python_exception' % self.base_url
         try:
             data = urlopen(url).read()
         except HTTPError as e:
             assert e.code == 500
 
     def test_500_2(self):
-        url = 'http://localhost:9751/soap_exception'
+        url = '%s/soap_exception' % self.base_url
         try:
             data = urlopen(url).read()
         except HTTPError as e:
             assert e.code == 500
 
     def test_echo_string(self):
-        url = 'http://localhost:9751/echo_string?s=punk'
+        url = '%s/echo_string?s=punk' % self.base_url
         data = urlopen(url).read()
 
         assert data == b'punk'
 
     def test_echo_integer(self):
-        url = 'http://localhost:9751/echo_integer?i=444'
+        url = '%s/echo_integer?i=444' % self.base_url
         data = urlopen(url).read()
 
         assert data == b'444'
 
     def test_echo_datetime(self):
-        dt = datetime.now(pytz.utc).isoformat()
+        dt = datetime.now(pytz.utc).isoformat().encode('ascii')
         params = urlencode({
             'dt': dt,
         })
 
         print(params)
-        url = 'http://localhost:9751/echo_datetime?%s' % str(params)
+        url = '%s/echo_datetime?%s' % (self.base_url, str(params))
         data = urlopen(url).read()
 
         assert dt == data
 
     def test_echo_datetime_tz(self):
-        dt = datetime.now(pytz.utc).isoformat()
+        dt = datetime.now(pytz.utc).isoformat().encode('ascii')
         params = urlencode({
             'dt': dt,
         })
 
         print(params)
-        url = 'http://localhost:9751/echo_datetime?%s' % str(params)
+        url = '%s/echo_datetime?%s' % (self.base_url, str(params))
         data = urlopen(url).read()
 
         assert dt == data

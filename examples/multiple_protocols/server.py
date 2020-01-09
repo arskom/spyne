@@ -64,7 +64,7 @@ from datetime import datetime
 from protocol import PngClock
 from protocol import SvgClock
 
-from spyne import Application, rpc, srpc, DateTime, String, ServiceBase
+from spyne import Application, rpc, srpc, DateTime, String, Service
 from spyne.protocol.html import HtmlMicroFormat
 from spyne.protocol.http import HttpPattern, HttpRpc
 from spyne.protocol.json import JsonDocument
@@ -79,7 +79,7 @@ port = 9910
 host = '127.0.0.1'
 
 
-class MultiProtService(ServiceBase):
+class MultiProtService(Service):
     @srpc(_returns=DateTime)
     def get_utc_time():
         return datetime.utcnow()
@@ -92,7 +92,7 @@ def Tsetprot(prot):
     return setprot
 
 
-class DynProtService(ServiceBase):
+class DynProtService(Service):
     protocols = {}
 
     @rpc(String(values=protocols.keys(), encoding='ascii'), _returns=DateTime,

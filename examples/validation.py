@@ -43,10 +43,10 @@ import logging
 
 from datetime import datetime
 
-from spyne import Integer, Unicode, rpc, ServiceBase
+from spyne import Integer, Unicode, rpc, Service
 
 
-class NameOfMonthService(ServiceBase):
+class NameOfMonthService(Service):
     @rpc(Integer(ge=1, le=12), _returns=Unicode)
     def get_name_of_month(ctx, month):
         return datetime(2000, month, 1).strftime("%B")

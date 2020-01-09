@@ -52,7 +52,7 @@ import logging
 
 from time import time
 
-from spyne import Application, rpc, ServiceBase, String, Integer
+from spyne import Application, rpc, Service, String, Integer
 
 from spyne.server.wsgi import WsgiApplication
 from spyne.protocol.json import JsonDocument
@@ -67,7 +67,7 @@ class UserDefinedContext(object):
         self.method_end = None
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(String, Integer, _returns=String(max_occurs='unbounded'))
     def say_hello(ctx, name, times):
         results = []

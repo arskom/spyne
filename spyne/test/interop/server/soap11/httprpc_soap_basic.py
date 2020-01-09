@@ -27,22 +27,28 @@ from spyne.test.interop.server._service import services
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
+from spyne.test.interop.server import get_open_port
+
 
 httprpc_soap_application = Application(services,
     'spyne.test.interop.server.httprpc.soap', in_protocol=HttpRpc(), out_protocol=Soap11())
 
+
 host = '127.0.0.1'
-port = 9753
+port = [0]
+
 
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
+        if port[0] == 0:
+            port[0] = get_open_port()
 
         wsgi_application = WsgiApplication(httprpc_soap_application)
-        server = make_server(host, port, validator(wsgi_application))
+        server = make_server(host, port[0], validator(wsgi_application))
 
-        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9753))
+        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', port[0]))
         logger.info('WSDL is at: /?wsdl')
         server.serve_forever()
 

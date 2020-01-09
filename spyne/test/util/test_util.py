@@ -2,10 +2,12 @@
 
 from __future__ import print_function
 
-import unittest
-import pytz
-import decimal
 import json
+import decimal
+import unittest
+
+import pytz
+import sqlalchemy
 
 from pprint import pprint
 from decimal import Decimal as D
@@ -18,7 +20,7 @@ from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.decorator import srpc
 from spyne.application import Application
 
-from spyne.model.complex import XmlAttribute
+from spyne.model.complex import XmlAttribute, TypeInfo
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.complex import Array
@@ -27,9 +29,10 @@ from spyne.model.primitive import DateTime
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
 
-from spyne.service import ServiceBase
+from spyne.service import Service
 
-from spyne.util import AttrDict, AttrDictColl
+from spyne.util import AttrDict, AttrDictColl, get_version
+from spyne.util import memoize, memoize_ignore_none, memoize_ignore, memoize_id
 
 from spyne.util.protocol import deserialize_request_string
 
@@ -37,11 +40,50 @@ from spyne.util.dictdoc import get_dict_as_object, get_object_as_yaml, \
     get_object_as_json
 from spyne.util.dictdoc import get_object_as_dict
 from spyne.util.tdict import tdict
+from spyne.util.tlist import tlist
 
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
 from spyne.util.xml import get_schema_documents
 from spyne.util.xml import get_validation_schema
+
+
+class TestUtil(unittest.TestCase):
+    def test_version(self):
+        assert get_version('sqlalchemy') == get_version(sqlalchemy)
+        assert '.'.join([str(i) for i in get_version('sqlalchemy')]) == \
+                                                          sqlalchemy.__version__
+
+
+class TestTypeInfo(unittest.TestCase):
+    def test_insert(self):
+        d = TypeInfo()
+
+        d['a'] = 1
+        assert d[0] == d['a'] == 1
+
+        d.insert(0, ('b', 2))
+
+        assert d[1] == d['a'] == 1
+        assert d[0] == d['b'] == 2
+
+    def test_insert_existing(self):
+        d = TypeInfo()
+
+        d["a"] = 1
+        d["b"] = 2
+        assert d[1] == d['b'] == 2
+
+        d.insert(0, ('b', 3))
+        assert d[1] == d['a'] == 1
+        assert d[0] == d['b'] == 3
+
+    def test_update(self):
+        d = TypeInfo()
+        d["a"] = 1
+        d.update([('b', 2)])
+        assert d[0] == d['a'] == 1
+        assert d[1] == d['b'] == 2
 
 
 class TestXml(unittest.TestCase):
@@ -158,6 +200,7 @@ class TestCDict(unittest.TestCase):
             pass
         else:
             raise Exception("Must fail.")
+
 
 class TestTDict(unittest.TestCase):
     def test_tdict_notype(self):
@@ -301,7 +344,7 @@ class TestDeserialize(unittest.TestCase):
     def test_deserialize(self):
         from spyne.protocol.soap import Soap11
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Integer, _returns=Iterable(Integer))
             def some_call(yo):
                 return range(yo)
@@ -390,6 +433,7 @@ class TestDictDoc(unittest.TestCase):
             print(c)
             assert o == c
 
+
 class TestAttrDict(unittest.TestCase):
     def test_attr_dict(self):
         assert AttrDict(a=1)['a'] == 1
@@ -398,6 +442,7 @@ class TestAttrDict(unittest.TestCase):
         assert AttrDictColl('SomeDict').SomeDict.NAME == 'SomeDict'
         assert AttrDictColl('SomeDict').SomeDict(a=1)['a'] == 1
         assert AttrDictColl('SomeDict').SomeDict(a=1).NAME == 'SomeDict'
+
 
 class TestYaml(unittest.TestCase):
     def test_deser(self):
@@ -410,6 +455,7 @@ class TestYaml(unittest.TestCase):
     a: burak
     b: '30'
 """
+
 
 class TestJson(unittest.TestCase):
     def test_deser(self):
@@ -424,6 +470,7 @@ class TestJson(unittest.TestCase):
         ret = get_object_as_json(C(a='burak', b=D(30)), C, complex_as=dict)
         assert json.loads(ret.decode('utf8')) == \
                                         json.loads(u'{"a": "burak", "b": "30"}')
+
 
 class TestFifo(unittest.TestCase):
     def test_msgpack_fifo(self):
@@ -453,6 +500,101 @@ class TestFifo(unittest.TestCase):
 
         unpacker.feed(s3[4:])
         assert next(iter(unpacker)) == v3
+
+
+class TestTlist(unittest.TestCase):
+    def test_tlist(self):
+        tlist([], int)
+
+        a = tlist([1, 2], int)
+        a.append(3)
+        a += [4]
+        a = [5] + [a]
+        a = a + [6]
+        a[0] = 1
+        a[5:] = [5]
+
+        try:
+            tlist([1, 2, 'a'], int)
+            a.append('a')
+            a += ['a']
+            _ = ['a'] + a
+            _ = a + ['a']
+            a[0] = 'a'
+            a[0:] = 'a'
+
+        except TypeError:
+            pass
+        else:
+            raise Exception("Must fail")
+
+
+class TestMemoization(unittest.TestCase):
+    def test_memoize(self):
+        counter = [0]
+        @memoize
+        def f(arg):
+            counter[0] += 1
+            print(arg, counter)
+
+        f(1)
+        f(1)
+        assert counter[0] == 1
+
+        f(2)
+        assert counter[0] == 2
+
+    def test_memoize_ignore_none(self):
+        counter = [0]
+        @memoize_ignore_none
+        def f(arg):
+            counter[0] += 1
+            print(arg, counter)
+            return arg
+
+        f(None)
+        f(None)
+        assert counter[0] == 2
+
+        f(1)
+        assert counter[0] == 3
+        f(1)
+        assert counter[0] == 3
+
+    def test_memoize_ignore_values(self):
+        counter = [0]
+        @memoize_ignore((1,))
+        def f(arg):
+            counter[0] += 1
+            print(arg, counter)
+            return arg
+
+        f(1)
+        f(1)
+        assert counter[0] == 2
+
+        f(2)
+        assert counter[0] == 3
+        f(2)
+        assert counter[0] == 3
+
+    def test_memoize_id(self):
+        counter = [0]
+        @memoize_id
+        def f(arg):
+            counter[0] += 1
+            print(arg, counter)
+            return arg
+
+        d = {}
+        f(d)
+        f(d)
+        assert counter[0] == 1
+
+        f({})
+        assert counter[0] == 2
+        f({})
+        assert counter[0] == 3
 
 
 if __name__ == '__main__':

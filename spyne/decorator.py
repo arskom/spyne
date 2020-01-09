@@ -49,7 +49,8 @@ from spyne.const import add_request_suffix
 
 
 def _produce_input_message(f, params, in_message_name, in_variable_names,
-                       no_ctx, no_self, argnames, body_style_str, self_ref_cls):
+                       no_ctx, no_self, argnames, body_style_str, self_ref_cls,
+                       in_wsdl_part_name):
     arg_start = 0
     if no_ctx is False:
         arg_start += 1
@@ -75,7 +76,7 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
 
         if len(params) != len(argnames):
             raise LogicError("%r function has %d argument(s) but its decorator "
-                            "has %d." % (f.__name__, len(argnames), len(params)))
+                           "has %d." % (f.__name__, len(argnames), len(params)))
 
     else:
         argnames = copy(argnames)
@@ -107,8 +108,8 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
     message = None
     if body_style_str == 'bare':
         if len(in_params) > 1:
-            raise LogicError("body_style='bare' can handle at most one function "
-                            "argument.")
+            raise LogicError("body_style='bare' can handle at most one "
+                                                           "function argument.")
 
         if len(in_params) == 0:
             message = ComplexModel.produce(type_name=in_message_name,
@@ -130,6 +131,9 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
         message = ComplexModel.produce(type_name=in_message_name,
                                        namespace=ns, members=in_params)
         message.__namespace__ = ns
+    
+    if in_wsdl_part_name:
+        message = message.customize(wsdl_part_name=in_wsdl_part_name)
 
     return message
 
@@ -191,6 +195,8 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
                (body_style_str == 'wrapped' or _is_out_message_name_overridden):
         _out_message_name = '%s.%s' % \
                                (self_ref_cls.get_type_name(), _out_message_name)
+    
+    _out_wsdl_part_name = kparams.pop('_wsdl_part_name', None)
 
     out_params = TypeInfo()
 
@@ -215,8 +221,10 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
 
     ns = spyne.const.xml.DEFAULT_NS
     if _out_message_name.startswith("{"):
-        ns = _out_message_name[1:].partition("}")[0]
-
+        _out_message_name_parts = _out_message_name[1:].partition("}")
+        ns = _out_message_name_parts[0]  # skip index 1, it is the closing '}'
+        _out_message_name = _out_message_name_parts[2]
+        
     if body_style_str.endswith('bare') and _returns is not None:
         message = _returns.customize(sub_name=_out_message_name, sub_ns=ns)
         if message.__type_name__ is ModelBase.Empty:
@@ -228,6 +236,9 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
 
         message.Attributes._wrapper = True
         message.__namespace__ = ns  # FIXME: is this necessary?
+    
+    if _out_wsdl_part_name:
+        message = message.customize(wsdl_part_name=_out_wsdl_part_name)
 
     return message
 
@@ -283,7 +294,7 @@ def _get_event_managers(kparams):
 
 def rpc(*params, **kparams):
     """Method decorator to tag a method as a remote procedure call in a
-    :class:`spyne.service.ServiceBase` subclass.
+    :class:`spyne.service.Service` subclass.
 
     You should use the :class:`spyne.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute
@@ -340,8 +351,20 @@ def rpc(*params, **kparams):
         has no real functionality besides publishing this information in
         interface documents.
     :param _args: the name of the arguments to expose.
-    :param _service_class: A :class:`ServiceBase` subclass, if you feel like
-        overriding it.
+    :param _event_managers: An iterable of :class:`spyne.EventManager`
+        instances. This is useful for adding additional event handlers to
+        individual functions.
+    :param _event_manager: An instance of :class:`spyne.EventManager` class.
+    :param _logged: May be the string '...' to denote that the rpc arguments
+        will not be logged.
+    :param _evmgrs: Same as ``_event_managers``.
+    :param _evmgr: Same as ``_event_manager``.
+    :param _service_class: A :class:`Service` subclass. It's generally not a good idea
+        to override it for ``@rpc`` methods. It could be necessary to override
+        it for ``@mrpc`` methods to add events and other goodies.
+    :param _service: Same as ``_service``.
+    :param _wsdl_part_name: Overrides the part name attribute within wsdl input/output
+        messages eg "parameters"
     """
 
     params = list(params)
@@ -365,7 +388,7 @@ def rpc(*params, **kparams):
             _mtom = kparams.pop('_mtom', False)
             _in_header = kparams.pop('_in_header', None)
             _out_header = kparams.pop('_out_header', None)
-            _port_type = kparams.pop('_soap_port_type', None)
+            _port_type = kparams.pop('_port_type', None)
             _no_ctx = kparams.pop('_no_ctx', False)
             _aux = kparams.pop('_aux', None)
             _pattern = kparams.pop("_pattern", None)
@@ -375,7 +398,13 @@ def rpc(*params, **kparams):
             _when = kparams.pop("_when", None)
             _static_when = kparams.pop("_static_when", None)
             _href = kparams.pop("_href", None)
+            _logged = kparams.pop("_logged", True)
             _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
+            if '_service' in kparams and '_service_class' in kparams:
+                raise LogicError("Please pass only one of '_service' and "
+                                                             "'_service_class'")
+            if '_service' in kparams:
+                _service_class = kparams.pop("_service")
             if '_service_class' in kparams:
                 _service_class = kparams.pop("_service_class")
 
@@ -439,6 +468,8 @@ def rpc(*params, **kparams):
 
             else:
                 _udd = {}
+            
+            _wsdl_part_name = kparams.get('_wsdl_part_name', None)
 
             body_style = BODY_STYLE_WRAPPED
             body_style_str = _validate_body_style(kparams)
@@ -450,10 +481,15 @@ def rpc(*params, **kparams):
 
             in_message = _produce_input_message(f, params,
                     _in_message_name, _in_arg_names, _no_ctx, _no_self,
-                                    _args, body_style_str, _self_ref_replacement)
+                                   _args, body_style_str, _self_ref_replacement,
+                                   _wsdl_part_name)
 
             out_message = _produce_output_message(function_name,
-                        body_style_str, _self_ref_replacement, _no_self, kparams)
+                       body_style_str, _self_ref_replacement, _no_self, kparams)
+
+            if _logged != True:
+                in_message.Attributes.logged = _logged
+                out_message.Attributes.logged = _logged
 
             doc = getattr(f, '__doc__')
 
@@ -492,6 +528,7 @@ def rpc(*params, **kparams):
                 internal_key_suffix=_internal_key_suffix,
                 default_on_null=_default_on_null,
                 event_managers=_event_managers,
+                logged=_logged,
             )
 
             if _patterns is not None and _no_self:

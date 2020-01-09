@@ -19,12 +19,8 @@
 
 from sqlalchemy import sql
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.dialects.postgresql.base import PGUuid
 from sqlalchemy.dialects.postgresql.base import ischema_names, PGTypeCompiler
-try:
-    from sqlalchemy.dialects.postgresql.base import ARRAY  # SQLA <1.1
-except ImportError:
-    from sqlalchemy.dialects.postgresql import ARRAY  # SQLA >=1.1
+from sqlalchemy.dialects.postgresql import ARRAY as PGArray, UUID as PGUuid
 
 from sqlalchemy.sql.sqltypes import Concatenable
 from sqlalchemy.sql.type_api import UserDefinedType
@@ -42,19 +38,19 @@ class PGLTree(Concatenable, UserDefinedType):
     class Comparator(Concatenable.Comparator):
         def ancestor_of(self, other):
             if isinstance(other, list):
-                return self.op('@>')(sql.cast(other, ARRAY(PGLTree)))
+                return self.op('@>')(sql.cast(other, PGArray(PGLTree)))
             else:
                 return self.op('@>')(other)
 
         def descendant_of(self, other):
             if isinstance(other, list):
-                return self.op('<@')(sql.cast(other, ARRAY(PGLTree)))
+                return self.op('<@')(sql.cast(other, PGArray(PGLTree)))
             else:
                 return self.op('<@')(other)
 
         def lquery(self, other):
             if isinstance(other, list):
-                return self.op('?')(sql.cast(other, ARRAY(PGLQuery)))
+                return self.op('?')(sql.cast(other, PGArray(PGLQuery)))
             else:
                 return self.op('~')(other)
 

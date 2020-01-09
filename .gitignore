@@ -8,6 +8,7 @@
 *$py.class
 *.egg
 *.egg-info
+__pycache__
 dist
 build
 pip-log.txt
@@ -22,6 +23,8 @@ coverage.xml
 htmlcov
 test_html
 test_file_storage
+virt-*
+.pytest_cache
 
 ## test output
 spyne/test/*.html

@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
+from mmap import mmap
 from collections import defaultdict, Iterable as AbcIterable
 
 from spyne.util import six
@@ -44,6 +45,9 @@ class HierDictDocument(DictDocument):
     Implement ``create_in_document()`` and ``create_out_string()`` to use this.
     """
 
+    VALID_UNICODE_SOURCES = (six.text_type, six.binary_type, memoryview,
+                                                                mmap, bytearray)
+
     from_serstr = DictDocument.from_unicode
     to_serstr = DictDocument.to_unicode
 
@@ -56,10 +60,9 @@ class HierDictDocument(DictDocument):
         return class_name
 
     def get_complex_as(self, attr):
-        complex_as = self.complex_as
-        if attr.complex_as is not None:
-            complex_as = attr.complex_as
-        return complex_as
+        if attr.complex_as is None:
+            return self.complex_as
+        return attr.complex_as
 
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
@@ -74,6 +77,8 @@ class HierDictDocument(DictDocument):
             body_class = ctx.descriptor.in_message
         elif message is self.RESPONSE:
             body_class = ctx.descriptor.out_message
+        else:
+            raise ValueError(message)  # should be impossible
 
         if body_class:
             # assign raw result to its wrapper, result_message
@@ -82,6 +87,7 @@ class HierDictDocument(DictDocument):
             class_name = self.get_class_name(body_class)
             if self.ignore_wrappers:
                 doc = doc.get(class_name, None)
+
             result_message = self._doc_to_object(ctx, body_class, doc,
                                                                  self.validator)
             ctx.in_object = result_message
@@ -91,14 +97,27 @@ class HierDictDocument(DictDocument):
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
+    def _fault_to_doc(self, inst, cls=None):
+        if cls is None:
+            cls = Fault
+
+        if self.complex_as is list:
+            return [cls.to_list(inst.__class__, inst, self)]
+
+        elif self.complex_as is tuple:
+            fault_as_list = [Fault.to_list(inst.__class__, inst, self)]
+            return tuple(fault_as_list)
+
+        else:
+            return [Fault.to_dict(inst.__class__, inst, self)]
+
     def serialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [Fault.to_dict(ctx.out_error.__class__,
-                                                                 ctx.out_error)]
+            ctx.out_document = self._fault_to_doc(ctx.out_error)
             return
 
         # get the result message
@@ -108,22 +127,25 @@ class HierDictDocument(DictDocument):
         elif message is self.RESPONSE:
             out_type = ctx.descriptor.out_message
 
+        else:
+            assert False
+
         if out_type is None:
             return
-
-        out_type_info = out_type.get_flat_type_info(out_type)
 
         # assign raw result to its wrapper, result_message
         if ctx.descriptor.is_out_bare():
             out_instance, = ctx.out_object
 
         else:
+            out_type_info = out_type.get_flat_type_info(out_type)
+
             # instantiate the result message
             out_instance = out_type()
 
             for i, (k, v) in enumerate(out_type_info.items()):
-                attr_name = k
-                out_instance._safe_set(attr_name, ctx.out_object[i], v)
+                attrs = self.get_cls_attrs(v)
+                out_instance._safe_set(k, ctx.out_object[i], v, attrs)
 
         ctx.out_document = self._object_to_doc(out_type, out_instance, set()),
 
@@ -134,45 +156,84 @@ class HierDictDocument(DictDocument):
         if inst is None and self.get_cls_attrs(cls).nullable:
             pass
 
-        elif issubclass(cls, Unicode) and not isinstance(inst,(six.text_type,
-                                                               six.binary_type)):
+        elif issubclass(cls, Unicode) and not isinstance(inst,
+                                                    self.VALID_UNICODE_SOURCES):
             raise ValidationError([key, inst])
 
     def _from_dict_value(self, ctx, key, cls, inst, validator):
         if validator is self.SOFT_VALIDATION:
             self.validate(key, cls, inst)
 
-        cls_attr = self.get_cls_attrs(cls)
-        complex_as = self.get_complex_as(cls_attr)
-
-        if issubclass(cls, (Any, AnyDict)):
-            retval = inst
+        cls_attrs = self.get_cls_attrs(cls)
+        complex_as = self.get_complex_as(cls_attrs)
+        if complex_as is list or complex_as is tuple:
+            check_complex_as = (list, tuple)
+        else:
+            check_complex_as = complex_as
 
         # get native type
-        elif issubclass(cls, File) and isinstance(inst, complex_as):
-            retval = self._doc_to_object(ctx, cls.Attributes.type, inst, validator)
+        if issubclass(cls, File):
+            if isinstance(inst, check_complex_as):
+                cls = cls_attrs.type or cls
+                inst = self._parse(cls_attrs, inst)
+                retval = self._doc_to_object(ctx, cls, inst, validator)
 
-        elif issubclass(cls, ComplexModelBase):
-            retval = self._doc_to_object(ctx, cls, inst, validator)
+            else:
+                retval = self.from_serstr(cls, inst, self.binary_encoding)
 
         else:
-            if cls.Attributes.empty_is_none and inst in (u'', b''):
-                inst = None
+            inst = self._parse(cls_attrs, inst)
 
-            if (validator is self.SOFT_VALIDATION
+            if issubclass(cls, (Any, AnyDict)):
+                retval = inst
+
+            elif issubclass(cls, ComplexModelBase):
+                retval = self._doc_to_object(ctx, cls, inst, validator)
+
+            else:
+                if cls_attrs.empty_is_none and inst in (u'', b''):
+                    inst = None
+
+                if (validator is self.SOFT_VALIDATION
                                         and isinstance(inst, six.string_types)
                                         and not cls.validate_string(cls, inst)):
-                raise ValidationError((key, inst))
+                    raise ValidationError([key, inst])
 
-            if issubclass(cls, (ByteArray, File, Uuid)):
-                retval = self.from_serstr(cls, inst, self.binary_encoding)
-            else:
-                retval = self.from_serstr(cls, inst)
+                if issubclass(cls, (ByteArray, Uuid)):
+                    retval = self.from_serstr(cls, inst, self.binary_encoding)
+
+                elif issubclass(cls, Unicode):
+                    if isinstance(inst, bytearray):
+                        retval = six.text_type(inst,
+                                encoding=cls_attrs.encoding or 'ascii',
+                                                errors=cls_attrs.unicode_errors)
+
+                    elif isinstance(inst, memoryview):
+                        # FIXME: memoryview needs a .decode() function to avoid
+                        #        needless copying here
+                        retval = inst.tobytes().decode(
+                            cls_attrs.encoding or 'ascii',
+                                                errors=cls_attrs.unicode_errors)
+
+                    elif isinstance(inst, mmap):
+                        # FIXME: mmap needs a .decode() function to avoid
+                        #        needless copying here
+                        retval = mmap[:].decode(cls_attrs.encoding,
+                                                errors=cls_attrs.unicode_errors)
+
+                    elif isinstance(inst, six.binary_type):
+                        retval = self.unicode_from_bytes(cls, inst)
+
+                    else:
+                        retval = inst
+
+                else:
+                    retval = self.from_serstr(cls, inst)
 
         # validate native type
-        if validator is self.SOFT_VALIDATION and \
-                                           not cls.validate_native(cls, retval):
-            raise ValidationError([key, retval])
+        if validator is self.SOFT_VALIDATION:
+            if not cls.validate_native(cls, retval):
+                raise ValidationError([key, retval])
 
         return retval
 
@@ -181,9 +242,11 @@ class HierDictDocument(DictDocument):
             return []
 
         if issubclass(cls, Any):
+            doc = self._cast(self.get_cls_attrs(cls), doc)
             return doc
 
         if issubclass(cls, Array):
+            doc = self._cast(self.get_cls_attrs(cls), doc)
             retval = []
             (serializer,) = cls._type_info.values()
 
@@ -196,9 +259,10 @@ class HierDictDocument(DictDocument):
 
             return retval
 
-        if not self.ignore_wrappers:
+        cls_attrs = self.get_cls_attrs(cls)
+        if not self.ignore_wrappers and not cls_attrs.not_wrapped:
             if not isinstance(doc, dict):
-                raise ValidationError("Wrapper documents must be dicts")
+                raise ValidationError(doc, "Wrapper documents must be dicts")
             if len(doc) == 0:
                 return None
             if len(doc) > 1:
@@ -229,8 +293,12 @@ class HierDictDocument(DictDocument):
 
         inst = cls.get_deserialization_instance(ctx)
 
-        # get all class attributes, including the ones coming from parent classes.
+        # get all class attributes, including the ones coming from
+        # parent classes.
         flat_type_info = cls.get_flat_type_info(cls)
+        if flat_type_info is None:
+            logger.critical("No flat_type_info found for type %r", cls)
+            raise TypeError(cls)
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(int)
@@ -244,23 +312,24 @@ class HierDictDocument(DictDocument):
             try:
                 items = zip([k for k, v in flat_type_info.items()
                                          if not self.get_cls_attrs(v).exc], doc)
-            except TypeError:
+            except TypeError as e:
                 logger.error("Invalid document %r for %r", doc, cls)
-                raise
+                raise ValidationError(doc)
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
-            if not six.PY2 and isinstance(k, bytes):
-                k = k.decode('utf8')
             member = flat_type_info.get(k, None)
             if member is None:
                 member, k = flat_type_info.alt.get(k, (None, k))
                 if member is None:
                     continue
 
-            attr = self.get_cls_attrs(member)
+            member_attrs = self.get_cls_attrs(member)
 
-            mo = attr.max_occurs
+            if member_attrs.exc:
+                continue
+
+            mo = member_attrs.max_occurs
             if mo > 1:
                 subinst = getattr(inst, k, None)
                 if subinst is None:
@@ -273,7 +342,7 @@ class HierDictDocument(DictDocument):
             else:
                 subinst = self._from_dict_value(ctx, k, member, v, validator)
 
-            inst._safe_set(k, subinst, member)
+            inst._safe_set(k, subinst, member, member_attrs)
 
             frequencies[k] += 1
 
@@ -290,6 +359,18 @@ class HierDictDocument(DictDocument):
         if tags is None:
             tags = set()
         retval = None
+
+        if isinstance(inst, Fault):
+            retval = None
+            inst_id = id(inst)
+            if not (inst_id in tags):
+                retval = self._fault_to_doc(inst, cls)
+                tags.add(inst_id)
+            return retval
+
+        cls_attrs = self.get_cls_attrs(cls)
+        if cls_attrs.exc:
+            return
 
         if self.ignore_wrappers:
             ti = getattr(cls, '_type_info', {})
@@ -313,9 +394,9 @@ class HierDictDocument(DictDocument):
                         # even when there is ONE already-serialized instance,
                         # we throw the whole thing away.
                         logger.debug("Throwing the whole array away because "
-                                    "found %d", id(subinst))
+                                                        "found %d", id(subinst))
 
-                        # enabling this is DANGEROUS
+                        # this is DANGEROUS
                         logger.debug("Said array: %r", inst)
 
                         return None
@@ -353,7 +434,6 @@ class HierDictDocument(DictDocument):
                     continue
 
             logger.debug("%s%r%r", "  " * len(tags), k, v)
-            print("  " * len(tags), k, v)
             val = self._object_to_doc(v, subinst, tags)
             min_o = subattr.min_occurs
 
@@ -367,9 +447,27 @@ class HierDictDocument(DictDocument):
 
     def _to_dict_value(self, cls, inst, tags):
         cls, switched = self.get_polymorphic_target(cls, inst)
-        cls_attr = self.get_cls_attrs(cls)
+        cls_attrs = self.get_cls_attrs(cls)
 
-        inst = self._cast(cls_attr, inst)
+        inst = self._sanitize(cls_attrs, inst)
+
+        if issubclass(cls, File):
+            if isinstance(inst, cls_attrs.type):
+                retval = self._complex_to_doc(cls_attrs.type, inst, tags)
+
+                complex_as = self.get_complex_as(cls_attrs)
+
+                if complex_as is dict and not self.ignore_wrappers:
+                    retval = next(iter(retval.values()))
+
+                return retval
+
+            else:
+                return self.to_serstr(cls, inst, self.binary_encoding)
+
+        # this is done before File type because File does its own type mangling.
+        # so yes in fact this is a HUGE HACK!!..
+        cls = cls_attrs.out_type or cls
 
         if issubclass(cls, (Any, AnyDict)):
             return inst
@@ -381,17 +479,7 @@ class HierDictDocument(DictDocument):
         if issubclass(cls, ComplexModelBase):
             return self._complex_to_doc(cls, inst, tags)
 
-        if issubclass(cls, File) and isinstance(inst, cls.Attributes.type):
-            retval = self._complex_to_doc(cls.Attributes.type, inst, tags)
-
-            complex_as = self.get_complex_as(cls_attr)
-
-            if complex_as is dict and not self.ignore_wrappers:
-                retval = next(iter(retval.values()))
-
-            return retval
-
-        if issubclass(cls, (ByteArray, File, Uuid)):
+        if issubclass(cls, (ByteArray, Uuid)):
             return self.to_serstr(cls, inst, self.binary_encoding)
 
         return self.to_serstr(cls, inst)
@@ -423,7 +511,7 @@ class HierDictDocument(DictDocument):
         complex_as = self.get_complex_as(cls_attr)
 
         d = complex_as(self._get_member_pairs(cls, inst, tags))
-        if self.ignore_wrappers:
+        if self.ignore_wrappers or cls_attr.not_wrapped:
             return d
         else:
             return {cls.get_type_name(): d}

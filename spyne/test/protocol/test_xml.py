@@ -31,19 +31,19 @@ from pprint import pprint
 from base64 import b64encode
 
 from lxml import etree
+from lxml.builder import E
 
-from spyne import MethodContext, rpc, ByteArray, File
+from spyne import MethodContext, rpc, ByteArray, File, AnyXml
 from spyne.context import FakeContext
 from spyne.const import RESULT_SUFFIX
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.util.six import BytesIO
 from spyne.model import Fault, Integer, Decimal, Unicode, Date, DateTime, \
     XmlData, Array, ComplexModel, XmlAttribute, Mandatory as M
-from spyne.protocol.xml import XmlDocument
-from spyne.protocol.xml import SchemaValidationError
+from spyne.protocol.xml import XmlDocument, SchemaValidationError
 
 from spyne.util import six
 from spyne.util.xml import get_xml_as_object, get_object_as_xml
@@ -66,7 +66,7 @@ class TestXml(unittest.TestCase):
             a = XmlData(Unicode)
             b = XmlAttribute(Unicode)
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(C, _returns=C)
             def some_call(c):
                 assert c.a == 'a'
@@ -124,7 +124,7 @@ class TestXml(unittest.TestCase):
     def test_decimal(self):
         d = decimal.Decimal('1e100')
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Decimal(120,4), _returns=Decimal)
             def some_call(p):
                 print(p)
@@ -253,7 +253,7 @@ class TestXml(unittest.TestCase):
         # rounds up as well
         d = get_xml_as_object(fs('<d>2013-04-05T06:07:08.1234565</d>'), DateTime)
         # FIXME: this is very interesting. why?
-        if six.PY3:
+        if not six.PY2:
             assert d.microsecond == 123456
         else:
             assert d.microsecond == 123457
@@ -266,7 +266,7 @@ class TestXml(unittest.TestCase):
         return ctx
 
     def test_mandatory_elements(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(M(Unicode), _returns=Unicode)
             def some_call(s):
                 assert s == 'hello'
@@ -299,10 +299,10 @@ class TestXml(unittest.TestCase):
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
     def test_unicode_chars_in_exception(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Unicode(pattern=u'x'), _returns=Unicode)
             def some_call(s):
-                test(never,reaches,here)
+                test(should, never, reach, here)
 
         app = Application([SomeService], "tns", name="test_mandatory_elements",
                           in_protocol=XmlDocument(validator='lxml'),
@@ -333,7 +333,7 @@ class TestXml(unittest.TestCase):
         class C(ComplexModel):
             foo = M(Unicode)
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(C.customize(min_occurs=1), _returns=Unicode)
             def some_call(c):
                 assert c is not None
@@ -366,7 +366,7 @@ class TestXml(unittest.TestCase):
         class C(ComplexModel):
             bar = XmlAttribute(M(Unicode))
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(C.customize(min_occurs=1), _returns=Unicode)
             def some_call(c):
                 assert c is not None
@@ -396,68 +396,8 @@ class TestXml(unittest.TestCase):
         ])
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
-
-class TestIncremental(unittest.TestCase):
-    def test_one(self):
-        class SomeComplexModel(ComplexModel):
-            s = Unicode
-            i = Integer
-
-        v = SomeComplexModel(s='a', i=1),
-
-        class SomeService(ServiceBase):
-            @rpc(_returns=SomeComplexModel)
-            def get(ctx):
-                return v
-
-        desc = SomeService.public_methods['get']
-        ctx = FakeContext(out_object=v, descriptor=desc)
-        ostr = ctx.out_stream = BytesIO()
-        XmlDocument(Application([SomeService], __name__)) \
-                             .serialize(ctx, XmlDocument.RESPONSE)
-
-        elt = etree.fromstring(ostr.getvalue())
-        print(etree.tostring(elt, pretty_print=True))
-
-        assert elt.xpath('x:getResult/x:i/text()',
-                                            namespaces={'x':__name__}) == ['1']
-        assert elt.xpath('x:getResult/x:s/text()',
-                                            namespaces={'x':__name__}) == ['a']
-
-    def test_many(self):
-        class SomeComplexModel(ComplexModel):
-            s = Unicode
-            i = Integer
-
-        v = [
-            SomeComplexModel(s='a', i=1),
-            SomeComplexModel(s='b', i=2),
-            SomeComplexModel(s='c', i=3),
-            SomeComplexModel(s='d', i=4),
-            SomeComplexModel(s='e', i=5),
-        ]
-
-        class SomeService(ServiceBase):
-            @rpc(_returns=Array(SomeComplexModel))
-            def get(ctx):
-                return v
-
-        desc = SomeService.public_methods['get']
-        ctx = FakeContext(out_object=[v], descriptor=desc)
-        ostr = ctx.out_stream = BytesIO()
-        XmlDocument(Application([SomeService], __name__)) \
-                            .serialize(ctx, XmlDocument.RESPONSE)
-
-        elt = etree.fromstring(ostr.getvalue())
-        print(etree.tostring(elt, pretty_print=True))
-
-        assert elt.xpath('x:getResult/x:SomeComplexModel/x:i/text()',
-                        namespaces={'x': __name__}) == ['1', '2', '3', '4', '5']
-        assert elt.xpath('x:getResult/x:SomeComplexModel/x:s/text()',
-                        namespaces={'x': __name__}) == ['a', 'b', 'c', 'd', 'e']
-
     def test_bare_sub_name_ns(self):
-        class Action (ComplexModel):
+        class Action(ComplexModel):
             class Attributes(ComplexModel.Attributes):
                 sub_ns = "SOME_NS"
                 sub_name = "Action"
@@ -485,6 +425,28 @@ class TestIncremental(unittest.TestCase):
         print(eltstr)
         assert elt.text == b64encode(v).decode('ascii')
 
+    def test_any_xml_text(self):
+        v = u"<roots><bloody/></roots>"
+        elt = get_object_as_xml(v, AnyXml, 'B', no_namespace=True)
+        eltstr = etree.tostring(elt)
+        print(eltstr)
+        assert etree.tostring(elt[0], encoding="unicode") == v
+
+    def test_any_xml_bytes(self):
+        v = b"<roots><bloody/></roots>"
+
+        elt = get_object_as_xml(v, AnyXml, 'B', no_namespace=True)
+        eltstr = etree.tostring(elt)
+        print(eltstr)
+        assert etree.tostring(elt[0]) == v
+
+    def test_any_xml_elt(self):
+        v = E.roots(E.bloody(E.roots()))
+        elt = get_object_as_xml(v, AnyXml, 'B')
+        eltstr = etree.tostring(elt)
+        print(eltstr)
+        assert etree.tostring(elt[0]) == etree.tostring(v)
+
     def test_file(self):
         v = b'aaaa'
         f = BytesIO(v)
@@ -498,6 +460,12 @@ class TestIncremental(unittest.TestCase):
         eltstr = etree.tostring(elt)
         print(eltstr)
         assert b'<detail><this>that</this></detail>' in eltstr
+
+    def test_xml_encoding(self):
+        ctx = FakeContext(out_document=E.rain(u"yağmur"))
+        XmlDocument(encoding='iso-8859-9').create_out_string(ctx)
+        s = b''.join(ctx.out_string)
+        assert u"ğ".encode('iso-8859-9') in s
 
     def test_default(self):
         class SomeComplexModel(ComplexModel):
@@ -543,6 +511,66 @@ class TestIncremental(unittest.TestCase):
 
         # xml schema says it should be 'default'
         assert obj.b is None
+
+
+class TestIncremental(unittest.TestCase):
+    def test_one(self):
+        class SomeComplexModel(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = SomeComplexModel(s='a', i=1),
+
+        class SomeService(Service):
+            @rpc(_returns=SomeComplexModel)
+            def get(ctx):
+                return v
+
+        desc = SomeService.public_methods['get']
+        ctx = FakeContext(out_object=v, descriptor=desc)
+        ostr = ctx.out_stream = BytesIO()
+        XmlDocument(Application([SomeService], __name__)) \
+                             .serialize(ctx, XmlDocument.RESPONSE)
+
+        elt = etree.fromstring(ostr.getvalue())
+        print(etree.tostring(elt, pretty_print=True))
+
+        assert elt.xpath('x:getResult/x:i/text()',
+                                            namespaces={'x':__name__}) == ['1']
+        assert elt.xpath('x:getResult/x:s/text()',
+                                            namespaces={'x':__name__}) == ['a']
+
+    def test_many(self):
+        class SomeComplexModel(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = [
+            SomeComplexModel(s='a', i=1),
+            SomeComplexModel(s='b', i=2),
+            SomeComplexModel(s='c', i=3),
+            SomeComplexModel(s='d', i=4),
+            SomeComplexModel(s='e', i=5),
+        ]
+
+        class SomeService(Service):
+            @rpc(_returns=Array(SomeComplexModel))
+            def get(ctx):
+                return v
+
+        desc = SomeService.public_methods['get']
+        ctx = FakeContext(out_object=[v], descriptor=desc)
+        ostr = ctx.out_stream = BytesIO()
+        XmlDocument(Application([SomeService], __name__)) \
+                            .serialize(ctx, XmlDocument.RESPONSE)
+
+        elt = etree.fromstring(ostr.getvalue())
+        print(etree.tostring(elt, pretty_print=True))
+
+        assert elt.xpath('x:getResult/x:SomeComplexModel/x:i/text()',
+                        namespaces={'x': __name__}) == ['1', '2', '3', '4', '5']
+        assert elt.xpath('x:getResult/x:SomeComplexModel/x:s/text()',
+                        namespaces={'x': __name__}) == ['a', 'b', 'c', 'd', 'e']
 
 
 if __name__ == '__main__':

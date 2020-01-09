@@ -49,7 +49,7 @@ from werkzeug.serving import run_simple
 
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.error import ResourceNotFoundError
 from spyne.error import ValidationError
 from spyne.model.binary import ByteArray
@@ -63,7 +63,7 @@ BLOCK_SIZE = 8192
 port = 9000
 
 
-class FileServices(ServiceBase):
+class FileServices(Service):
     @rpc(Mandatory.Unicode, _returns=ByteArray(encoding='hex'))
     def get(ctx, file_name):
         path = os.path.join(os.path.abspath('./files'), file_name)
@@ -71,7 +71,7 @@ class FileServices(ServiceBase):
             raise ValidationError(file_name)
 
         try:
-            f = open(path, 'r')
+            f = open(path, 'rb')
         except IOError:
             raise ResourceNotFoundError(file_name)
 
@@ -95,7 +95,7 @@ class FileServices(ServiceBase):
         if not path.startswith(os.path.abspath('./files')):
             raise ValidationError(file_name)
 
-        f = open(path, 'w') # if this fails, the client will see an
+        f = open(path, 'wb') # if this fails, the client will see an
                             # internal error.
 
         try:
@@ -108,7 +108,7 @@ class FileServices(ServiceBase):
 
         except:
             f.close()
-            os.remove(file_name)
+            os.remove(path)
             logger.debug("File removed: %r" % file_name)
             raise # again, the client will see an internal error.
 

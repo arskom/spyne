@@ -1,4 +1,4 @@
-# coding: utf-8
+# encoding: utf-8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -134,6 +134,6 @@ class Prepareable(type):
             attributes["__new__"] = wraps(constructor)(preparing_constructor)
         except:
             warn("Wrapping class initializer failed. This is normal "
-                          "when runnign under Nuitka")
+                          "when running under Nuitka")
 
         return type.__new__(cls, name, bases, attributes)

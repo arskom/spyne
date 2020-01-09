@@ -37,7 +37,7 @@ logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.yaml import YamlDocument
 from spyne import Application, rpc, Mandatory as M, Unicode, UnsignedInteger32, \
-    Array, Iterable, TTableModel, ServiceBase, ResourceNotFoundError
+    Array, Iterable, TTableModel, Service, ResourceNotFoundError
 
 from spyne.util import memoize
 
@@ -78,7 +78,7 @@ class User(TableModel):
 
 @memoize
 def TCrudService(T, T_name):
-    class CrudService(ServiceBase):
+    class CrudService(Service):
         @rpc(M(UnsignedInteger32), _returns=T,
                     _in_message_name='get_%s' % T_name,
                     _in_variable_names={'obj_id': "%s_id" % T_name})

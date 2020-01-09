@@ -55,7 +55,7 @@ from spyne.model.primitive import Mandatory
 from spyne.model.primitive import String
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 class PublicKeyError(Fault):
     __namespace__ = 'spyne.examples.authentication'
@@ -126,7 +126,7 @@ preferences_db = SpyneDict({
 })
 
 
-class UserService(ServiceBase):
+class UserService(Service):
     __tns__ = 'spyne.examples.authentication'
 
     @rpc(Mandatory.String, Mandatory.String, _returns=None,

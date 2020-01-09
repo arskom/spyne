@@ -114,6 +114,9 @@ class SimpleDictDocument(DictDocument):
             except TypeError:
                 raise ValidationError([orig_k, v2])
 
+            cls_attrs = self.get_cls_attrs(member.type)
+            v2 = self._parse(cls_attrs, v2)
+
             # deserialize to native type
             if issubclass(member.type, File):
                 if isinstance(v2, File.Value):
@@ -134,9 +137,10 @@ class SimpleDictDocument(DictDocument):
                                   "Validation failed for %s.%s: %%s" % (ns, k))
 
             # validate native data (after deserialization)
-            if (validator is self.SOFT_VALIDATION and not
-                           member.type.validate_native(member.type, native_v2)):
-                raise ValidationError([orig_k, v2])
+            native_v2 = self._sanitize(cls_attrs, native_v2)
+            if validator is self.SOFT_VALIDATION:
+                if not member.type.validate_native(member.type, native_v2):
+                    raise ValidationError([orig_k, v2])
 
             value.append(native_v2)
 
@@ -220,6 +224,7 @@ class SimpleDictDocument(DictDocument):
             for pkey in member.path[:-1]:
                 nidx = 0
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
+                nattrs = self.get_cls_attrs(ncls)
                 if issubclass(ncls, Array):
                     ncls, = ncls._type_info.values()
 
@@ -233,7 +238,7 @@ class SimpleDictDocument(DictDocument):
 
                     if ninst is None:
                         ninst = []
-                        cinst._safe_set(pkey, ninst, ncls)
+                        cinst._safe_set(pkey, ninst, ncls, nattrs)
 
                     if self.strict_arrays:
                         if len(ninst) == 0:
@@ -265,7 +270,7 @@ class SimpleDictDocument(DictDocument):
                 else:
                     if ninst is None:
                         ninst = ncls.get_deserialization_instance(ctx)
-                        cinst._safe_set(pkey, ninst, ncls)
+                        cinst._safe_set(pkey, ninst, ncls, nattrs)
                         frequencies[cfreq_key][pkey] += 1
 
                     cinst = ninst
@@ -276,12 +281,13 @@ class SimpleDictDocument(DictDocument):
 
             frequencies[cfreq_key][member.path[-1]] += len(value)
 
-            if member.type.Attributes.max_occurs > 1:
+            member_attrs = self.get_cls_attrs(member.type)
+            if member_attrs.max_occurs > 1:
                 _v = getattr(cinst, member.path[-1], None)
                 is_set = True
                 if _v is None:
                     is_set = cinst._safe_set(member.path[-1], value,
-                                                                    member.type)
+                                                      member.type, member_attrs)
                 else:
                     _v.extend(value)
 
@@ -290,7 +296,8 @@ class SimpleDictDocument(DictDocument):
                                            (set_skip, member.path, pkey, value))
 
             else:
-                is_set = cinst._safe_set(member.path[-1], value[0], member.type)
+                is_set = cinst._safe_set(member.path[-1], value[0],
+                                                      member.type, member_attrs)
 
                 set_skip = 'set ' if is_set else 'SKIP'
                 logger.debug("\t%s val %r(%r) = %r" %

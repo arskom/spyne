@@ -2,8 +2,36 @@
 Changelog
 =========
 
-spyne-2.13.0
-------------
+spyne-2.13.11-alpha
+-------------------
+* SOAP: Repaired MtoM parsing.
+* Faults: The Fault api is now much more consistent.
+* Various fixes across the board.
+* ``sqla_column_args`` is now only a dict. It can override column name without
+  changing mapped object attribute name.
+* Various Python 3 fixes for the Twisted frontend.
+
+
+spyne-2.13.4-alpha
+------------------
+* ``Date(format="%Y")`` no longer works. Use ``Date(date_format="%Y")`` just
+  like the api docs say
+
+spyne-2.13.3-alpha
+------------------
+* Add support for sqlalchemy-1.2.
+* Implement _logged for @rpc.
+* Fix memory leak in ComplexModelBase.as_dict. 
+* Switch to homegrown jenkins as test infrastructure. See
+  https://jenkins.arskom.com.tr
+* Fix decimal totalDigits blunder.
+
+spyne-2.13.2-alpha
+------------------
+* ``ServiceBase`` is deprecated in favor of ``Service``. It's just a name change
+  in order to make it consistent with the rest of the package. ServiceBase will
+  be kept until Spyne 3.
+
 * Introduced internal keys for services and methods. Uniqueness is enforced
   during Application instantiation. If your server refuses to boot after
   migrating to 2.13 raising ``MethodAlreadyExistsError``, explicitly setting a
@@ -11,23 +39,26 @@ spyne-2.13.0
   subclasses should fix the problem.
 
   See 2fee1435c30dc50f7503f0915b5e56220dff34d0 for the change.
+
 * EXPERIMENTAL library-wide Python 3 Support! Yay!
- * MessagePack uses backwards-compatible raws with a hard-coded UTF-8 encoding
-   for Unicode (non-ByteArray) types. Please open an issue if not happy with
-   this.
- * It's the transports' job to decide on a codec. Use UTF-8 when in doubt, as
-   that's what we're doing.
- * Float rounding behaviour seems to have changed in Python 3. In Python 2,
-   ``round(2.5) = 3`` and ``round(3.5) = 4`` whereas in Python 3,
-   ``round(2.5) = 2`` and ``round(3.5) = 4``. This is called half-to-even
-   rounding and while being counterintuitive, it seems to make better sense from
-   a statistical standpoint.
 
-   You will have to live with this or use ``decimal.Decimal``.
+    * MessagePack uses backwards-compatible raws with a hard-coded UTF-8 encoding
+      for Unicode (non-ByteArray) types. Please open an issue if not happy with
+      this.
+    * It's the transports' job to decide on a codec. Use UTF-8 when in doubt, as
+      that's what we're doing.
+    * Avoid the async keyword for Python 3.7.
+    * Float rounding behaviour seems to have changed in Python 3. In Python 2,
+      ``round(2.5) = 3`` and ``round(3.5) = 4`` whereas in Python 3,
+      ``round(2.5) = 2`` and ``round(3.5) = 4``. This is called half-to-even
+      rounding and while being counterintuitive, it seems to make better sense from
+      a statistical standpoint.
 
-   This changes the way datetime and time microseconds are rounded. See
-   ``test_datetime_usec`` and ``test_time_usec`` in
-   ``spyne.test.model.test_primitive``.
+      You will have to live with this or use ``decimal.Decimal``.
+
+      This changes the way datetime and time microseconds are rounded. See
+      ``test_datetime_usec`` and ``test_time_usec`` in
+      ``spyne.test.model.test_primitive``.
 
 * ``spyne.model.Unicode`` used to tolerate (i.e. implicitly but not-so-silenty
   casted to ``str``) int values. This is no longer the case. If you want to
@@ -54,6 +85,10 @@ spyne-2.13.0
   the ``f(self, ctx)`` signature. It was ``f(self)`` before.
 * Attachment is removed. It's been deprecated since ages.
 * Usual bug fixes.
+
+spyne-2.12.15
+-------------
+* Fix graceful import failures for Python 3
 
 spyne-2.12.14
 -------------

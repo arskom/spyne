@@ -37,41 +37,32 @@ from collections import deque, OrderedDict
 from inspect import isclass
 from itertools import chain
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, EventManager
-
 from spyne import const
 from spyne.const.xml import PREFMAP
 
 from spyne.model import Point, Unicode, PushBase, ModelBase
-from spyne.model import json, xml, msgpack, table
-from spyne.model._base import apply_pssm
+from spyne.model._base import PSSM_VALUES, apply_pssm
 from spyne.model.primitive import NATIVE_MAP
 
-from spyne.util import six, memoize, memoize_id, sanitize_args
+from spyne.util import six, memoize, memoize_id, sanitize_args, \
+    memoize_ignore_none
 from spyne.util.color import YEL
 from spyne.util.meta import Prepareable
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass, with_metaclass, string_types
 
-
-PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
-
-
-def _is_under_pydev_debugger():
-    import inspect
-    for frame in inspect.stack():
-        if frame[1].endswith("pydevd.py"):
-            return True
-    return False
+# FIXME: for backwards compatibility, to be removed in Spyne 3
+# noinspection PyUnresolvedReferences
+from spyne.model import json, jsonb, xml, msgpack, table
 
 
 def _get_flat_type_info(cls, retval):
     assert isinstance(retval, TypeInfo)
     parent = getattr(cls, '__extends__', None)
-    if parent != None:
+    if not (parent is None):
         _get_flat_type_info(parent, retval)
     retval.update(cls._type_info)
-    retval.alt.update(cls._type_info_alt) # FIXME: move to cls._type_info.alt
+    retval.alt.update(cls._type_info_alt)  # FIXME: move to cls._type_info.alt
     retval.attrs.update({k: v for (k, v) in cls._type_info.items()
                                                 if issubclass(v, XmlAttribute)})
     return retval
@@ -355,7 +346,8 @@ def _get_type_info(cls, cls_name, cls_bases, cls_dict, attrs):
         if not isinstance(_type_info, TypeInfo):
             _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
-    _type_info.update(mixin)
+    for k, v in reversed(mixin.items()):
+        _type_info.insert(0, (k, v))
 
     return _type_info
 
@@ -435,6 +427,7 @@ def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
     for k, v in _type_info.items():
         if not isinstance(k, six.string_types):
             raise ValueError("Invalid class key", k)
+
         if not isclass(v):
             raise ValueError(v)
 
@@ -495,7 +488,8 @@ def _process_child_attrs(cls, retval, kwargs):
 
         else:
             if 'exc' in child_attrs_all and child_attrs_all['exc'] != D_EXC:
-                logger.warning("Overriding child_attrs_all['exc'] to True")
+                logger.warning("Overriding child_attrs_all['exc'] to True "
+                                                                  "for %r", cls)
 
             child_attrs_all.update(D_EXC)
 
@@ -519,7 +513,7 @@ def _process_child_attrs(cls, retval, kwargs):
             for k, v in child_attrs_noexc.items():
                 if k in child_attrs:
                     logger.warning("Overriding child_attrs for %s.%s from "
-                                   "child_attrs_noexc", cls.get_type_name(), k)
+                                    "child_attrs_noexc", cls.get_type_name(), k)
 
                 child_attrs[k] = v
 
@@ -565,6 +559,82 @@ def recust_selfref(selfref, cls):
                                                      **selfref.customize_kwargs)
     logger.debug("Replace self reference with %r", cls)
     return cls
+
+
+def _set_member_default(inst, key, cls, attr):
+    def_val = attr.default
+    def_fac = attr.default_factory
+
+    if def_fac is None and def_val is None:
+        return False
+
+    if def_fac is not None:
+        if six.PY2 and hasattr(def_fac, 'im_func'):
+            # unbound-method error workaround. huh.
+            def_fac = def_fac.im_func
+
+        dval = def_fac()
+
+        # should not check for read-only for default values
+        setattr(inst, key, dval)
+
+        return True
+
+    if def_val is not None:
+        # should not check for read-only for default values
+        setattr(inst, key, def_val)
+
+        return True
+
+    assert False, "Invalid application state"
+
+
+def _is_sqla_array(cls, attr):
+    # inner object is complex
+    ret1 = issubclass(cls, Array) and \
+                              hasattr(cls.get_inner_type(), '_sa_class_manager')
+
+    # inner object is primitive
+    ret2 = issubclass(cls, Array) and attr.store_as is not None
+
+    # object is a bare array
+    ret3 = attr.max_occurs > 1 and hasattr(cls, '_sa_class_manager')
+
+    return ret1 or ret2 or ret3
+
+
+def _init_member(inst, key, cls, attr):
+    cls_getattr_ret = getattr(inst.__class__, key, None)
+
+    if isinstance(cls_getattr_ret, property) and cls_getattr_ret.fset is None:
+        return  # we skip read-only properties
+
+    if _set_member_default(inst, key, cls, attr):
+       return
+
+    # sqlalchemy objects do their own init.
+    if _is_sqla_array(cls, attr):
+        # except the attributes that sqlalchemy doesn't know about
+        if attr.exc_db:
+            setattr(inst, key, None)
+
+        elif attr.store_as is None:
+            setattr(inst, key, None)
+
+        return
+
+    # sqlalchemy objects do their own init.
+    if hasattr(inst.__class__, '_sa_class_manager'):
+        # except the attributes that sqlalchemy doesn't know about
+        if attr.exc_db:
+            setattr(inst, key, None)
+
+        elif issubclass(cls, ComplexModelBase) and attr.store_as is None:
+            setattr(inst, key, None)
+
+        return
+
+    setattr(inst, key, None)
 
 
 class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
@@ -704,22 +774,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
     def __prepare__(mcs, name, bases, **kwds):
         return odict()
 
-    #
-    #  pydev debugger seems to secretly manipulate class dictionaries without
-    # doing proper checks -- not always do a class with a metaclass with a
-    # __prepare__ has to have it. this code has a very specific workaround to
-    # make debugging under pydev for python 3.x work.
-    #
-    # see https://github.com/arskom/spyne/issues/432 for details
-    #
-    # this can be removed once pydev fixes secret calls to class dict's
-    # __delitem__
-    if _is_under_pydev_debugger():
-        @classmethod
-        def __prepare__(mcs, name, bases, **kwds):
-            return odict((('__class__', mcs),))
-        print("ComplexModelMeta.__prepare__ substitution for PyDev successful")
-
 
 _is_array = lambda v: issubclass(v, Array) or (v.Attributes.max_occurs > 1)
 
@@ -823,13 +877,17 @@ class ComplexModelBase(ModelBase):
             logger.warning("%r(0x%X) seems to be a customized class. It is not "
                     "supposed to be instantiated. You have been warned.",
                                                                    cls, id(cls))
-            logger.debug(traceback.print_stack())
+            logger.debug(traceback.format_stack())
 
         if cls_attr._xml_tag_body_as is not None:
             for arg, (xtba_key, xtba_type) in \
                                            zip(args, cls_attr._xml_tag_body_as):
+
                 if xtba_key is not None and len(args) == 1:
-                    self._safe_set(xtba_key, arg, xtba_type)
+                    attr = xtba_type.Attributes
+                    _init_member(self, xtba_key, xtba_type, attr)
+                    self._safe_set(xtba_key, arg, xtba_type,
+                                                           xtba_type.Attributes)
                 elif len(args) > 0:
                     raise TypeError(
                                 "Positional argument is only for ComplexModels "
@@ -837,43 +895,12 @@ class ComplexModelBase(ModelBase):
                                 "arguments in any other case.")
 
         for k, v in fti.items():
+            attr = v.Attributes
+            if not k in self.__dict__:
+                _init_member(self, k, v, attr)
+
             if k in kwargs:
-                self._safe_set(k, kwargs[k], v)
-
-            elif not k in self.__dict__:
-                attr = v.Attributes
-                def_val = attr.default
-                def_fac = attr.default_factory
-
-                cls_getattr_ret = getattr(self.__class__, k, None)
-                if isinstance(cls_getattr_ret, property) and \
-                                                   cls_getattr_ret.fset is None:
-                    continue  # we skip read-only properties
-
-                elif def_fac is not None:
-                    if six.PY2 and hasattr(def_fac, 'im_func'):
-                        # unbound-method error workaround. huh.
-                        def_fac = def_fac.im_func
-                    dval = def_fac()
-
-                    # should not check for read-only for default values
-                    setattr(self, k, dval)
-
-                elif def_val is not None:
-                    # should not check for read-only for default values
-                    setattr(self, k, def_val)
-
-                # sqlalchemy objects do their own init.
-                elif hasattr(cls, '_sa_class_manager'):
-                    # except the attributes that sqlalchemy doesn't know about
-                    if v.Attributes.exc_db:
-                        setattr(self, k, None)
-
-                    elif issubclass(v, ComplexModelBase) and \
-                                                  v.Attributes.store_as is None:
-                        setattr(self, k, None)
-                else:
-                    setattr(self, k, None)
+                self._safe_set(k, kwargs[k], v, attr)
 
     def __len__(self):
         return len(self._type_info)
@@ -895,8 +922,8 @@ class ComplexModelBase(ModelBase):
                     for k in self.__class__.get_flat_type_info(self.__class__)
                     if self.__dict__.get(k, None) is not None]))
 
-    def _safe_set(self, key, value, t):
-        if t.Attributes.read_only:
+    def _safe_set(self, key, value, t, attrs):
+        if attrs.read_only:
             return False
 
         try:
@@ -926,7 +953,7 @@ class ComplexModelBase(ModelBase):
         """
 
         return dict((
-            (k, getattr(self, k)) for k in self.get_flat_type_info(self)
+            (k, getattr(self, k)) for k in self.get_flat_type_info(self.__class__)
             if getattr(self, k) is not None
         ))
 
@@ -955,7 +982,7 @@ class ComplexModelBase(ModelBase):
             if not len(value) <= len(keys):
                 logger.error("\n\tcls: %r" "\n\tvalue: %r" "\n\tkeys: %r",
                                                                cls, value, keys)
-                raise LogicError("Impossible sequence to instance conversion")
+                raise ValueError("Impossible sequence to instance conversion")
 
             cls_orig = cls
             if cls.__orig__ is not None:
@@ -1006,7 +1033,7 @@ class ComplexModelBase(ModelBase):
         return retval
 
     @staticmethod
-    @memoize
+    @memoize_ignore_none
     def get_flat_type_info(cls):
         """Returns a _type_info dict that includes members from all base
         classes.
@@ -1127,11 +1154,11 @@ class ComplexModelBase(ModelBase):
         could cause memory leaks. You have been warned.
         """
 
-        store_as = apply_pssm(kwargs.get('store_as', None), PSSM_VALUES)
+        store_as = apply_pssm(kwargs.get('store_as', None))
         if store_as is not None:
             kwargs['store_as'] = store_as
 
-        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+        cls_name, cls_bases, cls_dict = cls._s_customize(**kwargs)
         cls_dict['__module__'] = cls.__module__
         if '__extends__' not in cls_dict:
             cls_dict['__extends__'] = cls.__extends__
@@ -1273,15 +1300,12 @@ class ComplexModelBase(ModelBase):
         retval = (cls if cls.__orig__ is None else cls.__orig__)()
 
         for k, v in cls._type_info.items():
-            if v.Attributes.read_only:
-                continue
-
             try:
                 if k in kwargs:
-                    setattr(retval, k, kwargs[k])
+                    retval._safe_set(k, kwargs[k], v, v.Attributes)
 
                 elif hasattr(other, k):
-                    setattr(retval, k, getattr(other, k))
+                    retval._safe_set(k, getattr(other, k), v, v.Attributes)
 
             except AttributeError as e:
                 logger.warning("Error setting %s: %r", k, e)
@@ -1516,7 +1540,7 @@ def TTableModel(metadata=None, base=None, metaclass=None):
 def Mandatory(cls, **_kwargs):
     """Customizes the given type to be a mandatory one. Has special cases for
     :class:`spyne.model.primitive.Unicode` and
-    :class:`spyne.model.complex.Array`\.
+    :class:`spyne.model.complex.Array`\\.
     """
 
     kwargs = dict(min_occurs=1, nillable=False)

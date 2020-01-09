@@ -30,7 +30,7 @@ from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap.soap11 import Soap11
 
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.decorator import rpc
 
 from spyne.model.enum import Enum
@@ -58,7 +58,7 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum',
 )
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
     def get_the_day(self, day):
         return DaysOfWeekEnum.Sunday
@@ -87,9 +87,9 @@ class TestEnum(unittest.TestCase):
         print((etree.tostring(elt, pretty_print=True)))
         print(simple_type)
 
-        self.assertEquals(simple_type.attrib['name'], 'DaysOfWeekEnum')
-        self.assertEquals(simple_type[0].tag, XSD("restriction"))
-        self.assertEquals([e.attrib['value'] for e in simple_type[0]], vals)
+        self.assertEqual(simple_type.attrib['name'], 'DaysOfWeekEnum')
+        self.assertEqual(simple_type[0].tag, XSD("restriction"))
+        self.assertEqual([e.attrib['value'] for e in simple_type[0]], vals)
 
     def test_serialize(self):
         mo = DaysOfWeekEnum.Monday
@@ -100,7 +100,7 @@ class TestEnum(unittest.TestCase):
         elt = elt[0]
         ret = XmlDocument().from_element(None, DaysOfWeekEnum, elt)
 
-        self.assertEquals(mo, ret)
+        self.assertEqual(mo, ret)
 
     def test_serialize_complex_array(self):
         days = [
@@ -160,7 +160,7 @@ class TestEnum(unittest.TestCase):
         print((etree.tostring(elt, pretty_print=True)))
 
         ret = XmlDocument().from_element(None, SomeClass, elt)
-        self.assertEquals(t.days, ret.days)
+        self.assertEqual(t.days, ret.days)
 
 if __name__ == '__main__':
     unittest.main()

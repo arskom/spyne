@@ -17,18 +17,27 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 """The ``spyne.interface`` package contains implementations of various interface
 definition document standards along with the
 :class:`spyne.interface.Interface` class which holds all the information needed
 to generate those documents.
 """
 
+
+from __future__ import print_function
+
 from spyne.interface._base import Interface
 from spyne.interface._base import InterfaceDocumentBase
 from spyne.interface._base import AllYourInterfaceDocuments
 
+
 try:
     from spyne.interface.wsdl.wsdl11 import Wsdl11
     HAS_WSDL = True
-except ImportError:
-    HAS_WSDL = False
+
+except ImportError as e:
+    if 'No module named lxml' in e.args or "No module named 'lxml'" in e.args:
+        HAS_WSDL = False
+    else:
+        raise

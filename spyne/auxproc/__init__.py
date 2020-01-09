@@ -25,7 +25,7 @@ primary method returns (either successfully or not). There can be only one
 primary method for a given method identifier but zero or more auxiliary methods.
 
 To define multiple auxiliary methods for a given main method, you must use
-separate :class:`ServiceBase` subclasses that you pass to the
+separate :class:`Service` subclasses that you pass to the
 :class:`spyne.application.Application` constructor.
 
 Auxiliary methods are a useful abstraction for a variety of asyncronous

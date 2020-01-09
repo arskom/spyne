@@ -14,13 +14,13 @@ from spyne.protocol.soap import Soap11
 from spyne.server.null import NullServer
 
 from spyne.decorator import rpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(ctx, name, times):
         for i in range(times):
@@ -37,19 +37,19 @@ if __name__=='__main__':
     # them.
     logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
 
-    print "With serialization"
-    print "=================="
-    print
+    print("With serialization")
+    print("==================")
+    print()
 
     null = NullServer(application, ostr=True)
     ret_stream = null.service.say_hello('Dave', 5)
-    ret_string = ''.join(ret_stream)
-    print ret_string
-    print
+    ret_string = ''.join(i.decode() for i in ret_stream)
+    print(ret_string)
+    print()
 
-    print "Without serialization"
-    print "====================="
-    print
+    print("Without serialization")
+    print("=====================")
+    print()
 
     null = NullServer(application, ostr=False)
     ret = null.service.say_hello('Dave', 5)

@@ -18,7 +18,7 @@
 #
 
 import unittest
-
+import socket
 import time
 
 import pytz
@@ -33,9 +33,9 @@ from spyne.model.fault import Fault
 
 from datetime import datetime
 
-import socket
 
 server_started = {}
+
 
 def test_port_open(port):
     host = '127.0.0.1'
@@ -45,6 +45,7 @@ def test_port_open(port):
     s.shutdown(2)
 
     return True
+
 
 def run_server(server_type):
     if server_type == 'http':
@@ -62,7 +63,7 @@ def run_server(server_type):
     else:
         raise ValueError(server_type)
 
-    if server_started.get(port, None) is None:
+    if server_started.get(port[0], None) is None:
         def run_server():
             main()
 
@@ -71,7 +72,7 @@ def run_server(server_type):
         # FIXME: Does anybody have a better idea?
         time.sleep(2)
 
-        server_started[port] = test_port_open(port)
+        server_started[port[0]] = test_port_open(port[0])
 
 
 class SpyneClientTestBase(object):
@@ -84,11 +85,11 @@ class SpyneClientTestBase(object):
     def test_echo_boolean(self):
         val = True
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val, ret)
+        self.assertEqual(val, ret)
 
         val = False
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val, ret)
+        self.assertEqual(val, ret)
 
     def test_echo_simple_boolean_array(self):
         val = [False, False, False, True]
@@ -100,13 +101,13 @@ class SpyneClientTestBase(object):
         val = [1, 2, 3, 4, 5]
         ret = self.client.service.echo_integer_array([1, 2, 3, 4, 5])
 
-        self.assertEquals(val, ret)
+        self.assertEqual(val, ret)
 
     def test_echo_string(self):
         val = "OK"
         ret = self.client.service.echo_string(val)
 
-        self.assertEquals(ret, val)
+        self.assertEqual(ret, val)
 
     def test_enum(self):
         DaysOfWeekEnum = self.get_inst("DaysOfWeekEnum")
@@ -137,8 +138,8 @@ class SpyneClientTestBase(object):
         ret = self.client.service.echo_in_header()
         self.client.set_options(soapheaders=None)
 
-        self.assertEquals(in_header.s, ret.s)
-        self.assertEquals(in_header.i, ret.i)
+        self.assertEqual(in_header.s, ret.s)
+        self.assertEqual(in_header.i, ret.i)
 
     def test_send_out_header(self):
         call = self.client.service.send_out_header
@@ -146,8 +147,8 @@ class SpyneClientTestBase(object):
         in_header = call.ctx.in_header
 
         self.assertTrue(isinstance(ret, type(in_header)))
-        self.assertEquals(ret.dt, in_header.dt)
-        self.assertEquals(ret.f, in_header.f)
+        self.assertEqual(ret.dt, in_header.dt)
+        self.assertEqual(ret.f, in_header.f)
 
     def _get_xml_test_val(self):
         return {
@@ -206,9 +207,9 @@ class SpyneClientTestBase(object):
 
         ret = self.client.service.echo_nested_class(val)
 
-        self.assertEquals(ret.i, val.i)
+        self.assertEqual(ret.i, val.i)
         self.assertEqual(ret.ai[0], val.ai[0])
-        self.assertEquals(ret.simple[0].s, val.simple[0].s)
+        self.assertEqual(ret.simple[0].s, val.simple[0].s)
         self.assertEqual(ret.other.dt, val.other.dt)
 
     def test_echo_extension_class(self):
@@ -244,12 +245,12 @@ class SpyneClientTestBase(object):
         ret = self.client.service.echo_extension_class(val)
         print(ret)
 
-        self.assertEquals(ret.i, val.i)
-        self.assertEquals(ret.s, val.s)
-        self.assertEquals(ret.f, val.f)
-        self.assertEquals(ret.simple[0].i, val.simple[0].i)
-        self.assertEquals(ret.other.dt, val.other.dt)
-        self.assertEquals(ret.p.s, val.p.s)
+        self.assertEqual(ret.i, val.i)
+        self.assertEqual(ret.s, val.s)
+        self.assertEqual(ret.f, val.f)
+        self.assertEqual(ret.simple[0].i, val.simple[0].i)
+        self.assertEqual(ret.other.dt, val.other.dt)
+        self.assertEqual(ret.p.s, val.p.s)
 
 
     def test_python_exception(self):
@@ -272,10 +273,11 @@ class SpyneClientTestBase(object):
         roles = self.get_inst("RoleEnum")
         ret = self.client.service.complex_return()
 
-        self.assertEquals(ret.resultCode, 1)
-        self.assertEquals(ret.resultDescription, "Test")
-        self.assertEquals(ret.transactionId, 123)
-        self.assertEquals(ret.roles[0], roles.MEMBER)
+        self.assertEqual(ret.resultCode, 1)
+        self.assertEqual(ret.resultDescription, "Test")
+        self.assertEqual(ret.transactionId, 123)
+        self.assertEqual(ret.roles[0], roles.MEMBER)
+
 
 if __name__ == '__main__':
     unittest.main()

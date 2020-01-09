@@ -39,15 +39,86 @@ from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64, File
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import SimpleDictDocument
 
-if six.PY2:
-    from Cookie import SimpleCookie
-else:
-    from http.cookies import SimpleCookie
-
 
 TEMPORARY_DIR = None
 STREAM_READ_BLOCK_SIZE = 0x4000
 SWAP_DATA_TO_FILE_THRESHOLD = 512 * 1024
+
+
+
+_OctalPatt = re.compile(r"\\[0-3][0-7][0-7]")
+_QuotePatt = re.compile(r"[\\].")
+_nulljoin = ''.join
+
+def _unquote_cookie(str):
+    """Handle double quotes and escaping in cookie values.
+    This method is copied verbatim from the Python 3.5 standard
+    library (http.cookies._unquote) so we don't have to depend on
+    non-public interfaces.
+    """
+    # If there aren't any doublequotes,
+    # then there can't be any special characters.  See RFC 2109.
+    if str is None or len(str) < 2:
+        return str
+    if str[0] != '"' or str[-1] != '"':
+        return str
+
+    # We have to assume that we must decode this string.
+    # Down to work.
+
+    # Remove the "s
+    str = str[1:-1]
+
+    # Check for special sequences.  Examples:
+    #    \012 --> \n
+    #    \"   --> "
+    #
+    i = 0
+    n = len(str)
+    res = []
+    while 0 <= i < n:
+        o_match = _OctalPatt.search(str, i)
+        q_match = _QuotePatt.search(str, i)
+        if not o_match and not q_match:              # Neither matched
+            res.append(str[i:])
+            break
+        # else:
+        j = k = -1
+        if o_match:
+            j = o_match.start(0)
+        if q_match:
+            k = q_match.start(0)
+        if q_match and (not o_match or k < j):     # QuotePatt matched
+            res.append(str[i:k])
+            res.append(str[k+1])
+            i = k + 2
+        else:                                      # OctalPatt matched
+            res.append(str[i:j])
+            res.append(chr(int(str[j+1:j+4], 8)))
+            i = j + 4
+    return _nulljoin(res)
+
+
+def _parse_cookie(cookie):
+    """Parse a ``Cookie`` HTTP header into a dict of name/value pairs.
+    This function attempts to mimic browser cookie parsing behavior;
+    it specifically does not follow any of the cookie-related RFCs
+    (because browsers don't either).
+    The algorithm used is identical to that used by Django version 1.9.10.
+    """
+    cookiedict = {}
+    for chunk in cookie.split(str(';')):
+        if str('=') in chunk:
+            key, val = chunk.split(str('='), 1)
+        else:
+            # Assume an empty name per
+            # https://bugzilla.mozilla.org/show_bug.cgi?id=169091
+            key, val = str(''), chunk
+        key, val = key.strip(), val.strip()
+        if key or val:
+            # unquote using Python's algorithm.
+            cookiedict[key] = _unquote_cookie(val)
+    return cookiedict
 
 
 def get_stream_factory(dir=None, delete=True):
@@ -160,13 +231,14 @@ class HttpRpc(SimpleDictDocument):
             cookies = ctx.in_header_doc.get('cookie', None)
             if cookies is None:
                 cookies = ctx.in_header_doc.get('Cookie', None)
+
             if cookies is not None:
                 for cookie_string in cookies:
-                    cookie = SimpleCookie()
-                    cookie.load(cookie_string)
-                    for k,v in cookie.items():
+                    logger.debug("Loading cookie string %r", cookie_string)
+                    cookie = _parse_cookie(cookie_string)
+                    for k, v in cookie.items():
                         l = ctx.in_header_doc.get(k, [])
-                        l.append(v.coded_value)
+                        l.append(v)
                         ctx.in_header_doc[k] = l
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
@@ -286,14 +358,14 @@ class HttpRpc(SimpleDictDocument):
 
         ctx.out_string = ctx.out_document
 
-    def boolean_from_string(self, cls, string):
+    def boolean_from_bytes(self, cls, string):
         return string.lower() in ('true', '1', 'checked', 'on')
 
-    def integer_from_string(self, cls, string):
+    def integer_from_bytes(self, cls, string):
         if string == '':
             return None
 
-        return super(HttpRpc, self).integer_from_string(cls, string)
+        return super(HttpRpc, self).integer_from_bytes(cls, string)
 
 
 _fragment_pattern_re = re.compile('<([A-Za-z0-9_]+)>')

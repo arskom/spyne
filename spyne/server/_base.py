@@ -58,7 +58,6 @@ class ServerBase(object):
         """Calls create_in_document and decompose_incoming_envelope to get
         method_request string in order to generate contexts.
         """
-
         try:
             # sets ctx.in_document
             self.app.in_protocol.create_in_document(ctx, in_string_charset)
@@ -79,6 +78,8 @@ class ServerBase(object):
 
             retval = (ctx,)
 
+            ctx.fire_event('method_exception_object')
+
         return retval
 
     def get_in_object(self, ctx):
@@ -92,10 +93,13 @@ class ServerBase(object):
 
         except Fault as e:
             logger.exception(e)
+            logger.debug("Failed document is: %s", ctx.in_document)
 
             ctx.in_object = None
             ctx.in_error = e
             ctx.out_error = e
+
+            ctx.fire_event('method_exception_object')
 
     def get_out_object(self, ctx):
         """Calls the matched user function by passing it the ``ctx.in_object``

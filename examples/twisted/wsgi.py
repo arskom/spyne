@@ -60,7 +60,7 @@ from twisted.web.server import Site
 from twisted.web.wsgi import WSGIResource
 from twisted.python import log
 
-from spyne import Application, rpc, ServiceBase, Integer
+from spyne import Application, rpc, Service, Integer
 from spyne.server.wsgi import WsgiApplication
 from spyne.protocol.http import HttpRpc
 
@@ -69,7 +69,7 @@ HOST = '0.0.0.0'
 PORT = 9757
 
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc(Integer, _returns=Integer)
     def block(ctx, seconds):
         """Blocks the current thread for given number of seconds."""

@@ -29,10 +29,10 @@ instance as first argument to the user code. ::
 
     from spyne.decorator import srpc
 
-:class:`spyne.service.ServiceBase` is the base class for all service
+:class:`spyne.service.Service` is the base class for all service
 definitions. ::
 
-    from spyne.service import ServiceBase
+    from spyne.service import Service
 
 The names of the needed types for implementing this service should be
 self-explanatory. ::
@@ -51,7 +51,7 @@ We start by defining our service. The class name will be made public in the
 wsdl document unless explicitly overridden with `__service_name__` class
 attribute. ::
 
-    class HelloWorldService(ServiceBase):
+    class HelloWorldService(Service):
 
 The ``@srpc`` decorator flags each method as a remote procedure call and
 defines the types and order of the soap parameters, as well as the type of the

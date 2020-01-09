@@ -17,9 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import unicode_literals
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+import inspect
 import unittest
 import sqlalchemy
 
@@ -34,7 +37,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 
-from spyne import M
+from spyne import M, Any, Double
 
 from spyne.model import XmlAttribute, File, XmlData, ComplexModel, Array, \
     Integer32, Unicode, Integer, Enum, TTableModel, DateTime, Boolean
@@ -44,15 +47,31 @@ from spyne.model.complex import xml
 from spyne.model.complex import table
 
 from spyne.store.relational import get_pk_columns
-
+from spyne.store.relational.document import PGJsonB, PGJson, PGFileJson, \
+    PGObjectJson
 
 TableModel = TTableModel()
 
 
 class TestSqlAlchemyTypeMappings(unittest.TestCase):
-    def test_bool(self):
+    def test_init(self):
+        fn = inspect.stack()[0][3]
+        from sqlalchemy.inspection import inspect as sqla_inspect
+
         class SomeClass1(TableModel):
-            __tablename__ = 'test_bool_1'
+            __tablename__ = "%s_%d" % (fn, 1)
+            i = Integer32(pk=True)
+            e = Unicode(32)
+
+        from spyne.util.dictdoc import get_dict_as_object
+        inst = get_dict_as_object(dict(i=4), SomeClass1)
+        assert not sqla_inspect(inst).attrs.e.history.has_changes()
+
+    def test_bool(self):
+        fn = inspect.stack()[0][3]
+
+        class SomeClass1(TableModel):
+            __tablename__ = "%s_%d" % (fn, 1)
             i = Integer32(pk=True)
             b = Boolean
 
@@ -60,12 +79,62 @@ class TestSqlAlchemyTypeMappings(unittest.TestCase):
                                                              sqlalchemy.Boolean)
 
         class SomeClass2(TableModel):
-            __tablename__ = 'test_bool_2'
+            __tablename__ = "%s_%d" % (fn, 2)
             i = Integer32(pk=True)
             b = Boolean(store_as=int)
 
         assert isinstance(SomeClass2.Attributes.sqla_table.c.b.type,
                                                         sqlalchemy.SmallInteger)
+
+    def test_jsonb(self):
+        fn = inspect.stack()[0][3]
+
+        class SomeClass1(TableModel):
+            __tablename__ = "%s_%d" % (fn, 1)
+            i = Integer32(pk=True)
+            a = Any(store_as='json')
+
+        assert isinstance(SomeClass1.Attributes.sqla_table.c.a.type, PGJson)
+
+        class SomeClass2(TableModel):
+            __tablename__ = "%s_%d" % (fn, 2)
+            i = Integer32(pk=True)
+            a = Any(store_as='jsonb')
+
+        assert isinstance(SomeClass2.Attributes.sqla_table.c.a.type, PGJsonB)
+
+        class SomeClass3(TableModel):
+            __tablename__ = "%s_%d" % (fn, 3)
+            i = Integer32(pk=True)
+            a = File(store_as=HybridFileStore("path", db_format='jsonb'))
+
+        assert isinstance(SomeClass3.Attributes.sqla_table.c.a.type, PGFileJson)
+        assert SomeClass3.Attributes.sqla_table.c.a.type.dbt == 'jsonb'
+
+    def test_obj_json(self):
+        fn = inspect.stack()[0][3]
+
+        class SomeClass(ComplexModel):
+            s = Unicode
+            d = Double
+
+        class SomeClass1(TableModel):
+            __tablename__ = "%s_%d" % (fn, 1)
+            _type_info = [
+                ('i', Integer32(pk=True)),
+                ('a', Array(SomeClass, store_as='json')),
+            ]
+
+        assert isinstance(SomeClass1.Attributes.sqla_table.c.a.type,
+                                                                   PGObjectJson)
+
+        class SomeClass2(TableModel):
+            __tablename__ = "%s_%d" % (fn, 2)
+            i = Integer32(pk=True)
+            a = SomeClass.customize(store_as='json')
+
+        assert isinstance(SomeClass2.Attributes.sqla_table.c.a.type,
+                                                                   PGObjectJson)
 
 
 class TestSqlAlchemySchema(unittest.TestCase):
@@ -98,6 +167,65 @@ class TestSqlAlchemySchema(unittest.TestCase):
             assert 'i' in idx.columns or 's' in idx.columns
             if 's' in idx.columns:
                 assert idx.unique
+
+    def test_colname_simple(self):
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True, autoincrement=False)
+            s = Unicode(64, sqla_column_args=dict(name='ss'))
+
+        t = SomeClass.__table__
+        self.metadata.create_all()  # not needed, just nice to see.
+
+        assert 'ss' in t.c
+
+    def test_colname_complex_table(self):
+        class SomeOtherClass(TableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = (
+                {"sqlite_autoincrement": True},
+            )
+
+            id = Integer32(primary_key=True)
+            o = SomeOtherClass.customize(store_as='table',
+                                               sqla_column_args=dict(name='oo'))
+
+        t = SomeClass.__table__
+        self.metadata.create_all()  # not needed, just nice to see.
+
+        assert 'oo_id' in t.c
+
+    def test_colname_complex_json(self):
+        class SomeOtherClass(TableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = (
+                {"sqlite_autoincrement": True},
+            )
+
+            id = Integer32(primary_key=True)
+            o = SomeOtherClass.customize(store_as='json',
+                                               sqla_column_args=dict(name='oo'))
+
+        t = SomeClass.__table__
+        self.metadata.create_all()  # not needed, just nice to see.
+
+        assert 'oo' in t.c
 
     def test_nested_sql(self):
         class SomeOtherClass(TableModel):
@@ -677,7 +805,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
     def test_scalar_collection(self):
         class SomeClass(TableModel):
-            __tablename__ = 'some_class'
+            __tablename__ = b'some_class'
 
             id = Integer32(primary_key=True)
             values = Array(Unicode).store_as('table')
@@ -737,6 +865,27 @@ class TestSqlAlchemySchema(unittest.TestCase):
         sc = self.session.query(SomeClass).get(1)
         assert ''.join([scc.s for scc in sc.children]) == 'p|q'
         assert sum([scc.i for scc in sc.children]) == 619
+
+    def test_simple_fk(self):
+        class SomeChildClass(TableModel):
+            __tablename__ = 'some_child_class'
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+            i = Integer32
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+
+            id = Integer32(primary_key=True)
+            child_id = Integer32(fk='some_child_class.id')
+
+        foreign_keys = SomeClass.__table__.c['child_id'].foreign_keys
+        assert len(foreign_keys) == 1
+        fk, = foreign_keys
+        assert fk._colspec == 'some_child_class.id'
+
+
 
     def test_reflection(self):
         class SomeClass(TableModel):
@@ -1067,7 +1216,7 @@ class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
 
         t = self.metadata.tables[table_name]
         assert 'e' in t.c
-        assert t.c.e.type.enums == enums
+        assert tuple(t.c.e.type.enums) == enums
 
 
 if __name__ == '__main__':

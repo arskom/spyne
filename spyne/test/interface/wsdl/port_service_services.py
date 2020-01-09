@@ -18,11 +18,11 @@
 #
 
 from spyne.model.primitive import String
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.decorator import rpc
 
 def TS1():
-    class S1(ServiceBase):
+    class S1(Service):
         name = 'S1Fools'
         __namespace__ = 'Hippity'
 
@@ -32,7 +32,7 @@ def TS1():
     return S1
 
 def TS2():
-    class S2(ServiceBase):
+    class S2(Service):
         name = 'S2Fools'
         __namespace__ = 'Hoppity'
 
@@ -43,7 +43,7 @@ def TS2():
     return S2
 
 def TS3():
-    class S3(ServiceBase):
+    class S3(Service):
         name = 'S3Fools'
         __namespace__ = 'Hoppity'
         __service_name__ = 'BlahService'
@@ -53,14 +53,14 @@ def TS3():
         def echo(self, string):
             return string
 
-        @rpc(String, _soap_port_type='bobhope', _returns=String)
-        def echo_bob_hope(self,  string):
+        @rpc(String, _port_type='bobhope', _returns=String)
+        def echo_bob_hope(self, string):
             return 'Bob Hope'
 
     return S3
 
 def TMissingRPCPortService():
-    class MissingRPCPortService(ServiceBase):
+    class MissingRPCPortService(Service):
         name = 'MissingRPCPortService'
         __namespace__ = 'MissingRPCPortService'
         __service_name__ = 'MissingRPCPortService'
@@ -72,55 +72,55 @@ def TMissingRPCPortService():
     return MissingRPCPortService
 
 def TBadRPCPortService():
-    class BadRPCPortService(ServiceBase):
+    class BadRPCPortService(Service):
         name = 'MissingRPCPortService'
         __namespace__ = 'MissingRPCPortService'
         __service_name__ = 'MissingRPCPortService'
         __port_types__ = ['existing']
 
-        @rpc(String, _soap_port_type='existingss', _returns=String)
+        @rpc(String, _port_type='existingss', _returns=String)
         def raise_exception(self, string):
             return string
 
     return BadRPCPortService
 
 def TMissingServicePortService():
-    class MissingServicePortService(ServiceBase):
+    class MissingServicePortService(Service):
         name = 'MissingRPCPortService'
         __namespace__ = 'MissingRPCPortService'
         __service_name__ = 'MissingRPCPortService'
         __port_types__ = ['existing']
 
-        @rpc(String, _soap_port_type='existingss', _returns=String)
+        @rpc(String, _port_type='existingss', _returns=String)
         def raise_exception(self, string):
             return string
 
     return MissingServicePortService
 
 def TSinglePortService():
-    class SinglePortService(ServiceBase):
+    class SinglePortService(Service):
         name = 'SinglePort'
         __service_name__ = 'SinglePortService_ServiceInterface'
         __namespace__ = 'SinglePortNS'
         __port_types__ = ['FirstPortType']
 
-        @rpc(String, _soap_port_type='FirstPortType', _returns=String)
+        @rpc(String, _port_type='FirstPortType', _returns=String)
         def echo_default_port_service(self, string):
             return string
 
     return SinglePortService
 
 def TDoublePortService():
-    class DoublePortService(ServiceBase):
+    class DoublePortService(Service):
         name = 'DoublePort'
         __namespace__ = 'DoublePort'
         __port_types__ = ['FirstPort', 'SecondPort']
 
-        @rpc(String, _soap_port_type='FirstPort', _returns=String)
+        @rpc(String, _port_type='FirstPort', _returns=String)
         def echo_first_port(self, string):
             return string
 
-        @rpc(String, _soap_port_type='SecondPort', _returns=String)
+        @rpc(String, _port_type='SecondPort', _returns=String)
         def echo_second_port(self, string):
             return string
 

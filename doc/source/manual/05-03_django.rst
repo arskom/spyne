@@ -86,10 +86,10 @@ Now we are going to define our RPC service: ::
     from spyne.decorator import rpc
     from spyne.error import ResourceNotFoundError
     from spyne.model import primitive
-    from spyne.util.django import DjangoServiceBase
+    from spyne.util.django import DjangoService
 
 
-    class TodoService(DjangoServiceBase):
+    class TodoService(DjangoService):
 
         """Todo list RPC service."""
 

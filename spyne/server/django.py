@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 from functools import update_wrapper
 
+from spyne import Address
 from spyne.application import get_fault_string_from_exception, Application
 from spyne.auxproc import process_contexts
 from spyne.interface import AllYourInterfaceDocuments
@@ -38,15 +39,18 @@ from spyne.protocol.http import HttpRpc
 from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
 from spyne.server.wsgi import WsgiApplication
 from spyne.util import _bytes_join
+from spyne.util.address import address_parser
 
 from django.http import HttpResponse, HttpResponseNotAllowed, Http404
 from django.views.decorators.csrf import csrf_exempt
 
 try:
     from django.http import StreamingHttpResponse
-except ImportError as e:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def StreamingHttpResponse(*args, **kwargs):
-        raise e
+        raise _local_import_error
+
 
 class DjangoApplication(WsgiApplication):
     """You should use this for regular RPC."""
@@ -119,9 +123,19 @@ class DjangoHttpTransportContext(HttpTransportContext):
     def get_cookie(self, key):
         return self.req.COOKIES[key]
 
+    def get_peer(self):
+        addr, port = address_parser.get_ip(self.req.META),\
+                                          address_parser.get_port(self.req.META)
+
+        if address_parser.is_valid_ipv4(addr, port):
+            return Address(type=Address.TCP4, host=addr, port=port)
+
+        if address_parser.is_valid_ipv6(addr, port):
+            return Address(type=Address.TCP6, host=addr, port=port)
+
 
 class DjangoHttpMethodContext(HttpMethodContext):
-    default_transport_context = DjangoHttpTransportContext
+    HttpTransportContext = DjangoHttpTransportContext
 
 
 class DjangoServer(HttpBase):
@@ -361,7 +375,7 @@ class DjangoView(object):
     def http_method_not_allowed(self, request, *args, **kwargs):
         logger.warning('Method Not Allowed (%s): %s', request.method,
                        request.path, extra={'status_code': 405, 'request':
-                                            self.request})
+                                                                  self.request})
         return HttpResponseNotAllowed(self._allowed_methods())
 
     def options(self, request, *args, **kwargs):

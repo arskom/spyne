@@ -40,6 +40,13 @@ try:
     CYA = lambda s: ''.join((colorama.Fore.CYAN, colorama.Style.BRIGHT, s,
                                                     colorama.Style.RESET_ALL))
 
+    DARK_YEL = lambda s: ''.join((colorama.Fore.YELLOW, s,
+                                                      colorama.Style.RESET_ALL))
+    DARK_MAG = lambda s: ''.join((colorama.Fore.MAGENTA, s,
+                                                      colorama.Style.RESET_ALL))
+    DARK_CYA = lambda s: ''.join((colorama.Fore.CYAN, s,
+                                                      colorama.Style.RESET_ALL))
+
 except ImportError:
     R = lambda s: s
     G = lambda s: s
@@ -50,6 +57,9 @@ except ImportError:
     YEL = lambda s: s
     MAG = lambda s: s
     CYA = lambda s: s
+    DARK_YEL = lambda s: s
+    DARK_MAG = lambda s: s
+    DARK_CYA = lambda s: s
 
 
 if __name__ == '__main__':

@@ -40,7 +40,7 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.model.fault import Fault
 from spyne.protocol.soap import Soap11
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.server import ServerBase
 
 from spyne.protocol.soap import _from_soap
@@ -95,12 +95,12 @@ class TypeNS2(ComplexModel):
     d = DateTime
     f = Float
 
-class MultipleNamespaceService(ServiceBase):
+class MultipleNamespaceService(Service):
     @rpc(TypeNS1, TypeNS2)
     def a(ctx, t1, t2):
         return "OK"
 
-class TestService(ServiceBase):
+class TestService(Service):
     @rpc(String, _returns=String)
     def aa(ctx, s):
         return s
@@ -129,7 +129,7 @@ class TestService(ServiceBase):
         return '1234'
 
 
-class MultipleReturnService(ServiceBase):
+class MultipleReturnService(Service):
     @rpc(String, _returns=(String, String, String))
     def multi(ctx, s):
         return s, 'a', 'b'
@@ -149,7 +149,7 @@ class TestSingle(unittest.TestCase):
 
     def test_portypes(self):
         porttype = self.wsdl_doc.find('{http://schemas.xmlsoap.org/wsdl/}portType')
-        self.assertEquals(
+        self.assertEqual(
             len(self.srv.public_methods), len(porttype.getchildren()))
 
     def test_override_param_names(self):
@@ -167,7 +167,7 @@ class TestMultiple(unittest.TestCase):
         message_class = list(MultipleReturnService.public_methods.values())[0].out_message
         message = message_class()
 
-        self.assertEquals(len(message._type_info), 3)
+        self.assertEqual(len(message._type_info), 3)
 
         sent_xml = etree.Element('test')
         self.app.out_protocol.to_parent(None, message_class, ('a', 'b', 'c'),
@@ -177,7 +177,7 @@ class TestMultiple(unittest.TestCase):
         print((etree.tostring(sent_xml, pretty_print=True)))
         response_data = self.app.out_protocol.from_element(None, message_class, sent_xml)
 
-        self.assertEquals(len(response_data), 3)
+        self.assertEqual(len(response_data), 3)
         self.assertEqual(response_data[0], 'a')
         self.assertEqual(response_data[1], 'b')
         self.assertEqual(response_data[2], 'c')
@@ -198,15 +198,15 @@ class TestSoap11(unittest.TestCase):
         Soap11().to_parent(None, m, m_inst, e, m.get_namespace())
         e=e[0]
 
-        self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
+        self.assertEqual(e.tag, '{%s}myMessage' % m.get_namespace())
 
-        self.assertEquals(e.find('{%s}s' % m.get_namespace()).text, 'a')
-        self.assertEquals(e.find('{%s}i' % m.get_namespace()).text, '43')
+        self.assertEqual(e.find('{%s}s' % m.get_namespace()).text, 'a')
+        self.assertEqual(e.find('{%s}i' % m.get_namespace()).text, '43')
 
         values = Soap11().from_element(None, m, e)
 
-        self.assertEquals('a', values.s)
-        self.assertEquals(43, values.i)
+        self.assertEqual('a', values.s)
+        self.assertEqual(43, values.i)
 
     def test_href(self):
         # the template. Start at pos 0, some servers complain if
@@ -242,7 +242,7 @@ b'''<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         header, payload = _from_soap(root, xmlids)
 
         # quick and dirty test href reconstruction
-        self.assertEquals(len(payload[0]), 2)
+        self.assertEqual(len(payload[0]), 2)
 
     def test_namespaces(self):
         m = ComplexModel.produce(
@@ -258,7 +258,7 @@ b'''<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         Soap11().to_parent(None, m, mi, e, m.get_namespace())
         e=e[0]
 
-        self.assertEquals(e.tag, '{some_namespace}myMessage')
+        self.assertEqual(e.tag, '{some_namespace}myMessage')
 
     def test_class_to_parent(self):
         m = ComplexModel.produce(
@@ -279,18 +279,18 @@ b'''<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         Soap11().to_parent(None, m, m_inst, element, m.get_namespace())
         element=element[0]
 
-        self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
-        self.assertEquals(element[0].find('{%s}name' % Person.get_namespace()).text,
+        self.assertEqual(element.tag, '{%s}myMessage' % m.get_namespace())
+        self.assertEqual(element[0].find('{%s}name' % Person.get_namespace()).text,
                                                                     'steve-o')
-        self.assertEquals(element[0].find('{%s}age' % Person.get_namespace()).text, '2')
-        self.assertEquals(
+        self.assertEqual(element[0].find('{%s}age' % Person.get_namespace()).text, '2')
+        self.assertEqual(
               len(element[0].find('{%s}addresses' % Person.get_namespace())), 0)
 
         p1 = Soap11().from_element(None, m, element)[0]
 
-        self.assertEquals(p1.name, m_inst.p.name)
-        self.assertEquals(p1.age, m_inst.p.age)
-        self.assertEquals(p1.addresses, [])
+        self.assertEqual(p1.name, m_inst.p.name)
+        self.assertEqual(p1.age, m_inst.p.age)
+        self.assertEqual(p1.addresses, [])
 
     def test_datetime_fixed_format(self):
         # Soap should ignore formats
@@ -298,11 +298,11 @@ b'''<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')
-        Soap11().to_parent(None, DateTime(format=format), n,
+        Soap11().to_parent(None, DateTime(dt_format=format), n,
                                                       element, 'some_namespace')
         assert element[0].text == n.isoformat()
 
-        dt = Soap11().from_element(None, DateTime(format=format), element[0])
+        dt = Soap11().from_element(None, DateTime(dt_format=format), element[0])
         assert n == dt
 
     def test_date_with_tzoffset(self):
@@ -341,11 +341,11 @@ b'''<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         Soap11().to_parent(None, m, m_inst, element, m.get_namespace())
         element=element[0]
 
-        self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)
+        self.assertEqual('{%s}myMessage' % m.get_namespace(), element.tag)
 
         addresses = element[0].find('{%s}addresses' % Person.get_namespace())
-        self.assertEquals(100, len(addresses))
-        self.assertEquals('0', addresses[0].find('{%s}zip' %
+        self.assertEqual(100, len(addresses))
+        self.assertEqual('0', addresses[0].find('{%s}zip' %
                                                 Address.get_namespace()).text)
 
     def test_fault_deserialization_missing_fault_actor(self):
@@ -385,7 +385,7 @@ class RelatesTo (Unicode):
     __type_name__ = "RelatesTo"
     __namespace__ = NAMESPACE_ADDRESSING
 
-class SOAPServiceWithHeader(ServiceBase):
+class SOAPServiceWithHeader(Service):
     @rpc(Unicode,
         _in_header=(Action,
                     MessageID,
@@ -428,9 +428,9 @@ class TestSoapHeader(unittest.TestCase):
         ctx, = server.generate_contexts(initial_ctx, in_string_charset='utf8')
         server.get_in_object(ctx)
 
-        self.assertEquals(ctx.in_header[0], '/SomeAction')
-        self.assertEquals(ctx.in_header[1], 'SomeMessageID')
-        self.assertEquals(ctx.in_header[2], 'SomeRelatesToID')
+        self.assertEqual(ctx.in_header[0], '/SomeAction')
+        self.assertEqual(ctx.in_header[1], 'SomeMessageID')
+        self.assertEqual(ctx.in_header[2], 'SomeRelatesToID')
 
     def test_soap_input_header_order(self):
         """
@@ -459,9 +459,9 @@ class TestSoapHeader(unittest.TestCase):
         ctx, = server.generate_contexts(initial_ctx, in_string_charset='utf8')
         server.get_in_object(ctx)
 
-        self.assertEquals(ctx.in_header[0], '/SomeAction')
-        self.assertEquals(ctx.in_header[1], 'SomeMessageID')
-        self.assertEquals(ctx.in_header[2], 'SomeRelatesToID')
+        self.assertEqual(ctx.in_header[0], '/SomeAction')
+        self.assertEqual(ctx.in_header[1], 'SomeMessageID')
+        self.assertEqual(ctx.in_header[2], 'SomeRelatesToID')
 
 
     def test_soap_input_header_order_and_missing(self):
@@ -491,9 +491,9 @@ class TestSoapHeader(unittest.TestCase):
         ctx, = server.generate_contexts(initial_ctx, in_string_charset='utf8')
         server.get_in_object(ctx)
 
-        self.assertEquals(ctx.in_header[0], '/SomeAction')
-        self.assertEquals(ctx.in_header[1], 'SomeMessageID')
-        self.assertEquals(ctx.in_header[2], None)
+        self.assertEqual(ctx.in_header[0], '/SomeAction')
+        self.assertEqual(ctx.in_header[1], 'SomeMessageID')
+        self.assertEqual(ctx.in_header[2], None)
 
 
 if __name__ == '__main__':

@@ -62,10 +62,11 @@ from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
 from twisted.internet.threads import deferToThread
 
-from spyne import Redirect
+from spyne import Redirect, Address
 from spyne.application import logger_server
 from spyne.application import get_fault_string_from_exception
 
+from spyne.util import six
 from spyne.error import InternalError
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
@@ -81,9 +82,14 @@ from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
+from spyne.server.twisted import log_and_let_go
 
+from spyne.util.address import address_parser
 from spyne.util.six import text_type, string_types
 from spyne.util.six.moves.urllib.parse import unquote
+
+if not six.PY2:
+    from urllib.request import unquote_to_bytes
 
 
 def _render_file(file, request):
@@ -152,8 +158,23 @@ def _reconstruct_url(request):
         url_scheme = 'https'
     else:
         url_scheme = 'http'
+    uri = _decode_path(request.uri)
+    return ''.join([url_scheme, "://", server_name, uri])
 
-    return ''.join([url_scheme, "://", server_name, request.uri])
+
+class _Transformer(object):
+    def __init__(self, req):
+        self.req = req
+
+    def get(self, key, default):
+        key = key.lower()
+        if key.startswith((b'http_', b'http-')):
+            key = key[5:]
+
+        retval = self.req.getHeader(key)
+        if retval is None:
+            retval = default
+        return retval
 
 
 class TwistedHttpTransportContext(HttpTransportContext):
@@ -178,9 +199,29 @@ class TwistedHttpTransportContext(HttpTransportContext):
     def get_request_content_type(self):
         return self.req.getHeader("Content-Type")
 
+    def get_peer(self):
+        peer = Address.from_twisted_address(self.req.transport.getPeer())
+        addr = address_parser.get_ip(_Transformer(self.req))
+
+        if addr is None:
+            return peer
+
+        if address_parser.is_valid_ipv4(addr):
+            return Address(type=Address.TCP4, host=addr, port=0)
+
+        if address_parser.is_valid_ipv6(addr):
+            return Address(type=Address.TCP6, host=addr, port=0)
+
 
 class TwistedHttpMethodContext(HttpMethodContext):
-    default_transport_context = TwistedHttpTransportContext
+    HttpTransportContext = TwistedHttpTransportContext
+
+
+def _decode_path(fragment):
+    if six.PY2:
+        return unquote(fragment).decode('utf8')
+
+    return unquote_to_bytes(fragment).decode('utf8')
 
 
 class TwistedHttpTransport(HttpBase):
@@ -247,17 +288,18 @@ class TwistedHttpTransport(HttpBase):
 
                 return r \
                     .addCallback(_cb_push_close) \
-                    .addErrback(_eb_inner)
+                    .addErrback(_eb_inner) \
+                    .addErrback(log_and_let_go, logger)
 
             return retval \
                 .addCallback(_cb_push_close) \
-                .addErrback(_eb_push_close) \
-                .addErrback(err)
+                .addErrback(_eb_push_close)  \
+                .addErrback(log_and_let_go, logger)
+
+        super(TwistedHttpTransport, self).pusher_try_close(ctx, pusher, retval)
 
         if not pusher.interim:
             retval = ctx.out_stream.finish()
-
-        super(TwistedHttpTransport, self).pusher_try_close(ctx, pusher, retval)
 
         return retval
 
@@ -289,14 +331,18 @@ class TwistedHttpTransport(HttpBase):
         if postpath is None:
             postpath = request.path
 
+        if postpath is not None:
+            postpath = _decode_path(postpath)
+
         params = self.match_pattern(ctx, request.method, postpath,
-                                                      request.getHeader('Host'))
+                                                     request.getHeader(b'Host'))
 
         if ctx.method_request_string is None: # no pattern match
-            ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                request.path.rsplit('/', 1)[-1])
+            ctx.method_request_string = u'{%s}%s' % (
+                                 self.app.interface.get_tns(),
+                                 _decode_path(request.path.rsplit(b'/', 1)[-1]))
 
-        logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
+        logger.debug(u"%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
         for k, v in params.items():
@@ -355,12 +401,16 @@ def _get_file_info(ctx):
         return retval
 
     for k in keys:
-        field = img[k]
+        fields = img[k]
 
-        file_type = field.type
-        file_name = field.disposition_options.get('filename', None)
-        if file_name is not None:
-            retval.append(_FileInfo(k, file_name, file_type,
+        if isinstance(fields, cgi.FieldStorage):
+            fields = (fields,)
+
+        for field in fields:
+            file_type = field.type
+            file_name = field.disposition_options.get('filename', None)
+            if file_name is not None:
+                retval.append(_FileInfo(k, file_name, file_type,
                                                 [mmap(field.file.fileno(), 0)]))
 
     return retval
@@ -382,10 +432,10 @@ def get_twisted_child_with_default(res, path, request):
     # http requests too seriously. i.e. it insists that a leaf node can only
     # handle the last path fragment.
     if res.prepath is None:
-        request.realprepath = '/' + '/'.join(request.prepath)
+        request.realprepath = b'/' + b'/'.join(request.prepath)
     else:
         if not res.prepath.startswith('/'):
-            request.realprepath = '/' + res.prepath
+            request.realprepath = b'/' + res.prepath
         else:
             request.realprepath = res.prepath
 
@@ -398,7 +448,7 @@ def get_twisted_child_with_default(res, path, request):
         retval = res
     else:
         request.realpostpath = request.path[
-                               len(path) + (0 if path.startswith('/') else 1):]
+                               len(path) + (0 if path.startswith(b'/') else 1):]
 
     return retval
 
@@ -422,14 +472,13 @@ class TwistedWebResource(Resource):
         return get_twisted_child_with_default(self, path, request)
 
     def render(self, request):
-        if request.method == 'GET' and (
-                request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl')):
+        if request.method == b'GET' and (
+              request.uri.endswith(b'.wsdl') or request.uri.endswith(b'?wsdl')):
             return self.__handle_wsdl_request(request)
         return self.handle_rpc(request)
 
     def handle_rpc_error(self, p_ctx, others, error, request):
         logger.error(error)
-
         resp_code = p_ctx.transport.resp_code
         # If user code set its own response code, don't touch it.
         if resp_code is None:
@@ -445,7 +494,7 @@ class TwistedWebResource(Resource):
         p_ctx.out_object = error
         self.http_transport.get_out_string(p_ctx)
 
-        retval = ''.join(p_ctx.out_string)
+        retval = b''.join(p_ctx.out_string)
 
         p_ctx.close()
 
@@ -499,6 +548,7 @@ class TwistedWebResource(Resource):
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, request, p_ctx, others, resource=self)
             ret.addErrback(_eb_deferred, request, p_ctx, others, resource=self)
+            ret.addErrback(log_and_let_go, logger)
 
         elif isinstance(ret, PushBase):
             self.http_transport.init_root_push(ret, p_ctx, others)
@@ -509,7 +559,11 @@ class TwistedWebResource(Resource):
                                                                  self, cb=False)
             except Exception as e:
                 logger_server.exception(e)
-                _eb_deferred(Failure(), request, p_ctx, others, resource=self)
+                try:
+                    _eb_deferred(Failure(), request, p_ctx, others,
+                                                                  resource=self)
+                except Exception as e:
+                    logger_server.exception(e)
 
         return retval
 
@@ -590,7 +644,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     retval = NOT_DONE_YET
 
     if isinstance(ret, PushBase):
-        pass
+        resource.http_transport.init_root_push(ret, p_ctx, others)
 
     elif ((isclass(om) and issubclass(om, File)) or
           (isclass(single_class) and issubclass(single_class, File))) and \
@@ -608,35 +662,45 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
             def _close_only_context(ret):
                 p_ctx.close()
 
-            request.notifyFinish().addCallback(_close_only_context)
-            request.notifyFinish().addErrback(_eb_request_finished, request, p_ctx)
+            request.notifyFinish() \
+                .addCallback(_close_only_context) \
+                .addErrback(_eb_request_finished, request, p_ctx) \
+                .addErrback(log_and_let_go, logger)
 
     else:
         ret = resource.http_transport.get_out_string(p_ctx)
 
         if not isinstance(ret, Deferred):
             producer = Producer(p_ctx.out_string, request)
-            producer.deferred.addCallback(_cb_request_finished, request, p_ctx)
-            producer.deferred.addErrback(_eb_request_finished, request, p_ctx)
+            producer.deferred \
+                .addCallback(_cb_request_finished, request, p_ctx) \
+                .addErrback(_eb_request_finished, request, p_ctx) \
+                .addErrback(log_and_let_go, logger)
 
             try:
                 request.registerProducer(producer, False)
             except Exception as e:
                 logger_server.exception(e)
-                _eb_deferred(Failure(), request, p_ctx, others, resource)
+                try:
+                    _eb_deferred(Failure(), request, p_ctx, others, resource)
+                except Exception as e:
+                    logger_server.exception(e)
+                    raise
 
         else:
             def _cb(ret):
                 if isinstance(ret, Deferred):
                     return ret \
                         .addCallback(_cb) \
-                        .addErrback(_eb_request_finished, request, p_ctx)
+                        .addErrback(_eb_request_finished, request, p_ctx) \
+                        .addErrback(log_and_let_go, logger)
                 else:
                     return _cb_request_finished(ret, request, p_ctx)
 
             ret \
                 .addCallback(_cb) \
-                .addErrback(_eb_request_finished, request, p_ctx)
+                .addErrback(_eb_request_finished, request, p_ctx) \
+                .addErrback(log_and_let_go, logger)
 
     process_contexts(resource.http_transport, others, p_ctx)
 
@@ -644,10 +708,8 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
 
 def _eb_deferred(ret, request, p_ctx, others, resource):
-    app = p_ctx.app
-
     # DRY this with what's in Application.process_request
-    if issubclass(ret.type, Redirect):
+    if ret.check(Redirect):
         try:
             ret.value.do_redirect()
 
@@ -665,7 +727,7 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
 
             p_ctx.fire_event('method_redirect_exception')
 
-    elif issubclass(ret.type, Fault):
+    elif ret.check(Fault):
         p_ctx.out_error = ret.value
 
         ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
@@ -675,10 +737,13 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
         request.write(ret)
 
     else:
-        p_ctx.out_error = ret.value
-        ret.printTraceback()
         p_ctx.out_error = InternalError(ret.value)
+        ret.printTraceback()
+
+        ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
 
         p_ctx.fire_event('method_exception_object')
+
+        request.write(ret)
 
     request.finish()

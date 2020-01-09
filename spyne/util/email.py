@@ -28,18 +28,24 @@ import traceback
 import smtplib
 
 from socket import gethostname
+from subprocess import Popen, PIPE
+
 from email.utils import COMMASPACE, formatdate
 from email.mime.text import MIMEText
 
+from spyne.util import six
 
-def email_exception(exception_address, message=""):
+
+def email_exception(exception_address, message="", bcc=None):
     # http://stackoverflow.com/questions/1095601/find-module-name-of-the-originating-exception-in-python
     frm = inspect.trace()[-1]
     mod = inspect.getmodule(frm[0])
     module_name = mod.__name__ if mod else frm[1]
 
     sender = 'robot@spyne.io'
-    receivers = [exception_address]
+    recipients = [exception_address]
+    if bcc is not None:
+        recipients.extend(bcc)
 
     error_str = ("%s\n\n%s" % (message, traceback.format_exc()))
     msg = MIMEText(error_str.encode('utf8'), 'plain', 'utf8')
@@ -50,7 +56,7 @@ def email_exception(exception_address, message=""):
 
     try:
         smtp_object = smtplib.SMTP('localhost')
-        smtp_object.sendmail(sender, receivers, msg.as_string())
+        smtp_object.sendmail(sender, recipients, msg.as_string())
         logger.error("Error email sent")
 
     except Exception as e:
@@ -58,10 +64,8 @@ def email_exception(exception_address, message=""):
         logger.exception(e)
 
 
-def email_text(addresses, sender=None, subject='', message=""):
-    sender = 'robot@spyne.io'
-    receivers = addresses
-
+def email_text_smtp(addresses, sender=None, subject='', message="",
+                                                     host='localhost', port=25):
     if sender is None:
         sender = 'Spyne <robot@spyne.io>'
 
@@ -74,7 +78,36 @@ def email_text(addresses, sender=None, subject='', message=""):
     msg['Date'] = formatdate()
     msg['Subject'] = subject
 
-    smtp_object = smtplib.SMTP('localhost')
-    smtp_object.sendmail(sender, receivers, msg.as_string())
-    logger.info("Text email sent to: %r. Text: %s " % (addresses,
-                                              message[100:].replace('\n', ' ')))
+    smtp_object = smtplib.SMTP(host, port)
+    if six.PY2:
+        smtp_object.sendmail(sender, addresses, msg.as_string())
+    else:
+        smtp_object.sendmail(sender, addresses, msg.as_bytes())
+    logger.info("Text email sent to: %r.", addresses)
+
+
+def email_text(addresses, sender=None, subject='', message="", bcc=None):
+    if sender is None:
+        sender = 'Spyne <robot@spyne.io>'
+
+    exc = traceback.format_exc()
+    if exc is not None:
+        message = (u"%s\n\n%s" % (message, exc))
+    msg = MIMEText(message.encode('utf8'), 'plain', 'utf8')
+    msg['To'] = COMMASPACE.join(addresses)
+    msg['From'] = sender
+    msg['Date'] = formatdate()
+    msg['Subject'] = subject
+
+    cmd = ["/usr/sbin/sendmail", "-oi", '--']
+    cmd.extend(addresses)
+    if bcc is not None:
+        cmd.extend(bcc)
+
+    p = Popen(cmd, stdin=PIPE)
+    if six.PY2:
+        p.communicate(msg.as_string())
+    else:
+        p.communicate(msg.as_bytes())
+
+    logger.info("Text email sent to: %r.", addresses)

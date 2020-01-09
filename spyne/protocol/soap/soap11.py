@@ -20,8 +20,8 @@
 """The ``spyne.protocol.soap.soap11`` module contains the implementation of a
 subset of the Soap 1.1 standard.
 
-Except the binary optimizations (MtoM, attachments, etc) that mostly
-**do not work**, this protocol is production quality.
+Except the binary optimizations (MtoM, attachments, etc) that are beta quality,
+this protocol is production quality.
 
 One must specifically enable the debug output for the Xml protocol to see the
 actual document exchange. That's because the xml formatting code is run only
@@ -70,7 +70,7 @@ def _from_soap(in_envelope_xml, xmlids=None, **kwargs):
 
     if in_envelope_xml.tag != '{%s}Envelope' % ns_soap:
         raise Fault('Client.SoapError', 'No {%s}Envelope element was found!' %
-                                                            ns_soap)
+                                                                        ns_soap)
 
     header_envelope = in_envelope_xml.xpath('e:Header',
                                           namespaces={'e': ns_soap})
@@ -170,12 +170,15 @@ class Soap11(XmlDocument):
     type = set(XmlDocument.type)
     type.update(('soap', 'soap11'))
 
+    ns_soap_env = ns.NS_SOAP11_ENV
+    ns_soap_enc = ns.NS_SOAP11_ENC
+
     def __init__(self, *args, **kwargs):
         super(Soap11, self).__init__(*args, **kwargs)
 
         # SOAP requires DateTime strings to be in iso format. The following
-        # lines make sure custom datetime formatting via DateTime(format="...")
-        # string is bypassed.
+        # lines make sure custom datetime formatting via
+        # DateTime(dt_format="...") (or similar) is bypassed.
         self._to_unicode_handlers[Time] = lambda cls, value: value.isoformat()
         self._to_unicode_handlers[DateTime] = lambda cls, value: value.isoformat()
 
@@ -184,7 +187,7 @@ class Soap11(XmlDocument):
 
     def create_in_document(self, ctx, charset=None):
         if isinstance(ctx.transport, HttpTransportContext):
-            # according to the soap via http standard, soap requests must only
+            # according to the soap-via-http standard, soap requests must only
             # work with proper POST requests.
             content_type = ctx.transport.get_request_content_type()
             http_verb = ctx.transport.get_request_method()
@@ -195,7 +198,7 @@ class Soap11(XmlDocument):
                         "header properly set.")
 
             content_type = cgi.parse_header(content_type)
-            collapse_swa(content_type, ctx.in_string)
+            ctx.in_string = collapse_swa(ctx, content_type, self.ns_soap_env)
 
         ctx.in_document = _parse_xml_string(ctx.in_string,
                                             XMLParser(**self.parser_kwargs),
@@ -203,7 +206,8 @@ class Soap11(XmlDocument):
 
     def decompose_incoming_envelope(self, ctx, message=XmlDocument.REQUEST):
         envelope_xml, xmlids = ctx.in_document
-        header_document, body_document = _from_soap(envelope_xml, xmlids, ns=self.ns_soap_env)
+        header_document, body_document = _from_soap(envelope_xml, xmlids,
+                                                            ns=self.ns_soap_env)
 
         ctx.in_document = envelope_xml
 
@@ -265,7 +269,8 @@ class Soap11(XmlDocument):
             if ctx.in_body_doc is None:
                 ctx.in_object = [None] * len(body_class._type_info)
             else:
-                ctx.in_object = self.from_element(ctx, body_class, ctx.in_body_doc)
+                ctx.in_object = self.from_element(ctx, body_class,
+                                                                ctx.in_body_doc)
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
@@ -309,6 +314,7 @@ class Soap11(XmlDocument):
             if ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
                 out_type_info = body_message_class._type_info
                 out_object = body_message_class()
+                bm_attrs = self.get_cls_attrs(body_message_class)
 
                 keys = iter(out_type_info)
                 values = iter(ctx.out_object)
@@ -322,9 +328,10 @@ class Soap11(XmlDocument):
                     except StopIteration:
                         v = None
 
-                    setattr(out_object, k, v)
-                self.to_parent(ctx, body_message_class, out_object, out_body_doc,
-                                            body_message_class.get_namespace())
+                    out_object._safe_set(k, v, body_message_class, bm_attrs)
+
+                self.to_parent(ctx, body_message_class, out_object,
+                               out_body_doc, body_message_class.get_namespace())
 
             else:
                 out_object = ctx.out_object[0]

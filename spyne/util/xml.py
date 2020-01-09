@@ -21,21 +21,31 @@
 """The `spyne.util.xml` module contains various Xml and Xml Schema related
 utility functions.
 """
+from inspect import isgenerator
 
 from lxml import etree
 
 from os.path import dirname
 from os.path import abspath
 
+from spyne import ServiceBase, Application, srpc
+from spyne.context import FakeContext
 from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
 from spyne.interface.xml_schema.parser import XmlSchemaParser, Thier_repr, PARSER
+from spyne.protocol import ProtocolMixin
+from spyne.protocol.cloth import XmlCloth
 
 from spyne.protocol.xml import XmlDocument
+from spyne.util.six import BytesIO
+from spyne.util.tlist import tlist
 
 
 class FakeApplication(object):
-    pass
+    def __init__(self, default_namespace):
+        self.tns = default_namespace
+        self.services = ()
+        self.classes = ()
 
 
 def get_schema_documents(models, default_namespace=None):
@@ -49,9 +59,7 @@ def get_schema_documents(models, default_namespace=None):
     if default_namespace is None:
         default_namespace = models[0].get_namespace()
 
-    fake_app = FakeApplication()
-    fake_app.tns = default_namespace
-    fake_app.services = []
+    fake_app = FakeApplication(default_namespace)
 
     interface = Interface(fake_app)
     for m in models:
@@ -75,9 +83,7 @@ def get_validation_schema(models, default_namespace=None):
     if default_namespace is None:
         default_namespace = models[0].get_namespace()
 
-    fake_app = FakeApplication()
-    fake_app.tns = default_namespace
-    fake_app.services = []
+    fake_app = FakeApplication(default_namespace)
 
     interface = Interface(fake_app)
     for m in models:
@@ -96,10 +102,79 @@ def _dig(par):
         _dig(elt)
 
 
-xml_object = XmlDocument()
+_xml_object = XmlDocument()
 
 
 def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=False):
+    """Returns an ElementTree representation of a
+    :class:`spyne.model.complex.ComplexModel` subclass.
+
+    :param inst: The instance of the class to be serialized.
+    :param cls: The class to be serialized. Optional.
+    :param root_tag_name: The root tag string to use. Defaults to the output of
+        ``value.__class__.get_type_name_ns()``.
+    :param no_namespace: When true, namespace information is discarded.
+    """
+
+    if cls is None:
+        cls = inst.__class__
+
+    parent = etree.Element("parent")
+    _xml_object.to_parent(None, cls, inst, parent, cls.get_namespace(),
+                                                                  root_tag_name)
+    if no_namespace:
+        _dig(parent)
+        etree.cleanup_namespaces(parent)
+
+    return parent[0]
+
+
+def get_object_as_xml_polymorphic(inst, cls=None, root_tag_name=None,
+                                                            no_namespace=False):
+    """Returns an ElementTree representation of a
+    :class:`spyne.model.complex.ComplexModel` subclass.
+
+    :param inst: The instance of the class to be serialized.
+    :param cls: The class to be serialized. Optional.
+    :param root_tag_name: The root tag string to use. Defaults to the output of
+        ``value.__class__.get_type_name_ns()``.
+    :param no_namespace: When true, namespace information is discarded.
+    """
+
+    if cls is None:
+        cls = inst.__class__
+
+    if no_namespace:
+        app = Application([ServiceBase], tns="",
+                                     out_protocol=XmlDocument(polymorphic=True))
+    else:
+        tns = cls.get_namespace()
+
+        if tns is None:
+            raise ValueError(
+                "Either set a namespace for %r or pass no_namespace=True"
+                                                                      % (cls, ))
+
+        class _DummyService(ServiceBase):
+            @srpc(cls)
+            def f(_):
+                pass
+
+        app = Application([ServiceBase], tns=cls.get_namespace(),
+                                     out_protocol=XmlDocument(polymorphic=True))
+
+    parent = etree.Element("parent")
+
+    app.out_protocol.to_parent(None, cls, inst, parent, cls.get_namespace(),
+                                                                  root_tag_name)
+    if no_namespace:
+        _dig(parent)
+        etree.cleanup_namespaces(parent)
+
+    return parent[0]
+
+
+def get_object_as_xml_cloth(inst, cls=None, no_namespace=False, encoding='utf8'):
     """Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
@@ -119,14 +194,18 @@ def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=False):
     if no_namespace is None:
         no_namespace = False
 
-    parent = etree.Element("parent")
-    xml_object.to_parent(None, cls, inst, parent, cls.get_namespace(),
-                                                                  root_tag_name)
-    if no_namespace:
-        _dig(parent)
-        etree.cleanup_namespaces(parent)
+    ostr = BytesIO()
+    xml_cloth = XmlCloth(use_ns=(not no_namespace))
+    ctx = FakeContext()
+    with etree.xmlfile(ostr, encoding=encoding) as xf:
+        ctx.outprot_ctx.doctype_written = False
+        ctx.protocol.prot_stack = tlist([], ProtocolMixin)
+        tn = cls.get_type_name()
+        ret = xml_cloth.subserialize(ctx, cls, inst, xf, tn)
 
-    return parent[0]
+        assert not isgenerator(ret)
+
+    return ostr.getvalue()
 
 
 def get_xml_as_object(elt, cls):
@@ -136,7 +215,7 @@ def get_xml_as_object(elt, cls):
     :param elt: The xml document to be deserialized.
     :param cls: The class the xml document represents.
     """
-    return xml_object.from_element(None, cls, elt)
+    return _xml_object.from_element(None, cls, elt)
 
 
 def parse_schema_string(s, files={}, repr_=Thier_repr(with_ns=False),

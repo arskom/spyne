@@ -22,6 +22,7 @@
 implementation is a subclass of ``ProtocolBase``.
 """
 
+from spyne.protocol._base import ProtocolMixin
 from spyne.protocol._inbase import InProtocolBase
 from spyne.protocol._outbase import OutProtocolBase
 
@@ -31,8 +32,10 @@ class ProtocolBase(InProtocolBase, OutProtocolBase):
                ignore_uncap=False, ignore_wrappers=False, binary_encoding=None):
 
         InProtocolBase.__init__(self, app=app, validator=validator,
-                          mime_type=mime_type,  ignore_wrappers=ignore_wrappers,
+                          mime_type=mime_type, ignore_wrappers=ignore_wrappers,
                                                 binary_encoding=binary_encoding)
         OutProtocolBase.__init__(self, app=app, mime_type=mime_type,
                      ignore_wrappers=ignore_wrappers, ignore_uncap=ignore_uncap,
                                                 binary_encoding=binary_encoding)
+
+        self.ignore_empty_faultactor = True

@@ -32,19 +32,18 @@ import threading
 from inspect import isgenerator
 from itertools import chain
 
+from spyne import Address
 from spyne.util.six.moves.http_cookies import SimpleCookie
 from spyne.util.six.moves.urllib.parse import unquote, quote
 
+from spyne import File, Fault
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
-from spyne.model.binary import File
-from spyne.model.fault import Fault
 from spyne.protocol.http import HttpRpc
-from spyne.server.http import HttpBase
-from spyne.server.http import HttpMethodContext
-from spyne.server.http import HttpTransportContext
+from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
 from spyne.util.odict import odict
+from spyne.util.address import address_parser
 
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
@@ -56,14 +55,16 @@ from spyne.const.http import HTTP_500
 try:
     from spyne.protocol.soap.mime import apply_mtom
 except ImportError as _import_error_1:
+    _local_import_error_1 = _import_error_1  # python 3 workaround
     def apply_mtom(*args, **kwargs):
-        raise _import_error_1
+        raise _local_import_error_1
 
 try:
     from werkzeug.formparser import parse_form_data
 except ImportError as _import_error_2:
+    _local_import_error_2 = _import_error_2  # python 3 workaround
     def parse_form_data(*args, **kwargs):
-        raise _import_error_2
+        raise _local_import_error_2
 
 
 def _reconstruct_url(environ, protocol=True, server_name=True, path=True,
@@ -146,7 +147,10 @@ def _get_http_headers(req_env):
 
     for k, v in req_env.items():
         if k.startswith("HTTP_"):
-            retval[k[5:].lower()]= [v]
+            key = k[5:].lower()
+            val = [v]
+            retval[key]= val
+            logger.debug("Add http header %r = %r", key, val)
 
     return retval
 
@@ -178,6 +182,8 @@ class WsgiTransportContext(HttpTransportContext):
         self.req_method = req_env.get('REQUEST_METHOD', None)
         """HTTP Request verb, as a convenience to users."""
 
+        self.headers = _get_http_headers(self.req_env)
+
     def get_path(self):
         return self.req_env['PATH_INFO']
 
@@ -204,17 +210,24 @@ class WsgiTransportContext(HttpTransportContext):
     def get_request_content_type(self):
         return self.req.get("CONTENT_TYPE", None)
 
+    def get_peer(self):
+        addr, port = address_parser.get_ip(self.req),\
+                                               address_parser.get_port(self.req)
+
+        if address_parser.is_valid_ipv4(addr):
+            return Address(type=Address.TCP4, host=addr, port=port)
+
+        if address_parser.is_valid_ipv6(addr):
+            return Address(type=Address.TCP6, host=addr, port=port)
+
 
 class WsgiMethodContext(HttpMethodContext):
     """The WSGI-Specific method context. WSGI-Specific information is stored in
     the transport attribute using the :class:`WsgiTransportContext` class.
     """
 
-    def __init__(self, transport, req_env, content_type):
-        super(WsgiMethodContext, self).__init__(transport, req_env, content_type)
-
-        self.transport = WsgiTransportContext(self, transport, req_env, content_type)
-        """Holds the WSGI-specific information"""
+    TransportContext = None
+    HttpTransportContext = WsgiTransportContext
 
 
 class WsgiApplication(HttpBase):
@@ -284,6 +297,8 @@ class WsgiApplication(HttpBase):
             url = _reconstruct_url(req_env).split('.wsdl')[0]
 
         if self.is_wsdl_request(req_env):
+            # Format the url for location
+            url = url.split('?')[0].split('.wsdl')[0]
             return self.handle_wsdl_request(req_env, start_response, url)
 
         else:
@@ -297,7 +312,7 @@ class WsgiApplication(HttpBase):
         return (
             req_env['REQUEST_METHOD'].upper() == 'GET'
             and (
-                   req_env['QUERY_STRING'].lower() == 'wsdl'
+                   req_env['QUERY_STRING'].split('=')[0].lower() == 'wsdl'
                 or req_env['PATH_INFO'].endswith('.wsdl')
             )
         )
@@ -569,7 +584,7 @@ class WsgiApplication(HttpBase):
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
-        ctx.in_header_doc = _get_http_headers(wsgi_env)
+        ctx.in_header_doc = ctx.transport.headers
         ctx.in_body_doc = _parse_qs(wsgi_env['QUERY_STRING'])
 
         for k, v in params.items():

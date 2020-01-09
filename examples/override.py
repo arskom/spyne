@@ -37,7 +37,7 @@ that are python keywords like from, import, return, etc.
 """
 
 
-from spyne import Application, rpc, ServiceBase, String, ComplexModel
+from spyne import Application, rpc, Service, String, ComplexModel
 
 from spyne.util.odict import odict
 
@@ -52,7 +52,7 @@ class SomeClass(ComplexModel):
     ])
 
 
-class EmailManager(ServiceBase):
+class EmailManager(Service):
     @rpc(String, String, String, _returns=String,
         _in_variable_names={'from_': 'from'},
         _out_variable_name='return')

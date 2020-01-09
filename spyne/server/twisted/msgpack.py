@@ -22,6 +22,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import io
+
 import msgpack
 
 from time import time
@@ -39,9 +41,12 @@ from twisted.python.failure import Failure
 from spyne import EventManager, Address, ServerBase, Fault
 from spyne.auxproc import process_contexts
 from spyne.error import InternalError
+from spyne.server.twisted import log_and_let_go
 
 
 class TwistedMessagePackProtocolFactory(Factory):
+    IDLE_TIMEOUT_SEC = None
+
     def __init__(self, tpt):
         assert isinstance(tpt, ServerBase)
 
@@ -49,8 +54,12 @@ class TwistedMessagePackProtocolFactory(Factory):
         self.event_manager = EventManager(self)
 
     def buildProtocol(self, address):
-        return TwistedMessagePackProtocol(self.tpt, factory=self)
+        retval = TwistedMessagePackProtocol(self.tpt, factory=self)
 
+        if self.IDLE_TIMEOUT_SEC is not None:
+            retval.IDLE_TIMEOUT_SEC = self.IDLE_TIMEOUT_SEC
+
+        return retval
 
 TwistedMessagePackProtocolServerFactory = TwistedMessagePackProtocolFactory
 
@@ -73,11 +82,10 @@ def _cha(*args):
     return args
 
 
-IDLE_TIMEOUT = 'idle timeout'
-
-
 class TwistedMessagePackProtocol(Protocol):
     IDLE_TIMEOUT_SEC = 0
+    IDLE_TIMEOUT_MSG = 'idle timeout'
+    MAX_INACTIVE_CONTEXTS = float('inf')
 
     def __init__(self, tpt, max_buffer_size=2 * 1024 * 1024, out_chunk_size=0,
                       out_chunk_delay_sec=1, max_in_queue_size=0, factory=None):
@@ -87,13 +95,22 @@ class TwistedMessagePackProtocol(Protocol):
         :param max_buffer_size: Max. encoded message size.
         :param out_chunk_size: Split
         :param factory: Twisted protocol factory
+
+        Supported events:
+            * ``outresp_flushed(ctx, ctxid, data)``
+                Called right after response data is flushed to the socket.
+                    * ctx: Always None
+                    * ctxid: Integer equal to ``id(ctx)``
+                    * data: Flushed bytes object
+
         """
 
         from spyne.server.msgpack import MessagePackTransportBase
         assert isinstance(tpt, MessagePackTransportBase)
 
         self.spyne_tpt = tpt
-        self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
+        self._buffer = msgpack.Unpacker(raw=True,
+                                                max_buffer_size=max_buffer_size)
         self.out_chunk_size = out_chunk_size
         self.out_chunk_delay_sec = out_chunk_delay_sec
         self.max_in_queue_size = max_in_queue_size
@@ -113,8 +130,17 @@ class TwistedMessagePackProtocol(Protocol):
     @staticmethod
     def gen_chunks(l, n):
         """Yield successive n-sized chunks from l."""
-        for i in range(0, len(l), n):
-            yield l[i:i+n]
+        if isinstance(l, io.BufferedIOBase):
+            while True:
+                data = l.read(n)
+                if not data:
+                    break
+                yield data
+            l.close()
+
+        else:
+            for i in range(0, len(l), n):
+                yield l[i:i+n]
 
     def gen_sessid(self, *args):
         """It's up to you to use this in a subclass."""
@@ -137,6 +163,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.out_chunks = deque()
         self.inreq_queue = OrderedDict()
         self.inactive_queue = list()
+        self.active_queue = dict()
         self.disconnecting = False  # FIXME: should we use this to raise an
                                     # invalid connection state exception ?
 
@@ -149,8 +176,21 @@ class TwistedMessagePackProtocol(Protocol):
         self.disconnecting = False
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_lost", self)
+        self._cancel_idle_timer()
+
+    def _cancel_idle_timer(self):
         if self.idle_timer is not None:
-            self.idle_timer.cancel()
+            if not self.idle_timer.called:
+                # FIXME: Workaround for a bug in Twisted 18.9.0 when
+                #        DelayedCall.debug == True
+                try:
+                    self.idle_timer.cancel()
+                except AttributeError:
+                    del self.idle_timer.func
+                    del self.idle_timer.args
+                    del self.idle_timer.kw
+
+            self.idle_timer = None
 
     def dataReceived(self, data):
         self._buffer.feed(data)
@@ -161,19 +201,31 @@ class TwistedMessagePackProtocol(Protocol):
         for msg in self._buffer:
             self.process_incoming_message(msg)
 
+            if self.disconnecting:
+                return
+
     def _reset_idle_timer(self):
         if self.idle_timer is not None:
-            self.idle_timer.cancel()
+            t = self.idle_timer
+            self.idle_timer = None
+            if not t.called:
+                t.cancel()
 
-        if self.IDLE_TIMEOUT_SEC > 0:
+        if self.IDLE_TIMEOUT_SEC is not None and self.IDLE_TIMEOUT_SEC > 0:
             self.idle_timer = deferLater(reactor, self.IDLE_TIMEOUT_SEC,
-                                          self.loseConnection, IDLE_TIMEOUT) \
-                .addErrback(self._err_idle_cancelled)
+                                   self.loseConnection, self.IDLE_TIMEOUT_MSG) \
+                .addErrback(self._err_idle_cancelled) \
+                .addErrback(self._err_idle_cancelled_unknown_error)
 
     def _err_idle_cancelled(self, err):
         err.trap(CancelledError)
 
         # do nothing.
+
+    def _err_idle_cancelled_unknown_error(self, err):
+        logger.error("Sessid %s error cancelling idle timer: %s",
+                                                self.sessid, err.getTraceback())
+        self.idle_timer = None
 
     def loseConnection(self, reason=None):
         self.disconnecting = True
@@ -181,8 +233,9 @@ class TwistedMessagePackProtocol(Protocol):
         logger.debug("Aborting connection because %s", reason)
         self.transport.abortConnection()
 
-    def process_incoming_message(self, msg):
+    def process_incoming_message(self, msg, oob=None):
         p_ctx, others = self.spyne_tpt.produce_contexts(msg)
+        p_ctx.oob_ctx = oob
         p_ctx.transport.remote_addr = Address.from_twisted_address(
                                                        self.transport.getPeer())
         p_ctx.transport.protocol = self
@@ -200,9 +253,13 @@ class TwistedMessagePackProtocol(Protocol):
         return len(self.inactive_queue)
 
     def process_inactive(self):
+        peer = self.transport.getPeer()
+        addr_str = Address.from_twisted_address(peer)
+
         if self.max_in_queue_size == 0:
             while self.num_inactive_contexts > 0:
                 p_ctx, others = self.inactive_queue.pop()
+                self.active_queue[id(p_ctx)] = p_ctx
 
                 self.inreq_queue[id(p_ctx)] = None
                 self.process_contexts(p_ctx, others)
@@ -211,14 +268,18 @@ class TwistedMessagePackProtocol(Protocol):
             while self.num_active_contexts < self.max_in_queue_size and \
                                                  self.num_inactive_contexts > 0:
                 p_ctx, others = self.inactive_queue.pop()
+                self.active_queue[id(p_ctx)] = p_ctx
 
                 self.inreq_queue[id(p_ctx)] = None
                 self.process_contexts(p_ctx, others)
 
-            peer = self.transport.getPeer()
-            addr_str = Address.from_twisted_address(peer)
-            logger.debug("%s active %d inactive %d", addr_str,
-                        self.num_active_contexts, self.num_inactive_contexts)
+            if self.num_active_contexts > self.MAX_INACTIVE_CONTEXTS:
+                logger.error("%s Too many inactive contexts. "
+                                                "Closing connection.", addr_str)
+                self.loseConnection("Too many inactive contexts")
+
+        logger.debug("%s active %d inactive %d", addr_str,
+                           self.num_active_contexts, self.num_inactive_contexts)
 
     def enqueue_outresp_data(self, ctxid, data):
         assert self.inreq_queue[ctxid] is None
@@ -229,19 +290,33 @@ class TwistedMessagePackProtocol(Protocol):
                 break
 
             self.out_write(v)
-
+            self.spyne_tpt.event_manager.fire_event('outresp_flushed',
+                                                                     None, k, v)
             del self.inreq_queue[k]
+            self.active_queue[k].close()
+            del self.active_queue[k]
 
         self.process_inactive()
 
-    def out_write(self, data):
+    def out_write(self, reqdata):
         if self.out_chunk_size == 0:
-            self.transport.write(data)
-            self.sent_bytes += len(data)
+            if isinstance(reqdata, io.BufferedIOBase):
+                nbytes = reqdata.tell()
+                reqdata.seek(0)
+                self.transport.write(reqdata.read())
+            else:
+                nbytes = len(reqdata)
+                self.transport.write(reqdata)
+
+            self.sent_bytes += nbytes
 
         else:
-            self.out_chunks.append(self.gen_chunks(data, self.out_chunk_size))
-            self._write_single_chunk()
+            if isinstance(reqdata, io.BufferedIOBase):
+                reqdata.seek(0)
+
+            chunks = self.gen_chunks(reqdata, self.out_chunk_size)
+            self.out_chunks.append(chunks)
+            deferLater(reactor, 0, self._write_single_chunk)
 
     def _wait_for_next_chunk(self):
         return deferLater(reactor, self.out_chunk_delay_sec,
@@ -263,10 +338,16 @@ class TwistedMessagePackProtocol(Protocol):
             self.transport.write(chunk)
             self.sent_bytes += len(chunk)
 
-            self._delaying = self._wait_for_next_chunk()
+            if self.connected and not self.disconnecting:
+                self._delaying = self._wait_for_next_chunk()
 
-            logger.debug("%s One chunk of %d bytes written. "
-                           "Waiting for next chunk...", self.sessid, len(chunk))
+                logger.debug("%s One chunk of %d bytes written. Delaying "
+                          "before next chunk write...", self.sessid, len(chunk))
+
+            else:
+                logger.debug("%s Disconnection detected, discarding "
+                                                "remaining chunks", self.sessid)
+                self.out_chunks.clear()
 
     def handle_error(self, p_ctx, others, exc):
         self.spyne_tpt.get_out_string(p_ctx)
@@ -280,19 +361,21 @@ class TwistedMessagePackProtocol(Protocol):
         if isinstance(data, dict):
             data = list(data.values())
 
-        out_string = msgpack.packb([
-            error, msgpack.packb(data),
-        ])
+        out_object = (error, msgpack.packb(data),)
+        if p_ctx.oob_ctx is not None:
+            p_ctx.oob_ctx.d.callback(out_object)
+            return
 
-        self.enqueue_outresp_data(id(p_ctx), out_string)
-
+        out_string = msgpack.packb(out_object)
         p_ctx.transport.resp_length = len(out_string)
-        p_ctx.close()
+        self.enqueue_outresp_data(id(p_ctx), out_string)
 
         try:
             process_contexts(self, others, p_ctx, error=error)
+
         except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
+            logger.error("Exception ignored from auxiliary method: %r", e)
             logger.exception(e)
 
     def process_contexts(self, p_ctx, others):
@@ -311,14 +394,12 @@ class TwistedMessagePackProtocol(Protocol):
             self.handle_error(p_ctx, others, p_ctx.out_error)
             return
 
-        if len(p_ctx.descriptor.out_message._type_info) > 1:
-            ret = p_ctx.out_object
-        else:
-            ret = p_ctx.out_object[0]
-
+        ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
-            ret.addCallback(_cb_deferred, self, p_ctx, others)
-            ret.addErrback(_eb_deferred, self, p_ctx, others)
+            ret \
+                .addCallback(_cb_deferred, self, p_ctx, others) \
+                .addErrback(_eb_deferred, self, p_ctx, others) \
+                .addErrback(log_and_let_go, logger)
 
         else:
             _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
@@ -335,21 +416,34 @@ def _eb_deferred(fail, prot, p_ctx, others):
         if not getattr(fail, 'logged', False):
             fail.printTraceback()
 
-    prot.handle_error(p_ctx, others, p_ctx.out_error)
-
-    data_len = 0
-    for data in p_ctx.out_string:
-        prot.enqueue_outresp_data(id(p_ctx), data)
-        data_len += len(data)
-
-    p_ctx.transport.resp_length = data_len
+    try:
+        prot.handle_error(p_ctx, others, p_ctx.out_error)
+    except Exception as e:
+        logger.exception(e)
+        raise
 
 
 def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
-    if len(p_ctx.descriptor.out_message._type_info) > 1 or nowrap:
-        p_ctx.out_object = ret
-    else:
-        p_ctx.out_object = [ret]
+    # this means callback is not invoked directly instead of as part of a
+    # deferred chain
+    if not nowrap:
+        # if there is one return value or the output is bare (which means there
+        # can't be anything other than 1 return value case) use the enclosing
+        # list. otherwise, the return value is a tuple anyway, so leave it be.
+        if p_ctx.descriptor.is_out_bare():
+            p_ctx.out_object = [ret]
+
+        else:
+            if len(p_ctx.descriptor.out_message._type_info) > 1:
+                p_ctx.out_object = ret
+            else:
+                p_ctx.out_object = [ret]
+
+    if p_ctx.oob_ctx is not None:
+        assert isinstance(p_ctx.oob_ctx.d, Deferred)
+
+        p_ctx.oob_ctx.d.callback(p_ctx.out_object)
+        return
 
     try:
         prot.spyne_tpt.get_out_string(p_ctx)
@@ -362,6 +456,7 @@ def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
 
     except Exception as e:
         logger.exception(e)
+        logger.error("%r", p_ctx)
         prot.handle_error(p_ctx, others, InternalError(e))
 
     finally:

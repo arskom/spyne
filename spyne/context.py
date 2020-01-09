@@ -24,7 +24,7 @@ from time import time
 from copy import copy
 from collections import deque, defaultdict
 
-from spyne.const import MIN_GC_INTERVAL
+from spyne import const
 
 
 _LAST_GC_RUN = 0.0
@@ -64,6 +64,12 @@ class TransportContext(object):
         self.sessid = ''
         """The session id."""
 
+    def get_peer(self):
+        """Returns None when not applicable, otherwise returns
+        :class:`spyne.Address`"""
+
+        return None
+
 
 class ProtocolContext(object):
     """Generic object that holds protocol-specific context information"""
@@ -99,6 +105,7 @@ class MethodContext(object):
 
     SERVER = type("SERVER", (object,), {})
     CLIENT = type("CLIENT", (object,), {})
+    TransportContext = TransportContext
 
     frozen = False
 
@@ -118,13 +125,13 @@ class MethodContext(object):
 
         return retval
 
-    def fire_event(self, event):
-        self.app.event_manager.fire_event(event, self)
+    def fire_event(self, event, *args, **kwargs):
+        self.app.event_manager.fire_event(event, self, *args, **kwargs)
 
         desc = self.descriptor
         if desc is not None:
             for evmgr in desc.event_managers:
-                evmgr.fire_event(event, self)
+                evmgr.fire_event(event, self, *args, **kwargs)
 
     @property
     def method_name(self):
@@ -160,9 +167,12 @@ class MethodContext(object):
         self.udc = None
         """The user defined context. Use it to your liking."""
 
-        self.transport = TransportContext(self, transport)
+        self.transport = None
         """The transport-specific context. Transport implementors can use this
         to their liking."""
+
+        if self.TransportContext is not None:
+            self.transport = self.TransportContext(self, transport)
 
         self.outprot_ctx = None
         """The output-protocol-specific context. Protocol implementors can use
@@ -340,7 +350,7 @@ class MethodContext(object):
     by the user code.
     """
 
-    # Deprecated. Use self.descriptor.service_class.
+    # FIXME: Deprecated. Use self.descriptor.service_class.
     @property
     def service_class(self):
         if self.descriptor is not None:
@@ -387,7 +397,7 @@ class MethodContext(object):
 
         # this is important to have file descriptors returned in a timely manner
         t = time()
-        if (t - _LAST_GC_RUN) > MIN_GC_INTERVAL:
+        if (t - _LAST_GC_RUN) > const.MIN_GC_INTERVAL:
             gc.collect()
 
             dt = (time() - t)

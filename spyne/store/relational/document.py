@@ -36,13 +36,15 @@ try:
     from lxml import html
     from spyne.util.xml import get_object_as_xml, get_xml_as_object
 
-except ImportError as e:
+except ImportError as _import_error:
     etree = None
     html = None
+
+    _local_import_error = _import_error
     def get_object_as_xml(*_, **__):
-        raise e
+        raise _local_import_error
     def get_xml_as_object(*_, **__):
-        raise e
+        raise _local_import_error
 
 from sqlalchemy.sql.type_api import UserDefinedType
 
@@ -69,7 +71,7 @@ class PGXml(UserDefinedType):
         self.pretty_print = pretty_print
         self.encoding = encoding
 
-    def get_col_spec(self):
+    def get_col_spec(self, **_):
         return "xml"
 
     def bind_processor(self, dialect):
@@ -99,7 +101,7 @@ class PGHtml(UserDefinedType):
         self.pretty_print = pretty_print
         self.encoding = encoding
 
-    def get_col_spec(self):
+    def get_col_spec(self, **_):
         return "text"
 
     def bind_processor(self, dialect):
@@ -125,7 +127,7 @@ class PGJson(UserDefinedType):
     def __init__(self, encoding='UTF-8'):
         self.encoding = encoding
 
-    def get_col_spec(self):
+    def get_col_spec(self, **_):
         return "json"
 
     def bind_processor(self, dialect):
@@ -150,6 +152,14 @@ class PGJson(UserDefinedType):
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGJson
 
 
+class PGJsonB(PGJson):
+    def get_col_spec(self, **_):
+        return "jsonb"
+
+
+sqlalchemy.dialects.postgresql.base.ischema_names['jsonb'] = PGJsonB
+
+
 class PGObjectXml(UserDefinedType):
     def __init__(self, cls, root_tag_name=None, no_namespace=False,
                                                             pretty_print=False):
@@ -158,7 +168,7 @@ class PGObjectXml(UserDefinedType):
         self.no_namespace = no_namespace
         self.pretty_print = pretty_print
 
-    def get_col_spec(self):
+    def get_col_spec(self, **_):
         return "xml"
 
     def bind_processor(self, dialect):
@@ -177,18 +187,21 @@ class PGObjectXml(UserDefinedType):
 
 
 class PGObjectJson(UserDefinedType):
-    def __init__(self, cls, ignore_wrappers=True, complex_as=dict):
+    def __init__(self, cls, ignore_wrappers=True, complex_as=dict, dbt='json',
+                                                               encoding='utf8'):
         self.cls = cls
         self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as
+        self.dbt = dbt
+        self.encoding = encoding
 
         from spyne.util.dictdoc import get_dict_as_object
         from spyne.util.dictdoc import get_object_as_json
         self.get_object_as_json = get_object_as_json
         self.get_dict_as_object = get_dict_as_object
 
-    def get_col_spec(self):
-        return "json"
+    def get_col_spec(self, **_):
+        return self.dbt
 
     def bind_processor(self, dialect):
         def process(value):
@@ -196,15 +209,18 @@ class PGObjectJson(UserDefinedType):
                 return self.get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
-                    ).decode('utf8')
+                    ).decode(self.encoding)
         return process
 
     def result_processor(self, dialect, col_type):
         from spyne.util.dictdoc import JsonDocument
 
         def process(value):
+            if value is None:
+                return None
+
             if isinstance(value, six.binary_type):
-                value = value.decode('utf8')
+                value = value.decode(self.encoding)
 
             if isinstance(value, six.text_type):
                 return self.get_dict_as_object(json.loads(value), self.cls,
@@ -213,23 +229,22 @@ class PGObjectJson(UserDefinedType):
                         protocol=JsonDocument,
                     )
 
-            if value is not None:
-                return self.get_dict_as_object(value, self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as,
-                        protocol=JsonDocument,
-                    )
+            return self.get_dict_as_object(value, self.cls,
+                    ignore_wrappers=self.ignore_wrappers,
+                    complex_as=self.complex_as,
+                    protocol=JsonDocument,
+                )
 
         return process
 
 
 class PGFileJson(PGObjectJson):
-    def __init__(self, store, type=None):
+    def __init__(self, store, type=None, dbt='json'):
         if type is None:
             type = FileData
 
         super(PGFileJson, self).__init__(type, ignore_wrappers=True,
-                                                                complex_as=list)
+                                                       complex_as=list, dbt=dbt)
         self.store = store
 
     def bind_processor(self, dialect):
@@ -253,7 +268,7 @@ class PGFileJson(PGObjectJson):
                         raise ValidationError(value.path, "Path %r contains "
                                           "relative path operators (e.g. '..')")
 
-                    data = mmap(value.handle.fileno(), 0)  # 0 = whole file
+                    data = mmap(value.handle.fileno(), 0, access=ACCESS_READ)
                     with open(fp, 'wb') as out_file:
                         out_file.write(data)
                         data.close()
@@ -297,37 +312,33 @@ class PGFileJson(PGObjectJson):
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            retval = None
-
-            print(value)
+            if value is None:
+                return None
 
             if isinstance(value, six.text_type):
                 value = json.loads(value)
+
             elif isinstance(value, six.binary_type):
                 value = json.loads(value.decode('utf8'))
 
-            if value is not None:
-                retval = self.get_dict_as_object(value, self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as)
+            retval = self.get_dict_as_object(value, self.cls,
+                    ignore_wrappers=self.ignore_wrappers,
+                    complex_as=self.complex_as)
 
-                retval.store = self.store
-                retval.abspath = path = join(self.store, retval.path)
+            retval.store = self.store
+            retval.abspath = path = join(self.store, retval.path)
+            retval.handle = None
+            retval.data = [b'']
 
-                ret = os.access(path, os.R_OK)
-                retval.handle = None
-                retval.data = ['']
+            if not os.access(path, os.R_OK):
+                logger.error("File %r is not readable", path)
+                return retval
 
-                if ret:
-                    h = retval.handle = SeekableFileProxy(open(path, 'rb'))
-                    if os.fstat(retval.handle.fileno()).st_size > 0:
-                        h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
-                        retval.data = [h.mmap]
-                        # FIXME: Where do we close this mmap?
-                    else:
-                        retval.data = ['']
-                else:
-                    logger.error("File %r is not readable", path)
+            h = retval.handle = SeekableFileProxy(open(path, 'rb'))
+            if os.fstat(retval.handle.fileno()).st_size > 0:
+                h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
+                retval.data = [h.mmap]
+                # FIXME: Where do we close this mmap?
 
             return retval
 

@@ -96,7 +96,7 @@ class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
     Working with timezones is a bit quirky -- Spyne works very hard to have
     all datetimes with time zones internally and only strips them when
-    explicitly requested with ``timezone=False``\. See
+    explicitly requested with ``timezone=False``\\. See
     :attr:`DateTime.Attributes.as_timezone` for more information.
 
     Native type is :class:`datetime.datetime`.

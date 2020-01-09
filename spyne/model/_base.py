@@ -32,6 +32,7 @@ import threading
 
 import spyne.const.xml
 
+from copy import deepcopy
 from collections import OrderedDict
 
 from spyne import const
@@ -74,8 +75,30 @@ class AttributesMeta(type(object)):
         if not 'sqla_mapper_args' in cls_dict:
             cls_dict['sqla_mapper_args'] = None
 
-        return super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases,
+        rd = {}
+        for k in list(cls_dict.keys()):
+            if k in ('parser', 'cast'):
+                rd['parser'] = cls_dict.pop(k)
+                continue
+
+            if k in ('sanitize', 'sanitizer'):
+                rd['sanitizer'] = cls_dict.pop(k)
+                continue
+
+            if k == 'logged':
+                rd['logged'] = cls_dict.pop(k)
+                continue
+
+        retval = super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases,
                                                                        cls_dict)
+
+        for k, v in rd.items():
+            if v is None:
+                setattr(retval, k, None)
+            else:
+                setattr(retval, k, staticmethod(v))
+
+        return retval
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         # you will probably want to look at ModelBase._s_customize as well.
@@ -203,7 +226,7 @@ class ModelBaseMeta(type(object)):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
-        cls_name, cls_bases, cls_dict = ModelBase._s_customize(self, **kwargs)
+        cls_name, cls_bases, cls_dict = self._s_customize(**kwargs)
 
         return type(cls_name, cls_bases, cls_dict)
 
@@ -252,16 +275,23 @@ class ModelBase(object):
         _explicit_type_name = False
         # set to true when type_name is passed to customize() call.
 
+        out_type = None
+        """Override serialization type. Usually, this designates the return type 
+        of the callable in the `sanitizer` attribute. If this is a two-way type, 
+        it may be a good idea to also use the `parser` attribute to perform 
+        reverse conversion."""
+
         default = None
         """The default value if the input is None.
 
         Please note that this default is UNCONDITIONALLY applied in class
-        initializer. Please make an effort to use this only in customized
-        classes and not on original models.
+        initializer. It's recommended to at least make an effort to use this
+        only in customized classes and not in original models.
         """
 
         default_factory = None
         """The callable that produces a default value if the value is None.
+
         The warnings in ``default`` apply here as well."""
 
         db_default = None
@@ -305,6 +335,11 @@ class ModelBase(object):
         type is seriazed under a ComplexModel.
         """
 
+        wsdl_part_name = None
+        """This specifies which string should be used as wsdl message part name when this
+            type is serialized under a ComplexModel ie."parameters".
+        """
+
         sqla_column_args = None
         """A dict that will be passed to SQLAlchemy's ``Column`` constructor as
         ``**kwargs``.
@@ -326,6 +361,11 @@ class ModelBase(object):
         exc_interface = False
         """If `True`, this field will be excluded from the interface
         document."""
+
+        exc = False
+        """If `True`, this field will be excluded from all serialization or
+         deserialization operations. See `prot_attrs` to make this only apply to
+         a specific protocol class or instance."""
 
         logged = True
         """If `False`, this object will be ignored in ``log_repr``, mostly used
@@ -349,6 +389,14 @@ class ModelBase(object):
         ``logger=False`` means a string of form ``ClassName(...)`` will  be
         logged.
         """
+
+        sanitizer = None
+        """A callable that takes the associated native type and returns the
+        parsed value. Only called during serialization."""
+
+        parser = None
+        """A callable that takes the associated native type and returns the
+        parsed value. Only called during deserialization."""
 
         unique = None
         """If True, this object will be set as unique in the database schema
@@ -416,6 +464,7 @@ class ModelBase(object):
         polymap = {}
         """A dict of classes that override polymorphic substitions for classes
         given as keys to classes given as values."""
+
 
     class Annotations(object):
         """The class that holds the annotations for the given type."""
@@ -554,6 +603,10 @@ class ModelBase(object):
         return cls.Attributes.sub_name or cls.get_type_name()
 
     @classmethod
+    def get_wsdl_part_name(cls):
+        return cls.Attributes.wsdl_part_name or cls.get_element_name()
+
+    @classmethod
     def get_element_name_ns(cls, interface):
         ns = cls.Attributes.sub_ns or cls.get_namespace()
         if ns is DEFAULT_NS:
@@ -567,7 +620,7 @@ class ModelBase(object):
         """
         Returns str(value). This should be overridden if this is not enough.
         """
-        return str(value)
+        return six.binary_type(value)
 
     @classmethod
     def to_unicode(cls, value):
@@ -585,12 +638,10 @@ class ModelBase(object):
         else:
             return ''
 
-    @staticmethod
+    @classmethod
     def _s_customize(cls, **kwargs):
-        """This function duplicates and customizes the class it belongs to. The
-        original class remains unchanged.
-
-        Not meant to be overridden.
+        """Sanitizes customization parameters of the class it belongs to.
+        Doesn't perform any actual customization.
         """
 
         def _log_debug(s, *args):
@@ -608,8 +659,13 @@ class ModelBase(object):
 
         if cls.Attributes.translations is None:
             Attributes.translations = {}
+
         if cls.Attributes.sqla_column_args is None:
             Attributes.sqla_column_args = (), {}
+        else:
+            Attributes.sqla_column_args = deepcopy(
+                                                cls.Attributes.sqla_column_args)
+
         cls_dict['Attributes'] = Attributes
 
         # properties get reset every time a new class is defined. So we need
@@ -628,8 +684,10 @@ class ModelBase(object):
         prot = kwargs.get('protocol', None)
         if prot is None:
             prot = kwargs.get('prot', None)
+
         if prot is None:
             prot = kwargs.get('p', None)
+
         if prot is not None and len(prot.type_attrs) > 0:
             # if there is a class customization from protocol, do it
 
@@ -639,6 +697,8 @@ class ModelBase(object):
                                             kwargs, type_attrs, prot.type_attrs)
             kwargs = type_attrs
 
+        # the ones that wrap values in staticmethod() should be added to
+        # AttributesMeta initializer
         for k, v in kwargs.items():
             if k.startswith('_'):
                 _log_debug("ignoring '%s' because of leading underscore", k)
@@ -652,9 +712,17 @@ class ModelBase(object):
                 Attributes.validate_on_assignment = v
                 _log_debug("setting voa=%r", v)
 
-            elif k in ('parser', 'cast'):
-                setattr(Attributes, k, staticmethod(v))
+            elif k in ('parser', 'in_cast'):
+                setattr(Attributes, 'parser', staticmethod(v))
                 _log_debug("setting %s=%r", k, v)
+
+            elif k in ('sanitize', 'sanitizer', 'out_cast'):
+                setattr(Attributes, 'sanitizer', staticmethod(v))
+                _log_debug("setting %s=%r as sanitizer", k, v)
+
+            elif k == 'logged':
+                setattr(Attributes, 'logged', staticmethod(v))
+                _log_debug("setting %s=%r as log sanitizer", k, v)
 
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
@@ -802,7 +870,7 @@ class SimpleModel(ModelBase):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
-        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+        cls_name, cls_bases, cls_dict = cls._s_customize(**kwargs)
 
         retval = type(cls_name, cls_bases, cls_dict)
 
@@ -874,6 +942,11 @@ class PushBase(object):
         self.gen.send(inst)
         self.length += 1
 
+    def extend(self, insts):
+        for inst in insts:
+            self.gen.send(inst)
+            self.length += 1
+
     def close(self):
         try:
             self.gen.throw(Break())
@@ -911,10 +984,10 @@ class table:
         value is used as the name of the intermediate table.
     :param left: Name of the left join column.
     :param right: Name of the right join column.
-    :param backref: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.backref
-    :param cascade: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.cascade
-    :param lazy: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.lazy
-    :param back_populates: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.back_populates
+    :param backref: See https://docs.sqlalchemy.org/en/13/orm/relationship_api.html?highlight=lazy#sqlalchemy.orm.relationship.params.backref
+    :param cascade: https://docs.sqlalchemy.org/en/13/orm/relationship_api.html?highlight=lazy#sqlalchemy.orm.relationship.params.cascade
+    :param lazy: See https://docs.sqlalchemy.org/en/13/orm/relationship_api.html?highlight=lazy#sqlalchemy.orm.relationship.params.lazy
+    :param back_populates: See https://docs.sqlalchemy.org/en/13/orm/relationship_api.html?highlight=lazy#sqlalchemy.orm.relationship.params.back_populates
     """
 
     def __init__(self, multi=False, left=None, right=None, backref=None,
@@ -959,6 +1032,18 @@ class json:
         self.complex_as = complex_as
 
 
+class jsonb:
+    """Compound option object for jsonb serialization. It's meant to be passed
+    to :func:`ComplexModelBase.Attributes.store_as`.
+    """
+
+    def __init__(self, ignore_wrappers=True, complex_as=dict):
+        if ignore_wrappers != True:
+            raise NotImplementedError("ignore_wrappers != True")
+        self.ignore_wrappers = ignore_wrappers
+        self.complex_as = complex_as
+
+
 class msgpack:
     """Compound option object for msgpack serialization. It's meant to be passed
     to :func:`ComplexModelBase.Attributes.store_as`.
@@ -969,13 +1054,17 @@ class msgpack:
         pass
 
 
-def apply_pssm(val, pssm_map):
+PSSM_VALUES = {'json': json, 'jsonb': jsonb, 'xml': xml,
+                                             'msgpack': msgpack, 'table': table}
+
+
+def apply_pssm(val):
     if val is not None:
-        val_c = pssm_map.get(val, None)
+        val_c = PSSM_VALUES.get(val, None)
         if val_c is None:
-            assert isinstance(val, tuple(pssm_map.values())), \
+            assert isinstance(val, tuple(PSSM_VALUES.values())), \
              "'store_as' should be one of: %r or an instance of %r not %r" \
-             % (tuple(pssm_map.keys()), tuple(pssm_map.values()), val)
+             % (tuple(PSSM_VALUES.keys()), tuple(PSSM_VALUES.values()), val)
 
             return val
         return val_c()

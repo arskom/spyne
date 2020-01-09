@@ -27,21 +27,23 @@ from inspect import isgenerator
 from lxml import etree
 from lxml.etree import LxmlSyntaxError
 
-from spyne import ProtocolContext, BODY_STYLE_WRAPPED, ByteArray, File
+from spyne import ProtocolContext, BODY_STYLE_WRAPPED, ByteArray, File, Array
 from spyne.util import Break, coroutine
+from spyne.protocol import ProtocolMixin
 
 from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
 from spyne.util.six import BytesIO
 from spyne.util.color import R, B
+from spyne.util.tlist import tlist
 
 
 class XmlClothProtocolContext(ProtocolContext):
     def __init__(self, parent, transport, type=None):
         super(XmlClothProtocolContext, self).__init__(parent, transport, type)
 
-        self.inst_stack = []
-        self.prot_stack = []
+        self.inst_stack = tlist([], tuple)
+        self.prot_stack = tlist([], ProtocolMixin)
         self.doctype_written = False
 
 
@@ -109,9 +111,8 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                 if self.ignore_wrappers:
                     result_inst = ctx.out_object[0]
                     while result_class.Attributes._wrapper and \
-                                      len(result_class._type_info) == 1:
-                        result_class, = \
-                                        result_class._type_info.values()
+                                              len(result_class._type_info) == 1:
+                        result_class, = result_class._type_info.values()
 
                 else:
                     result_inst = result_class()
@@ -151,8 +152,8 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         try:
             with self.docfile(ctx.out_stream, encoding=self.encoding) as xf:
-                ctx.protocol.doctype_written = False
-                ctx.protocol.prot_stack = []
+                ctx.outprot_ctx.doctype_written = False
+                ctx.protocol.prot_stack = tlist([], ProtocolMixin)
                 ret = self.subserialize(ctx, cls, inst, xf, name)
 
                 if isgenerator(ret):  # Poor man's yield from
@@ -177,8 +178,27 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         logger.debug("Starting file with %r %r", args, kwargs)
         return etree.xmlfile(*args, **kwargs)
 
+    def _get_doctype(self, cloth):
+        if self.doctype is not None:
+            return self.doctype
+
+        if cloth is not None:
+            return cloth.getroottree().docinfo.doctype
+
+        if self._root_cloth is not None:
+            return self._root_cloth.getroottree().docinfo.doctype
+
+        if self._cloth is not None:
+            return self._cloth.getroottree().docinfo.doctype
+
     def write_doctype(self, ctx, parent, cloth=None):
-        pass  # FIXME: write it
+        dt = self._get_doctype(cloth)
+        if dt is None:
+            return
+
+        parent.write_doctype(dt)
+        ctx.outprot_ctx.doctype_written = True
+        logger.debug("Doctype written as: '%s'", dt)
 
     @staticmethod
     def get_class_cloth(cls):
@@ -192,7 +212,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         c = self.get_class_root_cloth(cls)
         eltstack = getattr(ctx.protocol, 'eltstack', [])
         if c is not None and len(eltstack) == 0 and not (eltstack[-1] is c):
-            if not ctx.protocol.doctype_written:
+            if not ctx.outprot_ctx.doctype_written:
                 self.write_doctype(ctx, parent, c)
 
             logger.debug("to object root cloth")
@@ -200,7 +220,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                                                                        **kwargs)
         c = self.get_class_cloth(cls)
         if c is not None:
-            if not ctx.protocol.doctype_written:
+            if not ctx.outprot_ctx.doctype_written:
                 self.write_doctype(ctx, parent, c)
 
             logger.debug("to object cloth")
@@ -223,23 +243,23 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         cls_cloth = self.get_class_cloth(cls)
         if cls_cloth is not None:
-            logger.debug("to object cloth")
+            logger.debug("to object cloth for %s", cls.get_type_name())
             ret = self.to_parent_cloth(ctx, cls, inst, cls_cloth, parent, name)
 
         elif self._root_cloth is not None:
-            logger.debug("to root cloth")
+            logger.debug("to root cloth for %s", cls.get_type_name())
             ret = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
                                                                    parent, name)
             have_cloth = True
 
         elif self._cloth is not None:
-            logger.debug("to parent protocol cloth")
+            logger.debug("to parent protocol cloth for %s", cls.get_type_name())
             ret = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
                                                                            name)
             have_cloth = True
 
         else:
-            logger.debug("to parent")
+            logger.debug("to parent for %s", cls.get_type_name())
             ret = self.start_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
         if isgenerator(ret):  # Poor man's yield from

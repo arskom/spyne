@@ -55,14 +55,32 @@ class AnyXml(SimpleModel):
         """Xml-Schema specific processContents attribute"""
 
 
-# EXPERIMENTAL
 class Any(SimpleModel):
-    pass
+    @classmethod
+    def customize(cls, **kwargs):
+        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
+        ``**kwargs`` and returns the new class."""
+
+        store_as = apply_pssm(kwargs.get('store_as', None))
+        if store_as is not None:
+            kwargs['store_as'] = store_as
+
+        return super(Any, cls).customize(**kwargs)
 
 
-# EXPERIMENTAL
 class AnyHtml(SimpleModel):
     __type_name__ = 'string'
+
+    @classmethod
+    def customize(cls, **kwargs):
+        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
+        ``**kwargs`` and returns the new class."""
+
+        store_as = apply_pssm(kwargs.get('store_as', None))
+        if store_as is not None:
+            kwargs['store_as'] = store_as
+
+        return super(AnyHtml, cls).customize(**kwargs)
 
 
 class AnyDict(SimpleModel):
@@ -84,8 +102,7 @@ class AnyDict(SimpleModel):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
-        store_as = apply_pssm(kwargs.get('store_as', None),
-                                {'json': json, 'xml': xml, 'msgpack': msgpack})
+        store_as = apply_pssm(kwargs.get('store_as', None))
         if store_as is not None:
             kwargs['store_as'] = store_as
 

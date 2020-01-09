@@ -141,7 +141,7 @@ class TestComplexModel(unittest.TestCase):
         Base2 = Base.customize(prop1=4)
 
         self.assertNotEquals(Base.Attributes.prop1, Base2.Attributes.prop1)
-        self.assertEquals(Base.Attributes.prop2, Base2.Attributes.prop2)
+        self.assertEqual(Base.Attributes.prop2, Base2.Attributes.prop2)
 
         class Derived(Base):
             class Attributes(Base.Attributes):
@@ -150,27 +150,27 @@ class TestComplexModel(unittest.TestCase):
 
         Derived2 = Derived.customize(prop1=5, prop3=12)
 
-        self.assertEquals(Base.Attributes.prop1, 3)
-        self.assertEquals(Base2.Attributes.prop1, 4)
+        self.assertEqual(Base.Attributes.prop1, 3)
+        self.assertEqual(Base2.Attributes.prop1, 4)
 
-        self.assertEquals(Derived.Attributes.prop1, 3)
-        self.assertEquals(Derived2.Attributes.prop1, 5)
+        self.assertEqual(Derived.Attributes.prop1, 3)
+        self.assertEqual(Derived2.Attributes.prop1, 5)
 
         self.assertNotEquals(Derived.Attributes.prop3, Derived2.Attributes.prop3)
-        self.assertEquals(Derived.Attributes.prop4, Derived2.Attributes.prop4)
+        self.assertEqual(Derived.Attributes.prop4, Derived2.Attributes.prop4)
 
         Derived3 = Derived.customize(prop3=12)
         Base.prop1 = 4
 
         # changes made to bases propagate, unless overridden
-        self.assertEquals(Derived.Attributes.prop1, Base.Attributes.prop1)
+        self.assertEqual(Derived.Attributes.prop1, Base.Attributes.prop1)
         self.assertNotEquals(Derived2.Attributes.prop1, Base.Attributes.prop1)
-        self.assertEquals(Derived3.Attributes.prop1, Base.Attributes.prop1)
+        self.assertEqual(Derived3.Attributes.prop1, Base.Attributes.prop1)
 
     def test_declare_order(self):
-        self.assertEquals(["field3", "field1", "field2"],
+        self.assertEqual(["field3", "field1", "field2"],
                           list(DeclareOrder_declare._type_info))
-        self.assertEquals(["field3", "field1", "field2", "new_field"],
+        self.assertEqual(["field3", "field1", "field2", "new_field"],
                           list(MyModelWithDeclaredOrder._type_info))
 
 

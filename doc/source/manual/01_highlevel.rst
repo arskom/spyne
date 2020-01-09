@@ -92,7 +92,7 @@ throughout Spyne would be very useful:
     decorator.
 
 * **Service Definition**:
-    The :class:`spyne.service.ServiceBase` is an abstract base class for
+    The :class:`spyne.service.Service` is an abstract base class for
     a service definition, which is the smallest exposable unit in Spyne.
     You can use one service class per method definition or you can use, say, a
     service class for read-only or read/write services or you can cram
@@ -100,15 +100,15 @@ throughout Spyne would be very useful:
 
     Service definition classes are suitable for grouping services that have
     common properties like logging, transaction management and security policy.
-    It's often a good idea to use your own ServiceBase subclass where such
+    It's often a good idea to use your own Service subclass where such
     common operations are added via events instead of using the vanilla
-    ``ServiceBase`` class offered by Spyne.
+    ``Service`` class offered by Spyne.
 
 * **Application**:
     The :class:`spyne.application.Application` class is what ties services
     and protocols together, ready to be wrapped by a transport.
 
-    It also lets you define events and hooks like you can with the `ServiceBase`
+    It also lets you define events and hooks like you can with the `Service`
     class, so you can do more general, application-wide customizations like
     exception management.
 
@@ -148,8 +148,8 @@ throughout Spyne would be very useful:
 In a nutshell
 ^^^^^^^^^^^^^
 
-Your code is inside ``@rpc``-wrapped methods in `ServiceBase` subclasses. The
-`ServiceBase` subclasses in turn are wrapped by an Application instance. The
+Your code is inside ``@rpc``-wrapped methods in `Service` subclasses. The
+`Service` subclasses in turn are wrapped by an Application instance. The
 `Application` instantiation is used to assign input and output protocols to the
 exposed methods. The `Application` instance is finally wrapped by a client or
 server transport that takes the responsibility of moving the bits around.

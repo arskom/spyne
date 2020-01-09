@@ -23,7 +23,7 @@ logger = logging.getLogger('spyne')
 from spyne import LogicError
 from spyne.util import six
 from spyne.util import DefaultAttrDict
-from spyne.service import ServiceBase
+from spyne.service import Service, ServiceBaseBase
 from spyne.const.xml import DEFAULT_NS
 
 
@@ -44,7 +44,7 @@ class MethodDescriptor(object):
                  parent_class, port_type, no_ctx, udd, class_key, aux, patterns,
                  body_style, args, operation_name, no_self, translations,
                  when, static_when, service_class, href, internal_key_suffix,
-                 default_on_null, event_managers):
+                 default_on_null, event_managers, logged):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -115,7 +115,7 @@ class MethodDescriptor(object):
 
         self.class_key = class_key
         """ The identifier of this method in its parent
-        :class:`spyne.service.ServiceBase` subclass."""
+        :class:`spyne.service.Service` subclass."""
 
         self.aux = aux
         """Value to indicate what kind of auxiliary method this is. (None means
@@ -146,8 +146,8 @@ class MethodDescriptor(object):
         decorated function. This is what separates ``@rpc`` and ``@mrpc``."""
 
         self.service_class = service_class
-        """The ServiceBase subclass the method belongs to. Must be None for
-        ``@mrpc`` methods, a ServiceBase subclass for anything else."""
+        """The Service subclass the method belongs to. If not None for
+        ``@mrpc`` methods, a Service subclass for anything else."""
 
         self.parent_class = parent_class
         """The ComplexModel subclass the method belongs to. Only set for
@@ -156,8 +156,6 @@ class MethodDescriptor(object):
         self.default_on_null = default_on_null
         if parent_class is None and not (default_on_null is False):
             raise LogicError("default_on_null is only to be used inside @mrpc")
-        if parent_class is not None and service_class is not None:
-            raise LogicError("There is no service_class for @mrpc")
 
         # HATEOAS Stuff
         self.translations = translations
@@ -180,6 +178,9 @@ class MethodDescriptor(object):
 
         self.event_managers = event_managers
         """Event managers registered with this method."""
+
+        self.logged = logged
+        """Denotes the logging style for this method."""
 
         if self.service_class is not None:
             self.event_managers.append(self.service_class.event_manager)
@@ -210,12 +211,6 @@ class MethodDescriptor(object):
     def internal_key(self):
         """The internal function identifier in '{namespace}name' form."""
 
-        sc = self.service_class
-        if sc is not None:
-            return '{%s}%s%s' % (sc.get_internal_key(),
-                                    six.get_function_name(self.function),
-                                                       self.internal_key_suffix)
-
         pc = self.parent_class
         if pc is not None:
             mn = pc.__module__
@@ -229,30 +224,36 @@ class MethodDescriptor(object):
 
             return "{%s}%s" % (mn, dn)
 
+        sc = self.service_class
+        if sc is not None:
+            return '{%s}%s%s' % (sc.get_internal_key(),
+                                    six.get_function_name(self.function),
+                                                       self.internal_key_suffix)
+
     @staticmethod
     def get_owner_name(cls):
-        if issubclass(cls, ServiceBase):
+        if issubclass(cls, Service):
             return cls.get_service_name()
         return cls.__name__
 
     def gen_interface_key(self, cls):
         # this is a regular service method decorated by @rpc
-        if issubclass(cls, ServiceBase):
-            return '{}.{}.{}'.format(cls.__module__,
+        if issubclass(cls, ServiceBaseBase):
+            return u'{}.{}.{}'.format(cls.__module__,
                                             self.get_owner_name(cls), self.name)
 
         # this is a member method decorated by @mrpc
         else:
-            mn = cls.get_namespace() or '__nons__'
+            mn = cls.get_namespace() or '__none__'
             on = cls.get_type_name()
 
             dn = self.name
             # prevent duplicate class name. this happens when the class is a
             # direct subclass of ComplexModel
-            if dn.split('.', 1)[0] != on:
-                return '.'.join( (mn, on, dn) )
+            if dn.split(u'.', 1)[0] != on:
+                return u'.'.join( (mn, on, dn) )
 
-            return '.'.join( (mn, dn) )
+            return u'.'.join( (mn, dn) )
 
     @staticmethod
     def _get_class_module_name(cls):

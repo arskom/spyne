@@ -37,7 +37,7 @@ from spyne.server.wsgi import WsgiApplication
 
 from spyne.util.cherry import cherry_graft_and_start
 from spyne import DateTime, Unicode, Integer, ComplexModel, rpc, Application, \
-    ServiceBase
+    Service
 
 
 class A(ComplexModel):
@@ -52,7 +52,7 @@ class C(A):
     d = DateTime
 
 
-class SomeService(ServiceBase):
+class SomeService(Service):
     @rpc(Unicode(values=['A', 'B', 'C']), _returns=A)
     def get_some_a(self, type_name):
         if type_name == 'A':

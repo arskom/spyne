@@ -22,22 +22,30 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
-from collections import OrderedDict
-
 import msgpack
 
-from spyne import MethodContext, TransportContext
+from mmap import mmap
+from collections import OrderedDict
+
+from spyne import MethodContext, TransportContext, Address
 from spyne.auxproc import process_contexts
-from spyne.error import ValidationError
-from spyne.model import Fault
+from spyne.error import ValidationError, InternalError
 from spyne.server import ServerBase
 from spyne.util.six import binary_type
+
+try:
+    from twisted.internet.defer import Deferred
+except ImportError as e:
+    def Deferred(*_, **__): raise e
+
+
+MSGPACK_SHELL_OVERHEAD = 10
 
 
 def _process_v1_msg(prot, msg):
     header = None
     body = msg[1]
-    if not isinstance(body, binary_type):
+    if not isinstance(body, (binary_type, mmap, memoryview)):
         raise ValidationError(body, "Body must be a bytestream.")
 
     if len(msg) > 2:
@@ -61,13 +69,44 @@ class MessagePackTransportContext(TransportContext):
         self.in_header = None
         self.protocol = None
         self.inreq_queue = OrderedDict()
+        self.request_len = None
+
+    def get_peer(self):
+        if self.protocol is not None:
+            peer = self.protocol.transport.getPeer()
+            return Address.from_twisted_address(peer)
+
+
+class MessagePackOobMethodContext(object):
+    __slots__ = 'd'
+
+    def __init__(self):
+        if Deferred is not None:
+            self.d = Deferred()
+        else:
+            self.d = None
+
+    def close(self):
+        if self.d is not None and not self.d.called:
+            self.d.cancel()
 
 
 class MessagePackMethodContext(MethodContext):
+    TransportContext = MessagePackTransportContext
+
     def __init__(self, transport, way):
+        self.oob_ctx = None
+
         super(MessagePackMethodContext, self).__init__(transport, way)
 
-        self.transport = MessagePackTransportContext(self, transport)
+    def close(self):
+        super(MessagePackMethodContext, self).close()
+        if self.transport is not None:
+            self.transport.protocol = None
+            self.transport = None
+
+        if self.oob_ctx is not None:
+            self.oob_ctx.close()
 
 
 class MessagePackTransportBase(ServerBase):
@@ -91,7 +130,7 @@ class MessagePackTransportBase(ServerBase):
         :param msg: Parsed request in this format: `[IN_REQUEST, body, header]`
         """
 
-        if not isinstance(msg, list):
+        if not isinstance(msg, (list, tuple)):
             logger.debug("Incoming request: %r", msg)
             raise ValidationError(msg, "Request must be a list")
 
@@ -107,13 +146,21 @@ class MessagePackTransportBase(ServerBase):
 
         processor = self._version_map.get(msg[0], None)
         if processor is None:
-            logger.debug("Incoming request: %r", msg)
+            logger.debug("Invalid incoming request: %r", msg)
             raise ValidationError(msg[0], "Unknown request type %r")
+
+        msglen = len(msg[1])
+        # shellen = len(msgpack.packb(msg))
+        # logger.debug("Shell size: %d, message size: %d, diff: %d",
+        #                                     shellen, msglen, shellen - msglen)
+        # some approx. msgpack overhead based on observations of what's above.
+        msglen += MSGPACK_SHELL_OVERHEAD
 
         initial_ctx = processor(self, msg)
         contexts = self.generate_contexts(initial_ctx)
 
         p_ctx, others = contexts[0], contexts[1:]
+        p_ctx.transport.request_len = msglen
 
         return p_ctx, others
 
@@ -137,7 +184,7 @@ class MessagePackTransportBase(ServerBase):
 
         except Exception as e:
             logger.exception(e)
-            contexts.out_error = Fault('Server', "Internal serialization Error.")
+            contexts.out_error = InternalError("Serialization Error.")
             return self.handle_error(contexts, others, contexts.out_error)
 
     def handle_error(self, p_ctx, others, error):

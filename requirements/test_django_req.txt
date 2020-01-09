@@ -4,3 +4,4 @@ pytest_cov
 pytest_twisted
 junitxml
 lxml
+twisted

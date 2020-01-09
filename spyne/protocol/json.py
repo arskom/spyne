@@ -47,9 +47,9 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+from itertools import chain
 from spyne.util import six
 
-from itertools import chain
 
 try:
     import simplejson as json
@@ -72,6 +72,7 @@ from spyne.model.fault import Fault
 from spyne.protocol.dictdoc import HierDictDocument
 
 
+# TODO: use this as default
 class JsonEncoder(json.JSONEncoder):
     def default(self, o):
         try:
@@ -192,6 +193,46 @@ class JsonDocument(HierDictDocument):
                                                       for o in ctx.out_document)
 
 
+# Continuation of http://stackoverflow.com/a/24184379/1520211
+class HybridHttpJsonDocument(JsonDocument):
+    """This protocol lets you have the method name as the last fragment in the
+    request url. Eg. instead of sending a HTTP POST request to
+
+        http://api.endpoint/json/
+
+    containing: ::
+
+        {
+            "method_name": {
+                "arg1" : 42,
+                "arg2" : "foo"
+            }
+        }
+
+    you will have to send the request to
+
+        http://api.endpoint/json/method_name
+
+    containing: ::
+
+        {
+            "arg1" : 42,
+            "arg2" : "foo"
+        }
+
+    Part of request data comes from HTTP and part of it comes from Json, hence
+    the name.
+    """
+
+    def create_in_document(self, ctx, in_string_encoding=None):
+        super(HybridHttpJsonDocument, self).create_in_document(ctx)
+
+        url_fragment = ctx.transport.get_path().split('/')[-1]
+
+        ctx.in_document = {url_fragment: ctx.in_document}
+
+
+
 class JsonP(JsonDocument):
     """The JsonP protocol puts the reponse document inside a designated
     javascript function call. The input protocol is identical to the
@@ -216,9 +257,9 @@ class JsonP(JsonDocument):
 
         if out_string_encoding is None:
             ctx.out_string = chain(
-                    [self.callback_name, '('],
+                    (self.callback_name, '('),
                         ctx.out_string,
-                    [');'],
+                    (');',),
                 )
         else:
             ctx.out_string = chain(
@@ -238,16 +279,16 @@ class _SpyneJsonRpc1(JsonDocument):
     def decompose_incoming_envelope(self, ctx, message=JsonDocument.REQUEST):
         indoc = ctx.in_document
         if not isinstance(indoc, dict):
-            raise ValidationError("Invalid Request")
+            raise ValidationError(indoc, "Invalid Request")
 
         ver = indoc.get(self.VERSION)
         if ver is None:
-            raise ValidationError("Missing Version")
+            raise ValidationError(ver, "Unknown Version")
 
         body = indoc.get(self.BODY)
         err = indoc.get(self.FAULT)
         if body is None and err is None:
-            raise ValidationError("Missing request")
+            raise ValidationError((body, err), "Request data not found")
 
         ctx.protocol.error = False
         if err is not None:
@@ -255,9 +296,9 @@ class _SpyneJsonRpc1(JsonDocument):
             ctx.protocol.error = True
         else:
             if not isinstance(body, dict):
-                raise ValidationError("Missing request body")
+                raise ValidationError(body, "Request body not found")
             if not len(body) == 1:
-                raise ValidationError("Need len(body) == 1")
+                raise ValidationError(body, "Need len(body) == 1")
 
             ctx.in_header_doc = indoc.get(self.HEAD)
             if not isinstance(ctx.in_header_doc, list):
@@ -313,13 +354,12 @@ class _SpyneJsonRpc1(JsonDocument):
 
         self.event_manager.fire_event('before_serialize', ctx)
 
-        # construct the soap response, and serialize it
-        nsmap = self.app.interface.nsmap
         ctx.out_document = {
             "ver": self.version,
         }
         if ctx.out_error is not None:
-            ctx.out_document[self.FAULT] = Fault.to_dict(Fault, ctx.out_error)
+            ctx.out_document[self.FAULT] = Fault.to_dict(Fault,
+                                                            ctx.out_error, self)
 
         else:
             if message is self.REQUEST:
@@ -333,6 +373,7 @@ class _SpyneJsonRpc1(JsonDocument):
             # assign raw result to its wrapper, result_message
             out_type_info = body_message_class._type_info
             out_object = body_message_class()
+            bm_attrs = self.get_cls_attrs(body_message_class)
 
             keys = iter(out_type_info)
             values = iter(ctx.out_object)
@@ -346,10 +387,10 @@ class _SpyneJsonRpc1(JsonDocument):
                 except StopIteration:
                     v = None
 
-                setattr(out_object, k, v)
+                out_object._safe_set(k, v, body_message_class, bm_attrs)
 
             ctx.out_document[self.BODY] = ctx.out_body_doc = \
-                            self._object_to_doc(body_message_class, out_object)
+                             self._object_to_doc(body_message_class, out_object)
 
             # header
             if ctx.out_header is not None and header_message_class is not None:
@@ -373,12 +414,12 @@ class _SpyneJsonRpc1(JsonDocument):
         self.event_manager.fire_event('after_serialize', ctx)
 
 
-_json_rpc_flavours = {
+_json_rpc_flavors = {
     'spyne': _SpyneJsonRpc1
 }
 
 def JsonRpc(flavour, *args, **kwargs):
-    assert flavour in _json_rpc_flavours, "Unknown JsonRpc flavour. " \
-                             "Accepted ones are: %r" % tuple(_json_rpc_flavours)
+    assert flavour in _json_rpc_flavors, "Unknown JsonRpc flavor. " \
+                              "Accepted ones are: %r" % tuple(_json_rpc_flavors)
 
-    return _json_rpc_flavours[flavour](*args, **kwargs)
+    return _json_rpc_flavors[flavour](*args, **kwargs)

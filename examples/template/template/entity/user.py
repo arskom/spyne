@@ -29,7 +29,7 @@
 #
 
 from spyne.error import ResourceNotFoundError
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 from spyne.decorator import rpc
 from spyne.model.complex import Iterable
@@ -39,7 +39,7 @@ from spyne.model.primitive import UnsignedInteger32
 from template.db import User
 
 
-class UserManagerService(ServiceBase):
+class UserManagerService(Service):
     @rpc(Mandatory.UnsignedInteger32, _returns=User)
     def get_user(ctx, user_id):
         return ctx.udc.session.query(User).filter_by(id=user_id).one()

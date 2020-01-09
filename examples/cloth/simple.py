@@ -41,14 +41,14 @@ from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.protocol.html import HtmlColumnTable
 from spyne.protocol.http import HttpRpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.model.complex import Iterable
 from spyne.model.primitive import UnsignedInteger
 from spyne.model.primitive import String
 from spyne.server.wsgi import WsgiApplication
 
 
-class HelloWorldService(ServiceBase):
+class HelloWorldService(Service):
     @rpc(String, UnsignedInteger, _returns=Iterable(String))
     def say_hello(ctx, name, times):
         def cb(ret):

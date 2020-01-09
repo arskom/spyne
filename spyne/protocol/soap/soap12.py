@@ -77,7 +77,7 @@ class Soap12(Soap11):
         faultcode = []
         faultcode.append(element.find('soap:Code/soap:Value', namespaces=nsmap).text)
         subcode = element.find('soap:Code/soap:Subcode', namespaces=nsmap)
-        while subcode:
+        while subcode is not None:
             faultcode.append(subcode.find('soap:Value', namespaces=nsmap).text)
             subcode = subcode.find('soap:Subcode', namespaces=nsmap)
 
@@ -99,7 +99,7 @@ class Soap12(Soap11):
         tag_name = "{%s}Fault" % self.ns_soap_env
 
         if isinstance(inst.faultcode, string_types):
-            value, faultcodes  = self.gen_fault_codes(inst.faultcode)
+            value, faultcodes = self.gen_fault_codes(inst.faultcode)
 
             code = E("{%s}Code" % self.ns_soap_env)
             code.append(E("{%s}Value" % self.ns_soap_env, value))
@@ -136,7 +136,7 @@ class Soap12(Soap11):
         return self._fault_to_parent_impl(ctx, cls, inst, parent, ns, subelts)
 
     def fault_from_element(self, ctx, cls, element):
-        nsmap  = element.nsmap
+        nsmap = element.nsmap
 
         code = self.generate_faultcode(element)
         reason = element.find("soap:Reason/soap:Text", namespaces=nsmap).text.strip()
@@ -144,9 +144,9 @@ class Soap12(Soap11):
         node = element.find("soap:Node", namespaces=nsmap)
         detail = element.find("soap:Detail", namespaces=nsmap)
         faultactor = ''
-        if role:
+        if role is not None:
             faultactor += role.text.strip()
-        if node:
+        if node is not None:
             faultactor += node.text.strip()
         return cls(faultcode=code, faultstring=reason,
-                   faultactor = faultactor, detail=detail)
+                   faultactor=faultactor, detail=detail)

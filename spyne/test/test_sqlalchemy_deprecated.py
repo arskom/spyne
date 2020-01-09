@@ -178,11 +178,11 @@ class TestSqlAlchemy(unittest.TestCase):
 
         session.commit()
 
-        from spyne.service import ServiceBase
+        from spyne.service import Service
         from spyne.model.complex import Array
         from spyne.model.primitive import String
 
-        class Service(ServiceBase):
+        class Service(Service):
             @rpc(String(max_occurs='unbounded'),
                     _returns=Array(KeyValuePair),
                     _in_variable_names={
@@ -229,22 +229,22 @@ class TestSqlAlchemy(unittest.TestCase):
             print((_key, _key.text))
             print((_value, _value.text))
 
-            self.assertEquals(_key.text, key)
-            self.assertEquals(_value.text, value)
+            self.assertEqual(_key.text, key)
+            self.assertEqual(_value.text, value)
 
     def test_late_mapping(self):
         import sqlalchemy
 
         user_t = Table('user', self.metadata,
              Column('id', sqlalchemy.Integer, primary_key=True),
-             Column('name',  sqlalchemy.String),
+             Column('name', sqlalchemy.String),
         )
 
         class User(TableModel, self.DeclarativeBase):
             __table__ = user_t
 
-        self.assertEquals(User._type_info['id'].__type_name__, 'integer')
-        self.assertEquals(User._type_info['name'].__type_name__, 'string')
+        self.assertEqual(User._type_info['id'].__type_name__, 'integer')
+        self.assertEqual(User._type_info['name'].__type_name__, 'string')
 
 
     def test_default_ctor(self):

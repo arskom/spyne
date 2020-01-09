@@ -38,7 +38,7 @@ from spyne.const import ARRAY_SUFFIX
 
 from spyne.const.xml import NSMAP
 from spyne.decorator import srpc
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.interface.wsdl import Wsdl11
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
@@ -55,19 +55,19 @@ ns = {
 
 class TestDefaultWSDLBehavior(unittest.TestCase):
     def _default_service(self, app_wrapper, service_name):
-        self.assertEquals(1, len(app_wrapper.get_service_list()))
+        self.assertEqual(1, len(app_wrapper.get_service_list()))
 
         services = app_wrapper.get_service_list()
         service = services[0]
 
         # the default behavior requires that there be only a single service
-        self.assertEquals(1, len(services))
-        self.assertEquals(service_name, service.get('name'))
+        self.assertEqual(1, len(services))
+        self.assertEqual(service_name, service.get('name'))
 
         # Test the default service has the correct number of ports
         # the default behavior requires that there be only a single port
         ports = app_wrapper.get_port_list(service)
-        self.assertEquals(len(ports), 1)
+        self.assertEqual(len(ports), 1)
 
 
     def _default_port_type(self, app_wrapper, portType_name, op_count):
@@ -75,42 +75,42 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         portTypes = app_wrapper.get_port_types()
 
         # there should be only one portType
-        self.assertEquals(1, len(portTypes))
+        self.assertEqual(1, len(portTypes))
 
         # Verify the portType name
         portType = portTypes[0]
         # Check the name of the port
-        self.assertEquals(portType_name, portType.get('name'))
+        self.assertEqual(portType_name, portType.get('name'))
 
         # verify that the portType definition has the correct
         # number of operations
         ops = app_wrapper.get_port_operations(portType)
-        self.assertEquals(op_count, len(ops))
+        self.assertEqual(op_count, len(ops))
 
     def _default_binding(self, wrapper, binding_name, opp_count):
         # the default behavior is only single binding
         bindings = wrapper.get_bindings()
-        self.assertEquals(1, len(bindings))
+        self.assertEqual(1, len(bindings))
 
         # check for the correct binding name
         binding = bindings[0]
         name = binding.get('name')
-        self.assertEquals(binding_name, name)
+        self.assertEqual(binding_name, name)
 
         # Test that the default service contains the soap binding
         sb = wrapper.get_soap_bindings(binding)
-        self.assertEquals(1, len(sb))
+        self.assertEqual(1, len(sb))
 
         # verify the correct number of operations
         ops = wrapper.get_binding_operations(binding)
-        self.assertEquals(opp_count, len(ops))
+        self.assertEqual(opp_count, len(ops))
 
     def _default_binding_methods(self, wrapper, op_count, op_names):
         binding = wrapper.get_bindings()[0]
         operations = wrapper.get_binding_operations(binding)
 
         # Check the number of operations bound to the port
-        self.assertEquals(op_count, len(operations))
+        self.assertEqual(op_count, len(operations))
 
         # Check the operation names are correct
         for op in operations:
@@ -177,7 +177,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         )
 
     def test_bare_simple(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(String, _returns=String, _body_style='bare')
             def whatever(ss):
                 return ss
@@ -208,7 +208,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         assert elts[0].attrib['type'] == 'xs:string'
 
     def test_bare_with_conflicting_types(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @srpc(Array(String), _returns=Array(String))
             def whatever(sa):
                 return sa

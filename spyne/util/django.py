@@ -40,13 +40,13 @@ from django.core.validators import (slug_re,
 try:
     from django.core.validators import comma_separated_int_list_re
 except ImportError:
-    comma_separated_int_list_re = re.compile('^[\d,]+$')
+    comma_separated_int_list_re = re.compile(r'^[\d,]+$')
 
 from spyne.error import (ResourceNotFoundError, ValidationError as
                          BaseValidationError, Fault)
 from spyne.model import primitive
 from spyne.model.complex import ComplexModelMeta, ComplexModelBase
-from spyne.service import ServiceBase
+from spyne.service import Service
 from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
@@ -185,7 +185,7 @@ class RelationMapper(BaseDjangoFieldMapper):
 
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model configured by related field."""
-        related_field = field.rel.get_related_field()
+        related_field = field.rel.get_related_field() if hasattr(field, 'rel') else field.remote_field.get_related_field()
         field_type = related_field.__class__.__name__
         field_mapper = self.django_model_mapper.get_field_mapper(field_type)
 
@@ -518,7 +518,7 @@ class ValidationError(BaseValidationError):
                 type(validation_error_exc).__name__), faultstring=message)
 
 
-class DjangoServiceBase(ServiceBase):
+class DjangoService(Service):
 
     """Service with common Django exception handling."""
 
@@ -526,9 +526,13 @@ class DjangoServiceBase(ServiceBase):
     def call_wrapper(cls, ctx):
         """Handle common Django exceptions."""
         try:
-            out_object = super(DjangoServiceBase, cls).call_wrapper(ctx)
+            out_object = super(DjangoService, cls).call_wrapper(ctx)
         except ObjectDoesNotExist as e:
             raise ObjectNotFoundError(e)
         except DjValidationError as e:
             raise ValidationError(e)
         return out_object
+
+
+# FIXME: To be removed in Spyne 3
+DjangoServiceBase = DjangoService

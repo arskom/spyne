@@ -4,7 +4,7 @@ pytest-cov
 coverage
 junitxml
 werkzeug
-sqlalchemy<1.0.99
+sqlalchemy
 lxml>=3.6
 pyyaml
 pyzmq
@@ -20,3 +20,4 @@ tox
 pyparsing>=2.0.2
 suds-jurko
 zeep
+pandas

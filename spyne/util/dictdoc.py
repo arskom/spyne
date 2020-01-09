@@ -24,21 +24,26 @@ from spyne.protocol.dictdoc import SimpleDictDocument
 
 try:
     from spyne.protocol.json import JsonDocument
-except ImportError as e:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def JsonDocument(*args, **kwargs):
-        raise e
+        raise _local_import_error
+
 
 try:
     from spyne.protocol.yaml import YamlDocument
-except ImportError as e:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def YamlDocument(*args, **kwargs):
-        raise e
+        raise _local_import_error
+
 
 try:
     from spyne.protocol.msgpack import MessagePackDocument
-except ImportError as e:
+except ImportError as _import_error:
+    _local_import_error = _import_error
     def MessagePackDocument(*args, **kwargs):
-        raise e
+        raise _local_import_error
 
 
 from spyne.model.primitive import Double
@@ -69,23 +74,38 @@ class _UtilProtocol(HierDictDocument):
         self._to_unicode_handlers[Integer] = lambda cls, val: val
 
 
-def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list,
-                                                        protocol=_UtilProtocol):
-    return protocol(ignore_wrappers=ignore_wrappers,
-                             complex_as=complex_as)._doc_to_object(None, cls, d)
+def get_doc_as_object(d, cls, ignore_wrappers=True, complex_as=list,
+                                    protocol=_UtilProtocol, protocol_inst=None):
+    if protocol_inst is None:
+        protocol_inst = protocol(ignore_wrappers=ignore_wrappers,
+                                                          complex_as=complex_as)
+
+    return protocol_inst._doc_to_object(None, cls, d)
 
 
-def get_object_as_dict(o, cls=None, ignore_wrappers=True, complex_as=dict,
-                                                        protocol=_UtilProtocol):
+get_dict_as_object = get_doc_as_object
+"""DEPRECATED: Use ``get_doc_as_object`` instead"""
+
+
+def get_object_as_doc(o, cls=None, ignore_wrappers=True, complex_as=dict,
+                                    protocol=_UtilProtocol, protocol_inst=None):
     if cls is None:
         cls = o.__class__
 
-    retval = protocol(ignore_wrappers=ignore_wrappers,
-                                   complex_as=complex_as)._object_to_doc(cls, o)
+    if protocol_inst is None:
+        protocol_inst = protocol(ignore_wrappers=ignore_wrappers,
+                                                          complex_as=complex_as)
+
+    retval = protocol_inst._object_to_doc(cls, o)
+
     if not ignore_wrappers:
         return {cls.get_type_name(): retval}
+
     return retval
 
+
+get_object_as_dict = get_object_as_doc
+"""DEPRECATED: Use ``get_object_as_doc`` instead."""
 
 def get_object_as_simple_dict(o, cls=None, hier_delim='.', prefix=None):
     if cls is None:
@@ -96,15 +116,26 @@ def get_object_as_simple_dict(o, cls=None, hier_delim='.', prefix=None):
 
 
 def get_object_as_json(o, cls=None, ignore_wrappers=True, complex_as=list,
-                                            encoding='utf8', polymorphic=False):
+                     encoding='utf8', polymorphic=False, indent=None, **kwargs):
     if cls is None:
         cls = o.__class__
 
     prot = JsonDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
-                                                        polymorphic=polymorphic)
+                               polymorphic=polymorphic, indent=indent, **kwargs)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls, o)])
     prot.create_out_string(ctx, encoding)
     return b''.join(ctx.out_string)
+
+
+def get_object_as_json_doc(o, cls=None, ignore_wrappers=True, complex_as=list,
+                                      polymorphic=False, indent=None, **kwargs):
+    if cls is None:
+        cls = o.__class__
+
+    prot = JsonDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                               polymorphic=polymorphic, indent=indent, **kwargs)
+
+    return prot._object_to_doc(cls, o)
 
 
 def get_object_as_yaml(o, cls=None, ignore_wrappers=False, complex_as=dict,
@@ -119,16 +150,37 @@ def get_object_as_yaml(o, cls=None, ignore_wrappers=False, complex_as=dict,
     return b''.join(ctx.out_string)
 
 
+def get_object_as_yaml_doc(o, cls=None, ignore_wrappers=False, complex_as=dict,
+                                                             polymorphic=False):
+    if cls is None:
+        cls = o.__class__
+
+    prot = YamlDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                                                        polymorphic=polymorphic)
+    return prot._object_to_doc(cls, o)
+
+
 def get_object_as_msgpack(o, cls=None, ignore_wrappers=False, complex_as=dict,
-                                            encoding='utf8', polymorphic=False):
+                                                             polymorphic=False):
     if cls is None:
         cls = o.__class__
 
     prot = MessagePackDocument(ignore_wrappers=ignore_wrappers,
                                  complex_as=complex_as, polymorphic=polymorphic)
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
-    prot.create_out_string(ctx, encoding)
+    prot.create_out_string(ctx)
     return b''.join(ctx.out_string)
+
+
+def get_object_as_msgpack_doc(o, cls=None, ignore_wrappers=False,
+                                            complex_as=dict, polymorphic=False):
+    if cls is None:
+        cls = o.__class__
+
+    prot = MessagePackDocument(ignore_wrappers=ignore_wrappers,
+                                 complex_as=complex_as, polymorphic=polymorphic)
+
+    return prot._object_to_doc(cls, o)
 
 
 def json_loads(s, cls, protocol=JsonDocument, **kwargs):

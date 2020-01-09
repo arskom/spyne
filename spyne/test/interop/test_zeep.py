@@ -18,6 +18,7 @@
 #
 import logging
 
+
 zeep_logger = logging.getLogger('zeep')
 zeep_logger.setLevel(logging.INFO)
 
@@ -26,6 +27,7 @@ import unittest
 from datetime import datetime
 from base64 import b64encode, b64decode
 
+from spyne.test.interop._test_soap_client_base import server_started
 from spyne.util import six
 
 from zeep import Client
@@ -38,8 +40,11 @@ class TestZeep(unittest.TestCase):
         from spyne.test.interop._test_soap_client_base import run_server
         run_server('http')
 
+        port, = server_started.keys()
+
         transport = Transport(cache=False)
-        self.client = Client("http://localhost:9754/?wsdl", transport=transport)
+        self.client = Client("http://localhost:%d/?wsdl" % port,
+                                                            transport=transport)
         self.ns = "spyne.test.interop.server"
 
     def get_inst(self, what):
@@ -90,11 +95,11 @@ class TestZeep(unittest.TestCase):
     def test_echo_boolean(self):
         val = True
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val, ret)
+        self.assertEqual(val, ret)
 
         val = False
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val, ret)
+        self.assertEqual(val, ret)
 
     def test_enum(self):
         val = self.client.get_type("{%s}DaysOfWeekEnum" % self.ns)('Monday')
@@ -138,8 +143,8 @@ class TestZeep(unittest.TestCase):
         print(ret)
 
         out_header = ret.body.echo_in_headerResult
-        self.assertEquals(in_header.s, out_header.s)
-        self.assertEquals(in_header.i, out_header.i)
+        self.assertEqual(in_header.s, out_header.s)
+        self.assertEqual(in_header.i, out_header.i)
 
     def test_echo_in_complex_header(self):
         in_header = self.client.get_type('{%s}InHeader' % self.ns)()
@@ -160,10 +165,10 @@ class TestZeep(unittest.TestCase):
         out_header = ret.body.echo_in_complex_headerResult0
         out_trace_header = ret.body.echo_in_complex_headerResult1
 
-        self.assertEquals(in_header.s, out_header.s)
-        self.assertEquals(in_header.i, out_header.i)
-        self.assertEquals(in_trace_header.client, out_trace_header.client)
-        self.assertEquals(in_trace_header.callDate, out_trace_header.callDate)
+        self.assertEqual(in_header.s, out_header.s)
+        self.assertEqual(in_header.i, out_header.i)
+        self.assertEqual(in_trace_header.client, out_trace_header.client)
+        self.assertEqual(in_trace_header.callDate, out_trace_header.callDate)
 
     def test_send_out_header(self):
         out_header = self.client.get_type('{%s}OutHeader' % self.ns)()
@@ -172,8 +177,8 @@ class TestZeep(unittest.TestCase):
 
         ret = self.client.service.send_out_header()
 
-        self.assertEquals(ret.header.OutHeader.dt, out_header.dt)
-        self.assertEquals(ret.header.OutHeader.f, out_header.f)
+        self.assertEqual(ret.header.OutHeader.dt, out_header.dt)
+        self.assertEqual(ret.header.OutHeader.f, out_header.f)
 
     def test_send_out_complex_header(self):
         out_header = self.client.get_type('{%s}OutHeader' % self.ns)()
@@ -187,16 +192,16 @@ class TestZeep(unittest.TestCase):
 
         ret = self.client.service.send_out_complex_header()
 
-        self.assertEquals(ret.header.OutHeader.dt, out_header.dt)
-        self.assertEquals(ret.header.OutHeader.f, out_header.f)
-        self.assertEquals(ret.header.OutTraceHeader.receiptDate, out_trace_header.receiptDate)
-        self.assertEquals(ret.header.OutTraceHeader.returnDate, out_trace_header.returnDate)
+        self.assertEqual(ret.header.OutHeader.dt, out_header.dt)
+        self.assertEqual(ret.header.OutHeader.f, out_header.f)
+        self.assertEqual(ret.header.OutTraceHeader.receiptDate, out_trace_header.receiptDate)
+        self.assertEqual(ret.header.OutTraceHeader.returnDate, out_trace_header.returnDate)
 
     def test_echo_string(self):
         test_string = "OK"
         ret = self.client.service.echo_string(test_string)
 
-        self.assertEquals(ret, test_string)
+        self.assertEqual(ret, test_string)
 
     def __get_xml_test_val(self):
         return {
@@ -269,17 +274,17 @@ class TestZeep(unittest.TestCase):
 
         ret = self.client.service.echo_nested_class(val)
 
-        self.assertEquals(ret.i, val.i)
+        self.assertEqual(ret.i, val.i)
         self.assertEqual(ret.ai.integer, val.ai.integer)
         self.assertEqual(ret.ai.integer[0], val.ai.integer[0])
-        self.assertEquals(ret.simple.SimpleClass[0].s, val.simple.SimpleClass[0].s)
+        self.assertEqual(ret.simple.SimpleClass[0].s, val.simple.SimpleClass[0].s)
         self.assertEqual(ret.other.dt, val.other.dt)
 
     def test_huge_number(self):
-        self.assertEquals(self.client.service.huge_number(), 2 ** int(1e5))
+        self.assertEqual(self.client.service.huge_number(), 2 ** int(1e5))
 
     def test_long_string(self):
-        self.assertEquals(self.client.service.long_string(),
+        self.assertEqual(self.client.service.long_string(),
                                                    ('0123456789abcdef' * 16384))
 
     def test_empty(self):
@@ -318,12 +323,12 @@ class TestZeep(unittest.TestCase):
         ret = self.client.service.echo_extension_class(val)
         print(ret)
 
-        self.assertEquals(ret.i, val.i)
-        self.assertEquals(ret.s, val.s)
-        self.assertEquals(ret.f, val.f)
-        self.assertEquals(ret.simple.SimpleClass[0].i, val.simple.SimpleClass[0].i)
-        self.assertEquals(ret.other.dt, val.other.dt)
-        self.assertEquals(ret.p.s, val.p.s)
+        self.assertEqual(ret.i, val.i)
+        self.assertEqual(ret.s, val.s)
+        self.assertEqual(ret.f, val.f)
+        self.assertEqual(ret.simple.SimpleClass[0].i, val.simple.SimpleClass[0].i)
+        self.assertEqual(ret.other.dt, val.other.dt)
+        self.assertEqual(ret.p.s, val.p.s)
 
 
     def test_python_exception(self):
@@ -343,10 +348,10 @@ class TestZeep(unittest.TestCase):
     def test_complex_return(self):
         ret = self.client.service.complex_return()
 
-        self.assertEquals(ret.resultCode, 1)
-        self.assertEquals(ret.resultDescription, "Test")
-        self.assertEquals(ret.transactionId, 123)
-        self.assertEquals(ret.roles.RoleEnum[0], "MEMBER")
+        self.assertEqual(ret.resultCode, 1)
+        self.assertEqual(ret.resultDescription, "Test")
+        self.assertEqual(ret.transactionId, 123)
+        self.assertEqual(ret.roles.RoleEnum[0], "MEMBER")
 
     def test_return_invalid_data(self):
         try:

@@ -26,10 +26,14 @@ from datetime import datetime
 from weakref import WeakKeyDictionary
 
 from spyne import ProtocolContext, EventManager
+from spyne.const import DEFAULT_LOCALE
 from spyne.model import Array
 from spyne.error import ResourceNotFoundError
-from spyne.util import DefaultAttrDict, memoize_id_method
+from spyne.util import DefaultAttrDict
 from spyne.util.six import string_types
+
+
+_MISSING = type("_MISSING", (object,), {})()
 
 
 class ProtocolMixin(object):
@@ -66,10 +70,18 @@ class ProtocolMixin(object):
             self.mime_type = mime_type
 
         self._attrcache = WeakKeyDictionary()
+        self._sortcache = WeakKeyDictionary()
 
     def _cast(self, cls_attrs, inst):
-        if cls_attrs.cast is not None:
-            return cls_attrs.cast(inst)
+        if cls_attrs.parser is not None:
+            return cls_attrs.parser(inst)
+        return inst
+
+    _parse = _cast
+
+    def _sanitize(self, cls_attrs, inst):
+        if cls_attrs.sanitizer is not None:
+            return cls_attrs.sanitizer(inst)
         return inst
 
     def _datetime_from_sec(self, cls, value):
@@ -108,6 +120,8 @@ class ProtocolMixin(object):
             raise
 
     def _get_datetime_format(self, cls_attrs):
+        # FIXME: this should be dt_format, all other aliases are to be
+        # deprecated
         dt_format = cls_attrs.datetime_format
         if dt_format is None:
             dt_format = cls_attrs.dt_format
@@ -167,6 +181,7 @@ class ProtocolMixin(object):
                           cls if clsorig is None else clsorig)
 
     def get_cls_attrs(self, cls):
+        logger.debug("%r attrcache size: %d", self, len(self._attrcache))
         attr = self._attrcache.get(cls, None)
         if attr is not None:
             return attr
@@ -221,8 +236,8 @@ class ProtocolMixin(object):
         """
 
         name = ctx.method_request_string
-        if not name.startswith("{"):
-            name = '{%s}%s' % (self.app.interface.get_tns(), name)
+        if not name.startswith(u"{"):
+            name = u'{%s}%s' % (self.app.interface.get_tns(), name)
 
         call_handles = self.app.interface.service_method_map.get(name, [])
 
@@ -263,6 +278,39 @@ class ProtocolMixin(object):
             return inst.__class__, True
 
     @staticmethod
+    def trc_verbose(cls, locale, default):
+        """Translate a class.
+
+        :param cls: class
+        :param locale: locale string
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
+        if locale is None:
+            locale = DEFAULT_LOCALE
+            _log_locale = "default locale '%s'"
+        else:
+            _log_locale = "given locale '%s'"
+
+        if cls.Attributes.translations is None:
+            retval = default
+            _log_tr = "translated to '%s' without any translations at all with"
+
+        else:
+            retval = cls.Attributes.translations.get(locale, _MISSING)
+            if retval is _MISSING:
+                retval = default
+                _log_tr = "translated to '%s': No translation for"
+            else:
+                _log_tr = "translated to '%s' with"
+
+        logger.debug(' '.join(("%r ", _log_tr, _log_locale)),
+                                                            cls, retval, locale)
+
+        return retval
+
+    @staticmethod
     def trc(cls, locale, default):
         """Translate a class.
 
@@ -273,10 +321,47 @@ class ProtocolMixin(object):
         """
 
         if locale is None:
-            locale = 'en_US'
+            locale = DEFAULT_LOCALE
         if cls.Attributes.translations is not None:
             return cls.Attributes.translations.get(locale, default)
         return default
+
+    @staticmethod
+    def trd_verbose(trdict, locale, default):
+        """Translate from a translations dict.
+
+        :param trdict: translation dict
+        :param locale: locale string
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
+        if locale is None:
+            locale = DEFAULT_LOCALE
+            _log_locale = "default locale '%s'"
+        else:
+            _log_locale = "given locale '%s'"
+
+        if trdict is None:
+            retval = default
+            _log_tr = "translated to '%s' without any translations at all with"
+
+        elif isinstance(trdict, string_types):
+            retval = trdict
+            _log_tr = "translated to '%s' regardless of"
+
+        else:
+            retval = trdict.get(locale, _MISSING)
+            if retval is _MISSING:
+                retval = default
+                _log_tr = "translated to '%s': No translation for"
+            else:
+                _log_tr = "translated to '%s' with"
+
+        logger.debug(' '.join(("%r ", _log_tr, _log_locale)),
+                                                         trdict, retval, locale)
+
+        return retval
 
     @staticmethod
     def trd(trdict, locale, default):
@@ -289,7 +374,7 @@ class ProtocolMixin(object):
         """
 
         if locale is None:
-            locale = 'en_US'
+            locale = DEFAULT_LOCALE
         if trdict is None:
             return default
         if isinstance(trdict, string_types):
@@ -297,8 +382,12 @@ class ProtocolMixin(object):
 
         return trdict.get(locale, default)
 
-    @memoize_id_method
     def sort_fields(self, cls=None, items=None):
+        logger.debug("%r sortcache size: %d", self, len(self._sortcache))
+        retval = self._sortcache.get(cls, None)
+        if retval is not None:
+            return retval
+
         if items is None:
             items = list(cls.get_flat_type_info(cls).items())
 
@@ -317,6 +406,8 @@ class ProtocolMixin(object):
                 indexes[k] = len(indexes)
 
         items.sort(key=lambda x: indexes[x[0]])
+        self._sortcache[cls] = items
+
         return items
 
 

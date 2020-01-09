@@ -30,7 +30,7 @@ from lxml import etree
 from base64 import b64encode
 from decimal import Decimal as D
 
-from spyne import Application, rpc, mrpc, ServiceBase, ByteArray, Array, \
+from spyne import Application, rpc, mrpc, Service, ByteArray, Array, \
     ComplexModel, SelfReference, XmlData, XmlAttribute, Unicode, DateTime, \
     Float, Integer, String
 from spyne.const import xml
@@ -139,22 +139,22 @@ class TestComplexModel(unittest.TestCase):
         element = etree.Element('test')
         XmlDocument().to_parent(None, Address, a, element, ns_test)
         element = element[0]
-        self.assertEquals(5, len(element.getchildren()))
+        self.assertEqual(5, len(element.getchildren()))
 
         a.since = datetime.datetime(year=2011, month=12, day=31, tzinfo=pytz.utc)
         element = etree.Element('test')
         XmlDocument().to_parent(None, Address, a, element, ns_test)
         element = element[0]
-        self.assertEquals(6, len(element.getchildren()))
+        self.assertEqual(6, len(element.getchildren()))
 
         r = XmlDocument().from_element(None, Address, element)
 
-        self.assertEquals(a.street, r.street)
-        self.assertEquals(a.city, r.city)
-        self.assertEquals(a.zip, r.zip)
-        self.assertEquals(a.lattitude, r.lattitude)
-        self.assertEquals(a.longitude, r.longitude)
-        self.assertEquals(a.since, r.since)
+        self.assertEqual(a.street, r.street)
+        self.assertEqual(a.city, r.city)
+        self.assertEqual(a.zip, r.zip)
+        self.assertEqual(a.lattitude, r.lattitude)
+        self.assertEqual(a.longitude, r.longitude)
+        self.assertEqual(a.since, r.since)
 
     def test_nested_class(self): # FIXME: this test is incomplete
         p = Person()
@@ -162,10 +162,10 @@ class TestComplexModel(unittest.TestCase):
         XmlDocument().to_parent(None, Person, p, element, ns_test)
         element = element[0]
 
-        self.assertEquals(None, p.name)
-        self.assertEquals(None, p.birthdate)
-        self.assertEquals(None, p.age)
-        self.assertEquals(None, p.addresses)
+        self.assertEqual(None, p.name)
+        self.assertEqual(None, p.birthdate)
+        self.assertEqual(None, p.age)
+        self.assertEqual(None, p.addresses)
 
     def test_class_array(self):
         peeps = []
@@ -186,12 +186,12 @@ class TestComplexModel(unittest.TestCase):
         XmlDocument().to_parent(None, type, peeps, element, ns_test)
         element = element[0]
 
-        self.assertEquals(4, len(element.getchildren()))
+        self.assertEqual(4, len(element.getchildren()))
 
         peeps2 = XmlDocument().from_element(None, type, element)
         for i in range(0, 4):
-            self.assertEquals(peeps2[i].name, names[i])
-            self.assertEquals(peeps2[i].birthdate, dob)
+            self.assertEqual(peeps2[i].name, names[i])
+            self.assertEqual(peeps2[i].birthdate, dob)
 
     def test_class_nested_array(self):
         peeps = []
@@ -217,13 +217,13 @@ class TestComplexModel(unittest.TestCase):
         XmlDocument().to_parent(None, arr, peeps, element, ns_test)
         element = element[0]
 
-        self.assertEquals(4, len(element.getchildren()))
+        self.assertEqual(4, len(element.getchildren()))
 
         peeps2 = XmlDocument().from_element(None, arr, element)
         for peep in peeps2:
-            self.assertEquals(27, peep.age)
-            self.assertEquals(25, len(peep.addresses))
-            self.assertEquals('funkytown', peep.addresses[18].city)
+            self.assertEqual(27, peep.age)
+            self.assertEqual(25, len(peep.addresses))
+            self.assertEqual('funkytown', peep.addresses[18].city)
 
     def test_complex_class(self):
         l = Level1()
@@ -248,10 +248,10 @@ class TestComplexModel(unittest.TestCase):
         element = element[0]
         l1 = XmlDocument().from_element(None, Level1, element)
 
-        self.assertEquals(l1.level2.arg1, l.level2.arg1)
-        self.assertEquals(l1.level2.arg2, l.level2.arg2)
-        self.assertEquals(len(l1.level4), len(l.level4))
-        self.assertEquals(100, len(l.level3))
+        self.assertEqual(l1.level2.arg1, l.level2.arg1)
+        self.assertEqual(l1.level2.arg2, l.level2.arg2)
+        self.assertEqual(len(l1.level4), len(l.level4))
+        self.assertEqual(100, len(l.level3))
 
 
 class X(ComplexModel):
@@ -432,7 +432,7 @@ class TestXmlAttribute(unittest.TestCase):
         element = element[0]
         #print etree.tostring(element, pretty_print=True)
         data = element.find('{%s}Data' % gg.get_namespace()).text
-        self.assertEquals(data, b64string.decode('ascii'))
+        self.assertEqual(data, b64string.decode('ascii'))
         s1 = Soap11().from_element(None, PacketNonAttribute, element)
         assert s1.Data[0] == test_string
 
@@ -451,7 +451,7 @@ class TestXmlAttribute(unittest.TestCase):
         element = element[0]
         print(etree.tostring(element, pretty_print=True))
         print(element.attrib)
-        self.assertEquals(element.attrib['Data'], b64string.decode('ascii'))
+        self.assertEqual(element.attrib['Data'], b64string.decode('ascii'))
 
         s1 = Soap11().from_element(None, PacketAttribute, element)
         assert s1.Data[0] == test_string
@@ -459,7 +459,7 @@ class TestXmlAttribute(unittest.TestCase):
     def test_customized_type(self):
         class SomeClass(ComplexModel):
             a = XmlAttribute(Integer(ge=4))
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(SomeClass)
             def some_call(ctx, some_class):
                 pass
@@ -605,7 +605,7 @@ class TestSelfRefence(unittest.TestCase):
 
         assert c is TestSelfReference
 
-        class SoapService(ServiceBase):
+        class SoapService(Service):
             @rpc(_returns=TestSelfReference)
             def view_categories(ctx):
                 pass
@@ -627,7 +627,7 @@ class TestSelfRefence(unittest.TestCase):
         assert d['children'][0]['id'] == 0
         assert d['children'][1]['id'] == 1
 
-        class SoapService(ServiceBase):
+        class SoapService(Service):
             @rpc(_returns=Category)
             def view_categories(ctx):
                 pass
@@ -711,7 +711,7 @@ class TestMemberRpc(unittest.TestCase):
         print(methods)
         assert 'member_method' in methods
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=SomeComplexModel)
             def service_method(ctx):
                 return SomeComplexModel()
@@ -731,7 +731,7 @@ class TestMemberRpc(unittest.TestCase):
         print(methods)
         assert 'member_method' in methods
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=SomeComplexModel)
             def service_method(ctx):
                 return SomeComplexModel()
@@ -754,7 +754,7 @@ class TestMemberRpc(unittest.TestCase):
             def put(self, ctx):
                 return v
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=SomeComplexModel)
             def get(ctx):
                 return SomeComplexModel()
@@ -800,7 +800,7 @@ class TestMemberRpc(unittest.TestCase):
             def echo(self, ctx):
                 return self
 
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(_returns=SomeComplexModel)
             def get(ctx):
                 return SomeComplexModel()
@@ -1023,7 +1023,7 @@ class TestCustomize(unittest.TestCase):
         B2 = B.customize(child_attrs=dict(s=dict(max_len=10)))
         assert B2.get_flat_type_info(B2)['s'].Attributes.max_len == 10
 
-        B3 = B2.customize(child_attrs=dict(d=dict(format="%y")))
+        B3 = B2.customize(child_attrs=dict(d=dict(dt_format="%y")))
         assert B3.get_flat_type_info(B3)['s'].Attributes.max_len == 10
 
     def test_cust_all(self):
@@ -1063,7 +1063,7 @@ class TestCustomize(unittest.TestCase):
 
         TestComplexModel2 = TestComplexModel
 
-        class TestService(ServiceBase):
+        class TestService(Service):
             @rpc(TestComplexModel1)
             def test1(ctx, obj):
                 pass

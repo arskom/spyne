@@ -28,7 +28,7 @@ from spyne.application import Application
 from spyne.model.primitive import Unicode
 from spyne.decorator import rpc
 from spyne.const.xml import WSDL11
-from spyne.service import ServiceBase
+from spyne.service import Service
 
 
 def start_response(code, headers):
@@ -37,7 +37,7 @@ def start_response(code, headers):
 
 class Test(unittest.TestCase):
     def setUp(self):
-        class SomeService(ServiceBase):
+        class SomeService(Service):
             @rpc(Unicode)
             def some_call(ctx, some_str):
                 print(some_str)
@@ -53,8 +53,8 @@ class Test(unittest.TestCase):
         def on_wsdl_document_built(doc):
             self.h += 1
 
-        self.wsgi_app.doc.wsdl11.event_manager.add_listener("wsdl_document_built",
-                                                         on_wsdl_document_built)
+        self.wsgi_app.doc.wsdl11.event_manager.add_listener(
+                                  "wsdl_document_built", on_wsdl_document_built)
         self.wsgi_app.doc.wsdl11.build_interface_document("http://some_url/")
 
         assert self.h == 1

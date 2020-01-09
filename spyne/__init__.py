@@ -21,7 +21,7 @@
 class LogicError(Exception):
     pass
 
-__version__ = '2.13.1'
+__version__ = '2.13.12-alpha'
 
 from pytz import utc as LOCAL_TZ
 from decimal import Decimal as D
@@ -50,7 +50,8 @@ from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.decorator import mrpc
 
-from spyne.service import ServiceBase
+from spyne.service import ServiceBase as Service
+from spyne.service import ServiceBase  # DEPRECATED
 from spyne.application import Application
 
 from spyne.model import *

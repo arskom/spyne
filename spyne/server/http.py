@@ -31,13 +31,22 @@ from spyne.const.http import gen_body_redirect, HTTP_301, HTTP_302, HTTP_303, \
 
 
 class HttpRedirect(Redirect):
+    def __init__(self, ctx, location, orig_exc=None, code=HTTP_302):
+        super(HttpRedirect, self) \
+                      .__init__(ctx, location, orig_exc=orig_exc)
+
+        self.ctx = ctx
+        self.location = location
+        self.orig_exc = orig_exc
+        self.code = code
+
     def do_redirect(self):
         if not isinstance(self.ctx.transport, HttpTransportContext):
             if self.orig_exc is not None:
                 raise self.orig_exc
             raise TypeError(self.ctx.transport)
 
-        self.ctx.transport.respond(HTTP_302, location=self.location)
+        self.ctx.transport.respond(self.code, location=self.location)
 
 #
 # Plagiarized HttpTransport.add_header() and _formatparam() function from
@@ -142,6 +151,9 @@ class HttpTransportContext(TransportContext):
     def get_cookie(self, key):
         raise NotImplementedError()
 
+    def get_peer(self):
+        raise NotImplementedError()
+
     @staticmethod
     def gen_header(_value, **kwargs):
         parts = []
@@ -198,14 +210,17 @@ class HttpMethodContext(MethodContext):
     the transport attribute using the :class:`HttpTransportContext` class.
     """
 
-    default_transport_context = HttpTransportContext
+    # because ctor signatures differ between TransportContext and
+    # HttpTransportContext, we needed a new variable
+    TransportContext = None
+    HttpTransportContext = HttpTransportContext
 
     def __init__(self, transport, req_env, content_type):
         super(HttpMethodContext, self).__init__(transport, MethodContext.SERVER)
 
-        self.transport = self.default_transport_context(self, transport,
+        self.transport = self.HttpTransportContext(self, transport,
                                                           req_env, content_type)
-        """Holds the WSGI-specific information"""
+        """Holds the HTTP-specific information"""
 
     def set_out_protocol(self, what):
         self._out_protocol = what
@@ -257,7 +272,7 @@ class HttpBase(ServerBase):
         """
 
         if not path.startswith('/'):
-            path = '/' + path
+            path = '/{}'.format(path)
 
         params = defaultdict(list)
         for patt in self._http_patterns:

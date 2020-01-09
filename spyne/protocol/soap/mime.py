@@ -20,35 +20,44 @@
 """The ``spyne.protocol.soap.mime`` module contains additional logic for using
 optimized encodings for binary when encapsulating Soap 1.1 messages in Http.
 
-The functionality in this code is not well tested and is reportedly not working
-at all.
+The functionality in this code seems to work at first glance but is not well
+tested.
 
-Patches are welcome.
+Testcases and preferably improvements are most welcome.
 """
+
+from __future__ import print_function, unicode_literals
 
 import logging
 logger = logging.getLogger(__name__)
 
-from lxml import etree
-from base64 import b64encode
+import re
 
-# import email data format related stuff
+from itertools import chain
+from binascii import b2a_base64
+
+from lxml import etree
+
+from email import generator
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from email.encoders import encode_7or8bit
 
-from email import message_from_string
-
+from spyne import ValidationError
+from spyne.util import six
 from spyne.model.binary import ByteArray, File
+from spyne.const.xml import NS_XOP
 
-import spyne.const.xml
-_ns_xop = spyne.const.xml.NS_XOP
-_ns_soap_env = spyne.const.xml.NS_SOAP11_ENV
+if six.PY2:
+    from email import message_from_string as message_from_bytes
+else:
+    from email import message_from_bytes
 
-from spyne.util.six.moves.urllib.parse import unquote
+
+XPATH_NSDICT = dict(xop=NS_XOP)
 
 
-def _join_attachment(href_id, envelope, payload, prefix=True):
+def _join_attachment(ns_soap_env, href_id, envelope, payload, prefix=True):
     """Places the data from an attachment back into a SOAP message, replacing
     its xop:Include element or href.
 
@@ -62,55 +71,37 @@ def _join_attachment(href_id, envelope, payload, prefix=True):
     :param  payload:  attachment data
     """
 
-    def replacing(parent, node, payload_, numreplaces_):
-        if node.tag == '{%s}Include' % _ns_xop:
-            attr = node.attrib.get('href')
-            if not attr is None:
-                if unquote(attr) == href_id:
-                    parent.remove(node)
-                    parent.text = payload_
-                    numreplaces_ += 1
-        else:
-            for c in node:
-                numreplaces_ = replacing(node, c, payload_, numreplaces_)
-
-        return numreplaces_
-
     # grab the XML element of the message in the SOAP body
     soaptree = etree.fromstring(envelope)
-    soapbody = soaptree.find("{%s}Body" % _ns_soap_env)
+    soapbody = soaptree.find("{%s}Body" % ns_soap_env)
+
+    if soapbody is None:
+        raise ValidationError(None, "SOAP Body tag not found")
 
     message = None
     for child in list(soapbody):
-        if child.tag != "{%s}Fault" % _ns_soap_env:
+        if child.tag != "{%s}Fault" % ns_soap_env:
             message = child
             break
 
-    numreplaces = 0
     idprefix = ''
 
     if prefix:
         idprefix = "cid:"
-    href_id = "%s%s" % (idprefix, href_id, )
+    href_id = "%s%s" % (idprefix, href_id,)
 
-    # Make replacement.
-    for param in message:
-        # Look for Include subelement.
-        for sub in param:
-            numreplaces = replacing(param, sub, payload, numreplaces)
+    num = 0
+    xpath = ".//xop:Include[@href=\"{}\"]".format(href_id)
 
-        if numreplaces < 1:
-            attrib = param.attrib.get('href')
-            if not attrib is None:
-                if unquote(attrib) == href_id:
-                    del param.attrib['href']
-                    param.text = payload
-                    numreplaces += 1
+    for num, node in enumerate(message.xpath(xpath, namespaces=XPATH_NSDICT)):
+        parent = node.getparent()
+        parent.remove(node)
+        parent.text = payload
 
-    return etree.tostring(soaptree), numreplaces
+    return etree.tostring(soaptree), num
 
 
-def collapse_swa(content_type, envelope):
+def collapse_swa(ctx, content_type, ns_soap_env):
     """
     Translates an SwA multipart/related message into an application/soap+xml
     message.
@@ -125,28 +116,36 @@ def collapse_swa(content_type, envelope):
 
     :param  content_type: value of the Content-Type header field, parsed by
                           cgi.parse_header() function
-    :param  envelope:     body of the HTTP message, a soap envelope
+    :param  ctx:          request context
     """
 
+    envelope = ctx.in_string
     # convert multipart messages back to pure SOAP
-    mime_type = content_type[0]
+    mime_type, content_data = content_type
+    if not six.PY2:
+        assert isinstance(mime_type, six.text_type)
 
-    if 'multipart/related' not in mime_type:
+    if u'multipart/related' not in mime_type:
         return envelope
 
-    charset = content_type[1].get('charset', None)
+    charset = content_data.get('charset', None)
     if charset is None:
         charset = 'ascii'
 
-    # parse the body into an email.Message object
-    msg_string = [
-        "MIME-Version: 1.0",
-        "Content-Type: %s; charset=%s" % (mime_type, charset),
-        "",
-    ]
-    msg_string.extend(envelope)
+    boundary = content_data.get('boundary', None)
+    if boundary is None:
+        raise ValidationError(None, u"Missing 'boundary' value from "
+                                                         u"Content-Type header")
 
-    msg = message_from_string('\r\n'.join(msg_string))  # our message
+    envelope = list(envelope)
+
+    # What an ugly hack...
+    request = MIMEMultipart('related', boundary=boundary)
+    msg_string = re.sub(r"\n\n.*", '', request.as_string())
+    msg_string = chain((msg_string.encode(charset),), (e for e in envelope))
+
+    msg_string = generator.NL.encode('ascii').join(msg_string)
+    msg = message_from_bytes(msg_string)  # our message
 
     soapmsg = None
     root = msg.get_param('start')
@@ -166,9 +165,8 @@ def collapse_swa(content_type, envelope):
         # binary packages
         cte = part.get("Content-Transfer-Encoding")
 
-        payload = None
         if cte != 'base64':
-            payload = b64encode(part.get_payload())
+            payload = b2a_base64(part.get_payload(decode=True))
         else:
             payload = part.get_payload()
 
@@ -178,14 +176,19 @@ def collapse_swa(content_type, envelope):
 
         # Check for Content-ID and make replacement
         if cid:
-            soapmsg, numreplaces = _join_attachment(cid, soapmsg, payload)
+            soapmsg, numreplaces = _join_attachment(
+                                             ns_soap_env, cid, soapmsg, payload)
 
         # Check for Content-Location and make replacement
         if cloc and not cid and not numreplaces:
-            soapmsg, numreplaces = _join_attachment(cloc, soapmsg, payload,
+            soapmsg, numreplaces = _join_attachment(
+                                            ns_soap_env, cloc, soapmsg, payload,
                                                                           False)
 
-    return [soapmsg]
+    if soapmsg is None:
+        raise ValidationError(None, "Invalid MtoM request")
+
+    return (soapmsg,)
 
 
 def apply_mtom(headers, envelope, params, paramvals):
