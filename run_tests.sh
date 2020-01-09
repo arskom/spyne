@@ -190,8 +190,9 @@ if [ "$PYVER" == "2.7" ]; then
     "$PIP" install numpy\<1.16.99 || exit 13;
     "$PIP" install -rrequirements/test_requirements_py27.txt || exit 14;
 
-else 
-    "$PIP" install -rrequirements/test_requirements.txt || exit 15;
+else
+    "$PIP" install numpy || exit 15;
+    "$PIP" install -rrequirements/test_requirements.txt || exit 16;
 
 fi
 
