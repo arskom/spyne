@@ -2,6 +2,11 @@
 Changelog
 =========
 
+spyne-2.13.12-beta
+-------------------
+* Python 3 support is now beta !!!!. All tests pass and there are no known bugs
+
+
 spyne-2.13.11-alpha
 -------------------
 * SOAP: Repaired MtoM parsing.
