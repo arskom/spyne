@@ -128,14 +128,16 @@ class TestMessagePackRpc(unittest.TestCase):
 
         ret = b''.join(ret)
         print(repr(ret))
-        print(msgpack.unpackb(ret))
-        s = msgpack.packb([1, 0, None, {b'get_valuesResponse': {
+        ret = msgpack.unpackb(ret)
+        print(repr(ret))
+
+        s = [1, 0, None, {b'get_valuesResponse': {
             b'get_valuesResult': [
                   {b"KeyValuePair": {b'key': b'a', b'value': b'b'}},
                   {b"KeyValuePair": {b'key': b'c', b'value': b'd'}},
                 ]
             }}
-        ])
+        ]
         print(s)
         assert ret == s
 
