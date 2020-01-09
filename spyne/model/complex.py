@@ -1299,7 +1299,7 @@ class ComplexModelBase(ModelBase):
     def init_from(cls, other, **kwargs):
         retval = (cls if cls.__orig__ is None else cls.__orig__)()
 
-        for k, v in cls._type_info.items():
+        for k, v in cls.get_flat_type_info(cls).items():
             try:
                 if k in kwargs:
                     retval._safe_set(k, kwargs[k], v, v.Attributes)

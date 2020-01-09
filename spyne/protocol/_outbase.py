@@ -82,17 +82,14 @@ class OutProtocolBase(ProtocolMixin):
     """
 
     def __init__(self, app=None, mime_type=None, ignore_uncap=False,
-                                   ignore_wrappers=False, binary_encoding=None):
+             ignore_wrappers=False, binary_encoding=None, string_encoding=None):
 
         super(OutProtocolBase, self).__init__(app=app, mime_type=mime_type,
-                                                ignore_wrappers=ignore_wrappers)
+            ignore_wrappers=ignore_wrappers,
+               binary_encoding=binary_encoding, string_encoding=string_encoding)
 
         self.ignore_uncap = ignore_uncap
         self.message = None
-        self.binary_encoding = binary_encoding
-
-        if self.binary_encoding is None:
-            self.binary_encoding = self.default_binary_encoding
 
         if mime_type is not None:
             self.mime_type = mime_type

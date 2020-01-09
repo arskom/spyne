@@ -46,10 +46,12 @@ class DictDocument(ProtocolBase):
 
     def __init__(self, app=None, validator=None, mime_type=None,
             ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
-                                              ordered=False, polymorphic=False):
+                           ordered=False, polymorphic=False, key_encoding=None):
+
         super(DictDocument, self).__init__(app, validator, mime_type,
                                                   ignore_uncap, ignore_wrappers)
 
+        self.key_encoding = key_encoding
         self.polymorphic = polymorphic
         self.complex_as = complex_as
         self.ordered = ordered

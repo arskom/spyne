@@ -60,11 +60,11 @@ PYNAME=python$PYVER;
 
 if [ -z "$FN" ]; then
     declare -A URLS;
-    URLS["cpy27"]="2.7.16/Python-2.7.16.tar.xz";
-    URLS["cpy35"]="3.5.7/Python-3.5.7.tar.xz";
-    URLS["cpy36"]="3.6.9/Python-3.6.9.tar.xz";
-    URLS["cpy37"]="3.7.4/Python-3.7.4.tar.xz";
-    URLS["cpy38"]="3.8.0/Python-3.8.0b3.tar.xz";
+    URLS["cpy27"]="2.7.17/Python-2.7.17.tar.xz";
+    URLS["cpy35"]="3.5.9/Python-3.5.9.tar.xz";
+    URLS["cpy36"]="3.6.10/Python-3.6.10.tar.xz";
+    URLS["cpy37"]="3.7.6/Python-3.7.6.tar.xz";
+    URLS["cpy38"]="3.8.1/Python-3.8.1.tar.xz";
     URLS["jyt27"]="2.7.1/jython-installer-2.7.1.jar";
     URLS["ipy27"]="ipy-2.7.4.zip";
 
@@ -174,23 +174,25 @@ fi;
 
 
 # Set up pip
-$PYTHON -m ensurepip --upgrade || exit 1;
+$PYTHON -m ensurepip --upgrade || exit 10;
 
 # Set up tox
 if [ ! -x "$TOX" ]; then
-   $PIP install tox || exit 1;
+   $PIP install tox || exit 11;
 fi;
 
 
 set
 
+"$PIP" install cython || exit 12
 
 if [ "$PYVER" == "2.7" ]; then
-    "$PIP" install numpy\<1.16.99 || exit 1;
-    "$PIP" install -rrequirements/test_requirements_py27.txt || exit 12;
+    "$PIP" install numpy\<1.16.99 || exit 13;
+    "$PIP" install -rrequirements/test_requirements_py27.txt || exit 14;
 
-else 
-    "$PIP" install -rrequirements/test_requirements.txt || exit 1;
+else
+    "$PIP" install numpy || exit 15;
+    "$PIP" install -rrequirements/test_requirements.txt || exit 16;
 
 fi
 

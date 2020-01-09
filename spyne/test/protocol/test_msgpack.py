@@ -18,6 +18,9 @@
 #
 
 import logging
+
+from spyne.util import six
+
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
@@ -43,9 +46,24 @@ from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 from spyne.test.test_service import start_response
 
 
+def convert_dict(d):
+    if isinstance(d, six.text_type):
+        return d.encode('utf8')
+
+    if not isinstance(d, dict):
+        return d
+
+    r = {}
+
+    for k, v in d.items():
+        r[k.encode('utf8')] = convert_dict(v)
+
+    return r
+
+
 # apply spyne defaults to test unpacker
 TestMessagePackDocument  = TDictDocumentTest(msgpack, MessagePackDocument,
-                                          loads_kwargs=dict(use_list=False))
+                   loads_kwargs=dict(use_list=False), convert_dict=convert_dict)
 
 
 class TestMessagePackRpc(unittest.TestCase):
@@ -110,14 +128,16 @@ class TestMessagePackRpc(unittest.TestCase):
 
         ret = b''.join(ret)
         print(repr(ret))
-        print(msgpack.unpackb(ret))
-        s = msgpack.packb([1, 0, None, {'get_valuesResponse': {
-            'get_valuesResult': [
-                  {"KeyValuePair": {'value': 'b', 'key': 'a'}},
-                  {"KeyValuePair": {'value': 'd', 'key': 'c'}},
+        ret = msgpack.unpackb(ret)
+        print(repr(ret))
+
+        s = [1, 0, None, {b'get_valuesResponse': {
+            b'get_valuesResult': [
+                  {b"KeyValuePair": {b'key': b'a', b'value': b'b'}},
+                  {b"KeyValuePair": {b'key': b'c', b'value': b'd'}},
                 ]
             }}
-        ])
+        ]
         print(s)
         assert ret == s
 

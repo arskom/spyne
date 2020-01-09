@@ -75,12 +75,14 @@ class MessagePackDocument(HierDictDocument):
                                         complex_as=dict,
                                         ordered=False,
                                         polymorphic=False,
+                                        key_encoding='utf8',
                                         # MessagePackDocument specific
                                         use_list=False,
                                         mw_unpacker=msgpack.Unpacker):
 
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
-                ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
+                ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic,
+                                                                   key_encoding)
 
         self.use_list = use_list
         self.mw_unpacker = mw_unpacker

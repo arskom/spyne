@@ -122,8 +122,8 @@ def TDry(serializer, _DictDocumentChild, dumps_kwargs=None):
         dumps_kwargs = {}
 
     def _dry_me(services, d, ignore_wrappers=False, complex_as=dict,
-                         just_ctx=False, just_in_object=False, validator=None,
-                         polymorphic=False):
+                    just_ctx=False, just_in_object=False, validator=None,
+                                                             polymorphic=False):
 
         app = Application(services, 'tns',
                 in_protocol=_DictDocumentChild(
@@ -153,12 +153,15 @@ def TDry(serializer, _DictDocumentChild, dumps_kwargs=None):
     return _dry_me
 
 def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
-                                                             loads_kwargs=None):
+                                          loads_kwargs=None, convert_dict=None):
     if not dumps_kwargs:
         dumps_kwargs = {}
     if not loads_kwargs:
         loads_kwargs = {}
     _dry_me = TDry(serializer, _DictDocumentChild, dumps_kwargs)
+
+    if convert_dict is None:
+        convert_dict = lambda v: v
 
     class Test(unittest.TestCase):
         def dumps(self, o):
@@ -1208,8 +1211,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             ctx = _dry_me([SomeService], doc, validator='soft')
 
             print(ctx.out_document)
-            assert ctx.out_document == ({"some_callResponse":
-                                                  {'some_callResult': inner}},)
+
+            d = convert_dict({"some_callResponse": {"some_callResult": inner}})
+            self.assertEquals(ctx.out_document[0], d)
 
         def test_validation_freq_parent(self):
             class C(ComplexModel):
@@ -1283,8 +1287,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             doc = [{"C": {"s1": "s1","s2": "s2"}}]
             ctx = _dry_me([SomeService], {"some_call": doc})
 
-            assert ctx.out_document[0] == \
-                {'some_callResponse': {'some_callResult': {'C': {'s2': u's2'}}}}
+            self.assertEquals(ctx.out_document[0], convert_dict(
+                {'some_callResponse': {'some_callResult': {'C': {'s2': 's2'}}}})
+            )
 
         def test_polymorphic_deserialization(self):
             class P(ComplexModel):

@@ -162,7 +162,11 @@ class Fault(ComplexModelBase, Exception):
 
     @classmethod
     def to_bytes_iterable(cls, value):
-        return [value.faultcode, '\n\n', value.faultstring]
+        return [
+            value.faultcode.encode('utf8'),
+            b'\n\n',
+            value.faultstring.encode('utf8'),
+        ]
 
     def detail_to_doc(self, prot):
         return self.detail

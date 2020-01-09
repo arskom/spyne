@@ -116,8 +116,9 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         agent = Agent(reactor)
         d = agent.request(
-            'POST', self.url,
-            Headers({'User-Agent': ['Spyne Twisted Http Client %s' % VERSION]}),
+            b'POST', self.url,
+            Headers({b'User-Agent':
+                         [b'Spyne Twisted Http Client %s' % VERSION.encode()]}),
             _Producer(self.ctx.out_string)
         )
 

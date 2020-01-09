@@ -263,8 +263,10 @@ class HierDictDocument(DictDocument):
         if not self.ignore_wrappers and not cls_attrs.not_wrapped:
             if not isinstance(doc, dict):
                 raise ValidationError(doc, "Wrapper documents must be dicts")
+
             if len(doc) == 0:
                 return None
+
             if len(doc) > 1:
                 raise ValidationError(doc, "There can be only one entry in a "
                                                                  "wrapper dict")
@@ -318,6 +320,12 @@ class HierDictDocument(DictDocument):
 
         # parse input to set incoming data to related attributes.
         for k, v in items:
+            if self.key_encoding is not None and isinstance(k, bytes):
+                try:
+                    k = k.decode(self.key_encoding)
+                except UnicodeDecodeError:
+                    raise ValidationError(k)
+
             member = flat_type_info.get(k, None)
             if member is None:
                 member, k = flat_type_info.alt.get(k, (None, k))
@@ -510,11 +518,21 @@ class HierDictDocument(DictDocument):
         cls_attr = self.get_cls_attrs(cls)
         complex_as = self.get_complex_as(cls_attr)
 
-        d = complex_as(self._get_member_pairs(cls, inst, tags))
-        if self.ignore_wrappers or cls_attr.not_wrapped:
-            return d
+        if self.key_encoding is None:
+            d = complex_as(self._get_member_pairs(cls, inst, tags))
+
+            if self.ignore_wrappers or cls_attr.not_wrapped:
+                return d
+            else:
+                return {cls.get_type_name(): d}
         else:
-            return {cls.get_type_name(): d}
+            d = complex_as( (k.encode(self.key_encoding), v) for k, v in
+                                       self._get_member_pairs(cls, inst, tags) )
+
+            if self.ignore_wrappers or cls_attr.not_wrapped:
+                return d
+            else:
+                return {cls.get_type_name().encode(self.key_encoding): d}
 
     def _complex_to_list(self, cls, inst, tags):
         inst = cls.get_serialization_instance(inst)

@@ -29,13 +29,16 @@ from spyne.protocol._outbase import OutProtocolBase
 
 class ProtocolBase(InProtocolBase, OutProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
-               ignore_uncap=False, ignore_wrappers=False, binary_encoding=None):
+           ignore_uncap=False, ignore_wrappers=False, binary_encoding=None,
+                                                        string_encoding='utf8'):
 
         InProtocolBase.__init__(self, app=app, validator=validator,
                           mime_type=mime_type, ignore_wrappers=ignore_wrappers,
                                                 binary_encoding=binary_encoding)
+
         OutProtocolBase.__init__(self, app=app, mime_type=mime_type,
                      ignore_wrappers=ignore_wrappers, ignore_uncap=ignore_uncap,
                                                 binary_encoding=binary_encoding)
 
+        self.default_string_encoding = string_encoding
         self.ignore_empty_faultactor = True
