@@ -116,7 +116,8 @@ class TestSoap12(unittest.TestCase):
             @srpc()
             def soap_exception():
                 raise Fault(
-                    "Client.Plausible", "A plausible fault", 'http://faultactor.example.com')
+                    "Client.Plausible.issue", "A plausible fault", 'http://faultactor.example.com',
+                    detail={'some':'extra info'})
         app = Application([SoapException], 'tns', in_protocol=Soap12(), out_protocol=Soap12())
 
         req = b"""
@@ -153,13 +154,30 @@ class TestSoap12(unittest.TestCase):
                     <soap12env:Value>soap12env:Sender</soap12env:Value>
                     <soap12env:Subcode>
                       <soap12env:Value>Plausible</soap12env:Value>
+                      <soap12env:Subcode>
+                        <soap12env:Value>issue</soap12env:Value>
+                      </soap12env:Subcode>
                     </soap12env:Subcode>
                   </soap12env:Code>
+                  <soap12env:Detail>
+                    <some>extra info</some>
+                  </soap12env:Detail>
                 </soap12env:Fault>
               </soap12env:Body>
             </soap12env:Envelope>"""
         if not LXMLOutputChecker().check_output(expected, response_str, PARSE_XML):
             raise Exception("Got: %s but expected: %s" % (response_str, expected))
+    
+    def test_gen_fault_codes(self):
+        fault_string = "Server.Plausible.error"
+        value, faultstrings = Soap12().gen_fault_codes(faultstring=fault_string)
+        self.assertEqual(value, "%s:Receiver" %(Soap12.soap_env))
+        self.assertEqual(faultstrings[0], "Plausible")
+        self.assertEqual(faultstrings[1], "error")
+        
+        fault_string = "UnknownFaultCode.Plausible.error"
+        with self.assertRaises(TypeError):
+            value, faultstrings = Soap12().gen_fault_codes(faultstring=fault_string)
 
     def test_mtom(self):
         FILE_NAME = 'EA055406-5881-4F02-A3DC-9A5A7510D018.dat'

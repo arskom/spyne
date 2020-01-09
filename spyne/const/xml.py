@@ -35,7 +35,8 @@ NS_SOAP12_ENV = 'http://www.w3.org/2003/05/soap-envelope'
 
 NS_WSDL11 = 'http://schemas.xmlsoap.org/wsdl/'
 NS_WSDL11_SOAP = 'http://schemas.xmlsoap.org/wsdl/soap/'
-NS_WSDL12_SOAP = 'http://schemas.xmlsoap.org/wsdl/soap12/'
+NS_WSDL11_SOAP12 = 'http://schemas.xmlsoap.org/wsdl/soap12/'
+NS_WSDL11_HTTP = 'http://schemas.xmlsoap.org/wsdl/http/'
 
 NSMAP = {
     'xml': NS_XML,
@@ -43,7 +44,7 @@ NSMAP = {
     'xsi': NS_XSI,
     'plink': NS_PLINK,
     'wsdlsoap11': NS_WSDL11_SOAP,
-    'wsdlsoap12': NS_WSDL12_SOAP,
+    'wsdlsoap12': NS_WSDL11_SOAP12,
     'wsdl': NS_WSDL11,
     'soap11enc': NS_SOAP11_ENC,
     'soap11env': NS_SOAP11_ENV,
@@ -51,6 +52,7 @@ NSMAP = {
     'soap12enc': NS_SOAP12_ENC,
     'wsa': NS_WSA,
     'xop': NS_XOP,
+    'http': NS_WSDL11_HTTP,
 }
 
 PREFMAP = None
@@ -66,6 +68,17 @@ schema_location = {
 
 class DEFAULT_NS(object):
     pass
+
+def get_binding_ns(protocol_type):
+    "Returns the wsdl binding namespace based on the protocol type"
+    if 'soap12' in protocol_type:
+        return WSDL11_SOAP12
+    elif 'http' in protocol_type:
+        return WSDL11_HTTP
+    else:
+        # Bind to Soap1.1 namespace by default for backwards compatibility
+        return WSDL11_SOAP
+    
 
 
 def Tnswrap(ns):
@@ -84,7 +97,8 @@ SOAP12_ENC = Tnswrap(NS_SOAP12_ENC)
 SOAP12_ENV = Tnswrap(NS_SOAP12_ENV)
 WSDL11 = Tnswrap(NS_WSDL11)
 WSDL11_SOAP = Tnswrap(NS_WSDL11_SOAP)
-WSDL12_SOAP = Tnswrap(NS_WSDL12_SOAP)
+WSDL11_SOAP12 = Tnswrap(NS_WSDL11_SOAP12)
+WSDL11_HTTP = Tnswrap(NS_WSDL11_HTTP)
 
 
 # names starting with underscore need () around to be used as proper regexps
