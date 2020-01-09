@@ -184,6 +184,7 @@ fi;
 
 set
 
+"$PIP" install cython
 
 if [ "$PYVER" == "2.7" ]; then
     "$PIP" install numpy\<1.16.99 || exit 1;
