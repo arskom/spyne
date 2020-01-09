@@ -479,15 +479,22 @@ class XmlDocument(SubXmlBase):
                 ns = element.nsmap.get(prefix)
                 if ns is not None:
                     classkey = "{%s}%s" % (ns, objtype)
+
                 else:
+                    logger.error("xsi:type namespace prefix "
+                                            "'%s' in '%s' not recognized",
+                                                                   ns, xsi_type)
                     raise ValidationError(xsi_type)
 
                 newclass = ctx.app.interface.classes.get(classkey, None)
                 if newclass is None:
+                    logger.error("xsi:type '%s' interpreted as class key '%s' "
+                                        "is not recognized", xsi_type, classkey)
                     raise ValidationError(xsi_type)
 
                 cls = newclass
-                logger.debug("xsi:type overrides %r to %r", cls, newclass)
+                logger.debug("xsi:type '%s' overrides %r to %r", xsi_type,
+                                                                  cls, newclass)
 
         handler = self.deserialization_handlers[cls]
         return handler(ctx, cls, element)
