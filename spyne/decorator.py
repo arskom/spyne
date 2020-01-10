@@ -359,12 +359,12 @@ def rpc(*params, **kparams):
         will not be logged.
     :param _evmgrs: Same as ``_event_managers``.
     :param _evmgr: Same as ``_event_manager``.
-    :param _service_class: A :class:`Service` subclass. It's generally not a good idea
-        to override it for ``@rpc`` methods. It could be necessary to override
-        it for ``@mrpc`` methods to add events and other goodies.
+    :param _service_class: A :class:`Service` subclass. It's generally not a
+        good idea to override it for ``@rpc`` methods. It could be necessary to
+        override it for ``@mrpc`` methods to add events and other goodies.
     :param _service: Same as ``_service``.
-    :param _wsdl_part_name: Overrides the part name attribute within wsdl input/output
-        messages eg "parameters"
+    :param _wsdl_part_name: Overrides the part name attribute within wsdl
+        input/output messages eg "parameters"
     """
 
     params = list(params)
