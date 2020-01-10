@@ -509,7 +509,7 @@ class HierDictDocument(DictDocument):
         cls_attr = self.get_cls_attrs(cls)
         complex_as = self.get_complex_as(cls_attr)
         if complex_as is list or \
-                        getattr(cls.Attributes, 'serialize_as', False) is list:
+                         getattr(cls.Attributes, 'serialize_as', False) is list:
             return list(self._complex_to_list(cls, inst, tags))
         return self._complex_to_dict(cls, inst, tags)
 
