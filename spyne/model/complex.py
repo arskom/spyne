@@ -862,6 +862,15 @@ class ComplexModelBase(ModelBase):
         """When not None, it's a callable that accepts a ``@mrpc`` method
         descriptor and returns a modified version."""
 
+        not_wrapped = None
+        """When True, serializes to non-wrapped object, overriding the protocol
+        flag."""
+
+        wrapped = None
+        """When True, serializes to a wrapped object, overriding the protocol
+        flag. When a str/bytes/unicode value, uses that value as key wrapper
+        object name."""
+
         _variants = None
         _xml_tag_body_as = None
         _delayed_child_attrs = None

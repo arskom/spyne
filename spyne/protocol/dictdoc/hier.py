@@ -521,18 +521,31 @@ class HierDictDocument(DictDocument):
         if self.key_encoding is None:
             d = complex_as(self._get_member_pairs(cls, inst, tags))
 
-            if self.ignore_wrappers or cls_attr.not_wrapped:
+            if (self.ignore_wrappers or cls_attr.not_wrapped) \
+                                                 and not bool(cls_attr.wrapper):
                 return d
+
             else:
-                return {cls.get_type_name(): d}
+                if isinstance(cls_attr.wrapper,
+                                              (six.text_type, six.binary_type)):
+                    return {cls_attr.wrapper: d}
+                else:
+                    return {cls.get_type_name(): d}
         else:
             d = complex_as( (k.encode(self.key_encoding), v) for k, v in
                                        self._get_member_pairs(cls, inst, tags) )
 
-            if self.ignore_wrappers or cls_attr.not_wrapped:
+            if (self.ignore_wrappers or cls_attr.not_wrapped) \
+                                                 and not bool(cls_attr.wrapper):
                 return d
+
             else:
-                return {cls.get_type_name().encode(self.key_encoding): d}
+                if isinstance(cls_attr.wrapper, six.text_type):
+                    return {cls_attr.wrapper.encode(self.key_encoding): d}
+                elif isinstance(cls_attr.wrapper, six.binary_type):
+                    return {cls_attr.wrapper: d}
+                else:
+                    return {cls.get_type_name().encode(self.key_encoding): d}
 
     def _complex_to_list(self, cls, inst, tags):
         inst = cls.get_serialization_instance(inst)
