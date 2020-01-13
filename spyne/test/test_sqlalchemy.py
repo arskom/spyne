@@ -883,7 +883,52 @@ class TestSqlAlchemySchema(unittest.TestCase):
         fk, = foreign_keys
         assert fk._colspec == 'some_child_class.id'
 
+    def test_multirel_single_table(self):
+        class SomeChildClass(TableModel):
+            __tablename__ = 'some_child_class'
 
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeOtherChildClass(TableModel):
+            __tablename__ = 'some_other_child_class'
+
+            id = Integer32(primary_key=True)
+            i = Integer32
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+
+            id = Integer32(primary_key=True)
+
+            children = Array(SomeChildClass,
+                store_as=table(
+                    multi='children', lazy='joined',
+                    left='parent_id', right='child_id',
+                    fk_left_ondelete='cascade',
+                    fk_right_ondelete='cascade',
+                ),
+            )
+
+            other_children = Array(SomeOtherChildClass,
+                store_as=table(
+                    multi='children', lazy='joined',
+                    left='parent_id', right='other_child_id',
+                    fk_left_ondelete='cascade',
+                    fk_right_ondelete='cascade',
+                ),
+            )
+
+        t = SomeClass.Attributes.sqla_metadata.tables['children']
+
+        fkp, = t.c.parent_id.foreign_keys
+        assert fkp._colspec == 'some_class.id'
+
+        fkc, = t.c.child_id.foreign_keys
+        assert fkc._colspec == 'some_child_class.id'
+
+        fkoc, = t.c.other_child_id.foreign_keys
+        assert fkoc._colspec == 'some_other_child_class.id'
 
     def test_reflection(self):
         class SomeClass(TableModel):

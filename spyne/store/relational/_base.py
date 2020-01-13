@@ -542,8 +542,17 @@ def _gen_array_m2m(cls, props, subname, arrser, storage):
     if rel_table_name in metadata.tables:
         rel_t = metadata.tables[rel_table_name]
 
-        assert col_own.type.__class__ == rel_t.c[col_own.key].type.__class__
-        assert col_child.type.__class__ == rel_t.c[col_child.key].type.__class__
+        col_own_existing = rel_t.c.get(col_own.key, None)
+        assert col_own_existing is not None
+        if col_own_existing is not None:
+            assert col_own.type.__class__ == col_own_existing.type.__class__
+
+        col_child_existing = rel_t.c.get(col_child.key, None)
+        if col_child_existing is None:
+            rel_t.append_column(col_child)
+
+        else:
+            assert col_child.type.__class__ == col_child_existing.type.__class__
 
     else:
         rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
