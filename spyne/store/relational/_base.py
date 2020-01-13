@@ -549,6 +549,15 @@ def _gen_array_m2m(cls, props, subname, arrser, storage):
         rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
     own_t = cls.Attributes.sqla_table
+
+    rel_kwargs = dict(
+        lazy=storage.lazy,
+        backref=storage.backref,
+        cascade=storage.cascade,
+        order_by=storage.order_by,
+        back_populates=storage.back_populates,
+    )
+
     if storage.explicit_join:
         # Specify primaryjoin and secondaryjoin when requested.
         # There are special cases when sqlalchemy can't figure it out by itself.
@@ -561,16 +570,11 @@ def _gen_array_m2m(cls, props, subname, arrser, storage):
         (col_pk_key, _), = get_pk_columns(cls)
         col_pk = own_t.c[col_pk_key]
 
-        rel_kwargs = dict(
-            lazy=storage.lazy,
-            backref=storage.backref,
-            cascade=storage.cascade,
-            order_by=storage.order_by,
+        rel_kwargs.update(dict(
             secondary=rel_t,
             primaryjoin=(col_pk == rel_t.c[col_own.key]),
             secondaryjoin=(col_pk == rel_t.c[col_child.key]),
-            back_populates=storage.back_populates,
-        )
+        ))
 
         if storage.single_parent is not None:
             rel_kwargs['single_parent'] = storage.single_parent
@@ -578,14 +582,9 @@ def _gen_array_m2m(cls, props, subname, arrser, storage):
         props[subname] = relationship(arrser, **rel_kwargs)
 
     else:
-        rel_kwargs = dict(
+        rel_kwargs.update(dict(
             secondary=rel_t,
-            backref=storage.backref,
-            back_populates=storage.back_populates,
-            cascade=storage.cascade,
-            lazy=storage.lazy,
-            order_by=storage.order_by
-        )
+        ))
 
         if storage.single_parent is not None:
             rel_kwargs['single_parent'] = storage.single_parent
