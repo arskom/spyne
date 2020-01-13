@@ -167,14 +167,14 @@ class TestSoap12(unittest.TestCase):
             </soap12env:Envelope>"""
         if not LXMLOutputChecker().check_output(expected, response_str, PARSE_XML):
             raise Exception("Got: %s but expected: %s" % (response_str, expected))
-    
+
     def test_gen_fault_codes(self):
         fault_string = "Server.Plausible.error"
         value, faultstrings = Soap12().gen_fault_codes(faultstring=fault_string)
         self.assertEqual(value, "%s:Receiver" %(Soap12.soap_env))
         self.assertEqual(faultstrings[0], "Plausible")
         self.assertEqual(faultstrings[1], "error")
-        
+
         fault_string = "UnknownFaultCode.Plausible.error"
         with self.assertRaises(TypeError):
             value, faultstrings = Soap12().gen_fault_codes(faultstring=fault_string)

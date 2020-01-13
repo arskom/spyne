@@ -78,7 +78,7 @@ def get_binding_ns(protocol_type):
     else:
         # Bind to Soap1.1 namespace by default for backwards compatibility
         return WSDL11_SOAP
-    
+
 
 
 def Tnswrap(ns):

@@ -377,7 +377,7 @@ class TestEtreeDict(unittest.TestCase):
         from lxml.etree import tostring
         from spyne.util.etreeconv import root_dict_to_etree
         assert tostring(root_dict_to_etree({'a':{'b':'c'}})) == b'<a><b>c</b></a>'
-    
+
     def test_not_sized(self):
         from lxml.etree import tostring
         from spyne.util.etreeconv import root_dict_to_etree
@@ -389,19 +389,19 @@ class TestEtreeDict(unittest.TestCase):
         complex_none = root_dict_to_etree({'a':{'b':None}})
         self.assertEqual(tostring(complex_none), b'<a><b/></a>',
             "None should not be rendered in the etree")
-        
+
         simple_value = root_dict_to_etree({'a': 1})
         self.assertEqual(tostring(simple_value), b'<a>1</a>',
             "The integer should be properly rendered in the etree")
-        
+
         none_value = root_dict_to_etree({'a': None})
         self.assertEqual(tostring(none_value), b'<a/>',
             "None should not be rendered in the etree")
-        
+
         string_value = root_dict_to_etree({'a': 'lol'})
         self.assertEqual(tostring(string_value), b'<a>lol</a>',
             "A string should be rendered as a string")
-        
+
         complex_string_value = root_dict_to_etree({'a': {'b': 'lol'}})
         self.assertEqual(tostring(complex_string_value), b'<a><b>lol</b></a>',
             "A string should be rendered as a string")

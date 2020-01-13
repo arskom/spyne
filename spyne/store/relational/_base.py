@@ -634,7 +634,7 @@ def _gen_array_simple(cls, props, subname, arrser_cust, storage):
 
         # if we have the table, make sure have the right column (data column)
         assert child_right_col_type.__class__ is \
-               child_t.c[child_right_col_name].type.__class__, "%s.%s: %r != %r" % \
+           child_t.c[child_right_col_name].type.__class__, "%s.%s: %r != %r" % \
                    (cls, child_right_col_name, child_right_col_type.__class__,
                                child_t.c[child_right_col_name].type.__class__)
 
@@ -966,6 +966,7 @@ def _add_file_type(cls, props, table, subname, subcls):
     if isinstance(storage, HybridFileStore):
         if subname in table.c:
             col = table.c[subname]
+
         else:
             assert isabs(storage.store)
             #FIXME: Add support for storage markers from spyne.model.complex
@@ -1154,7 +1155,7 @@ def _get_spyne_type(v):
             return retval
 
     raise Exception("Spyne type was not found. Probably _sq2sp_type_map "
-                    "needs a new entry. %r" % v)
+                                                    "needs a new entry. %r" % v)
 
 
 def gen_spyne_info(cls):

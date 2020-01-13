@@ -276,9 +276,9 @@ class ModelBase(object):
         # set to true when type_name is passed to customize() call.
 
         out_type = None
-        """Override serialization type. Usually, this designates the return type 
-        of the callable in the `sanitizer` attribute. If this is a two-way type, 
-        it may be a good idea to also use the `parser` attribute to perform 
+        """Override serialization type. Usually, this designates the return type
+        of the callable in the `sanitizer` attribute. If this is a two-way type,
+        it may be a good idea to also use the `parser` attribute to perform
         reverse conversion."""
 
         default = None

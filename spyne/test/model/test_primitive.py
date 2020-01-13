@@ -170,7 +170,7 @@ class TestPrimitive(unittest.TestCase):
         element = element[0]
 
         assert element.text == datetime.datetime.strftime(n, format)
-        dt = XmlDocument().from_element(None, DateTime(dt_format=format), 
+        dt = XmlDocument().from_element(None, DateTime(dt_format=format),
                                                                         element)
         assert n == dt
 
@@ -189,7 +189,7 @@ class TestPrimitive(unittest.TestCase):
         else:
             assert element.text == n.strftime(format)
 
-        dt = XmlDocument().from_element(None, DateTime(dt_format=format), 
+        dt = XmlDocument().from_element(None, DateTime(dt_format=format),
                                                                         element)
         assert n == dt
 

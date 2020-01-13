@@ -131,7 +131,7 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
         message = ComplexModel.produce(type_name=in_message_name,
                                        namespace=ns, members=in_params)
         message.__namespace__ = ns
-    
+
     if in_wsdl_part_name:
         message = message.customize(wsdl_part_name=in_wsdl_part_name)
 
@@ -195,7 +195,7 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
                (body_style_str == 'wrapped' or _is_out_message_name_overridden):
         _out_message_name = '%s.%s' % \
                                (self_ref_cls.get_type_name(), _out_message_name)
-    
+
     _out_wsdl_part_name = kparams.pop('_wsdl_part_name', None)
 
     out_params = TypeInfo()
@@ -224,7 +224,7 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
         _out_message_name_parts = _out_message_name[1:].partition("}")
         ns = _out_message_name_parts[0]  # skip index 1, it is the closing '}'
         _out_message_name = _out_message_name_parts[2]
-        
+
     if body_style_str.endswith('bare') and _returns is not None:
         message = _returns.customize(sub_name=_out_message_name, sub_ns=ns)
         if message.__type_name__ is ModelBase.Empty:
@@ -236,7 +236,7 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
 
         message.Attributes._wrapper = True
         message.__namespace__ = ns  # FIXME: is this necessary?
-    
+
     if _out_wsdl_part_name:
         message = message.customize(wsdl_part_name=_out_wsdl_part_name)
 
@@ -468,7 +468,7 @@ def rpc(*params, **kparams):
 
             else:
                 _udd = {}
-            
+
             _wsdl_part_name = kparams.get('_wsdl_part_name', None)
 
             body_style = BODY_STYLE_WRAPPED
