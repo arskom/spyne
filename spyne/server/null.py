@@ -82,6 +82,9 @@ class NullServer(ServerBase):
         self.service.in_header = kwargs.get('soapheaders',
                                                          self.service.in_header)
 
+    def get_services(self):
+        return self.app.interface.service_method_map
+
 
 class _FunctionProxy(object):
     def __init__(self, server, app, is_async):
@@ -151,7 +154,7 @@ class _FunctionCall(object):
             # to hide the following
             logger.warning("%s start context %s" % (_small_header,
                                                                  _small_footer))
-            logger.warning("%r.%r" % (ctx.service_class,
+            logger.info("%r.%r" % (ctx.service_class,
                                                        ctx.descriptor.function))
             try:
                 self.app.process_request(ctx)

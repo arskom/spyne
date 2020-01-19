@@ -37,6 +37,7 @@ from spyne.protocol import ProtocolMixin
 from spyne.protocol.cloth import XmlCloth
 
 from spyne.protocol.xml import XmlDocument
+from spyne.util.appreg import unregister_application
 from spyne.util.six import BytesIO
 from spyne.util.tlist import tlist
 
@@ -149,7 +150,6 @@ def get_object_as_xml_polymorphic(inst, cls=None, root_tag_name=None,
                                      out_protocol=XmlDocument(polymorphic=True))
     else:
         tns = cls.get_namespace()
-
         if tns is None:
             raise ValueError(
                 "Either set a namespace for %r or pass no_namespace=True"
@@ -160,18 +160,47 @@ def get_object_as_xml_polymorphic(inst, cls=None, root_tag_name=None,
             def f(_):
                 pass
 
-        app = Application([ServiceBase], tns=cls.get_namespace(),
+        app = Application([_DummyService], tns=tns,
                                      out_protocol=XmlDocument(polymorphic=True))
 
-    parent = etree.Element("parent")
+    unregister_application(app)
+
+    parent = etree.Element("parent", nsmap=app.interface.nsmap)
 
     app.out_protocol.to_parent(None, cls, inst, parent, cls.get_namespace(),
                                                                   root_tag_name)
+
     if no_namespace:
         _dig(parent)
-        etree.cleanup_namespaces(parent)
+
+    etree.cleanup_namespaces(parent)
 
     return parent[0]
+
+
+def get_xml_as_object_polymorphic(elt, cls):
+    """Returns a native :class:`spyne.model.complex.ComplexModel` child from an
+    ElementTree representation of the same class.
+
+    :param elt: The xml document to be deserialized.
+    :param cls: The class the xml document represents.
+    """
+
+    tns = cls.get_namespace()
+    if tns is None:
+        raise ValueError("Please set a namespace for %r" % (cls, ))
+
+    class _DummyService(ServiceBase):
+        @srpc(cls)
+        def f(_):
+            pass
+
+    app = Application([_DummyService], tns=tns,
+                                      in_protocol=XmlDocument(polymorphic=True))
+
+    unregister_application(app)
+
+    return app.in_protocol.from_element(FakeContext(app=app), cls, elt)
 
 
 def get_object_as_xml_cloth(inst, cls=None, no_namespace=False, encoding='utf8'):
@@ -255,7 +284,7 @@ def parse_schema_element(elt, files={}, repr_=Thier_repr(with_ns=False),
                             skip_errors=skip_errors).parse_schema(elt)
 
 
-def parse_schema_file(file_name, files={}, repr_=Thier_repr(with_ns=False),
+def parse_schema_file(file_name, files=None, repr_=Thier_repr(with_ns=False),
                                                          skip_errors=False):
     """Parses a schema file and returns a _Schema object. Schema files typically
     have the `*.xsd` extension.
@@ -270,6 +299,9 @@ def parse_schema_file(file_name, files={}, repr_=Thier_repr(with_ns=False),
 
     :return: :class:`spyne.interface.xml_schema.parser._Schema` instance.
     """
+
+    if files is None:
+        files = dict()
 
     elt = etree.fromstring(open(file_name, 'rb').read(), parser=PARSER)
     wd = abspath(dirname(file_name))

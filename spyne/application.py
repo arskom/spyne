@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 logger_client = logging.getLogger('.'.join([__name__, 'client']))
 logger_server = logging.getLogger('.'.join([__name__, 'server']))
 
+from pprint import pformat
+
 from spyne import BODY_STYLE_EMPTY, BODY_STYLE_BARE, BODY_STYLE_WRAPPED, \
     EventManager
 from spyne.error import Fault, Redirect, RespawnError, InvalidRequestError

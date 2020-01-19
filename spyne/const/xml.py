@@ -56,18 +56,18 @@ NSMAP = {
 }
 
 PREFMAP = None
-def regen_prefmap():
+def _regen_prefmap():
     global PREFMAP
     PREFMAP = dict([(b, a) for a, b in NSMAP.items()])
-
-regen_prefmap()
+_regen_prefmap()
 
 schema_location = {
     NS_XSD: 'http://www.w3.org/2001/XMLSchema.xsd',
 }
 
-class DEFAULT_NS(object):
-    pass
+
+class DEFAULT_NS(object): pass
+
 
 def get_binding_ns(protocol_type):
     "Returns the wsdl binding namespace based on the protocol type"
@@ -80,9 +80,9 @@ def get_binding_ns(protocol_type):
         return WSDL11_SOAP
 
 
-
 def Tnswrap(ns):
     return lambda s: "{%s}%s" % (ns, s)
+
 
 XML = Tnswrap(NS_XML)
 XSD = Tnswrap(NS_XSD)
@@ -99,7 +99,6 @@ WSDL11 = Tnswrap(NS_WSDL11)
 WSDL11_SOAP = Tnswrap(NS_WSDL11_SOAP)
 WSDL11_SOAP12 = Tnswrap(NS_WSDL11_SOAP12)
 WSDL11_HTTP = Tnswrap(NS_WSDL11_HTTP)
-
 
 # names starting with underscore need () around to be used as proper regexps
 _PATT_BASE_CHAR = \
