@@ -542,13 +542,31 @@ def _gen_array_m2m(cls, props, subname, arrser, storage):
     if rel_table_name in metadata.tables:
         rel_t = metadata.tables[rel_table_name]
 
-        assert col_own.type.__class__ == rel_t.c[col_own.key].type.__class__
-        assert col_child.type.__class__ == rel_t.c[col_child.key].type.__class__
+        col_own_existing = rel_t.c.get(col_own.key, None)
+        assert col_own_existing is not None
+        if col_own_existing is not None:
+            assert col_own.type.__class__ == col_own_existing.type.__class__
+
+        col_child_existing = rel_t.c.get(col_child.key, None)
+        if col_child_existing is None:
+            rel_t.append_column(col_child)
+
+        else:
+            assert col_child.type.__class__ == col_child_existing.type.__class__
 
     else:
         rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
     own_t = cls.Attributes.sqla_table
+
+    rel_kwargs = dict(
+        lazy=storage.lazy,
+        backref=storage.backref,
+        cascade=storage.cascade,
+        order_by=storage.order_by,
+        back_populates=storage.back_populates,
+    )
+
     if storage.explicit_join:
         # Specify primaryjoin and secondaryjoin when requested.
         # There are special cases when sqlalchemy can't figure it out by itself.
@@ -561,16 +579,11 @@ def _gen_array_m2m(cls, props, subname, arrser, storage):
         (col_pk_key, _), = get_pk_columns(cls)
         col_pk = own_t.c[col_pk_key]
 
-        rel_kwargs = dict(
-            lazy=storage.lazy,
-            backref=storage.backref,
-            cascade=storage.cascade,
-            order_by=storage.order_by,
+        rel_kwargs.update(dict(
             secondary=rel_t,
             primaryjoin=(col_pk == rel_t.c[col_own.key]),
             secondaryjoin=(col_pk == rel_t.c[col_child.key]),
-            back_populates=storage.back_populates,
-        )
+        ))
 
         if storage.single_parent is not None:
             rel_kwargs['single_parent'] = storage.single_parent
@@ -578,14 +591,9 @@ def _gen_array_m2m(cls, props, subname, arrser, storage):
         props[subname] = relationship(arrser, **rel_kwargs)
 
     else:
-        rel_kwargs = dict(
+        rel_kwargs.update(dict(
             secondary=rel_t,
-            backref=storage.backref,
-            back_populates=storage.back_populates,
-            cascade=storage.cascade,
-            lazy=storage.lazy,
-            order_by=storage.order_by
-        )
+        ))
 
         if storage.single_parent is not None:
             rel_kwargs['single_parent'] = storage.single_parent
@@ -634,7 +642,7 @@ def _gen_array_simple(cls, props, subname, arrser_cust, storage):
 
         # if we have the table, make sure have the right column (data column)
         assert child_right_col_type.__class__ is \
-               child_t.c[child_right_col_name].type.__class__, "%s.%s: %r != %r" % \
+           child_t.c[child_right_col_name].type.__class__, "%s.%s: %r != %r" % \
                    (cls, child_right_col_name, child_right_col_type.__class__,
                                child_t.c[child_right_col_name].type.__class__)
 
@@ -966,6 +974,7 @@ def _add_file_type(cls, props, table, subname, subcls):
     if isinstance(storage, HybridFileStore):
         if subname in table.c:
             col = table.c[subname]
+
         else:
             assert isabs(storage.store)
             #FIXME: Add support for storage markers from spyne.model.complex
@@ -1154,7 +1163,7 @@ def _get_spyne_type(v):
             return retval
 
     raise Exception("Spyne type was not found. Probably _sq2sp_type_map "
-                    "needs a new entry. %r" % v)
+                                                    "needs a new entry. %r" % v)
 
 
 def gen_spyne_info(cls):

@@ -52,7 +52,7 @@ class Permission(ComplexModel):
 
 
 v = [
-    Permission(application='app', feature='f1'), 
+    Permission(application='app', feature='f1'),
     Permission(application='app', feature='f2'),
 ]
 

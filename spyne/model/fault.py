@@ -73,7 +73,7 @@ class Fault(ComplexModelBase, Exception):
     """
 
     REGISTERED = defaultdict(set)
-    """Class-level variable that holds a multimap of all fault codes and the 
+    """Class-level variable that holds a multimap of all fault codes and the
     associated classes."""
 
     __type_name__ = "Fault"

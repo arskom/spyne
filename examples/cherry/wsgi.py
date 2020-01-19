@@ -90,7 +90,7 @@ if __name__ == '__main__':
       )
 
     # Now that we have our application, we must wrap it inside a transport.
-    # In this case, we use Spyne's standard Wsgi wrapper. Spyne supports 
+    # In this case, we use Spyne's standard Wsgi wrapper. Spyne supports
     # popular Http wrappers like Twisted, Django, Pyramid, etc. as well as
     # a ZeroMQ (REQ/REP) wrapper.
     wsgi_application = WsgiApplication(application)

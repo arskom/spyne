@@ -41,6 +41,11 @@ except ImportError: # python 2.5
             self.ostr = ostr
 
 
+def unregister_application(app):
+    key = (app.tns, app.name)
+    del applications[key]
+
+
 def register_application(app):
     key = (app.tns, app.name)
 

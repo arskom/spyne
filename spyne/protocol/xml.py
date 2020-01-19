@@ -482,8 +482,9 @@ class XmlDocument(SubXmlBase):
 
                 else:
                     logger.error("xsi:type namespace prefix "
-                                            "'%s' in '%s' not recognized",
-                                                                   ns, xsi_type)
+                                            "'%s' in '%s' not found in %r",
+                                                    ns, xsi_type, element.nsmap)
+
                     raise ValidationError(xsi_type)
 
                 newclass = ctx.app.interface.classes.get(classkey, None)

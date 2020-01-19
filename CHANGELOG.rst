@@ -2,6 +2,11 @@
 Changelog
 =========
 
+spyne-2.13.14-beta
+-------------------
+* Test and fix polymorphic roundtrip via XmlDocument.
+* Implement support for relationship tables with >2 foreign keys.
+
 spyne-2.13.13-beta
 -------------------
 * Implement wrapped/not_wrapped for ComplexModel and HierDict family.

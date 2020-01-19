@@ -115,7 +115,7 @@ if [ $PYIMPL == 'cpy' ]; then
         tar xf $(basename $FN);
         cd "$PREFIX";
         if [ ! -f "Makefile" ]; then
-            ./configure --prefix="$WORKSPACE/$PREFIX" --with-pydebug --with-ensurepip;
+            ./configure --prefix="$WORKSPACE/$PREFIX" --without-pydebug --with-ensurepip;
         fi
 
         $MAKE && make install;
