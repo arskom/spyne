@@ -40,6 +40,7 @@ from spyne.util import _bytes_join
 from spyne.model import ComplexModel, Unicode
 from spyne.model import SimpleModel
 from spyne.util import six
+from spyne.util.six import BytesIO, StringIO
 
 class BINARY_ENCODING_HEX: pass
 class BINARY_ENCODING_BASE64: pass
@@ -276,8 +277,11 @@ class _FileValue(ComplexModel):
 
         elif self.handle is not None:
             try:
-                # 0 = whole file
-                self.data = (mmap(self.handle.fileno(), 0),)
+                if isinstance(self.handle, (StringIO, BytesIO)):
+                    self.data = (self.handle.getvalue(),)
+                else:
+                    # 0 = whole file
+                    self.data = (mmap(self.handle.fileno(), 0),)
 
             except MmapError as e:
                 if e.errno == errno.EACCES:

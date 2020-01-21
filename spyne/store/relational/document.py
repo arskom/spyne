@@ -24,11 +24,11 @@ import os
 import json
 import shutil
 
-from mmap import mmap, ACCESS_READ
-
 import sqlalchemy.dialects
 
 from uuid import uuid1
+from mmap import mmap, ACCESS_READ
+from contextlib import closing
 from os.path import join, abspath, dirname, basename, isfile
 
 try:
@@ -51,7 +51,7 @@ from sqlalchemy.sql.type_api import UserDefinedType
 from spyne import ComplexModel, ValidationError, Unicode
 
 from spyne.util import six
-from spyne.util.six import binary_type, text_type
+from spyne.util.six import binary_type, text_type, BytesIO, StringIO
 from spyne.util.fileproxy import SeekableFileProxy
 
 
@@ -268,10 +268,14 @@ class PGFileJson(PGObjectJson):
                         raise ValidationError(value.path, "Path %r contains "
                                           "relative path operators (e.g. '..')")
 
-                    data = mmap(value.handle.fileno(), 0, access=ACCESS_READ)
-                    with open(fp, 'wb') as out_file:
-                        out_file.write(data)
-                        data.close()
+                    if isinstance(value.handle, (StringIO, BytesIO)):
+                        with open(fp, 'wb') as out_file:
+                            out_file.write(value.handle.getvalue())
+                    else:
+                        with closing(mmap(value.handle.fileno(), 0,
+                                                   access=ACCESS_READ)) as data:
+                            with open(fp, 'wb') as out_file:
+                                out_file.write(data)
 
                 elif value.path is not None:
                     in_file_path = value.path
