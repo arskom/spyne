@@ -58,6 +58,7 @@ class NullServer(ServerBase):
     """
 
     transport = 'noconn://null.spyne'
+    MethodContext = MethodContext
 
     def __init__(self, app, ostr=False, locale='C', appinit=True):
         self.do_appinit = appinit
@@ -113,7 +114,7 @@ class _FunctionCall(object):
         self._async = async_
 
     def __call__(self, *args, **kwargs):
-        initial_ctx = MethodContext(self, MethodContext.SERVER)
+        initial_ctx = self._server.MethodContext(self, MethodContext.SERVER)
         initial_ctx.method_request_string = self._key
         initial_ctx.in_header = self._in_header
         initial_ctx.transport.type = NullServer.transport
