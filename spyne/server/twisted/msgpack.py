@@ -106,7 +106,8 @@ class TwistedMessagePackProtocol(Protocol):
         """
 
         from spyne.server.msgpack import MessagePackTransportBase
-        assert isinstance(tpt, MessagePackTransportBase)
+        assert isinstance(tpt, MessagePackTransportBase), \
+            "Expected {!r} got {!r}".format(MessagePackTransportBase, type(tpt))
 
         self.spyne_tpt = tpt
         self._buffer = msgpack.Unpacker(raw=True,
