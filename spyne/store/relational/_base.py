@@ -422,9 +422,16 @@ def _gen_index_info(table, col, k, v):
             Index(*index_args[0], **index_args[1])
 
         else:
-            assert existing_idx.unique == unique
-            assert existing_idx.kwargs.get('postgresql_using') == index_method
+            assert existing_idx.unique == unique, \
+                "Uniqueness flag differ between existing and current values. " \
+                "Existing: {!r}, New: {!r}".format(existing_idx.unique, unique)
 
+            existing_val = existing_idx.kwargs.get('postgresql_using')
+
+            assert existing_val == index_method, \
+                "Indexing methods differ between existing and current index " \
+                "directives. Existing: {!r}, New: {!r}".format(
+                                                     existing_val, index_method)
 
 def _check_inheritance(cls, cls_bases):
     table_name = cls.Attributes.table_name
