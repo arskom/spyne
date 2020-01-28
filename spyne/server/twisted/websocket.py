@@ -162,7 +162,7 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
         def _eb_deferred(err):
             p_ctx.out_error = err.value
             if not issubclass(err.type, Fault):
-                err.printTraceback()
+                logger.error(err.getTraceback())
 
             tpt.get_out_string(p_ctx)
             self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)

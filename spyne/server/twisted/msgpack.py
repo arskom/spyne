@@ -415,7 +415,7 @@ def _eb_deferred(fail, prot, p_ctx, others):
     else:
         p_ctx.out_error = InternalError(fail.value)
         if not getattr(fail, 'logged', False):
-            fail.printTraceback()
+            logger.error(fail.getTraceback())
 
     try:
         prot.handle_error(p_ctx, others, p_ctx.out_error)

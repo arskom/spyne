@@ -738,7 +738,7 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
 
     else:
         p_ctx.out_error = InternalError(ret.value)
-        ret.printTraceback()
+        logger.error(ret.getTraceback())
 
         ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
 
