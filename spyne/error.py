@@ -108,7 +108,7 @@ class InternalError(Fault):
     CODE = 'Server'
 
     def __init__(self, error):
-        super(InternalError, self)\
+        super(InternalError, self) \
             .__init__(self.CODE, "InternalError: An unknown error has occured.")
 
 
