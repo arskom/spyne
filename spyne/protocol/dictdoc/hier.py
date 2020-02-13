@@ -366,6 +366,7 @@ class HierDictDocument(DictDocument):
 
         if tags is None:
             tags = set()
+
         retval = None
 
         if isinstance(inst, Fault):
@@ -379,6 +380,16 @@ class HierDictDocument(DictDocument):
         cls_attrs = self.get_cls_attrs(cls)
         if cls_attrs.exc:
             return
+
+        if cls_attrs.out_type is not None:
+            cls = cls_attrs.out_type
+            # remember to do this if cls_attrs are needed below
+            # cls_attrs = self.get_cls_attrs(cls)
+
+        elif cls_attrs.type is not None:
+            cls = cls_attrs.type
+            # remember to do this if cls_attrs are needed below
+            # cls_attrs = self.get_cls_attrs(cls)
 
         if self.ignore_wrappers:
             ti = getattr(cls, '_type_info', {})
