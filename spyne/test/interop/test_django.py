@@ -30,7 +30,7 @@ from spyne.client.django import DjangoTestClient
 from spyne.model.fault import Fault
 from spyne.model.complex import ComplexModelBase
 from spyne.util.django import (DjangoComplexModel, DjangoComplexModelMeta,
-                               default_model_mapper, email_re)
+                               email_re)
 from spyne.util.six import add_metaclass
 
 from rpctest.core.models import (FieldContainer, RelatedFieldContainer,
@@ -43,16 +43,16 @@ class SpyneTestCase(TransactionTestCase):
         self.client = DjangoTestClient('/hello_world/', hello_world_service.app)
 
     def _test_say_hello(self):
-        resp =  self.client.service.say_hello('Joe',5)
+        resp = self.client.service.say_hello('Joe', 5)
         list_resp = list(resp)
         self.assertEqual(len(list_resp), 5)
-        self.assertEqual(list_resp,['Hello, Joe']*5)
+        self.assertEqual(list_resp, ['Hello, Joe'] * 5)
 
 
 class DjangoViewTestCase(TestCase):
     def test_say_hello(self):
         client = DjangoTestClient('/say_hello/', app)
-        resp =  client.service.say_hello('Joe', 5)
+        resp = client.service.say_hello('Joe', 5)
         list_resp = list(resp)
         self.assertEqual(len(list_resp), 5)
         self.assertEqual(list_resp, ['Hello, Joe'] * 5)
@@ -76,7 +76,7 @@ class DjangoViewTestCase(TestCase):
                             'location="http://testserver/say_hello/"')
         response = client.get('/say_hello/', HTTP_HOST='newtestserver')
         self.assertNotContains(response,
-                            'location="http://newtestserver/say_hello/"')
+                               'location="http://newtestserver/say_hello/"')
 
     def test_not_cached_wsdl(self):
         """Test if wsdl is not cached."""
@@ -89,6 +89,7 @@ class DjangoViewTestCase(TestCase):
 
         self.assertContains(
             response, 'location="http://newtestserver/say_hello_not_cached/"')
+
 
 class ModelTestCase(TestCase):
 
@@ -232,16 +233,13 @@ class ModelTestCase(TestCase):
 
     def test_nonabstract_custom_djangomodel(self):
         """Test if can't create non abstract custom model."""
-        try:
+        with self.assertRaises(
+            ImproperlyConfigured, msg='Can create non abstract custom model'
+        ):
             @add_metaclass(DjangoComplexModelMeta)
             class CustomNotAbstractDjangoComplexModel(ComplexModelBase):
-
                 class Attributes(ComplexModelBase.Attributes):
                     declare_order = 'declared'
-        except ImproperlyConfigured:
-            pass
-        else:
-            assert False, 'Can create non abstract custom model'
 
 
 # in XmlSchema ^ and $ are set implicitly
@@ -258,8 +256,9 @@ class EmailRegexTestCase(TestCase):
 
     def test_valid(self):
         """Test valid email."""
-        self.assertIsNotNone(re.match(python_email_re,
-                                      'valid.email@example.com'))
+        self.assertIsNotNone(
+            re.match(python_email_re, 'valid.email@example.com')
+        )
 
     def test_valid_single_letter_domain(self):
         """Test valid email."""

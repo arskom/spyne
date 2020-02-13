@@ -299,7 +299,7 @@ setup(
         ]
     },
 
-    cmdclass = {
+    cmdclass={
         'test': RunTests,
     },
 )
