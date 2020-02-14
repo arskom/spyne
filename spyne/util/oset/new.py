@@ -1,14 +1,13 @@
-# http://code.activestate.com/recipes/576694/
+from collections.abc import MutableSet
 
-import collections
+KEY, PREV, NEXT = range(3)
 
-KEY, PREV, NEXT = list(range(3))
 
-"""This module contains an ordered set implementation from
-http://code.activestate.com/recipes/576694/ """
-
-class oset(collections.MutableSet):
-    """An ordered set implementation."""
+class oset(MutableSet):
+    """
+    An ordered set implementation from
+    http://code.activestate.com/recipes/576694/
+    """
 
     def __init__(self, iterable=None):
         self.end = end = []
@@ -76,6 +75,7 @@ class oset(collections.MutableSet):
     @property
     def back(self):
         return self.end[1][0]
+
 
 if __name__ == '__main__':
     print((oset('abracadabra')))
