@@ -21,13 +21,13 @@
 # THE SOFTWARE.
 #
 
-import collections
+from spyne.util.six.moves.collections_abc import Iterator
 import os
 
 __all__ = 'FileProxy', 'ReusableFileProxy', 'SeekableFileProxy'
 
 
-class FileProxy(collections.Iterator):
+class FileProxy(Iterator):
     """The complete proxy for ``wrapped`` file-like object.
 
     :param wrapped: the file object to wrap
@@ -46,7 +46,7 @@ class FileProxy(collections.Iterator):
         return self
 
     def __next__(self):
-        """Implementation of :class:`collections.Iterator` protocol."""
+        """Implementation of :class:`collections.abc.Iterator` protocol."""
         line = self.readline()
         if not line:
             raise StopIteration('hit eof')

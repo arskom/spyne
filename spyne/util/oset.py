@@ -1,4 +1,4 @@
-from collections.abc import MutableSet
+from spyne.util.six.moves.collections_abc import MutableSet
 
 KEY, PREV, NEXT = range(3)
 
@@ -75,22 +75,3 @@ class oset(MutableSet):
     @property
     def back(self):
         return self.end[1][0]
-
-
-if __name__ == '__main__':
-    print((oset('abracadabra')))
-    stuff = oset()
-    stuff.add(1)
-    print(stuff)
-    stuff.add(1)
-    print(stuff)
-    print((oset('simsalabim')))
-    o = oset('abcde')
-    print(o)
-    print(o.end)
-
-    o = oset()
-    print(o.back)
-
-    o = oset([3])
-    print(o.back)

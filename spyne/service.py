@@ -24,11 +24,10 @@ This module contains the :class:`Service` class and its helper objects.
 import logging
 logger = logging.getLogger(__name__)
 
-import collections
-
 from spyne.evmgr import EventManager
 from spyne.util import six
 from spyne.util.oset import oset
+from spyne.util.six.moves.collections_abc import Sequence
 
 
 class ServiceBaseMeta(type):
@@ -185,7 +184,7 @@ class ServiceBaseBase(object):
                 assert not isinstance(args, six.string_types)
 
                 # python3 wants a proper sequence as *args
-                if not isinstance(args, collections.Sequence):
+                if not isinstance(args, Sequence):
                     args = tuple(args)
 
                 if not ctx.descriptor.no_ctx:
