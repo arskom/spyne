@@ -21,13 +21,14 @@
 # THE SOFTWARE.
 #
 
-import collections
 import os
+
+from spyne.util.six.moves.collections_abc import Iterator
 
 __all__ = 'FileProxy', 'ReusableFileProxy', 'SeekableFileProxy'
 
 
-class FileProxy(collections.Iterator):
+class FileProxy(Iterator):
     """The complete proxy for ``wrapped`` file-like object.
 
     :param wrapped: the file object to wrap

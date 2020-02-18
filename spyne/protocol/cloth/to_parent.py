@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
-from collections import Iterable
+from spyne.util.six.moves.collections_abc import Iterable
 
 from lxml import etree, html
 from lxml.builder import E

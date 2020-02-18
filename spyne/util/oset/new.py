@@ -1,13 +1,13 @@
 # http://code.activestate.com/recipes/576694/
 
-import collections
+from spyne.util.six.moves.collections_abc import MutableSet
 
 KEY, PREV, NEXT = list(range(3))
 
 """This module contains an ordered set implementation from
 http://code.activestate.com/recipes/576694/ """
 
-class oset(collections.MutableSet):
+class oset(MutableSet):
     """An ordered set implementation."""
 
     def __init__(self, iterable=None):
