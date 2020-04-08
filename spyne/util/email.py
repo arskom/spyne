@@ -32,6 +32,8 @@ from subprocess import Popen, PIPE
 
 from email.utils import COMMASPACE, formatdate
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 
 from spyne.util import six
 
@@ -86,14 +88,28 @@ def email_text_smtp(addresses, sender=None, subject='', message="",
     logger.info("Text email sent to: %r.", addresses)
 
 
-def email_text(addresses, sender=None, subject='', message="", bcc=None):
+def email_text(addresses, sender=None, subject='', message="", bcc=None,
+                                                                      att=None):
+    if att is None:
+        att = {}
+
     if sender is None:
         sender = 'Spyne <robot@spyne.io>'
 
     exc = traceback.format_exc()
-    if exc is not None:
+    if exc is not None and exc != 'None\n':
         message = (u"%s\n\n%s" % (message, exc))
     msg = MIMEText(message.encode('utf8'), 'plain', 'utf8')
+    if len(att) > 0:
+        newmsg = MIMEMultipart()
+        newmsg.attach(msg)
+        for k, v in att.items():
+            part = MIMEApplication(v)
+            part.add_header('Content-Disposition', 'attachment', filename=k)
+            newmsg.attach(part)
+
+        msg = newmsg
+
     msg['To'] = COMMASPACE.join(addresses)
     msg['From'] = sender
     msg['Date'] = formatdate()
