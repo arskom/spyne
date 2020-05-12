@@ -71,7 +71,7 @@ setup(
         'Natural Language :: English',
         'Development Status :: 4 - Beta',
     ],
-    keywords=('spyne'),
+    keywords=['spyne'],
     author='Jack Brown',
     author_email='jack.brown@arskom.com.tr',
     maintainer='Jack Brown',
