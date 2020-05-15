@@ -33,8 +33,8 @@ logger = logging.getLogger(__name__)
 
 import re
 
+from base64 import b64encode
 from itertools import chain
-from binascii import b2a_base64
 
 from lxml import etree
 
@@ -169,7 +169,7 @@ def collapse_swa(ctx, content_type, ns_soap_env):
         cte = part.get("Content-Transfer-Encoding")
 
         if cte != 'base64':
-            payload = b2a_base64(part.get_payload(decode=True))
+            payload = b64encode(part.get_payload(decode=True))
         else:
             payload = part.get_payload()
 
