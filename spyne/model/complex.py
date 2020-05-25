@@ -674,7 +674,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
         extends = self.__extends__
         if extends is not None and self.__orig__ is None:
-            eattr = extends.Attributes;
+            eattr = extends.Attributes
             if eattr._subclasses is None:
                 eattr._subclasses = []
             eattr._subclasses.append(self)
