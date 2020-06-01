@@ -760,7 +760,7 @@ class ModelBase(object):
                     # the one from stdlib
                     v = OrderedDict(v)
 
-                Attributes.values = v.keys()
+                Attributes.values = list(v.keys())
                 Attributes.values_dict = v
                 _log_debug("setting values=%r, values_dict=%r",
                                       Attributes.values, Attributes.values_dict)
