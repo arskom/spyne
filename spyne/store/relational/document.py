@@ -78,9 +78,14 @@ class PGXml(UserDefinedType):
         def process(value):
             if isinstance(value, str) or value is None:
                 return value
-            else:
+
+            if six.PY2:
                 return etree.tostring(value, pretty_print=self.pretty_print,
                                   encoding=self.encoding, xml_declaration=False)
+
+            return etree.tostring(value, pretty_print=self.pretty_print,
+                                      encoding="unicode", xml_declaration=False)
+
         return process
 
     def result_processor(self, dialect, col_type):
