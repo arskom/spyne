@@ -110,7 +110,7 @@ class ByteArray(SimpleModel):
         if isinstance(value, (list, tuple)) and isinstance(value[0], mmap):
             return b64encode(value[0])
 
-        if isinstance(value, six.binary_type):
+        if isinstance(value, (six.binary_type, memoryview, mmap)):
             return b64encode(value)
 
         return b64encode(b''.join(value))
