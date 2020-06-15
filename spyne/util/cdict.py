@@ -50,11 +50,7 @@ base
 >>> print d
 {<class '__main__.A'>: 'fun', <class '__main__.B'>: 'fun', <class '__main__.C'>: 'base', <type 'object'>: 'base'}
 >>> print d[D]
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-  File "/home/plq/src/github/plq/spyne/src/spyne/util/cdict.py", line 77, in __getitem__
-    raise e
-KeyError: <class __main__.D at 0x8d92c0>
+*** KeyError: <class __main__.D at 0x8d92c0>
 >>>
 """
 
@@ -70,9 +66,11 @@ class cdict(dict):
             if not hasattr(cls, '__bases__'):
                 cls = cls.__class__
 
-            for b in cls.__bases__:
+            for b in reversed(cls.__bases__):
                 try:
                     retval = self[b]
+                    # this is why a cdict instance must never be modified after
+                    # the first lookup
                     self[cls] = retval
                     return retval
                 except KeyError:

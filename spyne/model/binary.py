@@ -109,6 +109,10 @@ class ByteArray(SimpleModel):
     def to_base64(cls, value):
         if isinstance(value, (list, tuple)) and isinstance(value[0], mmap):
             return b64encode(value[0])
+
+        if isinstance(value, (six.binary_type, memoryview, mmap)):
+            return b64encode(value)
+
         return b64encode(b''.join(value))
 
     @classmethod
@@ -148,8 +152,18 @@ class ByteArray(SimpleModel):
         return (unhexlify(_bytes_join(value)),)
 
 
+def _default_binary_encoding(b):
+    if isinstance(b, (six.binary_type, memoryview)):
+        return b
+
+    if isinstance(b, six.text_type):
+        raise ValueError(b)
+
+    return b''.join(b)
+
+
 binary_encoding_handlers = {
-    None: b''.join,
+    None: _default_binary_encoding,
     BINARY_ENCODING_HEX: ByteArray.to_hex,
     BINARY_ENCODING_BASE64: ByteArray.to_base64,
     BINARY_ENCODING_URLSAFE_BASE64: ByteArray.to_urlsafe_base64,

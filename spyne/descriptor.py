@@ -108,7 +108,8 @@ class MethodDescriptor(object):
         """no_ctx: Boolean flag to denote whether the user code gets an
         implicit :class:`spyne.MethodContext` instance as first argument."""
 
-        self.udd = DefaultAttrDict(**udd)
+        # FIXME: Remove UDP assingment in Spyne 3
+        self.udp = self.udd = DefaultAttrDict(**udd)
         """Short for "User Defined Data", this is an empty DefaultAttrDict that
         can be updated by the user to pass arbitrary metadata via the ``@rpc``
         decorator."""

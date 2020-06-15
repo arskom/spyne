@@ -91,3 +91,22 @@ if six.PY2:
 else:
     def _bytes_join(val, joiner=b''):
         return joiner.join(val)
+
+
+def utf8(s):
+    if isinstance(s, bytes):
+        return s.decode('utf8')
+
+    if isinstance(s, list):
+        return [utf8(ss) for ss in s]
+
+    if isinstance(s, tuple):
+        return tuple([utf8(ss) for ss in s])
+
+    if isinstance(s, set):
+        return {utf8(ss) for ss in s}
+
+    if isinstance(s, frozenset):
+        return frozenset([utf8(ss) for ss in s])
+
+    return s

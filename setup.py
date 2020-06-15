@@ -281,7 +281,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     keywords='soap wsdl wsgi zeromq rest rpc json http msgpack xml'
-             ' django pyramid postgresql sqlalchemy twisted yaml',
+             ' django pyramid postgresql sqlalchemy twisted yaml'.split(),
     author='Burak Arslan',
     author_email='burak+package@spyne.io',
     maintainer='Burak Arslan',

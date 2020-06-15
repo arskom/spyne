@@ -201,7 +201,7 @@ class MessagePackTransportBase(ServerBase):
 
     def pack(self, ctx):
         ctx.out_string = msgpack.packb([self.OUT_RESPONSE_NO_ERROR,
-                                                      ''.join(ctx.out_string)]),
+                                                     b''.join(ctx.out_string)]),
 
 
 class MessagePackServerBase(MessagePackTransportBase):
