@@ -312,11 +312,13 @@ class WsgiApplication(HttpBase):
         return (
             req_env['REQUEST_METHOD'].upper() == 'GET'
             and (
-                   req_env['QUERY_STRING'].split('=')[0].lower() == 'wsdl'
+                (
+                    'QUERY_STRING' in req_env
+                    and req_env['QUERY_STRING'].split('=')[0].lower() == 'wsdl'
+                )
                 or req_env['PATH_INFO'].endswith('.wsdl')
             )
         )
-
 
     def handle_wsdl_request(self, req_env, start_response, url):
         ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
