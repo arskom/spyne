@@ -77,9 +77,11 @@ def Thier_repr(with_ns=False):
     if with_ns is False:
         def get_class_name(c):
             return c.get_type_name()
-    elif with_ns is True or with_ns is 1:
+
+    elif with_ns is True or with_ns == 1:
         def get_class_name(c):
             return "{%s}%s" % (c.get_namespace(), c.get_type_name())
+
     else:
         def get_class_name(c):
             return with_ns(c.get_namespace(), c.get_type_name())
