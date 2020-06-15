@@ -33,8 +33,8 @@ logger = logging.getLogger(__name__)
 
 import re
 
+from base64 import b64encode
 from itertools import chain
-from binascii import b2a_base64
 
 from lxml import etree
 
@@ -142,9 +142,12 @@ def collapse_swa(ctx, content_type, ns_soap_env):
     # What an ugly hack...
     request = MIMEMultipart('related', boundary=boundary)
     msg_string = re.sub(r"\n\n.*", '', request.as_string())
-    msg_string = chain((msg_string.encode(charset),), (e for e in envelope))
+    msg_string = chain(
+        (msg_string.encode(charset), generator.NL.encode('ascii')),
+        (e for e in envelope),
+    )
 
-    msg_string = generator.NL.encode('ascii').join(msg_string)
+    msg_string = b''.join(msg_string)
     msg = message_from_bytes(msg_string)  # our message
 
     soapmsg = None
@@ -166,7 +169,7 @@ def collapse_swa(ctx, content_type, ns_soap_env):
         cte = part.get("Content-Transfer-Encoding")
 
         if cte != 'base64':
-            payload = b2a_base64(part.get_payload(decode=True))
+            payload = b64encode(part.get_payload(decode=True))
         else:
             payload = part.get_payload()
 

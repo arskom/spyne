@@ -216,6 +216,48 @@ class TestSoap12(unittest.TestCase):
             .xpath(".//tns:documentRequestResult/text()", namespaces=nsdict) \
                                                                   == [FILE_NAME]
 
+    def test_mtom_join_envelope_chunks(self):
+        FILE_NAME = 'EA055406-5881-4F02-A3DC-9A5A7510D018.dat'
+        TNS = 'http://gib.gov.tr/vedop3/eFatura'
+
+        # large enough payload to be chunked
+        PAYLOAD = b"sample data " * 1024
+        class SomeService(Service):
+            @rpc(Unicode(sub_name="fileName"), ByteArray(sub_name='binaryData'),
+                 ByteArray(sub_name="hash"), _returns=Unicode)
+            def documentRequest(ctx, file_name, file_data, data_hash):
+                assert file_name == FILE_NAME
+                assert file_data == (PAYLOAD,)
+
+                return file_name
+
+        app = Application([SomeService], tns=TNS,
+                                    in_protocol=Soap12(), out_protocol=Soap12())
+
+        server = WsgiApplication(app, block_length=1024)
+        response = etree.fromstring(b''.join(server({
+            'QUERY_STRING': '',
+            'PATH_INFO': '/call',
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_TYPE': 'Content-Type: multipart/related; '
+                            'type="application/xop+xml"; '
+                            'boundary="uuid:2e53e161-b47f-444a-b594-eb6b72e76997"; '
+                            'start="<root.message@cxf.apache.org>"; '
+                            'start-info="application/soap+xml"; action="sendDocument"',
+            'wsgi.input': BytesIO(MTOM_REQUEST
+                                  .replace(b"\n", b"\r\n")
+                                  .replace(b"sample data", PAYLOAD)),
+        }, start_response, "http://null")))
+
+        response_str = etree.tostring(response, pretty_print=True)
+        print(response_str)
+
+        nsdict = dict(tns=TNS)
+
+        assert etree.fromstring(response_str) \
+            .xpath(".//tns:documentRequestResult/text()", namespaces=nsdict) \
+                                                                  == [FILE_NAME]
+
     def test_bytes_join_attachment(self):
         href_id = "http://tempuri.org/1/634133419330914808"
         payload = "ANJNSLJNDYBC SFDJNIREMX:CMKSAJN"
