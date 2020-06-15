@@ -92,10 +92,11 @@ class Wsdl11(XmlSchema):
     #:param import_base_namespaces: Include imports for base namespaces like
     #    xsd, xsi, wsdl, etc.
 
-    def __init__(self, interface=None, _with_partnerlink=False):
+    def __init__(self, interface=None, xsl_href=None, _with_partnerlink=False):
         super(Wsdl11, self).__init__(interface)
 
         self._with_plink = _with_partnerlink
+        self.xsl_href = xsl_href
 
         self.port_type_dict = {}
         self.service_elt_dict = {}
@@ -153,6 +154,20 @@ class Wsdl11(XmlSchema):
         # create wsdl root node
         self.root_elt = root = etree.Element(WSDL11("definitions"),
                                                      nsmap=self.interface.nsmap)
+        if self.xsl_href is not None:
+            # example:
+            # <?xml-stylesheet type="text/xsl" href="wsdl-viewer.xsl"?>"
+
+            # pi.attrib.__setitem__ is ignored, so we get a proper list of
+            # attributes to pass with the following hack.
+            pitext = etree.tostring(etree.Element("dummy",
+               dict(type='text/xsl', href=self.xsl_href)), encoding='unicode') \
+                                                         .split(" ", 1)[-1][:-2]
+
+            pi = etree.ProcessingInstruction("xml-stylesheet", pitext)
+            self.root_elt.addprevious(pi)
+
+        self.root_tree = root.getroottree()
 
         root.set('targetNamespace', self.interface.tns)
         root.set('name', service_name)
@@ -195,7 +210,7 @@ class Wsdl11(XmlSchema):
         self.event_manager.fire_event('document_built', self)
         self.event_manager.fire_event('wsdl_document_built', self)
 
-        self.__wsdl = etree.tostring(root, xml_declaration=True,
+        self.__wsdl = etree.tostring(self.root_tree, xml_declaration=True,
                                                                encoding="UTF-8")
 
     def __add_partner_link(self, service_name, plink):

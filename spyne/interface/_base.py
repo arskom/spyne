@@ -514,8 +514,7 @@ class Interface(object):
         return self.import_base_namespaces or not (ns in namespace.PREFMAP)
 
 
-class AllYourInterfaceDocuments(object):
-    # AreBelongToUs
+class AllYourInterfaceDocuments(object): # AreBelongToUs
     def __init__(self, interface, wsdl11=None):
         self.wsdl11 = wsdl11
         if self.wsdl11 is None and spyne.interface.HAS_WSDL:

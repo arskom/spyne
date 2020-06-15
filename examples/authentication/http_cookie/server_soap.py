@@ -34,7 +34,7 @@ import random
 import sys
 import base64
 
-from Cookie import SimpleCookie
+from spyne.util.six.moves.http_cookies import SimpleCookie
 
 # bcrypt seems to be among the latest consensus around cryptograpic circles on
 # storing passwords.
@@ -115,7 +115,7 @@ class Preferences(ComplexModel):
 
 
 user_db = {
-    'neo': bcrypt.hashpw('Wh1teR@bbit', bcrypt.gensalt()),
+    'neo': bcrypt.hashpw(b'Wh1teR@bbit', bcrypt.gensalt()),
 }
 
 session_db = set()
@@ -195,8 +195,11 @@ if __name__=='__main__':
         out_protocol=Soap11()
     )
 
+    wsgi_app = WsgiApplication(application)
+    wsgi_app.doc.wsdl11.xsl_href = "wsdl-viewer.xsl"
+
     twisted_apps = [
-        (WsgiApplication(application), 'app'),
+        (wsgi_app, b'app'),
     ]
 
     sys.exit(run_twisted(twisted_apps, 8000))
