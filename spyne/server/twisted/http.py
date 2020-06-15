@@ -149,7 +149,8 @@ def _set_response_headers(request, headers):
 
 
 def _reconstruct_url(request):
-    server_name = request.getRequestHostname()
+    # HTTP "Hosts" header only supports ascii
+    server_name = request.getRequestHostname().decode('ascii')
     server_port = request.getHost().port
     if (bool(request.isSecure()), server_port) not in [(True, 443), (False, 80)]:
         server_name = '%s:%d' % (server_name, server_port)

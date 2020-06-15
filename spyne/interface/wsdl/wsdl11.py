@@ -25,19 +25,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 import re
-REGEX_WSDL = re.compile('[.?]wsdl$')
 
-import spyne.const.xml
+import spyne.const.xml as ns
+
+from spyne.util import six
 
 from lxml import etree
 from lxml.builder import E
 from lxml.etree import SubElement
 
-import spyne.const.xml as ns
 from spyne.const.xml import WSDL11, XSD, NS_WSA, PLINK
 from spyne.interface.xml_schema import XmlSchema
 
-PREF_WSA = spyne.const.xml.PREFMAP[NS_WSA]
+REGEX_WSDL = re.compile('[.?]wsdl$')
+PREF_WSA = ns.PREFMAP[NS_WSA]
 
 _in_header_msg_suffix = 'InHeaderMsg'
 _out_header_msg_suffix = 'OutHeaderMsg'
@@ -226,7 +227,9 @@ class Wsdl11(XmlSchema):
         wsdl_port.set('name', port_name)
         wsdl_port.set('binding', '%s:%s' % (pref_tns, binding_name))
 
-        addr = SubElement(wsdl_port, ns.get_binding_ns(self.interface.app.in_protocol.type)("address"))
+        addr = SubElement(wsdl_port,
+              ns.get_binding_ns(self.interface.app.in_protocol.type)("address"))
+
         addr.set('location', self.url)
 
     def _has_callbacks(self):
