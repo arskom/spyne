@@ -472,8 +472,7 @@ class OutProtocolBase(ProtocolMixin):
                              and len(value) == 1 and isinstance(value[0], mmap):
             return value[0]
 
-        encoder = binary_encoding_handlers
-        [encoding]
+        encoder = binary_encoding_handlers[encoding]
         logger.debug("Using binary encoder %r for encoding %r",
                                                               encoder, encoding)
         retval = encoder(value)
