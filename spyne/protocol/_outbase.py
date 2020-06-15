@@ -215,10 +215,12 @@ class OutProtocolBase(ProtocolMixin):
         retval = handler(cls, value, *args, **kwargs)
 
         # enable this only for testing. we're not as strict for performance
-        # reasons
+        # reasons as well as not to take the joy of dealing with duck typing
+        # from the user
         # assert isinstance(retval, six.text_type), \
-        #                 "AssertionError: %r %r %r handler: %r" % \
-        #                       (type(retval), six.binary_type, retval, handler)
+        #                  "AssertionError: %r %r handler: %r" % \
+        #                                        (type(retval), retval, handler)
+
         return retval
 
     def to_bytes_iterable(self, cls, value):
@@ -470,7 +472,8 @@ class OutProtocolBase(ProtocolMixin):
                              and len(value) == 1 and isinstance(value[0], mmap):
             return value[0]
 
-        encoder = binary_encoding_handlers[encoding]
+        encoder = binary_encoding_handlers
+        [encoding]
         logger.debug("Using binary encoder %r for encoding %r",
                                                               encoder, encoding)
         retval = encoder(value)

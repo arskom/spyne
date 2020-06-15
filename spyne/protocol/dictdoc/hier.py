@@ -381,14 +381,19 @@ class HierDictDocument(DictDocument):
         if cls_attrs.exc:
             return
 
+        cls_orig = None
         if cls_attrs.out_type is not None:
+            cls_orig = cls
             cls = cls_attrs.out_type
             # remember to do this if cls_attrs are needed below
+            # (currently cls_attrs is not used so we don't do this)
             # cls_attrs = self.get_cls_attrs(cls)
 
         elif cls_attrs.type is not None:
+            cls_orig = cls
             cls = cls_attrs.type
             # remember to do this if cls_attrs are needed below
+            # (currently cls_attrs is not used so we don't do this)
             # cls_attrs = self.get_cls_attrs(cls)
 
         if self.ignore_wrappers:
@@ -416,14 +421,16 @@ class HierDictDocument(DictDocument):
                                                         "found %d", id(subinst))
 
                         # this is DANGEROUS
-                        logger.debug("Said array: %r", inst)
+                        #logger.debug("Said array: %r", inst)
 
                         return None
 
-                    retval.append(self._to_dict_value(cls, subinst, tags))
+                    retval.append(self._to_dict_value(cls, subinst, tags,
+                                                      cls_orig=cls_orig or cls))
 
         else:
-            retval = self._to_dict_value(cls, inst, tags)
+            retval = self._to_dict_value(cls, inst, tags,
+                                                       cls_orig=cls_orig or cls)
 
         return retval
 
@@ -464,29 +471,26 @@ class HierDictDocument(DictDocument):
 
                 yield (sub_name, val)
 
-    def _to_dict_value(self, cls, inst, tags):
+    def _to_dict_value(self, cls, inst, tags, cls_orig=None):
+        if cls_orig is None:
+            cls_orig = cls
         cls, switched = self.get_polymorphic_target(cls, inst)
         cls_attrs = self.get_cls_attrs(cls)
 
         inst = self._sanitize(cls_attrs, inst)
 
-        if issubclass(cls, File):
-            if isinstance(inst, cls_attrs.type):
-                retval = self._complex_to_doc(cls_attrs.type, inst, tags)
+        if issubclass(cls_orig, File):
+            cls_orig_attrs = self.get_cls_attrs(cls_orig)
+            if not isinstance(inst, cls_orig_attrs.type):
+                return self.to_serstr(cls_orig, inst, self.binary_encoding)
 
-                complex_as = self.get_complex_as(cls_attrs)
+            retval = self._complex_to_doc(cls_orig_attrs.type, inst, tags)
+            complex_as = self.get_complex_as(cls_orig_attrs)
 
-                if complex_as is dict and not self.ignore_wrappers:
-                    retval = next(iter(retval.values()))
+            if complex_as is dict and not self.ignore_wrappers:
+                retval = next(iter(retval.values()))
 
-                return retval
-
-            else:
-                return self.to_serstr(cls, inst, self.binary_encoding)
-
-        # this is done before File type because File does its own type mangling.
-        # so yes in fact this is a HUGE HACK!!..
-        cls = cls_attrs.out_type or cls
+            return retval
 
         if issubclass(cls, (Any, AnyDict)):
             return inst
