@@ -30,28 +30,24 @@ from spyne.application import Application
 from spyne.test.interface.wsdl import AppTestWrapper
 from spyne.test.interface.wsdl import build_app
 from spyne.test.interface.wsdl.defult_services import TDefaultPortService
-from spyne.test.interface.wsdl.defult_services import TDefaultPortServiceMultipleMethods
+from spyne.test.interface.wsdl.defult_services import \
+                                              TDefaultPortServiceMultipleMethods
 
 from spyne.const import REQUEST_SUFFIX
 from spyne.const import RESPONSE_SUFFIX
 from spyne.const import ARRAY_SUFFIX
 
-from spyne.const.xml import NSMAP
 from spyne.decorator import srpc
 from spyne.service import Service
 from spyne.interface.wsdl import Wsdl11
 from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import XmlAttribute
-from spyne.model.primitive import Integer
 from spyne.model.primitive import String
-from spyne.protocol.soap import Soap11
-import spyne.interface.wsdl.defn
 
 ns = {
-    'wsdl':'http://schemas.xmlsoap.org/wsdl/',
-    'xs':'http://www.w3.org/2001/XMLSchema',
+    'wsdl': 'http://schemas.xmlsoap.org/wsdl/',
+    'xs': 'http://www.w3.org/2001/XMLSchema',
 }
+
 
 class TestDefaultWSDLBehavior(unittest.TestCase):
     def _default_service(self, app_wrapper, service_name):
@@ -68,7 +64,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         # the default behavior requires that there be only a single port
         ports = app_wrapper.get_port_list(service)
         self.assertEqual(len(ports), 1)
-
 
     def _default_port_type(self, app_wrapper, portType_name, op_count):
         # Verify the portType Count
@@ -120,9 +115,9 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         # Test the default port is created
         # Test the default port has the correct name
         app = build_app(
-                [TDefaultPortService()],
-                'DefaultPortTest',
-                'DefaultPortName'
+            [TDefaultPortService()],
+            'DefaultPortTest',
+            'DefaultPortName'
         )
 
         wrapper = AppTestWrapper(app)
@@ -130,10 +125,10 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
 
     def test_default_port_type_multiple(self):
         app = build_app(
-                [TDefaultPortServiceMultipleMethods()],
-                'DefaultServiceTns',
-                'MultipleDefaultPortServiceApp'
-                )
+            [TDefaultPortServiceMultipleMethods()],
+            'DefaultServiceTns',
+            'MultipleDefaultPortServiceApp'
+        )
 
         wrapper = AppTestWrapper(app)
 
@@ -141,9 +136,9 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
 
     def test_default_binding(self):
         app = build_app(
-                [TDefaultPortService()],
-                'DefaultPortTest',
-                'DefaultBindingName'
+            [TDefaultPortService()],
+            'DefaultPortTest',
+            'DefaultBindingName'
         )
 
         wrapper = AppTestWrapper(app)
@@ -152,10 +147,10 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
 
     def test_default_binding_multiple(self):
         app = build_app(
-                [TDefaultPortServiceMultipleMethods()],
-                'DefaultPortTest',
-                'MultipleDefaultBindingNameApp'
-                )
+            [TDefaultPortServiceMultipleMethods()],
+            'DefaultPortTest',
+            'MultipleDefaultBindingNameApp'
+        )
 
         wrapper = AppTestWrapper(app)
 
@@ -190,9 +185,9 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         wsdl = etree.fromstring(wsdl.get_interface_document())
 
         schema = wsdl.xpath(
-                '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace="tns"]',
-                namespaces=ns,
-            )
+            '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace="tns"]',
+            namespaces=ns,
+        )
         assert len(schema) == 1
 
         print(etree.tostring(wsdl, pretty_print=True))
@@ -212,6 +207,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
             @srpc(Array(String), _returns=Array(String))
             def whatever(sa):
                 return sa
+
             @srpc(Array(String), _returns=Array(String), _body_style='bare')
             def whatever_bare(sa):
                 return sa
@@ -223,22 +219,27 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         wsdl.build_interface_document('url')
         wsdl = etree.fromstring(wsdl.get_interface_document())
         schema, = wsdl.xpath(
-                '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace="tns"]',
-                namespaces=ns,
-            )
+            '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace="tns"]',
+            namespaces=ns,
+        )
 
         print(etree.tostring(schema, pretty_print=True))
 
         assert len(schema.xpath(
-            'xs:complexType[@name="string%s"]' % ARRAY_SUFFIX, namespaces=ns)) > 0
+            'xs:complexType[@name="string%s"]' % ARRAY_SUFFIX,
+                                                             namespaces=ns)) > 0
 
         elts = schema.xpath(
-            'xs:element[@name="whatever_bare%s"]' % REQUEST_SUFFIX, namespaces=ns)
+            'xs:element[@name="whatever_bare%s"]' % REQUEST_SUFFIX,
+                                                                  namespaces=ns)
+
         assert len(elts) > 0
         assert elts[0].attrib['type'] == 'tns:string%s' % ARRAY_SUFFIX
 
         elts = schema.xpath(
-            'xs:element[@name="whatever_bare%s"]' % RESPONSE_SUFFIX, namespaces=ns)
+            'xs:element[@name="whatever_bare%s"]' % RESPONSE_SUFFIX,
+                                                                  namespaces=ns)
+
         assert len(elts) > 0
         assert elts[0].attrib['type'] == 'tns:string%s' % ARRAY_SUFFIX
 
