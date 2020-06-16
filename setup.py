@@ -206,7 +206,6 @@ class RunTests(ExtendedTestCommand):
                             re.findall('py%s-dj[0-9]+' % PYVER,
                                 open(cfn, 'rb').read().decode('utf8')))).keys())
 
-        print("Running tests, including djenvs", djenvs)
         ret = 0
         tests = [
             'interface', 'model', 'multipython', 'protocol', 'util',
@@ -223,7 +222,10 @@ class RunTests(ExtendedTestCommand):
             'test_sqlalchemy_deprecated.py',
         ]
 
+        print("Test stage 1: Unit tests")
         ret = call_pytest_subprocess(*tests, capture=self.capture) or ret
+
+        print("\nTest stage 2: End-to-end tests")
         ret = call_pytest_subprocess('interop/test_httprpc.py',
                                                     capture=self.capture) or ret
         ret = call_pytest_subprocess('interop/test_soap_client_http.py',
@@ -237,6 +239,8 @@ class RunTests(ExtendedTestCommand):
                                                     capture=self.capture) or ret
             ret = call_pytest_subprocess('interop/test_zeep.py',
                                                     capture=self.capture) or ret
+
+        print("\nTest stage 3: Tox-managed tests")
         for djenv in djenvs:
             ret = call_tox_subprocess(djenv) or ret
 
@@ -266,8 +270,6 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
