@@ -39,14 +39,7 @@ everything except ``pytz`` is optional.
 Python version
 --------------
 
-First things first: Spyne is known to fully work on Python versions 2.6 and 2.7.
-However Spyne's Soap (and all of its subcomponents like XmlDocument, Wsdl, etc.)
-subsystem also works on Python 3.4 and up. You can track the Python 3 porting
-progress from our jenkins deployment, here:
-https://jenkins.arskom.com.tr/job/spyne/job/origin-devel/
-
-The only hard requirement is `pytz <http://pytz.sourceforge.net/>`_ which is
-available via PyPi.
+Spyne 2.13 supports Python 2.7, 3.6, 3.7 and 3.8.
 
 Libraries
 ---------
@@ -92,7 +85,7 @@ can't find setuptools, do:
 
     bin/distribute_setup.py
 
-You can add append --user to get it installed with $HOME/.local prefix.
+You can add append --user to get it installed with $HOME/.local as prefix.
 
 You can get spyne via pypi: ::
 
@@ -112,13 +105,29 @@ If you want to make any changes to the Spyne code, just use ::
 
 so that you can painlessly test your patches.
 
-Finally, to run the tests use: ::
+Finally, to run the tests, you need to first install every single library that
+Spyne integrates with, along with additional packages like ``pytest`` or ``tox``
+that are only needed when running Spyne testsuite. An up-to-date list is
+maintained in the ``requirements/`` directory, in separate files for both
+Python 2.7 and >=3.6. To install everything, run: ::
+
+    pip install [--user] -r requirements/test_requirements.txt
+
+If you are still stuck on Python 2.x however, you should use: ::
+
+    pip install [--user] -r requirements/test_requirements_py27.txt
+
+Assuming all dependencies are installed without any issues, the following
+command will run the whole test suite: ::
 
     python setup.py test
 
-The test script should first install every single library that Spyne integrates
-with to the current (virtual) environment, along with additional packages like
-pytest or tox that are only needed when running Spyne testsuite.
+Spyne's test harness has evolved a lot in the 10+ years the project has been
+active. It has 3 main stages: Traditional unit tests, tests that perform
+end-to-end testing by starting actual daemons that listen on real TCP sockets
+on hard-coded ports, and finally Django tests that are managed by tox. Naively
+running pytest etc in the root directory will fail as their auto-discovery
+mechanism was not implemented with Spyne's requirements in mind.
 
 Getting Support
 ===============
