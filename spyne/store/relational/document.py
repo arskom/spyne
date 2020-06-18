@@ -338,7 +338,7 @@ class PGFileJson(PGObjectJson):
             h = retval.handle = SeekableFileProxy(open(path, 'rb'))
             if os.fstat(retval.handle.fileno()).st_size > 0:
                 h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
-                retval.data = [h.mmap]
+                retval.data = (h.mmap,)
                 # FIXME: Where do we close this mmap?
 
             return retval
