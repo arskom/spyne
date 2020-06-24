@@ -204,10 +204,16 @@ class PGObjectJson(UserDefinedType):
     def bind_processor(self, dialect):
         def process(value):
             if value is not None:
-                return self.get_object_as_json(value, self.cls,
+                try:
+                    return self.get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
                     ).decode(self.encoding)
+
+                except Exception as e:
+                    logger.debug("Failed to serialize %r to json: %r", value, e)
+                    raise
+
         return process
 
     def result_processor(self, dialect, col_type):
