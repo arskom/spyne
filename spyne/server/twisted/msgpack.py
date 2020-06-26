@@ -379,6 +379,12 @@ class TwistedMessagePackProtocol(Protocol):
             logger.error("Exception ignored from auxiliary method: %r", e)
             logger.exception(e)
 
+    def _register_callbacks(self, d, p_ctx, others):
+        return d \
+            .addCallback(self._cb_deferred, p_ctx, others) \
+            .addErrback(self._eb_deferred, p_ctx, others) \
+            .addErrback(log_and_let_go, logger)
+
     def process_contexts(self, p_ctx, others):
         if p_ctx.in_error:
             self.handle_error(p_ctx, others, p_ctx.in_error)
@@ -395,72 +401,74 @@ class TwistedMessagePackProtocol(Protocol):
             self.handle_error(p_ctx, others, p_ctx.out_error)
             return
 
-        ret = p_ctx.out_object[0]
+        ret = p_ctx.out_object
         if isinstance(ret, Deferred):
-            ret \
-                .addCallback(_cb_deferred, self, p_ctx, others) \
-                .addErrback(_eb_deferred, self, p_ctx, others) \
-                .addErrback(log_and_let_go, logger)
+            self._register_callbacks(ret, p_ctx, others)
 
         else:
-            _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
+            ret = p_ctx.out_object[0]
+            if isinstance(ret, Deferred):
+                self._register_callbacks(ret, p_ctx, others)
 
-
-def _eb_deferred(fail, prot, p_ctx, others):
-    assert isinstance(fail, Failure)
-
-    if isinstance(fail.value, Fault):
-        p_ctx.out_error = fail.value
-
-    else:
-        p_ctx.out_error = InternalError(fail.value)
-        if not getattr(fail, 'logged', False):
-            logger.error(fail.getTraceback())
-
-    try:
-        prot.handle_error(p_ctx, others, p_ctx.out_error)
-    except Exception as e:
-        logger.exception(e)
-        raise
-
-
-def _cb_deferred(ret, prot, p_ctx, others, nowrap=False):
-    # this means callback is not invoked directly instead of as part of a
-    # deferred chain
-    if not nowrap:
-        # if there is one return value or the output is bare (which means there
-        # can't be anything other than 1 return value case) use the enclosing
-        # list. otherwise, the return value is a tuple anyway, so leave it be.
-        if p_ctx.descriptor.is_out_bare():
-            p_ctx.out_object = [ret]
-
-        else:
-            if len(p_ctx.descriptor.out_message._type_info) > 1:
-                p_ctx.out_object = ret
             else:
+                self._cb_deferred(p_ctx.out_object, p_ctx, others, nowrap=True)
+
+    def _eb_deferred(self, fail, p_ctx, others):
+        assert isinstance(fail, Failure)
+
+        if isinstance(fail.value, Fault):
+            p_ctx.out_error = fail.value
+
+        else:
+            p_ctx.out_error = InternalError(fail.value)
+            if not getattr(fail, 'logged', False):
+                logger.error(fail.getTraceback())
+
+        try:
+            self.handle_error(p_ctx, others, p_ctx.out_error)
+
+        except Exception as e:
+            logger.exception(e)
+            raise
+
+    def _cb_deferred(self, ret, p_ctx, others, nowrap=False):
+        # this means callback is not invoked directly instead of as part of a
+        # deferred chain
+        if not nowrap:
+            # if there is one return value or the output is bare (which means
+            # there can't be anything other than 1 return value case) use the
+            # enclosing list. otherwise, the return value is a tuple anyway, so
+            # leave it be.
+            if p_ctx.descriptor.is_out_bare():
                 p_ctx.out_object = [ret]
 
-    if p_ctx.oob_ctx is not None:
-        assert isinstance(p_ctx.oob_ctx.d, Deferred)
+            else:
+                if len(p_ctx.descriptor.out_message._type_info) > 1:
+                    p_ctx.out_object = ret
+                else:
+                    p_ctx.out_object = [ret]
 
-        p_ctx.oob_ctx.d.callback(p_ctx.out_object)
-        return
+        if p_ctx.oob_ctx is not None:
+            assert isinstance(p_ctx.oob_ctx.d, Deferred)
 
-    try:
-        prot.spyne_tpt.get_out_string(p_ctx)
-        prot.spyne_tpt.pack(p_ctx)
+            p_ctx.oob_ctx.d.callback(p_ctx.out_object)
+            return
 
-        out_string = b''.join(p_ctx.out_string)
-        p_ctx.transport.resp_length = len(out_string)
+        try:
+            self.spyne_tpt.get_out_string(p_ctx)
+            self.spyne_tpt.pack(p_ctx)
 
-        prot.enqueue_outresp_data(id(p_ctx), out_string)
+            out_string = b''.join(p_ctx.out_string)
+            p_ctx.transport.resp_length = len(out_string)
 
-    except Exception as e:
-        logger.exception(e)
-        logger.error("%r", p_ctx)
-        prot.handle_error(p_ctx, others, InternalError(e))
+            self.enqueue_outresp_data(id(p_ctx), out_string)
 
-    finally:
-        p_ctx.close()
+        except Exception as e:
+            logger.exception(e)
+            logger.error("%r", p_ctx)
+            self.handle_error(p_ctx, others, InternalError(e))
 
-    process_contexts(prot.spyne_tpt, others, p_ctx)
+        finally:
+            p_ctx.close()
+
+        process_contexts(self.spyne_tpt, others, p_ctx)
