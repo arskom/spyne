@@ -34,8 +34,11 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
+import pytz
+
 from spyne import Application, rpc, Mandatory as M, Unicode, Array, Iterable, \
-    UnsignedInteger32, TTableModel, Service, ResourceNotFoundError
+    UnsignedInteger32, TTableModel, Service, ResourceNotFoundError, \
+    ComplexModel, UnsignedInteger8
 
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.yaml import YamlDocument
@@ -52,6 +55,20 @@ db = create_engine('sqlite:///:memory:')
 Session = sessionmaker(bind=db)
 TableModel = TTableModel()
 TableModel.Attributes.sqla_metadata.bind = db
+
+
+class Preferences(ComplexModel):
+    _type_info = [
+        ('timezone', M(Unicode(values=pytz.all_timezones_set))),
+        ('font_size', UnsignedInteger8(
+            values_dict={10: 'Small', 20: 'Medium', 30: 'Large'},
+            default=20,
+        )),
+        ('theme', Unicode(
+            values={'dark', 'light'},
+            default='light',
+        )),
+    ]
 
 
 class Permission(TableModel):
@@ -74,6 +91,7 @@ class User(TableModel):
     first_name = Unicode(256)
     last_name = Unicode(256)
     permissions = Array(Permission, store_as='table')
+    preferences = Preferences.store_as('jsonb')
 
 
 @memoize
