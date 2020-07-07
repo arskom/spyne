@@ -34,19 +34,19 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
+from spyne import Application, rpc, Mandatory as M, Unicode, Array, Iterable, \
+    TTableModel, Service, ResourceNotFoundError, UnsignedInteger32
+
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.yaml import YamlDocument
-from spyne import Application, rpc, Mandatory as M, Unicode, UnsignedInteger32, \
-    Array, Iterable, TTableModel, Service, ResourceNotFoundError
 
 from spyne.util import memoize
 
 from spyne.server.wsgi import WsgiApplication
 
-
 from sqlalchemy import create_engine
-from sqlalchemy import MetaData
 from sqlalchemy.orm import sessionmaker
+
 
 db = create_engine('sqlite:///:memory:')
 Session = sessionmaker(bind=db)
@@ -79,29 +79,18 @@ class User(TableModel):
 @memoize
 def TCrudService(T, T_name):
     class CrudService(Service):
-        @rpc(M(UnsignedInteger32), _returns=T,
-                    _in_message_name='get_%s' % T_name,
-                    _in_variable_names={'obj_id': "%s_id" % T_name})
+        @rpc(M(UnsignedInteger32, _returns=T))
         def get(ctx, obj_id):
             return ctx.udc.session.query(T).filter_by(id=obj_id).one()
 
-        @rpc(M(T), _returns=UnsignedInteger32,
-                    _in_message_name='put_%s' % T_name,
-                    _in_variable_names={'obj': T_name})
+        @rpc(T, _returns=UnsignedInteger32)
         def put(ctx, obj):
             if obj.id is None:
                 ctx.udc.session.add(obj)
-                ctx.udc.session.flush() # so that we get the obj.id value
+                ctx.udc.session.flush()
 
             else:
                 if ctx.udc.session.query(T).get(obj.id) is None:
-                    # this is to prevent the client from setting the primary key
-                    # of a new object instead of the database's own primary-key
-                    # generator.
-                    # Instead of raising an exception, you can also choose to
-                    # ignore the primary key set by the client by silently doing
-                    # obj.id = None in order to have the database assign the
-                    # primary key the traditional way.
                     raise ResourceNotFoundError('%s.id=%d' % (T_name, obj.id))
 
                 else:
@@ -109,9 +98,7 @@ def TCrudService(T, T_name):
 
             return obj.id
 
-        @rpc(M(UnsignedInteger32),
-                    _in_message_name='del_%s' % T_name,
-                    _in_variable_names={'obj_id': '%s_id' % T_name})
+        @rpc(M(UnsignedInteger32))
         def del_(ctx, obj_id):
             count = ctx.udc.session.query(T).filter_by(id=obj_id).count()
             if count == 0:
@@ -119,8 +106,7 @@ def TCrudService(T, T_name):
 
             ctx.udc.session.query(T).filter_by(id=obj_id).delete()
 
-        @rpc(_returns=Iterable(T),
-                    _in_message_name='get_all_%s' % T_name)
+        @rpc(_returns=Iterable(T))
         def get_all(ctx):
             return ctx.udc.session.query(T)
 
@@ -145,10 +131,14 @@ def _on_method_context_closed(ctx):
         ctx.udc.session.close()
 
 
-application = Application([TCrudService(User, 'user')],
-                                    tns='spyne.examples.sql_crud',
-                                    in_protocol=HttpRpc(validator='soft'),
-                                    out_protocol=YamlDocument())
+user_service = TCrudService(User, 'user')
+application = Application(
+    [user_service],
+    tns='spyne.examples.sql_crud',
+    in_protocol=HttpRpc(validator='soft'),
+    out_protocol=YamlDocument()
+)
+
 
 application.event_manager.add_listener('method_call', _on_method_call)
 application.event_manager.add_listener('method_return_object',
@@ -157,7 +147,7 @@ application.event_manager.add_listener("method_context_closed",
                                                       _on_method_context_closed)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     from wsgiref.simple_server import make_server
 
     wsgi_app = WsgiApplication(application)
