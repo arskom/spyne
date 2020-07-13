@@ -173,7 +173,10 @@ class TwistedMessagePackProtocol(Protocol):
             self.factory.event_manager.fire_event("connection_made", self)
 
     def connectionLost(self, reason=connectionDone):
-        logger.debug("%08x connection lost: %s", id(self), reason)
+        if reason is connectionDone:
+            logger.debug("%08x connection done", id(self))
+        else:
+            logger.debug("%08x connection lost: %s", id(self), reason)
         self.disconnecting = False
         if self.factory is not None:
             self.factory.event_manager.fire_event("connection_lost", self)
