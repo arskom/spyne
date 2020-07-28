@@ -352,7 +352,7 @@ class TwistedHttpTransport(HttpBase):
             ctx.in_body_doc[k] = val
 
         r = {}
-        for k,v in ctx.in_body_doc.items():
+        for k, v in ctx.in_body_doc.items():
             l = []
             for v2 in v:
                 if isinstance(v2, string_types):
