@@ -536,6 +536,36 @@ class TestFlatDict(unittest.TestCase):
 
         assert len(d) == 4
 
+    def test_sub_name_ser(self):
+        class CM(ComplexModel):
+            integer = Integer(sub_name='i')
+            string = String(sub_name='s')
+
+        val = CM(integer=7, string='b')
+
+        d = SimpleDictDocument().object_to_simple_dict(CM, val)
+
+        pprint(d)
+
+        assert d['i'] == 7
+        assert d['s'] == 'b'
+
+        assert len(d) == 2
+
+    def test_sub_name_deser(self):
+        class CM(ComplexModel):
+            integer = Integer(sub_name='i')
+            string = String(sub_name='s')
+
+        d = {'i': [7], 's': ['b']}
+
+        val = SimpleDictDocument().simple_dict_to_object(None, d, CM)
+
+        pprint(d)
+
+        assert val.integer == 7
+        assert val.string == 'b'
+
     def test_array_not_none(self):
         class CM(ComplexModel):
             i = Integer

@@ -1057,49 +1057,108 @@ class ComplexModelBase(ModelBase):
         return cls.__orig__ or cls
 
     @staticmethod
-    @memoize
     def get_simple_type_info(cls, hier_delim="."):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
 
-        For example, given hier_delim='_'; the following hierarchy: ::
+        For example, given hier_delim='.'; the following hierarchy: ::
 
             {'some_object': [{'some_string': ['abc']}]}
 
         would be transformed to: ::
 
-            {'some_object_some_string': ['abc']}
+            {'some_object.some_string': ['abc']}
 
         :param hier_delim: String that will be used as delimiter between field
-            names. Default is ``'_'``.
+            names. Default is ``'.'``.
         """
+        return ComplexModelBase.get_simple_type_info_with_prot(
+                                                     cls, hier_delim=hier_delim)
 
+    @staticmethod
+    @memoize
+    def get_simple_type_info_with_prot(cls, prot=None, hier_delim="."):
+        """See :func:ComplexModelBase.get_simple_type_info"""
         fti = cls.get_flat_type_info(cls)
 
         retval = TypeInfo()
         tags = set()
-        queue = deque([(k, v, (k,), (_is_array(v),), cls)
-                                                        for k,v in fti.items()])
+
+        queue = deque()
+        if prot is None:
+            for k, v in fti.items():
+                sub_name = k
+
+                queue.append((
+                    (k,),
+                    v,
+                    (sub_name,),
+                    (_is_array(v),),
+                    cls,
+                ))
+
+        else:
+            for k, v in fti.items():
+                cls_attrs = prot.get_cls_attrs(v)
+                sub_name = cls_attrs.sub_name
+                if sub_name is None:
+                    sub_name = k
+
+                queue.append((
+                    (k,),
+                    v,
+                    (sub_name,),
+                    (_is_array(v),),
+                    cls,
+                ))
+
         tags.add(cls)
 
         while len(queue) > 0:
-            k, v, prefix, is_array, parent = queue.popleft()
+            keys, v, prefix, is_array, parent = queue.popleft()
+            k = keys[-1]
             if issubclass(v, Array) and v.Attributes.max_occurs == 1:
                 v, = v._type_info.values()
 
             key = hier_delim.join(prefix)
             if issubclass(v, ComplexModelBase):
-                retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
-                               parent=parent, type_=v, is_array=tuple(is_array),
-                                                              can_be_empty=True)
+                retval[key] = _SimpleTypeInfoElement(
+                    path=keys,
+                    parent=parent,
+                    type_=v,
+                    is_array=tuple(is_array),
+                    can_be_empty=True,
+                )
 
                 if not (v in tags):
                     tags.add(v)
-                    queue.extend([
-                        (k2, v2, prefix + (k2,),
-                            is_array + (v.Attributes.max_occurs > 1,), v)
-                                   for k2, v2 in v.get_flat_type_info(v).items()])
+                    if prot is None:
+                        for k2, v2 in v.get_flat_type_info(v).items():
+                            sub_name = k2
+                            queue.append((
+                                keys + (k2,),
+                                v2,
+                                prefix + (sub_name,),
+                                is_array + (_is_array(v),),
+                                v
+                            ))
+
+                    else:
+                        for k2, v2 in v.get_flat_type_info(v).items():
+                            cls_attrs = prot.get_cls_attrs(v2)
+                            sub_name = cls_attrs.sub_name
+                            if sub_name is None:
+                                sub_name = k2
+
+                            queue.append((
+                                keys + (k2,),
+                                v2,
+                                prefix + (sub_name,),
+                                is_array + (_is_array(v),),
+                                v,
+                            ))
+
             else:
                 value = retval.get(key, None)
 
@@ -1107,9 +1166,13 @@ class ComplexModelBase(ModelBase):
                     raise ValueError("%r.%s conflicts with %r" %
                                                        (cls, k, value.path))
 
-                retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
-                               parent=parent, type_=v, is_array=tuple(is_array),
-                                                             can_be_empty=False)
+                retval[key] = _SimpleTypeInfoElement(
+                    path=keys,
+                    parent=parent,
+                    type_=v,
+                    is_array=tuple(is_array),
+                    can_be_empty=False,
+                )
 
         return retval
 
@@ -1201,7 +1264,7 @@ class ComplexModelBase(ModelBase):
         # during daemon initialization, so it's not really necessary.
         ComplexModelBase.get_subclasses.memo.clear()
         ComplexModelBase.get_flat_type_info.memo.clear()
-        ComplexModelBase.get_simple_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info_with_prot.memo.clear()
 
         return retval
 
@@ -1232,7 +1295,7 @@ class ComplexModelBase(ModelBase):
         cls._type_info[field_name] = field_type
 
         ComplexModelBase.get_flat_type_info.memo.clear()
-        ComplexModelBase.get_simple_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info_with_prot.memo.clear()
 
     @classmethod
     def _append_to_variants(cls, field_name, field_type):
@@ -1269,7 +1332,7 @@ class ComplexModelBase(ModelBase):
         cls._type_info.insert(index, (field_name, field_type))
 
         ComplexModelBase.get_flat_type_info.memo.clear()
-        ComplexModelBase.get_simple_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info_with_prot.memo.clear()
 
     @classmethod
     def insert_field(cls, index, field_name, field_type):
@@ -1289,7 +1352,7 @@ class ComplexModelBase(ModelBase):
         cls._type_info[field_name] = field_type
 
         ComplexModelBase.get_flat_type_info.memo.clear()
-        ComplexModelBase.get_simple_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info_with_prot.memo.clear()
 
     @classmethod
     def _replace_field(cls, field_name, field_type):
