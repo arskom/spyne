@@ -44,12 +44,15 @@ logger = logging.getLogger(__name__)
 
 import re
 import cgi
+import gzip
+import shutil
 import threading
 
 from os import fstat
 from mmap import mmap
 from inspect import isclass
 from collections import namedtuple
+from tempfile import TemporaryFile
 
 from twisted.web import static
 from twisted.web.server import NOT_DONE_YET, Request
@@ -318,13 +321,16 @@ class TwistedHttpTransport(HttpBase):
 
         for fi in ctx.transport.file_info:
             assert isinstance(fi, _FileInfo)
-            data = request.args.get(fi.field_name, None)
-            if data is not None and fi.file_name is not None:
-                ctx.in_body_doc[fi.field_name] = \
-                    [File.Value(
-                        name=fi.file_name,
-                        type=fi.file_type,
-                        data=fi.data)]
+            if fi.file_name is None:
+                continue
+
+            l = ctx.in_body_doc.get(fi.field_name, None)
+            if l is None:
+                l = ctx.in_body_doc[fi.field_name] = []
+
+            l.append(
+                File.Value(name=fi.file_name, type=fi.file_type, data=fi.data)
+            )
 
         # this is a huge hack because twisted seems to take the slashes in urls
         # too seriously.
@@ -387,8 +393,18 @@ def _get_file_info(ctx):
     if content_type is None:
         return retval
 
+    content = request.content
+
+    content_encoding = headers.get('content-encoding', None)
+    if content_encoding == b'gzip':
+        request.content.seek(0)
+        content = TemporaryFile()
+        with gzip.GzipFile(fileobj=request.content) as ifstr:
+            shutil.copyfileobj(ifstr, content)
+        content.seek(0)
+
     img = cgi.FieldStorage(
-        fp=request.content,
+        fp=content,
         headers=ctx.in_header_doc,
         environ={
             'REQUEST_METHOD': request.method,
