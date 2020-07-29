@@ -51,13 +51,13 @@ def _gen_mime_type_pattern(strict, with_params):
     else:
         main_type = token
 
-    parameter = \
-              ";" + ows + token + "=" + "(?:" + token + "|" + quotedString + ")"
+    param = token + "=" + "(?:" + token + "|" + quotedString + ");?" + ows
+    params = ";" + ows + param + "(" + param + ")*"
 
     if not with_params:
         return main_type + "/" + "(" + token + ")"
     else:
-        return main_type + "/" + "(" + token + ")((?:" + ows + parameter + ")*)"
+        return main_type + "/" + "(" + token + ")" + params
 
 
 MIME_TYPE_PATTERN_STRICT = \

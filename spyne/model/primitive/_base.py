@@ -38,6 +38,10 @@ def re_match_with_span(attr, value):
         return True
 
     m = attr._pattern_re.match(value)
+    # if m:
+    #     print(m, m.span(), len(value))
+    # else:
+    #     print(m)
     return (m is not None) and (m.span() == (0, len(value)))
 
 
