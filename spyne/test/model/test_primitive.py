@@ -32,13 +32,14 @@ import spyne
 from datetime import timedelta
 
 from lxml import etree
+from spyne.model.primitive._base import re_match_with_span as rmws
 
 from spyne.util import six
 from spyne.const import xml as ns
 
 from spyne import Null, AnyDict, Uuid, Array, ComplexModel, Date, Time, \
     Boolean, DateTime, Duration, Float, Integer, NumberLimitsWarning, Unicode, \
-    String, Decimal, Integer16, ModelBase
+    String, Decimal, Integer16, ModelBase, MimeType, MimeTypeStrict, MediaType
 
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import XmlDocument
@@ -51,6 +52,37 @@ class TestCast(unittest.TestCase):
 
 
 class TestPrimitive(unittest.TestCase):
+    def test_mime_type_family(self):
+        mime_attr = MimeType.Attributes
+        mime_strict_attr = MimeTypeStrict.Attributes
+        assert     rmws(mime_attr, u'application/foo')
+        assert not rmws(mime_attr, u'application/ foo')
+        assert not rmws(mime_attr, u'application/')
+        assert     rmws(mime_attr, u'foo/bar')
+        assert not rmws(mime_attr, u'foo/bar ')
+        assert not rmws(mime_strict_attr, u'foo/bar')
+
+        media_attr = MediaType.Attributes
+        media_strict_attr = MediaType.Attributes
+
+        print(media_attr.pattern)
+
+        assert     rmws(media_attr, u'text/plain; charset="utf-8"')
+        assert     rmws(media_attr, u'text/plain; charset=utf-8')
+        assert not rmws(media_attr, u'text/plain; charset=utf-8 ')
+        assert     rmws(media_attr, u'text/plain; charset=utf-8')
+        assert not rmws(media_attr, u'text/plain; charset=utf-8;')
+        assert not rmws(media_attr, u'text/plain; charset=utf-8; ')
+        assert not rmws(media_attr, u'text/plain; charset=utf-8; foo')
+        assert not rmws(media_attr, u'text/plain; charset=utf-8; foo=')
+        assert     rmws(media_attr, u'text/plain; charset=utf-8; foo=""')
+        assert not rmws(media_strict_attr, u'foo/bar;')
+        assert not rmws(media_strict_attr, u' applicaton/json;')
+        assert not rmws(media_strict_attr, u'applicaton/json;')
+
+        assert MediaType
+
+
     def test_getitem_cust(self):
         assert Unicode[dict(max_len=2)].Attributes.max_len
 
