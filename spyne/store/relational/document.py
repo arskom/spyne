@@ -69,7 +69,8 @@ class PGXml(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, str) or value is None:
+            if value is None or \
+                            isinstance(value, (six.text_type, six.binary_type)):
                 return value
 
             if six.PY2:
