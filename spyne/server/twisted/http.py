@@ -153,15 +153,35 @@ def _set_response_headers(request, headers):
 
 def _reconstruct_url(request):
     # HTTP "Hosts" header only supports ascii
-    server_name = request.getRequestHostname().decode('ascii')
-    server_port = request.getHost().port
-    if (bool(request.isSecure()), server_port) not in [(True, 443), (False, 80)]:
+
+    server_name = request.getHeader(b"x-forwarded-host")
+    server_port = request.getHeader(b"x-forwarded-port")
+    if server_port is not None:
+        try:
+            server_port = int(server_port)
+        except Exception as e:
+            logger.debug("Ignoring exception: %r for value %r", e, server_port)
+            server_port = None
+
+    is_secure = request.getHeader(b"x-forwarded-proto")
+    if is_secure is not None:
+        is_secure = is_secure == 'https'
+
+    if server_name is None:
+        server_name = request.getRequestHostname().decode('ascii')
+    if server_port is None:
+        server_port = request.getHost().port
+    if is_secure is None:
+        is_secure = bool(request.isSecure())
+
+    if (is_secure, server_port) not in ((True, 443), (False, 80)):
         server_name = '%s:%d' % (server_name, server_port)
 
-    if request.isSecure():
+    if is_secure:
         url_scheme = 'https'
     else:
         url_scheme = 'http'
+
     uri = _decode_path(request.uri)
     return ''.join([url_scheme, "://", server_name, uri])
 
@@ -585,6 +605,10 @@ class TwistedWebResource(Resource):
         return retval
 
     def __handle_wsdl_request(self, request):
+        # disabled for performance reasons.
+        # logger.debug("WSDL request headers: %r",
+        #                       list(request.requestHeaders.getAllRawHeaders()))
+
         ctx = TwistedHttpMethodContext(self.http_transport, request,
                                                       "text/xml; charset=utf-8")
         url = _reconstruct_url(request)
