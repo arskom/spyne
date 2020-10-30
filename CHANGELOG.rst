@@ -2,8 +2,13 @@
 Changelog
 =========
 
+spyne-2.13.16
+-------------
+* Python 3.9 support
+* A lot of small fixes here and there.
+
 spyne-2.13.15
--------------------
+-------------
 * A lot of small fixes here and there blocking the stable release.
 
 spyne-2.13.14-beta
