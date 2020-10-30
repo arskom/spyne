@@ -77,23 +77,52 @@ class MessagePackDocument(HierDictDocument):
                                         polymorphic=False,
                                         key_encoding='utf8',
                                         # MessagePackDocument specific
+                                        mw_packer=msgpack.Unpacker,
+                                        mw_unpacker=msgpack.Unpacker,
                                         use_list=False,
-                                        mw_unpacker=msgpack.Unpacker):
+                                        raw=False,
+                                        use_bin_type=True,
+                                        **kwargs):
 
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
                 ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic,
                                                                    key_encoding)
 
-        self.use_list = use_list
+        self.mw_packer = mw_packer
         self.mw_unpacker = mw_unpacker
+
+        # unpacker
+        if not raw:
+            self.from_serstr = self.from_unicode
+
+        if use_bin_type:
+            self.from_serstr = self.from_unicode
+
+        self.kwargs = kwargs
+        if raw != False:
+            kwargs['raw'] = raw
+
+        if use_list != True:
+            kwargs['use_list'] = use_list
+
+        if use_bin_type != True:
+            kwargs['use_bin_type'] = use_bin_type
 
         self._from_bytes_handlers[Double] = self._ret_number
         self._from_bytes_handlers[Boolean] = self._ret_bool
         self._from_bytes_handlers[Integer] = self.integer_from_bytes
 
+        self._from_unicode_handlers[Double] = self._ret_number
+        self._from_unicode_handlers[Boolean] = self._ret_bool
+        self._from_unicode_handlers[Integer] = self.integer_from_bytes
+
         self._to_bytes_handlers[Double] = self._ret_number
         self._to_bytes_handlers[Boolean] = self._ret_bool
         self._to_bytes_handlers[Integer] = self.integer_to_bytes
+
+        self._to_unicode_handlers[Double] = self._ret_number
+        self._to_unicode_handlers[Boolean] = self._ret_bool
+        self._to_unicode_handlers[Integer] = self.integer_to_bytes
 
     def _ret(self, _, value):
         return value
@@ -131,7 +160,7 @@ class MessagePackDocument(HierDictDocument):
         if isinstance(ctx.in_string, (list, tuple)) \
                                and len(ctx.in_string) == 1 \
                                and isinstance(ctx.in_string[0], memoryview):
-            unpacker = self.mw_unpacker(use_list=self.use_list)
+            unpacker = self.mw_unpacker(**self.kwargs)
             unpacker.feed(ctx.in_string[0])
             ctx.in_document = next(x for x in unpacker)
 
@@ -194,7 +223,8 @@ class MessagePackRpc(MessagePackDocument):
         # TODO: Use feed api
         try:
             ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string),
-                                                         use_list=self.use_list)
+                                                                  **self.kwargs)
+
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
