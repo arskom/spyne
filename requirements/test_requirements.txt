@@ -10,7 +10,7 @@ pyyaml
 pyzmq
 twisted
 colorama
-msgpack-python
+msgpack
 webtest
 pytest_django
 django
