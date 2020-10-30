@@ -114,7 +114,7 @@ class MessagePackDocument(HierDictDocument):
         class_name = cls.get_type_name()
         if not six.PY2:
             if not isinstance(class_name, bytes):
-                class_name = class_name.encode('utf8')
+                class_name = class_name.encode(self.default_string_encoding)
 
         return class_name
 
@@ -149,7 +149,7 @@ class MessagePackDocument(HierDictDocument):
 
         mrs, = ctx.in_body_doc.keys()
         if not six.PY2 and isinstance(mrs, bytes):
-            mrs = mrs.decode('utf8')
+            mrs = mrs.decode(self.key_encoding)
 
         return '{%s}%s' % (self.app.interface.get_tns(), mrs)
 
