@@ -69,7 +69,7 @@ of Spyne:
   anything in ``spyne.server.django``.
 * `Pyramid <http://pylonsproject.org/>`_ is needed for
   ``spyne.server.pyramid.PyramidApplication``.
-* `msgpack-python <http://github.com/msgpack/msgpack-python/>`_ is needed for
+* `msgpack>=1.0.0 <http://github.com/msgpack/msgpack-python/>`_ is needed for
   ``spyne.protocol.msgpack``.
 * `PyYaml <https://bitbucket.org/xi/pyyaml>`_ is needed for
   ``spyne.protocol.yaml``.
