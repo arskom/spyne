@@ -98,6 +98,10 @@ class ToParentMixin(OutProtocolBase):
 
         cls, switched = self.get_polymorphic_target(cls, inst)
         cls_attrs = self.get_cls_attrs(cls)
+        if cls_attrs.out_type:
+            logger.debug("out_type from %r to %r", cls, cls_attrs.out_type)
+            cls = cls_attrs.out_type
+            cls_attrs = self.get_cls_attrs(cls)
 
         inst = self._sanitize(cls_attrs, inst)
 

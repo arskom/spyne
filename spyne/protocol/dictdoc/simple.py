@@ -171,7 +171,8 @@ class SimpleDictDocument(DictDocument):
             retval = cls.get_serialization_instance([])
         else:
             retval = cls.get_deserialization_instance(ctx)
-        simple_type_info = cls.get_simple_type_info(cls,
+
+        simple_type_info = cls.get_simple_type_info_with_prot(cls, self,
                                                      hier_delim=self.hier_delim)
 
         logger.debug("Simple type info key: %r", simple_type_info.keys())
@@ -350,7 +351,11 @@ class SimpleDictDocument(DictDocument):
 
             for k, v in fti.items():
                 new_prefix = list(prefix)
-                new_prefix.append(k)
+                cls_attrs = self.get_cls_attrs(v)
+                sub_name = cls_attrs.sub_name
+                if sub_name is None:
+                    sub_name = k
+                new_prefix.append(sub_name)
                 subinst = getattr(inst, k, None)
 
                 if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \

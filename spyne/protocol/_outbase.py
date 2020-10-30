@@ -45,6 +45,8 @@ from spyne.model import ModelBase, XmlAttribute, SimpleModel, Null, \
     ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, Decimal, \
     Double, Integer, Time, DateTime, Uuid, Duration, Boolean, AnyDict, \
     AnyUri, PushBase, Date
+from spyne.model.relational import FileData
+
 from spyne.const.http import HTTP_400, HTTP_401, HTTP_404, HTTP_405, HTTP_413, \
     HTTP_500
 from spyne.error import Fault, InternalError, ResourceNotFoundError, \
@@ -547,8 +549,13 @@ class OutProtocolBase(ProtocolMixin):
 
             assert False, "Unhandled file type"
 
-        if value is None:
-            return b''
+        if isinstance(value, FileData):
+            try:
+                return binary_encoding_handlers[encoding](value.data)
+            except Exception as e:
+                logger.error("Error encoding value to binary. Error: %r, Value: %r",
+                                                                           e, value)
+                raise
 
         try:
             return binary_encoding_handlers[encoding](value)

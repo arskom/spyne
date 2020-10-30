@@ -38,6 +38,10 @@ def re_match_with_span(attr, value):
         return True
 
     m = attr._pattern_re.match(value)
+    # if m:
+    #     print(m, m.span(), len(value))
+    # else:
+    #     print(m)
     return (m is not None) and (m.span() == (0, len(value)))
 
 
@@ -93,9 +97,9 @@ class AnyDict(SimpleModel):
 
     class Attributes(SimpleModel.Attributes):
         store_as = None
-        """Method for serializing to persistent storage. One of 'xml', 'json' or
-        'msgpack'. It makes sense to specify this only when this object belongs
-        to a `ComplexModel` sublass."""
+        """Method for serializing to persistent storage. One of 'xml', 'json',
+        'jsonb', 'msgpack'. It makes sense to specify this only when this object 
+        belongs to a `ComplexModel` sublass."""
 
     @classmethod
     def customize(cls, **kwargs):

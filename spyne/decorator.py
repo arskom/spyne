@@ -108,6 +108,12 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
     message = None
     if body_style_str == 'bare':
         if len(in_params) > 1:
+            # The soap Body elt contains 1 elt (called "body entry" in the soap
+            # standard) per method call. If bare methods were allowed to have >1
+            # argument, it would have to be serialized as multiple body entries,
+            # which would violate the standard. It's easy to work around this
+            # restriction by creating a ComplexModel that contains all the
+            # required parameters.
             raise LogicError("body_style='bare' can handle at most one "
                                                            "function argument.")
 

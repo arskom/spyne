@@ -48,19 +48,12 @@ except ImportError as _import_error:
 
 from sqlalchemy.sql.type_api import UserDefinedType
 
-from spyne import ComplexModel, ValidationError, Unicode
+from spyne import ValidationError
+from spyne.model.relational import FileData
 
 from spyne.util import six
 from spyne.util.six import binary_type, text_type, BytesIO, StringIO
 from spyne.util.fileproxy import SeekableFileProxy
-
-
-class FileData(ComplexModel):
-    _type_info = [
-        ('name', Unicode),
-        ('type', Unicode),
-        ('path', Unicode),
-    ]
 
 
 class PGXml(UserDefinedType):
@@ -76,7 +69,8 @@ class PGXml(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, str) or value is None:
+            if value is None or \
+                            isinstance(value, (six.text_type, six.binary_type)):
                 return value
 
             if six.PY2:
@@ -211,10 +205,16 @@ class PGObjectJson(UserDefinedType):
     def bind_processor(self, dialect):
         def process(value):
             if value is not None:
-                return self.get_object_as_json(value, self.cls,
+                try:
+                    return self.get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
                     ).decode(self.encoding)
+
+                except Exception as e:
+                    logger.debug("Failed to serialize %r to json: %r", value, e)
+                    raise
+
         return process
 
     def result_processor(self, dialect, col_type):
@@ -311,12 +311,11 @@ class PGFileJson(PGObjectJson):
                 value.store = self.store
                 value.abspath = join(self.store, value.path)
 
-                retval = self.get_object_as_json(value, self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as,
-                    )
+                return self.get_object_as_json(value, self.cls,
+                    ignore_wrappers=self.ignore_wrappers,
+                    complex_as=self.complex_as,
+                )
 
-                return retval
         return process
 
     def result_processor(self, dialect, col_type):
@@ -346,7 +345,7 @@ class PGFileJson(PGObjectJson):
             h = retval.handle = SeekableFileProxy(open(path, 'rb'))
             if os.fstat(retval.handle.fileno()).st_size > 0:
                 h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
-                retval.data = [h.mmap]
+                retval.data = (h.mmap,)
                 # FIXME: Where do we close this mmap?
 
             return retval

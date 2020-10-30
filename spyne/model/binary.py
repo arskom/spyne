@@ -156,6 +156,9 @@ def _default_binary_encoding(b):
     if isinstance(b, (six.binary_type, memoryview)):
         return b
 
+    if isinstance(b, tuple) and len(b) > 0 and isinstance(b[0], mmap):
+        return b[0]
+
     if isinstance(b, six.text_type):
         raise ValueError(b)
 

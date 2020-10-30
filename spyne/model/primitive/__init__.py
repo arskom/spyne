@@ -32,6 +32,10 @@ from spyne.model.primitive.string import AnyUri
 from spyne.model.primitive.string import Uuid
 from spyne.model.primitive.string import ImageUri
 from spyne.model.primitive.string import Ltree
+from spyne.model.primitive.string import MimeType
+from spyne.model.primitive.string import MimeTypeStrict
+from spyne.model.primitive.string import MediaType
+from spyne.model.primitive.string import MediaTypeStrict
 
 from spyne.model.primitive.xml import ID
 from spyne.model.primitive.xml import Token

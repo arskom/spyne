@@ -44,12 +44,15 @@ logger = logging.getLogger(__name__)
 
 import re
 import cgi
+import gzip
+import shutil
 import threading
 
 from os import fstat
 from mmap import mmap
 from inspect import isclass
 from collections import namedtuple
+from tempfile import TemporaryFile
 
 from twisted.web import static
 from twisted.web.server import NOT_DONE_YET, Request
@@ -150,15 +153,35 @@ def _set_response_headers(request, headers):
 
 def _reconstruct_url(request):
     # HTTP "Hosts" header only supports ascii
-    server_name = request.getRequestHostname().decode('ascii')
-    server_port = request.getHost().port
-    if (bool(request.isSecure()), server_port) not in [(True, 443), (False, 80)]:
+
+    server_name = request.getHeader(b"x-forwarded-host")
+    server_port = request.getHeader(b"x-forwarded-port")
+    if server_port is not None:
+        try:
+            server_port = int(server_port)
+        except Exception as e:
+            logger.debug("Ignoring exception: %r for value %r", e, server_port)
+            server_port = None
+
+    is_secure = request.getHeader(b"x-forwarded-proto")
+    if is_secure is not None:
+        is_secure = is_secure == 'https'
+
+    if server_name is None:
+        server_name = request.getRequestHostname().decode('ascii')
+    if server_port is None:
+        server_port = request.getHost().port
+    if is_secure is None:
+        is_secure = bool(request.isSecure())
+
+    if (is_secure, server_port) not in ((True, 443), (False, 80)):
         server_name = '%s:%d' % (server_name, server_port)
 
-    if request.isSecure():
+    if is_secure:
         url_scheme = 'https'
     else:
         url_scheme = 'http'
+
     uri = _decode_path(request.uri)
     return ''.join([url_scheme, "://", server_name, uri])
 
@@ -318,13 +341,16 @@ class TwistedHttpTransport(HttpBase):
 
         for fi in ctx.transport.file_info:
             assert isinstance(fi, _FileInfo)
-            data = request.args.get(fi.field_name, None)
-            if data is not None and fi.file_name is not None:
-                ctx.in_body_doc[fi.field_name] = \
-                    [File.Value(
-                        name=fi.file_name,
-                        type=fi.file_type,
-                        data=fi.data)]
+            if fi.file_name is None:
+                continue
+
+            l = ctx.in_body_doc.get(fi.field_name, None)
+            if l is None:
+                l = ctx.in_body_doc[fi.field_name] = []
+
+            l.append(
+                File.Value(name=fi.file_name, type=fi.file_type, data=fi.data)
+            )
 
         # this is a huge hack because twisted seems to take the slashes in urls
         # too seriously.
@@ -352,7 +378,7 @@ class TwistedHttpTransport(HttpBase):
             ctx.in_body_doc[k] = val
 
         r = {}
-        for k,v in ctx.in_body_doc.items():
+        for k, v in ctx.in_body_doc.items():
             l = []
             for v2 in v:
                 if isinstance(v2, string_types):
@@ -387,8 +413,18 @@ def _get_file_info(ctx):
     if content_type is None:
         return retval
 
+    content = request.content
+
+    content_encoding = headers.get('content-encoding', None)
+    if content_encoding == b'gzip':
+        request.content.seek(0)
+        content = TemporaryFile()
+        with gzip.GzipFile(fileobj=request.content) as ifstr:
+            shutil.copyfileobj(ifstr, content)
+        content.seek(0)
+
     img = cgi.FieldStorage(
-        fp=request.content,
+        fp=content,
         headers=ctx.in_header_doc,
         environ={
             'REQUEST_METHOD': request.method,
@@ -569,6 +605,10 @@ class TwistedWebResource(Resource):
         return retval
 
     def __handle_wsdl_request(self, request):
+        # disabled for performance reasons.
+        # logger.debug("WSDL request headers: %r",
+        #                       list(request.requestHeaders.getAllRawHeaders()))
+
         ctx = TwistedHttpMethodContext(self.http_transport, request,
                                                       "text/xml; charset=utf-8")
         url = _reconstruct_url(request)

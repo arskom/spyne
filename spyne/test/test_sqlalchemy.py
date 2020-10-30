@@ -145,6 +145,42 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.metadata.bind = self.engine
         logging.info('Testing against sqlalchemy-%s', sqlalchemy.__version__)
 
+    def test_obj_json_dirty(self):
+        fn = inspect.stack()[0][3]
+
+        class SomeClass(ComplexModel):
+            s = Unicode
+            d = Double
+
+        class SomeClass1(TableModel):
+            __tablename__ = "%s_%d" % (fn, 1)
+            _type_info = [
+                ('i', Integer32(pk=True)),
+                ('a', SomeClass.store_as('jsonb')),
+            ]
+
+        self.metadata.create_all()
+
+        sc1 = SomeClass1(i=5, a=SomeClass(s="s", d=42.0))
+        self.session.add(sc1)
+        self.session.commit()
+
+        from sqlalchemy.orm.attributes import flag_modified
+
+        # TODO: maybe do the flag_modified() on setitem?
+        sc1.a.s = "ss"
+        flag_modified(sc1, 'a')
+
+        assert sc1 in self.session.dirty
+
+        self.session.commit()
+        assert sc1.a.s == "ss"
+
+        # not implemented
+        #sc1.a[0].s = "sss"
+        #flag_modified(sc1.a[0], 's')
+        #assert sc1.a[0] in self.session.dirty
+
     def test_schema(self):
         class SomeClass(TableModel):
             __tablename__ = 'some_class'

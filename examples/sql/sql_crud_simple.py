@@ -34,17 +34,17 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
+from spyne import Application, rpc, Mandatory as M, Unicode, Array, Iterable, \
+    TTableModel, Service, ResourceNotFoundError, UnsignedInteger32
+
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.yaml import YamlDocument
-from spyne import Application, rpc, Mandatory as M, Unicode, UnsignedInteger32, \
-    Array, Iterable, TTableModel, Service
 
 from spyne.util import memoize
 
 from spyne.server.wsgi import WsgiApplication
 
 from sqlalchemy import create_engine
-from sqlalchemy import MetaData
 from sqlalchemy.orm import sessionmaker
 
 
@@ -79,7 +79,7 @@ class User(TableModel):
 @memoize
 def TCrudService(T, T_name):
     class CrudService(Service):
-        @rpc(Mandatory.UnsignedInteger32, _returns=T)
+        @rpc(M(UnsignedInteger32, _returns=T))
         def get(ctx, obj_id):
             return ctx.udc.session.query(T).filter_by(id=obj_id).one()
 
@@ -98,7 +98,7 @@ def TCrudService(T, T_name):
 
             return obj.id
 
-        @rpc(Mandatory.UnsignedInteger32)
+        @rpc(M(UnsignedInteger32))
         def del_(ctx, obj_id):
             count = ctx.udc.session.query(T).filter_by(id=obj_id).count()
             if count == 0:
@@ -121,17 +121,24 @@ class UserDefinedContext(object):
 def _on_method_call(ctx):
     ctx.udc = UserDefinedContext()
 
+
 def _on_method_return_object(ctx):
     ctx.udc.session.commit()
+
 
 def _on_method_context_closed(ctx):
     if ctx.udc is not None:
         ctx.udc.session.close()
 
-application = Application([TCrudService(User, 'user')],
-                                    tns='spyne.examples.sql_crud',
-                                    in_protocol=HttpRpc(validator='soft'),
-                                    out_protocol=YamlDocument())
+
+user_service = TCrudService(User, 'user')
+application = Application(
+    [user_service],
+    tns='spyne.examples.sql_crud',
+    in_protocol=HttpRpc(validator='soft'),
+    out_protocol=YamlDocument()
+)
+
 
 application.event_manager.add_listener('method_call', _on_method_call)
 application.event_manager.add_listener('method_return_object',

@@ -35,6 +35,40 @@ LTREE_PATTERN = r"\w+(\.\w+)*"
 
 # Actual ltree max size is 65536 but it's advised to keep it under 2048.
 LTREE_OPTIMAL_SIZE = 2048
+LTREE_MAXIMUM_SIZE = 65536
+
+
+def _gen_mime_type_pattern(strict, with_params):
+    ows = "[ \\t]*"  # Optional WhiteSpace
+    token = "[0-9A-Za-z!#$%&'*+.^_`|~-]+"
+    quotedString = "\"(?:[^\"\\\\]|\\.)*\""
+    if strict:
+        main_type = "(" \
+                "application|audio|font|example|image|message|model|multipart" \
+                "|text|video|x-(?:" + token + ")" \
+            ")"
+
+    else:
+        main_type = token
+
+    param = token + "=" + "(?:" + token + "|" + quotedString + ");?" + ows
+    params = ";" + ows + param + "(" + param + ")*"
+
+    if not with_params:
+        return main_type + "/" + "(" + token + ")"
+    else:
+        return main_type + "/" + "(" + token + ")" + params
+
+
+MIME_TYPE_PATTERN_STRICT = \
+    _gen_mime_type_pattern(strict=True, with_params=False)
+MIME_TYPE_PATTERN_PERMISSIVE = \
+    _gen_mime_type_pattern(strict=False, with_params=False)
+
+MEDIA_TYPE_PATTERN_STRICT = \
+    _gen_mime_type_pattern(strict=True, with_params=True)
+MEDIA_TYPE_PATTERN_PERMISSIVE = \
+    _gen_mime_type_pattern(strict=False, with_params=True)
 
 
 class Unicode(SimpleModel):
@@ -214,6 +248,51 @@ class Ltree(Unicode(LTREE_OPTIMAL_SIZE, unicode_pattern=LTREE_PATTERN)):
 
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'ltreeString'
+
+
+class LtreeLarge(Unicode(LTREE_MAXIMUM_SIZE, unicode_pattern=LTREE_PATTERN)):
+    """A special kind of String type designed to hold the Ltree type from
+    Postgresql."""
+
+    __namespace__ = 'http://spyne.io/schema'
+    __type_name__ = 'largeLtreeString'
+
+
+class MimeTypeStrict(Unicode(unicode_pattern=MIME_TYPE_PATTERN_STRICT)):
+    """A special kind of String type designed to hold a mime type as defined
+    by IANA."""
+
+    __namespace__ = 'http://spyne.io/schema'
+    __type_name__ = 'strictMimeTypeString'
+
+
+class MimeType(Unicode(unicode_pattern=MIME_TYPE_PATTERN_PERMISSIVE)):
+    """A special kind of String type designed to hold a forward-compatible
+    mime type that can have any string as main type."""
+
+    __namespace__ = 'http://spyne.io/schema'
+    __type_name__ = 'mimeTypeString'
+
+
+class MediaTypeStrict(Unicode(unicode_pattern=MEDIA_TYPE_PATTERN_STRICT)):
+    """A special kind of String type designed to hold a mime type as defined
+    by IANA followed by arbitrary parameters.
+
+    See: https://tools.ietf.org/html/rfc7231#section-3.1.1.1"""
+
+    __namespace__ = 'http://spyne.io/schema'
+    __type_name__ = 'strictMediaTypeString'
+
+
+class MediaType(Unicode(unicode_pattern=MEDIA_TYPE_PATTERN_PERMISSIVE)):
+    """A special kind of String type designed to hold a forward-compatible
+    media type that can have any string as main type. A media type is
+    essentially a mime type plus parameters.
+
+    See: https://tools.ietf.org/html/rfc7231#section-3.1.1.1"""
+
+    __namespace__ = 'http://spyne.io/schema'
+    __type_name__ = 'mediaTypeString'
 
 
 if not six.PY2:

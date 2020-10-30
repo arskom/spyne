@@ -39,30 +39,19 @@ from sqlalchemy import MetaData
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
-from spyne.application import Application
-from spyne.decorator import rpc
-from spyne.error import ResourceNotFoundError
-from spyne.protocol.soap import Soap11
-from spyne.model.primitive import Mandatory
-from spyne.model.primitive import Unicode
-from spyne.error import InternalError
-from spyne.model.fault import Fault
-from spyne.model.complex import Array
-from spyne.model.complex import Iterable
-from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import ComplexModelMeta
-from spyne.model.primitive import UnsignedInteger32
+from spyne import Application, rpc, ResourceNotFoundError, M, \
+    Unicode, InternalError, Fault, Array, Iterable, UnsignedInteger32, \
+    Service, TTableModel
+
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import Service
+
+from spyne.protocol.soap import Soap11
 
 
 db = create_engine('sqlite:///:memory:')
 Session = sessionmaker(bind=db)
-
-# This is what calling TTableModel does. This is here for academic purposes.
-class TableModel(ComplexModelBase):
-    __metaclass__ = ComplexModelMeta
-    __metadata__ = MetaData(bind=db)
+TableModel = TTableModel()
+TableModel.Attributes.sqla_metadata.bind = db
 
 
 class Permission(TableModel):
@@ -88,7 +77,7 @@ class User(TableModel):
 
 
 class UserManagerService(Service):
-    @rpc(Mandatory.UnsignedInteger32, _returns=User)
+    @rpc(M(UnsignedInteger32), _returns=User)
     def get_user(ctx, user_id):
         return ctx.udc.session.query(User).filter_by(id=user_id).one()
 
@@ -113,7 +102,7 @@ class UserManagerService(Service):
 
         return user.id
 
-    @rpc(Mandatory.UnsignedInteger32)
+    @rpc(M(UnsignedInteger32))
     def del_user(ctx, user_id):
         count = ctx.udc.session.query(User).filter_by(id=user_id).count()
         if count == 0:
