@@ -148,7 +148,7 @@ class MessagePackDocument(HierDictDocument):
         """
 
         mrs, = ctx.in_body_doc.keys()
-        if not six.PY2:
+        if not six.PY2 and isinstance(mrs, bytes):
             mrs = mrs.decode('utf8')
 
         return '{%s}%s' % (self.app.interface.get_tns(), mrs)
