@@ -204,9 +204,11 @@ class Decimal(SimpleModel):
 
 
 class Double(Decimal):
-    """This is serialized as the python ``float``. So this type comes with its
-    gotchas. Unless you really know what you're doing, you should use a
-    :class:`Decimal` with a pre-defined number of integer and decimal digits.
+    """As this type is serialized as the python ``float`` type, it comes with
+    its gotchas. Unless you know what you're doing, you should use a
+    :class:`Decimal` with a pre-defined number of integer and decimal digits
+    because the string representation of a floating-point number translates
+    better to or from the Decimal type.
 
     .. NOTE::
         This class is not compatible with :class:`spyne.model.Decimal`. You can
