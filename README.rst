@@ -135,6 +135,8 @@ mechanism was not implemented with Spyne's requirements in mind.
 Getting Support
 ===============
 
+Official support channels are as follows:
+
 - The official mailing list for both users and developers alike can be found at:
   http://lists.spyne.io/listinfo/people.
 
@@ -143,8 +145,6 @@ Getting Support
 
 - You can also use the `forum <https://github.com/arskom/spyne/discussions>`_ on
   the project's github page.
-
-
 
 Please don't use the issue tracker for asking questions. It's a database that
 holds the most important information for the project, so we must avoid
