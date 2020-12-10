@@ -135,11 +135,16 @@ mechanism was not implemented with Spyne's requirements in mind.
 Getting Support
 ===============
 
-The official mailing list for both users and developers alike can be found at:
+- The official mailing list for both users and developers alike can be found at:
 http://lists.spyne.io/listinfo/people.
 
-You can also use the 'spyne' tag to ask questions on
+- You can use the 'spyne' tag to ask questions on
 `Stack Overflow <https://stackoverflow.com/questions/tagged/spyne>`_.
+
+- You can also use the `forum <https://github.com/arskom/spyne/discussions>`_ on
+the project's github page.
+
+
 
 Please don't use the issue tracker for asking questions. It's a database that
 holds the most important information for the project, so we must avoid
