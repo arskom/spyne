@@ -136,13 +136,13 @@ Getting Support
 ===============
 
 - The official mailing list for both users and developers alike can be found at:
-http://lists.spyne.io/listinfo/people.
+  http://lists.spyne.io/listinfo/people.
 
 - You can use the 'spyne' tag to ask questions on
-`Stack Overflow <https://stackoverflow.com/questions/tagged/spyne>`_.
+  `Stack Overflow <https://stackoverflow.com/questions/tagged/spyne>`_.
 
 - You can also use the `forum <https://github.com/arskom/spyne/discussions>`_ on
-the project's github page.
+  the project's github page.
 
 
 
