@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #encoding: utf8
 #
 # Copyright © Burak Arslan <burak at arskom dot com dot tr>,
@@ -28,6 +28,8 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
+# TODO: python3 port
 
 from suds import WebFault
 from suds.client import Client

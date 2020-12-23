@@ -34,6 +34,8 @@ import random
 import sys
 import base64
 
+from pprint import pformat
+
 from spyne.util.six.moves.http_cookies import SimpleCookie
 
 # bcrypt seems to be among the latest consensus around cryptograpic circles on
@@ -46,16 +48,12 @@ except ImportError:
     print('easy_install --user py-bcrypt to get it.')
     raise
 
-from spyne.application import Application
-from spyne.decorator import rpc
-from spyne.error import ResourceNotFoundError
-from spyne.model.complex import ComplexModel
-from spyne.model.fault import Fault
-from spyne.model.primitive import Mandatory
-from spyne.model.primitive import String
+from spyne import Unicode, Application, rpc, Service
+from spyne import M, ComplexModel, Fault, String
+from spyne import ResourceNotFoundError
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
-from spyne.service import Service
+
 
 class PublicKeyError(Fault):
     __namespace__ = 'spyne.examples.authentication'
@@ -126,33 +124,48 @@ preferences_db = SpyneDict({
 })
 
 
+class Encoding:
+    SESSION_ID = 'ascii'
+    USER_NAME = PASSWORD = CREDENTIALS = 'utf8'
+
+
 class UserService(Service):
     __tns__ = 'spyne.examples.authentication'
 
-    @rpc(Mandatory.String, Mandatory.String, _returns=None,
-                                                    _throws=AuthenticationError)
+    @rpc(M(Unicode), M(Unicode),  _throws=AuthenticationError)
     def authenticate(ctx, user_name, password):
+        ENC_C = Encoding.CREDENTIALS
+        ENC_SID = Encoding.SESSION_ID
+
         password_hash = user_db.get(user_name, None)
 
         if password_hash is None:
            raise AuthenticationError(user_name)
 
-        if bcrypt.hashpw(password, password_hash) != password_hash:
+        password_b = password.encode(ENC_C)
+        if bcrypt.hashpw(password_b, password_hash) != password_hash:
            raise AuthenticationError(user_name)
 
-        session_id = (user_name, '%x' % random.randint(1<<128, (1<<132)-1))
-        session_db.add(session_id)
+        session_id = '%x' % (random.randint(1<<128, (1<<132)-1))
+        session_key = (
+            user_name.encode(ENC_C),
+            session_id.encode(ENC_SID),
+        )
+        session_db.add(session_key)
 
         cookie = SimpleCookie()
-        cookie["session-id"] = base64.urlsafe_b64encode(str(session_id[0]) + "\0" + str(session_id[1]))
+        cookie["session-id"] = \
+            base64.urlsafe_b64encode(b"\0".join(session_key)) \
+                .decode('ascii')  # find out how to do urlsafe_b64encodestring
+
         cookie["session-id"]["max-age"] = 3600
         header_name, header_value = cookie.output().split(":", 1)
         ctx.transport.resp_headers[header_name] = header_value.strip()
-        from pprint import pprint
-        pprint(ctx.transport.resp_headers)
+
+        logging.debug("Response headers: %s", pformat(ctx.transport.resp_headers))
 
 
-    @rpc(Mandatory.String, _throws=PublicKeyError, _returns=Preferences)
+    @rpc(M(String), _throws=PublicKeyError, _returns=Preferences)
     def get_preferences(ctx, user_name):
         # Only allow access to the users own preferences.
         if user_name != ctx.udc:
@@ -162,22 +175,32 @@ class UserService(Service):
 
         return retval
 
+
 def _on_method_call(ctx):
     if ctx.descriptor.name == "authenticate":
         # No checking of session cookie for call to authenticate
         return
 
+    logging.debug("Request headers: %s", pformat(ctx.transport.req_env))
+
     cookie = SimpleCookie()
     http_cookie = ctx.transport.req_env.get("HTTP_COOKIE")
     if http_cookie:
         cookie.load(http_cookie)
+
     if "session-id" not in cookie:
         raise UnauthenticatedError()
+
     session_cookie = cookie["session-id"].value
-    session_id = tuple(base64.urlsafe_b64decode(session_cookie).split("\0", 1))
+
+    user_name, session_id = base64.urlsafe_b64decode(session_cookie) \
+        .split(b"\0", 1)
+
+    session_id = tuple(base64.urlsafe_b64decode(session_cookie).split(b"\0", 1))
     if not session_id in session_db:
         raise AuthenticationError(session_id[0])
-    ctx.udc = session_id[0]     # user name
+
+    ctx.udc = session_id[0].decode(Encoding.USER_NAME)
 
 
 UserService.event_manager.add_listener('method_call', _on_method_call)
