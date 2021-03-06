@@ -21,7 +21,7 @@ from spyne.protocol.xml import XmlDocument
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import Service
 from spyne.test.protocol.test_soap11 import TestService, TestSingle, \
-    TestMultiple, MultipleReturnService
+    TestReturn, MultipleReturnService
 from spyne.util.six import BytesIO
 
 
@@ -77,7 +77,7 @@ class TestSingleSoap12(TestSingle):
         self.wsdl_doc = etree.fromstring(self.wsdl_str)
 
 
-class TestMultipleSoap12(TestMultiple):
+class TestMultipleSoap12(TestReturn):
     def setUp(self):
         self.app = Application([MultipleReturnService], 'tns', in_protocol=Soap12(), out_protocol=Soap12())
         self.app.transport = 'none'

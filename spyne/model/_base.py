@@ -43,6 +43,26 @@ from spyne.util.odict import odict
 from spyne.const.xml import DEFAULT_NS
 
 
+class Ignored(object):
+    """When returned as a real rpc response, this is equivalent to returning
+    None. However, direct method invocations (and NullServer) get the return
+    value. It can be used for tests and from hooks."""
+
+    __slots__ = ('args', 'kwargs')
+
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def __eq__(self, other):
+        return      isinstance(other, Ignored) \
+                    and self.args == other.args and self.kwargs == other.kwargs
+
+    def __ne__(self, other):
+        return not (isinstance(other, Ignored) \
+                    and self.args == other.args and self.kwargs == other.kwargs)
+
+
 def _decode_pa_dict(d):
     """Decodes dict passed to prot_attrs.
 

@@ -344,7 +344,6 @@ class TestNativeTypes(unittest.TestCase):
 
 
 class TestBodyStyle(unittest.TestCase):
-
     def test_soap_bare_empty_output(self):
         class SomeService(Service):
             @rpc(String, _body_style='bare')

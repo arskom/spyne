@@ -46,7 +46,7 @@ import lxml.html
 
 from lxml.builder import E
 
-from spyne import MethodContext
+from spyne import MethodContext, Ignored
 from spyne.service import Service
 from spyne.server import ServerBase
 from spyne.application import Application
@@ -1103,6 +1103,21 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             print(self.loads(d))
             print(v)
             assert self.loads(s) == self.loads(d)
+
+        def test_ignored(self):
+            class SomeService(Service):
+                @srpc(Unicode, _returns=Unicode)
+                def some_call(p):
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
+                    return Ignored("aaa", b=1, c=2)
+
+            ctx = _dry_me([SomeService], {"some_call": ["some string"]})
+
+            s = self.loads(b''.join(ctx.out_string))
+            d = {"some_callResponse": {}}
+            assert s == d
 
         def test_validation_frequency(self):
             class SomeService(Service):

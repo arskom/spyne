@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
-from spyne import EventManager
+from spyne import EventManager, Ignored
 from spyne.auxproc import process_contexts
 from spyne.model import Fault, PushBase
 from spyne.protocol import ProtocolBase
@@ -116,6 +116,14 @@ class ServerBase(object):
             self.app.process_request(ctx)
         else:
             raise ctx.in_error
+
+        if isinstance(ctx.out_object, (list, tuple)) \
+                    and len(ctx.out_object) > 0 \
+                    and isinstance(ctx.out_object[0], Ignored):
+            ctx.out_object = (None,)
+
+        elif isinstance(ctx.out_object, Ignored):
+            ctx.out_object = ()
 
     def convert_pull_to_push(self, ctx, gen):
         oobj, = ctx.out_object
