@@ -151,7 +151,8 @@ class _FunctionCall(object):
             else:
                 ctx.descriptor.aux.initialize_context(ctx, p_ctx, error=None)
 
-            # do logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
+            # do
+            # logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
             # to hide the following
             logger.warning("%s start context %s" % (_small_header,
                                                                  _small_footer))
