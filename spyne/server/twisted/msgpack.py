@@ -365,7 +365,13 @@ class TwistedMessagePackProtocol(Protocol):
         if isinstance(data, dict):
             data = list(data.values())
 
-        out_object = (error, msgpack.packb(data),)
+        # tag debug responses with the one from the relevant request
+        tag = getattr(p_ctx.transport, 'tag', None)
+        if tag is None:
+            out_object = (error, msgpack.packb(data))
+        else:
+            out_object = (error, msgpack.packb(data), tag)
+
         if p_ctx.oob_ctx is not None:
             p_ctx.oob_ctx.d.callback(out_object)
             return
