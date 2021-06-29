@@ -85,6 +85,8 @@ class HierDictDocument(DictDocument):
             # assign raw result to its wrapper, result_message
             doc = ctx.in_body_doc
 
+            logger.debug("Request: %r", doc)
+
             class_name = self.get_class_name(body_class)
             if self.ignore_wrappers:
                 doc = doc.get(class_name, None)
@@ -150,7 +152,7 @@ class HierDictDocument(DictDocument):
 
         ctx.out_document = self._object_to_doc(out_type, out_instance, set()),
 
-        logger.debug("Retval: %r", ctx.out_document)
+        logger.debug("Response: %r", ctx.out_document)
         self.event_manager.fire_event('after_serialize', ctx)
 
     def validate(self, key, cls, inst):
@@ -459,7 +461,8 @@ class HierDictDocument(DictDocument):
                 if id(subinst) in tags:
                     continue
 
-            logger.debug("%s%r%r", "  " * len(tags), k, v)
+            logger.debug("%s%r type is %r", "  " * len(tags), k, v)
+
             val = self._object_to_doc(v, subinst, tags)
             min_o = subattr.min_occurs
 
