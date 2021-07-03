@@ -203,7 +203,14 @@ class TwistedMessagePackProtocol(Protocol):
         self._reset_idle_timer()
 
         for msg in self._buffer:
-            self.process_incoming_message(msg)
+            try:
+                self.process_incoming_message(msg)
+            except Exception as e:
+                # If you get this error, you are in serious trouble
+                # This needs to be fixed ASAP
+                logger.error(
+                           "Error %r while processing incoming data %r", e, msg)
+                raise
 
             if self.disconnecting:
                 return
