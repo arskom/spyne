@@ -24,6 +24,8 @@ This module is EXPERIMENTAL. You may not recognize the code here next time you
 look at it.
 """
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -45,10 +47,21 @@ STREAM_READ_BLOCK_SIZE = 0x4000
 SWAP_DATA_TO_FILE_THRESHOLD = 512 * 1024
 
 
-
 _OctalPatt = re.compile(r"\\[0-3][0-7][0-7]")
 _QuotePatt = re.compile(r"[\\].")
 _nulljoin = ''.join
+
+
+# this is twisted's _idnaBytes. it's not possible to import twisted at this
+# stage so here we are
+def _host_to_bytes(text):
+    try:
+        import idna
+    except ImportError:
+        return text.encode("idna")
+    else:
+        return idna.encode(text)
+
 
 def _unquote_cookie(str):
     """Handle double quotes and escaping in cookie values.
@@ -107,13 +120,13 @@ def _parse_cookie(cookie):
     The algorithm used is identical to that used by Django version 1.9.10.
     """
     cookiedict = {}
-    for chunk in cookie.split(str(';')):
-        if str('=') in chunk:
-            key, val = chunk.split(str('='), 1)
+    for chunk in cookie.split(b';'):
+        if b'=' in chunk:
+            key, val = chunk.split(b'=', 1)
         else:
             # Assume an empty name per
             # https://bugzilla.mozilla.org/show_bug.cgi?id=169091
-            key, val = str(''), chunk
+            key, val = b'', chunk
         key, val = key.strip(), val.strip()
         if key or val:
             # unquote using Python's algorithm.
@@ -222,15 +235,16 @@ class HttpRpc(SimpleDictDocument):
         ctx.in_document = ctx.transport.req
         ctx.transport.request_encoding = in_string_encoding
 
-    def decompose_incoming_envelope(self, ctx, message):
-        assert message == SimpleDictDocument.REQUEST
+    def decompose_incoming_envelope(self, ctx, message_type):
+        assert message_type == SimpleDictDocument.REQUEST
 
-        ctx.transport.itself.decompose_incoming_envelope(self, ctx, message)
+        ctx.transport.itself.decompose_incoming_envelope(
+                                                        self, ctx, message_type)
 
         if self.parse_cookie:
-            cookies = ctx.in_header_doc.get('cookie', None)
+            cookies = ctx.in_header_doc.get(b'cookie', None)
             if cookies is None:
-                cookies = ctx.in_header_doc.get('Cookie', None)
+                cookies = ctx.in_header_doc.get(b'Cookie', None)
 
             if cookies is not None:
                 for cookie_string in cookies:
@@ -368,8 +382,8 @@ class HttpRpc(SimpleDictDocument):
         return super(HttpRpc, self).integer_from_bytes(cls, string)
 
 
-_fragment_pattern_re = re.compile('<([A-Za-z0-9_]+)>')
-_full_pattern_re = re.compile('{([A-Za-z0-9_]+)}')
+_fragment_pattern_re = re.compile(br'<([A-Za-z0-9_]+)>')
+_full_pattern_re = re.compile(br'{([A-Za-z0-9_]+)}')
 
 
 class HttpPattern(object):
@@ -386,8 +400,8 @@ class HttpPattern(object):
 
         if pattern is None:
             return None
-        pattern = _fragment_pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
-        pattern = _full_pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
+        pattern = _fragment_pattern_re.sub(br'(?P<\1>[^/]*)', pattern)
+        pattern = _full_pattern_re.sub(br'(?P<\1>[^/]*)', pattern)
         return re.compile(pattern)
 
     @staticmethod
@@ -396,8 +410,8 @@ class HttpPattern(object):
 
         if pattern is None:
             return None
-        pattern = _fragment_pattern_re.sub(r'(?P<\1>[^\.]*)', pattern)
-        pattern = _full_pattern_re.sub(r'(?P<\1>.*)', pattern)
+        pattern = _fragment_pattern_re.sub(br'(?P<\1>[^\.]*)', pattern)
+        pattern = _full_pattern_re.sub(br'(?P<\1>.*)', pattern)
         return re.compile(pattern)
 
     @staticmethod
@@ -406,11 +420,19 @@ class HttpPattern(object):
 
         if pattern is None:
             return None
-        pattern = _fragment_pattern_re.sub(r'(?P<\1>.*)', pattern)
-        pattern = _full_pattern_re.sub(r'(?P<\1>.*)', pattern)
+        pattern = _fragment_pattern_re.sub(br'(?P<\1>.*)', pattern)
+        pattern = _full_pattern_re.sub(br'(?P<\1>.*)', pattern)
         return re.compile(pattern)
 
     def __init__(self, address=None, verb=None, host=None, endpoint=None):
+        host = _host_to_bytes(host) if isinstance(host, str) else host
+
+        if not six.PY2:
+            address = address.encode("utf8") \
+                                        if isinstance(address, str) else address
+            verb = verb.encode("ascii") if isinstance(verb, str) else verb
+
+
         self.address = address
         self.host = host
         self.verb = verb
@@ -429,8 +451,11 @@ class HttpPattern(object):
 
     @address.setter
     def address(self, what):
-        if what is not None and not what.startswith('/'):
-            what = '/' + what
+        if what is not None:
+            if not six.PY2:
+                what = what.encode("utf8") if isinstance(what, str) else what
+            if not what.startswith(b'/'):
+                what = b'/' + what
 
         self.__address = what
         self.address_re = self._compile_url_pattern(what)

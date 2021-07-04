@@ -125,7 +125,10 @@ class ByteArray(SimpleModel):
 
     @classmethod
     def to_urlsafe_base64(cls, value):
-        return urlsafe_b64encode(_bytes_join(value))
+        if isinstance(value, (list, tuple)):
+            return urlsafe_b64encode(_bytes_join(value))
+        else:
+            return urlsafe_b64encode(value)
 
     @classmethod
     def from_urlsafe_base64(cls, value):
@@ -133,7 +136,10 @@ class ByteArray(SimpleModel):
         if isinstance(value, six.text_type):
             value = value.encode('utf8')
         try:
-            return (urlsafe_b64decode(_bytes_join(value)),)
+            if isinstance(value, (list, tuple)):
+                return (urlsafe_b64decode(_bytes_join(value)),)
+            else:
+                return (urlsafe_b64decode(value),)
 
         except TypeError as e:
             logger.exception(e)

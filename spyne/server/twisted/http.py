@@ -70,7 +70,7 @@ from spyne.application import logger_server
 from spyne.application import get_fault_string_from_exception
 
 from spyne.util import six
-from spyne.error import InternalError
+from spyne.error import InternalError, ValidationError
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
@@ -192,8 +192,16 @@ class _Transformer(object):
 
     def get(self, key, default):
         key = key.lower()
-        if key.startswith((b'http_', b'http-')):
-            key = key[5:]
+        if six.PY2:
+            if key.startswith((b'http_', b'http-')):
+                key = key[5:]
+        else:
+            if isinstance(key, bytes):
+                if key.startswith((b'http_', b'http-')):
+                    key = key[5:]
+            else:
+                if key.startswith(('http_', 'http-')):
+                    key = key[5:]
 
         retval = self.req.getHeader(key)
         if retval is None:
@@ -243,9 +251,9 @@ class TwistedHttpMethodContext(HttpMethodContext):
 
 def _decode_path(fragment):
     if six.PY2:
-        return unquote(fragment).decode('utf8')
+        return unquote(fragment)
 
-    return unquote_to_bytes(fragment).decode('utf8')
+    return unquote_to_bytes(fragment)
 
 
 class TwistedHttpTransport(HttpBase):
@@ -366,8 +374,9 @@ class TwistedHttpTransport(HttpBase):
 
         if ctx.method_request_string is None: # no pattern match
             ctx.method_request_string = u'{%s}%s' % (
-                                 self.app.interface.get_tns(),
-                                 _decode_path(request.path.rsplit(b'/', 1)[-1]))
+                self.app.interface.get_tns(),
+                _decode_path(request.path.rsplit(b'/', 1)[-1]).decode("utf8"),
+            )
 
         logger.debug(u"%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
@@ -378,14 +387,33 @@ class TwistedHttpTransport(HttpBase):
             ctx.in_body_doc[k] = val
 
         r = {}
-        for k, v in ctx.in_body_doc.items():
-            l = []
-            for v2 in v:
-                if isinstance(v2, string_types):
-                    l.append(unquote(v2))
+        if six.PY2:
+            for k, v in ctx.in_body_doc.items():
+                l = []
+                for v2 in v:
+                    if isinstance(v2, string_types):
+                        l.append(unquote(v2))
+                    else:
+                        l.append(v2)
+                r[k] = l
+        else:
+            for k, v in ctx.in_body_doc.items():
+                l = []
+                for v2 in v:
+                    if isinstance(v2, str):
+                        l.append(unquote(v2))
+                    elif isinstance(v2, bytes):
+                        l.append(unquote(v2.decode('utf8')))
+                    else:
+                        l.append(v2)
+
+                if isinstance(k, str):
+                    r[k] = l
+                elif isinstance(k, bytes):
+                    r[k.decode('utf8')] = l
                 else:
-                    l.append(v2)
-            r[k] = l
+                    raise ValidationError(k)
+
         ctx.in_body_doc = r
 
         # This is consistent with what server.wsgi does.
@@ -393,6 +421,8 @@ class TwistedHttpTransport(HttpBase):
             for k, v in ctx.in_body_doc.items():
                 if v == ['']:
                     ctx.in_body_doc[k] = [None]
+
+        logger.debug("%r", ctx.in_body_doc)
 
 
 FIELD_NAME_RE = re.compile(r'name="([^"]+)"')
@@ -471,7 +501,7 @@ def get_twisted_child_with_default(res, path, request):
     if res.prepath is None:
         request.realprepath = b'/' + b'/'.join(request.prepath)
     else:
-        if not res.prepath.startswith('/'):
+        if not res.prepath.startswith(b'/'):
             request.realprepath = b'/' + res.prepath
         else:
             request.realprepath = res.prepath
@@ -516,6 +546,7 @@ class TwistedWebResource(Resource):
 
     def handle_rpc_error(self, p_ctx, others, error, request):
         logger.error(error)
+
         resp_code = p_ctx.transport.resp_code
         # If user code set its own response code, don't touch it.
         if resp_code is None:

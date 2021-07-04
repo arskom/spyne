@@ -27,9 +27,14 @@ from time import strftime
 from time import gmtime
 from collections import deque
 
+from spyne.util import six
+
+if six.PY2:
+    COOKIE_MAX_AGE = sys.maxint
+else:
+    COOKIE_MAX_AGE = sys.maxsize
+
 # This is a modified version of twisted's addCookie
-
-
 def generate_cookie(k, v, max_age=None, domain=None, path=None,
                                        comment=None, secure=False):
     """Generate a HTTP response cookie. No sanity check whatsoever is done,
@@ -44,11 +49,14 @@ def generate_cookie(k, v, max_age=None, domain=None, path=None,
     :param secure: If true, appends 'Secure' to the cookie string.
     """
 
+    if not six.PY2 and isinstance(v, bytes):
+        v = v.decode("ascii")
+
     retval = deque(['%s=%s' % (k, v)])
 
     if max_age is not None:
         retval.append("Max-Age=%d" % max_age)
-        assert time.time() < sys.maxint
+        assert time.time() < COOKIE_MAX_AGE
 
         expires = time.time() + max_age
         expires = min(2<<30, expires) - 1  # FIXME

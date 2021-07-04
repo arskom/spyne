@@ -248,7 +248,7 @@ class HttpBase(ServerBase):
         self._http_patterns = set()
 
         for k, v in self.app.interface.service_method_map.items():
-            # p_ stands for primary
+            # p_ stands for primary, ie the non-aux method
             p_method_descriptor = v[0]
             for patt in p_method_descriptor.patterns:
                 if isinstance(patt, HttpPattern):
@@ -260,7 +260,7 @@ class HttpBase(ServerBase):
         self._http_patterns = list(reversed(sorted(self._http_patterns,
                                            key=lambda x: (x.address, x.host) )))
 
-    def match_pattern(self, ctx, method='', path='', host=''):
+    def match_pattern(self, ctx, method=b'', path=b'', host=b''):
         """Sets ctx.method_request_string if there's a match. It's O(n) which
         means you should keep your number of patterns as low as possible.
 
@@ -271,8 +271,8 @@ class HttpBase(ServerBase):
             there)
         """
 
-        if not path.startswith('/'):
-            path = '/{}'.format(path)
+        if not path.startswith(b'/'):
+            path = b'/%s' % (path,)
 
         params = defaultdict(list)
         for patt in self._http_patterns:
@@ -299,7 +299,7 @@ class HttpBase(ServerBase):
                     params[k].append(v)
 
             if patt.address is None:
-                if path.split('/')[-1] != patt.endpoint.name:
+                if path.split(b'/')[-1] != patt.endpoint.name:
                     continue
 
             else:
