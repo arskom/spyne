@@ -339,6 +339,8 @@ class PGFileJson(PGObjectJson):
             retval.data = [b'']
 
             if not os.access(path, os.R_OK):
+                import traceback
+                traceback.print_stack()
                 logger.error("File '%s' is not readable", path)
                 return retval
 
