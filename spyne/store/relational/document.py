@@ -339,7 +339,7 @@ class PGFileJson(PGObjectJson):
             retval.data = [b'']
 
             if not os.access(path, os.R_OK):
-                logger.error("File %r is not readable", path)
+                logger.error("File '%s' is not readable", path)
                 return retval
 
             h = retval.handle = SeekableFileProxy(open(path, 'rb'))
