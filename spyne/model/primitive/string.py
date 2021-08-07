@@ -38,6 +38,8 @@ LTREE_OPTIMAL_SIZE = 2048
 LTREE_MAXIMUM_SIZE = 65536
 
 
+'[0-9A-Za-z!#$%&\'*+.^_`|~-]+/([0-9A-Za-z!#$%&\'*+.^_`|~-]+);[ \\t]*[0-9A-Za-z!#$%&\'*+.^_`|~-]+=(?:[0-9A-Za-z!#$%&\'*+.^_`|~-]+|"(?:[^"\\\\]|\\.)*");?[ \\t]*([0-9A-Za-z!#$%&\'*+.^_`|~-]+=(?:[0-9A-Za-z!#$%&\'*+.^_`|~-]+|"(?:[^"\\\\]|\\.)*");?[ \\t]*)*'
+
 def _gen_mime_type_pattern(strict, with_params):
     ows = "[ \\t]*"  # Optional WhiteSpace
     token = "[0-9A-Za-z!#$%&'*+.^_`|~-]+"
@@ -51,13 +53,16 @@ def _gen_mime_type_pattern(strict, with_params):
     else:
         main_type = token
 
-    param = token + "=" + "(?:" + token + "|" + quotedString + ");?" + ows
-    params = ";" + ows + param + "(" + param + ")*"
-
     if not with_params:
         return main_type + "/" + "(" + token + ")"
-    else:
-        return main_type + "/" + "(" + token + ")" + params
+
+    param = token + "=" + "(?:" + token + "|" + quotedString + ");?" + ows
+    params = \
+        "(" + ";" \
+             + "(" + ows + param + "(" + param + ")*" + ")?" \
+        + ")?"
+
+    return main_type + "/" + "(" + token + ")" + params
 
 
 MIME_TYPE_PATTERN_STRICT = \
