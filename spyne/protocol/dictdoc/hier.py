@@ -27,9 +27,10 @@ RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
 from mmap import mmap
 from collections import defaultdict
-from spyne.util.six.moves.collections_abc import Iterable as AbcIterable
 
 from spyne.util import six
+from spyne.util.six.moves.collections_abc import Iterable as AbcIterable
+
 from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
 

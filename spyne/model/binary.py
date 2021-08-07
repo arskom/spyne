@@ -108,6 +108,7 @@ class ByteArray(SimpleModel):
     @classmethod
     def to_base64(cls, value):
         if isinstance(value, (list, tuple)) and isinstance(value[0], mmap):
+            # TODO: be smarter about this
             return b64encode(value[0])
 
         if isinstance(value, (six.binary_type, memoryview, mmap)):
