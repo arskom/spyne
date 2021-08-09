@@ -138,10 +138,10 @@ class ByteArray(SimpleModel):
         except TypeError as e:
             logger.exception(e)
 
-            if len(value) > 100:
+            if len(value) < 100:
                 raise ValidationError(value)
             else:
-                raise ValidationError(value[:100] + "(...)")
+                raise ValidationError(value[:100] + b"(...)")
 
     @classmethod
     def to_hex(cls, value):

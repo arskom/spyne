@@ -90,6 +90,8 @@ if six.PY2:
         return joiner.join(val)
 else:
     def _bytes_join(val, joiner=b''):
+        if isinstance(val, six.binary_type):
+            return val
         return joiner.join(val)
 
 
