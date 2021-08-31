@@ -136,6 +136,9 @@ class HttpTransportContext(TransportContext):
             # So that deserialization is skipped.
             self.parent.out_string = []
 
+    def get_url(self):
+        raise NotImplementedError()
+
     def get_path(self):
         raise NotImplementedError()
 

@@ -184,6 +184,9 @@ class WsgiTransportContext(HttpTransportContext):
 
         self.headers = _get_http_headers(self.req_env)
 
+    def get_url(self):
+        return _reconstruct_url(self.req_env)
+
     def get_path(self):
         return self.req_env['PATH_INFO']
 
