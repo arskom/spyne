@@ -47,13 +47,13 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import mapper
 from sqlalchemy.ext.associationproxy import association_proxy
 
+# TODO: find the latest way of checking whether a class is already mapped
 try:
     from sqlalchemy.orm import mapperlib
     _mapper_registries = mapperlib._mapper_registries
 
 except ImportError:
     from sqlalchemy.orm import _mapper_registry as _mapper_registries
-    raise Exception("2")
 
 from spyne.store.relational.simple import PGLTree
 from spyne.store.relational.document import PGXml, PGObjectXml, PGObjectJson, \
