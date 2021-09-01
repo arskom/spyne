@@ -28,7 +28,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+
 from spyne.server.wsgi import WsgiApplication
 
 from apps import spyned
