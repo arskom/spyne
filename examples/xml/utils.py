@@ -31,6 +31,7 @@
 
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 import uuid
@@ -39,16 +40,10 @@ from datetime import datetime
 from pprint import pprint
 
 from lxml import etree
+from lxml.builder import E
 
-from spyne.model.primitive import Uuid
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import String
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import DateTime
-from spyne.model.complex import XmlData
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import XmlAttribute
+from spyne import AnyXml, Uuid, Unicode, String, Integer, Decimal, DateTime, \
+    XmlData, ComplexModel, XmlAttribute
 
 from spyne.util.xml import get_schema_documents
 from spyne.util.xml import get_object_as_xml
@@ -85,6 +80,7 @@ class ProductEdition(ComplexModel):
 
     id = XmlAttribute(Uuid)
     name = XmlData(Unicode)
+    addtl = XmlData(AnyXml)
 
 
 class Product(ComplexModel):
@@ -129,11 +125,14 @@ print(etree.tostring(doc, pretty_print=True, encoding='unicode'))
 print(get_xml_as_object(doc, Foo))
 print()
 
+# could be anything, really
+elt = E.tag(E.subtag("subdata"))
+
 # XmlData example.
 print("Product output (illustrates XmlData):")
 product = Product(
     id=uuid.uuid4(),
-    edition=ProductEdition(id=uuid.uuid4(), name='My edition')
+    edition=ProductEdition(id=uuid.uuid4(), name='My edition', addtl=elt)
 )
 
 print()

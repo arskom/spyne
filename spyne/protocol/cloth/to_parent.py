@@ -423,9 +423,12 @@ class ToParentMixin(OutProtocolBase):
             sub_name = self._gen_sub_name(cls, attr, k, use_ns)
 
             if issubclass(v, XmlData):
-                subvalstr = self.to_unicode(v.type, subvalue)
-                if subvalstr is not None:
-                    parent.write(subvalstr)
+                if issubclass(v.type, AnyXml):
+                    parent.write(subvalue)
+                else:
+                    subvalstr = self.to_unicode(v.type, subvalue)
+                    if subvalstr is not None:
+                        parent.write(subvalstr)
                 continue
 
             if subvalue is not None or attr.min_occurs > 0:
