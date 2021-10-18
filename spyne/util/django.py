@@ -57,11 +57,11 @@ email_re = re.compile(
     r"[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+"
     r"(\.[A-Za-z0-9!#-'\*\+\-/=\?\^_`\{-~]+)*@"
     # domain part is either a single symbol
-    r"(([a-zA-Z0-9]|"
+    r"("
     # or have at least two symbols
     # hyphen can't be at the beginning or end of domain part
     # domain should contain at least 2 parts, the last one is TLD
-    r"([a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])+)\.)+"
+    r"[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+"
     # TLD should contain only letters, at least 2
     r"[A-Za-z]{2,}", re.IGNORECASE)
 
