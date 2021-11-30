@@ -124,7 +124,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.idle_timer = None
         self.out_chunks = deque()
         self.inreq_queue = OrderedDict()
-        self.inactive_queue = list()
+        self.inactive_queue = deque()
         self.disconnecting = False  # FIXME: should we use this to raise an
                                     # invalid connection state exception ?
 
@@ -163,7 +163,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.idle_timer = None
         self.out_chunks = deque()
         self.inreq_queue = OrderedDict()
-        self.inactive_queue = list()
+        self.inactive_queue = deque()
         self.active_queue = dict()
         self.disconnecting = False  # FIXME: should we use this to raise an
                                     # invalid connection state exception ?
@@ -269,7 +269,7 @@ class TwistedMessagePackProtocol(Protocol):
 
         if self.max_in_queue_size == 0:
             while self.num_inactive_contexts > 0:
-                p_ctx, others = self.inactive_queue.pop()
+                p_ctx, others = self.inactive_queue.popleft()
                 self.active_queue[id(p_ctx)] = p_ctx
 
                 self.inreq_queue[id(p_ctx)] = None
@@ -278,7 +278,7 @@ class TwistedMessagePackProtocol(Protocol):
         else:
             while self.num_active_contexts < self.max_in_queue_size and \
                                                  self.num_inactive_contexts > 0:
-                p_ctx, others = self.inactive_queue.pop()
+                p_ctx, others = self.inactive_queue.popleft()
                 self.active_queue[id(p_ctx)] = p_ctx
 
                 self.inreq_queue[id(p_ctx)] = None
