@@ -48,7 +48,7 @@ def root_dict_to_etree(d):
 
     if isinstance(val, dict) or isinstance(val, odict):
         dict_to_etree(val, retval)
-    elif not isinstance(val, collections.Sized) or isinstance(val, six.string_types):
+    elif not isinstance(val, collections.abc.Sized) or isinstance(val, six.string_types):
         retval.text=str(val)
     else:
         for a in val:
@@ -74,7 +74,7 @@ def dict_to_etree(d, parent):
             child = etree.SubElement(parent, k)
             dict_to_etree(v, child)
 
-        elif not isinstance(v, collections.Sized):
+        elif not isinstance(v, collections.abc.Sized):
             etree.SubElement(parent, k).text = str(v)
 
         elif len(v) == 0:
