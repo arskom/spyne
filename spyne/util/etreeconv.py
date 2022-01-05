@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -21,12 +20,14 @@
 hierarchy to python dicts and vice versa.
 """
 
-import collections
-
-from spyne.util import six
+try:
+    from collections.abc import Sized
+except ImportError:  # Python 2
+    from collections import Sized
 
 from lxml import etree
 
+from spyne.util import six
 from spyne.util.odict import odict
 
 
@@ -48,8 +49,8 @@ def root_dict_to_etree(d):
 
     if isinstance(val, dict) or isinstance(val, odict):
         dict_to_etree(val, retval)
-    elif not isinstance(val, collections.abc.Sized) or isinstance(val, six.string_types):
-        retval.text=str(val)
+    elif not isinstance(val, Sized) or isinstance(val, six.string_types):
+        retval.text = str(val)
     else:
         for a in val:
             dict_to_etree(a, retval)
@@ -74,7 +75,7 @@ def dict_to_etree(d, parent):
             child = etree.SubElement(parent, k)
             dict_to_etree(v, child)
 
-        elif not isinstance(v, collections.abc.Sized):
+        elif not isinstance(v, Sized):
             etree.SubElement(parent, k).text = str(v)
 
         elif len(v) == 0:
@@ -82,11 +83,11 @@ def dict_to_etree(d, parent):
 
         else:
             for e in v:
-                child=etree.SubElement(parent, k)
+                child = etree.SubElement(parent, k)
                 if isinstance(e, dict) or isinstance(e, odict):
                     dict_to_etree(e, child)
                 else:
-                    child.text=str(e)
+                    child.text = str(e)
 
 
 def root_etree_to_dict(element, iterable=(list, list.append)):
