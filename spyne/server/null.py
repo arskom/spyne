@@ -29,7 +29,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from spyne import MethodContext, BODY_STYLE_BARE, ComplexModelBase, \
-    BODY_STYLE_EMPTY, BODY_STYLE_OUT_BARE, BODY_STYLE_EMPTY_OUT_BARE, Ignored
+    BODY_STYLE_EMPTY, Ignored
 
 from spyne.client import Factory
 from spyne.const.ansi_color import LIGHT_RED
