@@ -38,7 +38,7 @@ class Interface(object):
     :param app: A :class:`spyne.application.Application` instance.
     """
 
-    def __init__(self, app=None, import_base_namespaces=False):
+    def __init__(self, app=None, import_base_namespaces=False, element_form_default='qualified'):
         self.__ns_counter = 0
         self.__app = None
         self.url = None
@@ -48,6 +48,7 @@ class Interface(object):
         self.method_id_map = {}
         self.nsmap = {}
         self.prefmap = {}
+        self.element_form_default = element_form_default
         self.member_methods = deque()
         self.method_descriptor_id_to_key = {}
         self.service_attrs = defaultdict(dict)

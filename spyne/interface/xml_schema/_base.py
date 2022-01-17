@@ -246,7 +246,7 @@ class XmlSchema(InterfaceDocumentBase):
                                                      nsmap=self.interface.nsmap)
 
             schema.set("targetNamespace", self.interface.nsmap[pref])
-            schema.set("elementFormDefault", "qualified")
+            schema.set("elementFormDefault", self.interface.element_form_default)
 
             self.schema_dict[pref] = schema
 
