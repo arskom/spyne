@@ -26,14 +26,20 @@ import getpass
 import inspect
 import traceback
 import smtplib
+import mimetypes
 
 from socket import gethostname
 from subprocess import Popen, PIPE
 
 from email.utils import COMMASPACE, formatdate
+from email import message_from_string
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.message import MIMEMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
+from email.mime.nonmultipart import MIMENonMultipart
+from email.encoders import encode_base64
 
 from spyne.util import six
 
@@ -88,7 +94,7 @@ def email_text_smtp(addresses, sender=None, subject='', message="",
     logger.info("Text email sent to: %r.", addresses)
 
 
-def email_text(addresses, sender=None, subject='', message="", bcc=None,
+def email_text(addresses, sender=None, subject="", message="", bcc=None,
                                                                       att=None):
     if att is None:
         att = {}
@@ -97,16 +103,28 @@ def email_text(addresses, sender=None, subject='', message="", bcc=None,
         sender = 'Spyne <robot@spyne.io>'
 
     exc = traceback.format_exc()
-    if exc is not None and exc != 'None\n':
+    if exc is not None and exc != 'None\n' and exc != 'NoneType: None\n':
         message = (u"%s\n\n%s" % (message, exc))
     msg = MIMEText(message.encode('utf8'), 'plain', 'utf8')
     if len(att) > 0:
         newmsg = MIMEMultipart()
         newmsg.attach(msg)
         for k, v in att.items():
-            part = MIMEApplication(v)
-            part.add_header('Content-Disposition', 'attachment', filename=k)
+            mime_type, encoding = mimetypes.guess_type(k)
+            if mime_type == "message/rfc822":
+                part = MIMEMessage(message_from_string(v))
+            elif mime_type.startswith("image/"):
+                part = MIMEImage(v, mime_type.rsplit('/', 1)[-1])
+            elif mime_type is not None:
+                mime_type_main, mime_type_sub = mime_type.split('/', 1)
+                part = MIMENonMultipart(mime_type_main, mime_type_sub)
+                part.set_payload(v)
+                encode_base64(part)
+            else:
+                part = MIMEApplication(v)
+
             newmsg.attach(part)
+            part.add_header('Content-Disposition', 'attachment', filename=k)
 
         msg = newmsg
 
