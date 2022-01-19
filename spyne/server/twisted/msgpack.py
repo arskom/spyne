@@ -383,16 +383,17 @@ class TwistedMessagePackProtocol(Protocol):
             p_ctx.oob_ctx.d.callback(out_object)
             return
 
-        out_string = msgpack.packb(out_object)
-        p_ctx.transport.resp_length = len(out_string)
-        self.enqueue_outresp_data(id(p_ctx), out_string)
+        if p_ctx.transport is not None:
+            out_string = msgpack.packb(out_object)
+            p_ctx.transport.resp_length = len(out_string)
+            self.enqueue_outresp_data(id(p_ctx), out_string)
 
         try:
             process_contexts(self, others, p_ctx, error=error)
 
         except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
-            logger.error("Exception ignored from auxiliary method: %r", e)
+            logger.error("Exception ignored from aux method: %r", e)
             logger.exception(e)
 
     def _register_callbacks(self, d, p_ctx, others):
