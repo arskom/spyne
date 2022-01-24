@@ -92,8 +92,10 @@ class Wsdl11(XmlSchema):
     #:param import_base_namespaces: Include imports for base namespaces like
     #    xsd, xsi, wsdl, etc.
 
-    def __init__(self, interface=None, xsl_href=None, _with_partnerlink=False):
-        super(Wsdl11, self).__init__(interface)
+    def __init__(self, interface=None, xsl_href=None, _with_partnerlink=False,
+                                              element_form_default='qualified'):
+        super(Wsdl11, self).__init__(
+                           interface, element_form_default=element_form_default)
 
         self._with_plink = _with_partnerlink
         self.xsl_href = xsl_href

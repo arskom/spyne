@@ -29,10 +29,12 @@ from __future__ import print_function
 
 from spyne.interface._base import Interface
 from spyne.interface._base import InterfaceDocumentBase
-from spyne.interface._base import AllYourInterfaceDocuments
+from spyne.interface._base import InterfaceDocumentsBase
+from spyne.interface._base import InterfaceDocuments
 
 
 try:
+    from spyne.interface.xml_schema import XmlSchema
     from spyne.interface.wsdl.wsdl11 import Wsdl11
     HAS_WSDL = True
 

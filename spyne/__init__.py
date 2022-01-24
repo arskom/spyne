@@ -52,6 +52,11 @@ from spyne.decorator import mrpc
 
 from spyne.service import ServiceBase as Service
 from spyne.service import ServiceBase  # DEPRECATED
+
+from spyne.interface import Interface
+from spyne.interface import InterfaceDocuments
+from spyne.interface import InterfaceDocumentsBase
+
 from spyne.application import Application
 
 from spyne.model import *

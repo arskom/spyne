@@ -27,7 +27,7 @@ from pprint import pformat
 from spyne import BODY_STYLE_EMPTY, BODY_STYLE_BARE, BODY_STYLE_WRAPPED, \
     EventManager
 from spyne.error import Fault, Redirect, RespawnError, InvalidRequestError
-from spyne.interface import Interface
+from spyne.interface import Interface, InterfaceDocuments
 from spyne.util import six
 from spyne.util.appreg import register_application
 
@@ -72,6 +72,12 @@ class Application(object):
     :param out_protocol: A ProtocolBase instance that denotes the output
                          protocol. It's only optional for NullServer transport.
     :param config:       An arbitrary python object to store random global data.
+    :param classes:      An iterable of Spyne classes that don't appear in any
+                         of the service definitions but need to appear in the
+                         interface documents nevertheless.
+    :param documents_container:
+                         A class that implements the InterfaceDocuments
+                         interface
 
     Supported events:
         * ``method_call``:
@@ -97,7 +103,9 @@ class Application(object):
     transport = None
 
     def __init__(self, services, tns, name=None,
-                  in_protocol=None, out_protocol=None, config=None, classes=()):
+                 in_protocol=None, out_protocol=None,
+                 config=None, classes=(),
+                 documents_container=InterfaceDocuments):
         self.services = tuple(services)
         self.tns = tns
         self.name = name
@@ -127,7 +135,7 @@ class Application(object):
 
         # this needs to be after protocol assignments to give _static_when
         # functions as much info as possible about the application
-        self.interface = Interface(self)
+        self.interface = Interface(self, documents_container=documents_container)
 
         # set_app needs to be after interface init because the protocols use it.
         self.in_protocol.set_app(self)

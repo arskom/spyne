@@ -24,7 +24,6 @@ from inspect import isgenerator
 
 from spyne import EventManager
 from spyne.auxproc import process_contexts
-from spyne.interface import AllYourInterfaceDocuments
 from spyne.model import Fault, PushBase
 from spyne.protocol import ProtocolBase
 from spyne.util import Break, coroutine
@@ -49,7 +48,14 @@ class ServerBase(object):
         self.appinit()
 
         self.event_manager = EventManager(self)
-        self.doc = AllYourInterfaceDocuments(app.interface)
+
+    @property
+    def doc(self):  # for backwards compatibility
+        return self.app.interface.docs
+
+    @doc.setter
+    def doc(self, value):  # for backwards compatibility
+        self.app.interface.docs = doc
 
     def appinit(self):
         self.app.reinitialize(self)

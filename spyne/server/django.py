@@ -32,7 +32,6 @@ from functools import update_wrapper
 from spyne import Address
 from spyne.application import get_fault_string_from_exception, Application
 from spyne.auxproc import process_contexts
-from spyne.interface import AllYourInterfaceDocuments
 from spyne.model.fault import Fault
 from spyne.protocol.soap import Soap11
 from spyne.protocol.http import HttpRpc
@@ -209,9 +208,8 @@ class DjangoServer(HttpBase):
             # server interface document shared between threads. Instead we
             # create and build interface documents in current thread. This
             # section can be safely repeated in another concurrent thread.
-            doc = AllYourInterfaceDocuments(self.app.interface)
-            doc.wsdl11.build_interface_document(request.build_absolute_uri())
-            wsdl = doc.wsdl11.get_interface_document()
+            self.doc.wsdl11.build_interface_document(request.build_absolute_uri())
+            wsdl = self.doc.wsdl11.get_interface_document()
 
             if self._cache_wsdl:
                 self._wsdl = wsdl
