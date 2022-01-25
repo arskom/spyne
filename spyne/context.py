@@ -426,12 +426,13 @@ class MethodContext(object):
 
 
 class FakeContext(object):
-    def __init__(self, app=None, descriptor=None,
+    def __init__(self, app=None, descriptor=None, in_header=None,
             in_object=None, in_error=None, in_document=None, in_string=None,
             out_object=None, out_error=None, out_document=None, out_string=None,
             in_protocol=None, out_protocol=None):
         self.app = app
         self.descriptor = descriptor
+        self.in_header = in_header
         self.in_object = in_object
         self.in_error = in_error
         self.in_document = in_document
