@@ -60,12 +60,12 @@ PYNAME=python$PYVER;
 
 if [ -z "$FN" ]; then
     declare -A URLS;
-    URLS["cpy27"]="2.7.17/Python-2.7.17.tar.xz";
-    URLS["cpy35"]="3.5.10/Python-3.5.10.tar.xz";
-    URLS["cpy36"]="3.6.12/Python-3.6.12.tar.xz";
-    URLS["cpy37"]="3.7.9/Python-3.7.9.tar.xz";
-    URLS["cpy38"]="3.8.6/Python-3.8.6.tar.xz";
-    URLS["cpy39"]="3.9.0/Python-3.9.0.tar.xz";
+    URLS["cpy27"]="2.7.18/Python-2.7.18.tar.xz";
+    URLS["cpy36"]="3.6.15/Python-3.6.15.tar.xz";
+    URLS["cpy37"]="3.7.12/Python-3.7.12.tar.xz";
+    URLS["cpy38"]="3.8.12/Python-3.8.12.tar.xz";
+    URLS["cpy39"]="3.9.10/Python-3.9.10.tar.xz";
+    URLS["cpy310"]="3.10.2/Python-3.10.2.tar.xz";
     URLS["jyt27"]="2.7.1/jython-installer-2.7.1.jar";
     URLS["ipy27"]="ipy-2.7.4.zip";
 
