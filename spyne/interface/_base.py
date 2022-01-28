@@ -34,25 +34,25 @@ from spyne.const import xml as namespace
 class InterfaceDocumentsBase(object):
     def __init__(self, interface,
                  # *, # kwargs start here, commented due to py2 compat
-                 xml_schema, wsdl11):
+                 wsdl11):
         self.interface = interface
-        self.xml_schema = xml_schema
         self.wsdl11 = wsdl11
+
+    @property
+    def xml_schema(self):
+        from spyne.interface import XmlSchema
+        assert isinstance(self.wsdl11, XmlSchema)
+        return self.wsdl11
 
 
 class InterfaceDocuments(InterfaceDocumentsBase):
     def __init__(self, interface):
         super(InterfaceDocuments, self).__init__(interface,
-                                                    xml_schema=None,wsdl11=None)
+                                                    wsdl11=None)
 
         if spyne.interface.HAS_WSDL:
             from spyne.interface.wsdl import Wsdl11
             self.wsdl11 = Wsdl11(interface)
-
-    @property
-    def xml_schema(self):
-        assert isinstance(self.wsdl11, XmlSchema)
-        return self.wsdl11
 
 
 class Interface(object):
