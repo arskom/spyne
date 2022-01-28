@@ -409,11 +409,8 @@ class XmlDocument(SubXmlBase):
         self.validation_schema = None
 
         if self.validator is self.SCHEMA_VALIDATION and value is not None:
-            from spyne.interface.xml_schema import XmlSchema
-
-            xml_schema = XmlSchema(value.interface)
+            xml_schema = self.app.interface.docs.xml_schema
             xml_schema.build_validation_schema()
-
             self.validation_schema = xml_schema.validation_schema
 
     def __validate_lxml(self, payload):
