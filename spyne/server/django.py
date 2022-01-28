@@ -208,6 +208,7 @@ class DjangoServer(HttpBase):
             # server interface document shared between threads. Instead we
             # create and build interface documents in current thread. This
             # section can be safely repeated in another concurrent thread.
+            self.doc.wsdl11.service_elt_dict = {}
             self.doc.wsdl11.build_interface_document(request.build_absolute_uri())
             wsdl = self.doc.wsdl11.get_interface_document()
 
