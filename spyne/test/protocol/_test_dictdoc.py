@@ -20,6 +20,9 @@
 from __future__ import unicode_literals
 
 import logging
+
+import yaml
+
 logger = logging.getLogger(__name__)
 
 import unittest
@@ -169,7 +172,10 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             return serializer.dumps(o, **dumps_kwargs)
 
         def loads(self, o):
-            return _unbyte(serializer.loads(o, **loads_kwargs))
+            try:
+                return _unbyte(serializer.loads(o, **loads_kwargs))
+            except TypeError:
+                return _unbyte(serializer.loads(o, Loader=yaml.FullLoader, **loads_kwargs))
 
         def test_complex_with_only_primitive_fields(self):
             class SomeComplexModel(ComplexModel):
