@@ -31,6 +31,30 @@ from spyne.model.complex import XmlModifier
 from spyne.const import xml as namespace
 
 
+class InterfaceDocumentsBase(object):
+    def __init__(self, interface,
+                 # *, # kwargs start here, commented due to py2 compat
+                 wsdl11):
+        self.interface = interface
+        self.wsdl11 = wsdl11
+
+    @property
+    def xml_schema(self):
+        from spyne.interface import XmlSchema
+        assert isinstance(self.wsdl11, XmlSchema)
+        return self.wsdl11
+
+
+class InterfaceDocuments(InterfaceDocumentsBase):
+    def __init__(self, interface):
+        super(InterfaceDocuments, self).__init__(interface,
+                                                    wsdl11=None)
+
+        if spyne.interface.HAS_WSDL:
+            from spyne.interface.wsdl import Wsdl11
+            self.wsdl11 = Wsdl11(interface)
+
+
 class Interface(object):
     """The ``Interface`` class holds all information needed to build an
     interface document.
@@ -38,7 +62,8 @@ class Interface(object):
     :param app: A :class:`spyne.application.Application` instance.
     """
 
-    def __init__(self, app=None, import_base_namespaces=False, element_form_default='qualified'):
+    def __init__(self, app=None, import_base_namespaces=False,
+                                        documents_container=InterfaceDocuments):
         self.__ns_counter = 0
         self.__app = None
         self.url = None
@@ -48,13 +73,23 @@ class Interface(object):
         self.method_id_map = {}
         self.nsmap = {}
         self.prefmap = {}
-        self.element_form_default = element_form_default
         self.member_methods = deque()
         self.method_descriptor_id_to_key = {}
         self.service_attrs = defaultdict(dict)
 
         self.import_base_namespaces = import_base_namespaces
         self.app = app
+
+        # this must come after app assignment
+        self.docs = documents_container(self)
+
+    @property
+    def documents(self):
+        return self.docs
+
+    @documents.setter
+    def documents(self, what):
+        self.docs = what
 
     def set_app(self, value):
         assert self.__app is None, "One interface instance can belong to only " \
@@ -513,14 +548,6 @@ class Interface(object):
             raise ValueError(ns)
 
         return self.import_base_namespaces or not (ns in namespace.PREFMAP)
-
-
-class AllYourInterfaceDocuments(object): # AreBelongToUs
-    def __init__(self, interface, wsdl11=None):
-        self.wsdl11 = wsdl11
-        if self.wsdl11 is None and spyne.interface.HAS_WSDL:
-            from spyne.interface.wsdl import Wsdl11
-            self.wsdl11 = Wsdl11(interface)
 
 
 class InterfaceDocumentBase(object):

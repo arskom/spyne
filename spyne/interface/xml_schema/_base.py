@@ -103,8 +103,11 @@ class XmlSchema(InterfaceDocumentBase):
             class.
     """
 
-    def __init__(self, interface):
+    def __init__(self, interface, element_form_default='qualified'):
         super(XmlSchema, self).__init__(interface)
+
+        self.element_form_default = element_form_default
+        assert element_form_default in ('qualified', 'unqualified')
 
         self.schema_dict = {}
         self.validation_schema = None
@@ -246,7 +249,7 @@ class XmlSchema(InterfaceDocumentBase):
                                                      nsmap=self.interface.nsmap)
 
             schema.set("targetNamespace", self.interface.nsmap[pref])
-            schema.set("elementFormDefault", self.interface.element_form_default)
+            schema.set("elementFormDefault", self.element_form_default)
 
             self.schema_dict[pref] = schema
 

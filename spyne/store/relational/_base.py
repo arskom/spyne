@@ -38,7 +38,6 @@ from sqlalchemy.schema import Column
 from sqlalchemy.schema import Index
 from sqlalchemy.schema import Table
 from sqlalchemy.schema import ForeignKey
-from sqlalchemy.orm import _mapper_registry
 
 from sqlalchemy.dialects.postgresql import FLOAT
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
@@ -47,6 +46,14 @@ from sqlalchemy.dialects.postgresql.base import PGUuid, PGInet
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import mapper
 from sqlalchemy.ext.associationproxy import association_proxy
+
+try:
+    from sqlalchemy.orm import mapperlib
+    _mapper_registries = mapperlib._mapper_registries
+
+except ImportError:
+    from sqlalchemy.orm import _mapper_registry as _mapper_registries
+    raise Exception("2")
 
 from spyne.store.relational.simple import PGLTree
 from spyne.store.relational.document import PGXml, PGObjectXml, PGObjectJson, \
@@ -107,7 +114,6 @@ _sq2sp_type_map = {
     sqlalchemy.SmallInteger: Integer16,
     sqlalchemy.SMALLINT: Integer16,
 
-    sqlalchemy.Binary: ByteArray,
     sqlalchemy.LargeBinary: ByteArray,
 
     sqlalchemy.Boolean: Boolean,
@@ -129,6 +135,13 @@ _sq2sp_type_map = {
     PGLTree: Ltree,
     PGInet: IpAddress,
 }
+
+
+sqlalchemy_BINARY = \
+    getattr(sqlalchemy, 'Binary', getattr(sqlalchemy, 'BINARY', None))
+
+if sqlalchemy_BINARY is not None:
+    _sq2sp_type_map[sqlalchemy_BINARY] = ByteArray
 
 
 # this needs to be called whenever a new column is instantiated.
@@ -462,7 +475,7 @@ def _check_inheritance(cls, cls_bases):
 
     if base_mapper is None:
         for b in cls_bases:
-            bm = _mapper_registry.get(b, None)
+            bm = _mapper_registries.get(b, None)
             if bm is not None:
                 assert base_mapper is None, "There can be only one base mapper."
                 base_mapper = bm
