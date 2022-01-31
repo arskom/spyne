@@ -71,7 +71,8 @@ Python
 ------
 
 Python interop tests currently use Spyne's own clients and suds (specifically
-suds-jurko fork). The suds test is the first thing we check and try not to break.
+suds-community fork). The suds test is the first thing we check and try not to
+break.
 
 Ruby
 ----
