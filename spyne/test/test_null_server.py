@@ -22,6 +22,7 @@ import unittest
 
 from lxml import etree
 
+from spyne import Ignored
 from spyne import const
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.xml import XmlDocument
@@ -35,6 +36,39 @@ from spyne.service import Service
 from spyne.server.null import NullServer
 
 class TestNullServer(unittest.TestCase):
+    def test_empty_return_type(self):
+        class MessageService(Service):
+            @srpc(String)
+            def send_message(s):
+                return s
+
+        application = Application([MessageService], 'some_tns',
+                          in_protocol=XmlDocument(), out_protocol=XmlDocument())
+
+        assert None == NullServer(application).service.send_message("zabaaa")
+
+    def test_ignored(self):
+        class MessageService(Service):
+            @srpc(String, _returns=String)
+            def send_message_1(s):
+                return Ignored("xyz")
+
+            @srpc(String)
+            def send_message_2(s):
+                return Ignored("xyz")
+
+            @srpc(String, _returns=String)
+            def send_message_3(s):
+                return "OK"
+
+        application = Application([MessageService], 'some_tns',
+                          in_protocol=XmlDocument(), out_protocol=XmlDocument())
+
+        server = NullServer(application)
+        assert Ignored("xyz") == server.service.send_message_1("zabaaa")
+        assert Ignored("xyz") == server.service.send_message_2("zabaaa")
+        assert "OK" == server.service.send_message_3("zabaaa")
+
     def test_call_one_arg(self):
         queue = set()
 

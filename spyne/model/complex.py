@@ -43,6 +43,7 @@ from spyne.const.xml import PREFMAP
 from spyne.model import Point, Unicode, PushBase, ModelBase
 from spyne.model._base import PSSM_VALUES, apply_pssm
 from spyne.model.primitive import NATIVE_MAP
+from spyne.model.primitive._base import AnyXml
 
 from spyne.util import six, memoize, memoize_id, sanitize_args, \
     memoize_ignore_none
@@ -143,10 +144,13 @@ class XmlData(XmlModifier):
     @classmethod
     def marshall(cls, prot, name, value, parent_elt):
         if value is not None:
-            if len(parent_elt) == 0:
-                parent_elt.text = prot.to_bytes(cls.type, value)
+            if issubclass(cls.type, AnyXml):
+                parent_elt.append(value)
             else:
-                parent_elt[-1].tail = prot.to_bytes(cls.type, value)
+                if len(parent_elt) == 0:
+                    parent_elt.text = prot.to_bytes(cls.type, value)
+                else:
+                    parent_elt[-1].tail = prot.to_bytes(cls.type, value)
 
     @classmethod
     def get_type_name(cls):

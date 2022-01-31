@@ -31,6 +31,7 @@
 
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 import uuid
@@ -39,16 +40,10 @@ from datetime import datetime
 from pprint import pprint
 
 from lxml import etree
+from lxml.builder import E
 
-from spyne.model.primitive import Uuid
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import String
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import DateTime
-from spyne.model.complex import XmlData
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import XmlAttribute
+from spyne import AnyXml, Uuid, Unicode, String, Integer, Decimal, DateTime, \
+    XmlData, ComplexModel, XmlAttribute
 
 from spyne.util.xml import get_schema_documents
 from spyne.util.xml import get_object_as_xml
@@ -65,15 +60,19 @@ class Punk(ComplexModel):
     d = DateTime
 
 
+class DateTimeWithAttribute(ComplexModel):
+    value = XmlData(DateTime)
+    f = XmlAttribute(Unicode)
+
+
 class Foo(ComplexModel):
     __namespace__ = 'some_other_namespace'
 
     a = String
     b = Integer
     c = Decimal
-    d = DateTime
+    d = DateTimeWithAttribute
     e = XmlAttribute(Integer)
-    f = XmlAttribute(Unicode, attribute_of='d')
 
 
 class ProductEdition(ComplexModel):
@@ -81,6 +80,7 @@ class ProductEdition(ComplexModel):
 
     id = XmlAttribute(Uuid)
     name = XmlData(Unicode)
+    addtl = XmlData(AnyXml)
 
 
 class Product(ComplexModel):
@@ -94,34 +94,52 @@ docs = get_schema_documents([Punk, Foo, Product])
 pprint(docs)
 print()
 
-pprint({k: v.attrib['targetNamespace'] for k,v in docs.items()})
+pprint({k: v.attrib['targetNamespace'] for k, v in docs.items()})
 
 # the default ns prefix is always tns
 print("the default namespace %r:" % docs['tns'].attrib['targetNamespace'])
-print(etree.tostring(docs['tns'], pretty_print=True))
+print(etree.tostring(docs['tns'], pretty_print=True, encoding='unicode'))
 print()
 
 # Namespace prefixes are assigned like s0, s1, s2, etc...
 print("the other namespace %r:" % docs['s0'].attrib['targetNamespace'])
-print(etree.tostring(docs['s0'], pretty_print=True))
+print(etree.tostring(docs['s0'], pretty_print=True, encoding='unicode'))
 print()
 
 print("the other namespace %r:" % docs['s2'].attrib['targetNamespace'])
-print(etree.tostring(docs['s2'], pretty_print=True))
+print(etree.tostring(docs['s2'], pretty_print=True, encoding='unicode'))
 print()
 
 # Object serialization and deserialization
-foo = Foo(a='a', b=1, c=3.4, d=datetime(2011, 02, 20), e=5, f='f')
+foo = Foo(
+    a='a',
+    b=1,
+    c=3.4,
+    d=DateTimeWithAttribute(value=datetime(2011, 2, 20), f='f'),
+    e=5,
+)
+
 doc = get_object_as_xml(foo, Foo)
-print(etree.tostring(doc, pretty_print=True))
+print()
+print(etree.tostring(doc, pretty_print=True, encoding='unicode'))
 print(get_xml_as_object(doc, Foo))
 print()
 
+# could be anything, really
+elt = E.tag(E.subtag("subdata"))
+
 # XmlData example.
 print("Product output (illustrates XmlData):")
-product = Product(id=uuid.uuid4(), edition=ProductEdition(id=uuid.uuid4(),
-                                                             name='My edition'))
-print(etree.tostring(get_object_as_xml(product, Product), pretty_print=True))
+product = Product(
+    id=uuid.uuid4(),
+    edition=ProductEdition(id=uuid.uuid4(), name='My edition', addtl=elt)
+)
+
+print()
+print(etree.tostring(
+    get_object_as_xml(product, Product),
+    pretty_print=True, encoding='unicode'
+))
 
 # See http://lxml.de/validation.html to see what this could be used for.
 print(get_validation_schema([Punk, Foo]))

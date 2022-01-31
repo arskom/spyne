@@ -42,7 +42,7 @@ everything except ``pytz`` is optional.
 Python version
 --------------
 
-Spyne 2.13 supports Python 2.7, 3.6, 3.7 and 3.8.
+Spyne 2.13 supports Python 2.7, 3.6, 3.7, 3.8, 3.9 and 3.10.
 
 Libraries
 ---------

@@ -24,6 +24,8 @@ This module is EXPERIMENTAL. You may not recognize the code here next time you
 look at it.
 """
 
+from __future__ import print_function
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -45,10 +47,21 @@ STREAM_READ_BLOCK_SIZE = 0x4000
 SWAP_DATA_TO_FILE_THRESHOLD = 512 * 1024
 
 
-
 _OctalPatt = re.compile(r"\\[0-3][0-7][0-7]")
 _QuotePatt = re.compile(r"[\\].")
 _nulljoin = ''.join
+
+
+# this is twisted's _idnaBytes. it's not possible to import twisted at this
+# stage so here we are
+def _host_to_bytes(text):
+    try:
+        import idna
+    except ImportError:
+        return text.encode("idna")
+    else:
+        return idna.encode(text)
+
 
 def _unquote_cookie(str):
     """Handle double quotes and escaping in cookie values.
@@ -106,19 +119,23 @@ def _parse_cookie(cookie):
     (because browsers don't either).
     The algorithm used is identical to that used by Django version 1.9.10.
     """
-    cookiedict = {}
-    for chunk in cookie.split(str(';')):
-        if str('=') in chunk:
-            key, val = chunk.split(str('='), 1)
+
+    retval = {}
+
+    for chunk in cookie.split(';'):
+        if '=' in chunk:
+            key, val = chunk.split('=', 1)
         else:
             # Assume an empty name per
             # https://bugzilla.mozilla.org/show_bug.cgi?id=169091
-            key, val = str(''), chunk
+            key, val = '', chunk
+
         key, val = key.strip(), val.strip()
         if key or val:
             # unquote using Python's algorithm.
-            cookiedict[key] = _unquote_cookie(val)
-    return cookiedict
+            retval[key] = _unquote_cookie(val)
+
+    return retval
 
 
 def get_stream_factory(dir=None, delete=True):
@@ -222,10 +239,11 @@ class HttpRpc(SimpleDictDocument):
         ctx.in_document = ctx.transport.req
         ctx.transport.request_encoding = in_string_encoding
 
-    def decompose_incoming_envelope(self, ctx, message):
-        assert message == SimpleDictDocument.REQUEST
+    def decompose_incoming_envelope(self, ctx, message_type):
+        assert message_type == SimpleDictDocument.REQUEST
 
-        ctx.transport.itself.decompose_incoming_envelope(self, ctx, message)
+        ctx.transport.itself.decompose_incoming_envelope(
+                                                        self, ctx, message_type)
 
         if self.parse_cookie:
             cookies = ctx.in_header_doc.get('cookie', None)
@@ -372,6 +390,10 @@ _fragment_pattern_re = re.compile('<([A-Za-z0-9_]+)>')
 _full_pattern_re = re.compile('{([A-Za-z0-9_]+)}')
 
 
+_fragment_pattern_b_re = re.compile(b'<([A-Za-z0-9_]+)>')
+_full_pattern_b_re = re.compile(b'{([A-Za-z0-9_]+)}')
+
+
 class HttpPattern(object):
     """Experimental. Stay away.
 
@@ -380,37 +402,66 @@ class HttpPattern(object):
     :param host: HTTP "Host:" header pattern
     """
 
-    @staticmethod
-    def _compile_url_pattern(pattern):
+    URL_ENCODING = 'utf8'
+    HOST_ENCODING = 'idna'
+    VERB_ENCODING = 'latin1'  # actually ascii but latin1 is what pep 333 needs
+
+    @classmethod
+    def _compile_url_pattern(cls, pattern_s):
         """where <> placeholders don't contain slashes."""
 
-        if pattern is None:
-            return None
-        pattern = _fragment_pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
-        pattern = _full_pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
-        return re.compile(pattern)
+        if pattern_s is None:
+            return None, None
 
-    @staticmethod
-    def _compile_host_pattern(pattern):
+        if not six.PY2:
+            assert isinstance(pattern_s, six.text_type)
+        pattern = _fragment_pattern_re.sub(r'(?P<\1>[^/]*)', pattern_s)
+        pattern = _full_pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
+
+        pattern_b = pattern_s.encode(cls.URL_ENCODING)
+        print(pattern_b.decode('latin1'))
+        pattern_b = _fragment_pattern_b_re.sub(b'(?P<\\1>[^/]*)', pattern_b)
+        print(pattern_b.decode('latin1'))
+        pattern_b = _full_pattern_b_re.sub(b'(?P<\\1>[^/]*)', pattern_b)
+        print(pattern_b.decode('latin1'))
+
+        return re.compile(pattern), re.compile(pattern_b)
+
+    @classmethod
+    def _compile_host_pattern(cls, pattern):
         """where <> placeholders don't contain dots."""
 
         if pattern is None:
-            return None
+            return None, None
+
         pattern = _fragment_pattern_re.sub(r'(?P<\1>[^\.]*)', pattern)
         pattern = _full_pattern_re.sub(r'(?P<\1>.*)', pattern)
-        return re.compile(pattern)
 
-    @staticmethod
-    def _compile_verb_pattern(pattern):
+        pattern_b = pattern.encode(cls.HOST_ENCODING)
+        pattern_b = _fragment_pattern_b_re.sub(b'(?P<\\1>[^\.]*)', pattern_b)
+        pattern_b = _full_pattern_b_re.sub(b'(?P<\\1>.*)', pattern_b)
+
+        return re.compile(pattern), re.compile(pattern_b)
+
+    @classmethod
+    def _compile_verb_pattern(cls, pattern):
         """where <> placeholders are same as {} ones."""
 
         if pattern is None:
-            return None
+            return None, None
+
         pattern = _fragment_pattern_re.sub(r'(?P<\1>.*)', pattern)
         pattern = _full_pattern_re.sub(r'(?P<\1>.*)', pattern)
-        return re.compile(pattern)
+
+        pattern_b = pattern.encode(cls.VERB_ENCODING)
+        pattern_b = _fragment_pattern_b_re.sub(b'(?P<\\1>.*)', pattern_b)
+        pattern_b = _full_pattern_b_re.sub(b'(?P<\\1>.*)', pattern_b)
+
+        return re.compile(pattern), re.compile(pattern_b)
 
     def __init__(self, address=None, verb=None, host=None, endpoint=None):
+        host = _host_to_bytes(host) if isinstance(host, str) else host
+
         self.address = address
         self.host = host
         self.verb = verb
@@ -430,10 +481,10 @@ class HttpPattern(object):
     @address.setter
     def address(self, what):
         if what is not None and not what.startswith('/'):
-            what = '/' + what
+            what = '/{}'.format(what)
 
         self.__address = what
-        self.address_re = self._compile_url_pattern(what)
+        self.address_re, self.address_b_re = self._compile_url_pattern(what)
 
     @property
     def host(self):
@@ -442,7 +493,7 @@ class HttpPattern(object):
     @host.setter
     def host(self, what):
         self.__host = what
-        self.host_re = self._compile_host_pattern(what)
+        self.host_re, self.host_b_re = self._compile_host_pattern(what)
 
     @property
     def verb(self):
@@ -451,7 +502,7 @@ class HttpPattern(object):
     @verb.setter
     def verb(self, what):
         self.__verb = what
-        self.verb_re = self._compile_verb_pattern(what)
+        self.verb_re, self.verb_b_re = self._compile_verb_pattern(what)
 
     def as_werkzeug_rule(self):
         from werkzeug.routing import Rule

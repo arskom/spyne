@@ -77,13 +77,12 @@ class MessagePackDocument(HierDictDocument):
                                         polymorphic=False,
                                         key_encoding='utf8',
                                         # MessagePackDocument specific
-                                        mw_packer=msgpack.Unpacker,
+                                        mw_packer=msgpack.Packer,
                                         mw_unpacker=msgpack.Unpacker,
                                         use_list=False,
                                         raw=False,
                                         use_bin_type=True,
                                         **kwargs):
-
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
                 ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic,
                                                                    key_encoding)
@@ -98,15 +97,12 @@ class MessagePackDocument(HierDictDocument):
         if use_bin_type:
             self.from_serstr = self.from_unicode
 
-        self.kwargs = kwargs
-        if raw != False:
-            kwargs['raw'] = raw
-
-        if use_list != True:
-            kwargs['use_list'] = use_list
-
-        if use_bin_type != True:
-            kwargs['use_bin_type'] = use_bin_type
+        self.kwargs_packer = dict(kwargs)
+        self.kwargs_unpacker = dict(kwargs)
+        self.kwargs_packer['raw'] = self.kwargs_unpacker['raw'] = raw
+        self.kwargs_packer['use_list'] = self.kwargs_unpacker['use_list'] \
+                                                                      = use_list
+        self.kwargs_packer['use_bin_type'] = use_bin_type
 
         self._from_bytes_handlers[Double] = self._ret_number
         self._from_bytes_handlers[Boolean] = self._ret_bool
@@ -160,7 +156,7 @@ class MessagePackDocument(HierDictDocument):
         if isinstance(ctx.in_string, (list, tuple)) \
                                and len(ctx.in_string) == 1 \
                                and isinstance(ctx.in_string[0], memoryview):
-            unpacker = self.mw_unpacker(**self.kwargs)
+            unpacker = self.mw_unpacker(**self.kwargs_unpacker)
             unpacker.feed(ctx.in_string[0])
             ctx.in_document = next(x for x in unpacker)
 
@@ -223,7 +219,8 @@ class MessagePackRpc(MessagePackDocument):
         # TODO: Use feed api
         try:
             ctx.in_document = msgpack.unpackb(b''.join(ctx.in_string),
-                                                                  **self.kwargs)
+                                                         **self.kwargs_unpacker)
+
 
         except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
@@ -318,7 +315,7 @@ class MessagePackRpc(MessagePackDocument):
         if ctx.out_error is not None:
             ctx.out_document = [
                 [MessagePackRpc.MSGPACK_ERROR, 0,
-                          Fault.to_dict(ctx.out_error.__class__, ctx.out_error)]
+                    Fault.to_dict(ctx.out_error.__class__, ctx.out_error, self)]
             ]
             return
 

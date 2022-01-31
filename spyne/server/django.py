@@ -325,6 +325,10 @@ class DjangoView(object):
             value = initkwargs.get(key)
             return value if value is not None else getattr(cls, key)
 
+        def pop(key):
+            value = initkwargs.pop(key, None)
+            return value if value is not None else getattr(cls, key)
+
         application = get('application') or Application(
             services=get('services'),
             tns=get('tns'),
@@ -332,7 +336,7 @@ class DjangoView(object):
             in_protocol=get('in_protocol'),
             out_protocol=get('out_protocol'),
         )
-        server = get('server') or DjangoServer(application,
+        server = pop('server') or DjangoServer(application,
                                                chunked=get('chunked'),
                                                cache_wsdl=get('cache_wsdl'))
 

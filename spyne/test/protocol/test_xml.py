@@ -34,7 +34,7 @@ from base64 import b64encode
 from lxml import etree
 from lxml.builder import E
 
-from spyne import MethodContext, rpc, ByteArray, File, AnyXml
+from spyne import MethodContext, rpc, ByteArray, File, AnyXml, Ignored
 from spyne.context import FakeContext
 from spyne.const import RESULT_SUFFIX
 from spyne.service import Service
@@ -62,6 +62,39 @@ class TestXml(unittest.TestCase):
         o = get_xml_as_object(elt, a)
 
         assert o.b == ''
+
+    def test_ignored(self):
+        d = decimal.Decimal('1e100')
+
+        class SomeService(Service):
+            @srpc(Decimal(120,4), _returns=Decimal)
+            def some_call(p):
+                print(p)
+                print(type(p))
+                assert type(p) == decimal.Decimal
+                assert d == p
+                return Ignored(p)
+
+        app = Application([SomeService], "tns", in_protocol=XmlDocument(),
+                                                out_protocol=XmlDocument())
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server, MethodContext.SERVER)
+        initial_ctx.in_string = [
+            b'<some_call xmlns="tns"><p>',
+            str(d).encode('ascii'),
+            b'</p></some_call>'
+        ]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        elt = etree.fromstring(b''.join(ctx.out_string))
+
+        logging.info(etree.tostring(elt, pretty_print=True).decode('utf8'))
+        assert 0 == len(list(elt))
+
 
     def test_xml_data(self):
         class C(ComplexModel):

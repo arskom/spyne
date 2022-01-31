@@ -67,10 +67,13 @@ class TestPrimitive(unittest.TestCase):
 
         print(media_attr.pattern)
 
+        assert     rmws(media_attr, u'text/plain')
+        assert not rmws(media_attr, u' text/plain')
+        assert     rmws(media_attr, u'text/plain;')
+        assert     rmws(media_attr, u'text/plain;charset=utf-8')
         assert     rmws(media_attr, u'text/plain; charset="utf-8"')
         assert     rmws(media_attr, u'text/plain; charset=utf-8')
         assert     rmws(media_attr, u'text/plain; charset=utf-8 ')
-        assert     rmws(media_attr, u'text/plain; charset=utf-8')
         assert     rmws(media_attr, u'text/plain; charset=utf-8;')
         assert     rmws(media_attr, u'text/plain; charset=utf-8; ')
         assert not rmws(media_attr, u'text/plain; charset=utf-8; foo')
@@ -85,9 +88,8 @@ class TestPrimitive(unittest.TestCase):
         assert not rmws(media_attr, u'text/plain; charset=utf-8;;; foo=""')
         assert not rmws(media_attr, u'text/plain; charset=utf-8;;; foo="";')
         assert not rmws(media_attr, u'text/plain; charset=utf-8;;; foo=""; ; ')
-        assert not rmws(media_strict_attr, u'foo/bar;')
+
         assert not rmws(media_strict_attr, u' applicaton/json;')
-        assert not rmws(media_strict_attr, u'applicaton/json;')
 
         assert MediaType
 

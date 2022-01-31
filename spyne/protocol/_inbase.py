@@ -288,7 +288,7 @@ class InProtocolBase(ProtocolMixin):
 
         try:
             retval = _uuid_deserialize[ser_as](retval)
-        except ValueError as e:
+        except (ValueError, TypeError, UnicodeDecodeError) as e:
             raise ValidationError(e)
 
         return retval
@@ -624,7 +624,7 @@ class InProtocolBase(ProtocolMixin):
 
 
 _uuid_deserialize = {
-    None: lambda s: uuid.UUID(s),
+    None: lambda s: uuid.UUID(s.decode('ascii') if isinstance(s, bytes) else s),
     'hex': lambda s: uuid.UUID(hex=s),
     'urn': lambda s: uuid.UUID(hex=s),
     'bytes': lambda s: uuid.UUID(bytes=s),
@@ -636,6 +636,7 @@ _uuid_deserialize = {
 }
 
 if six.PY2:
+    _uuid_deserialize[None] = lambda s: uuid.UUID(s)
     _uuid_deserialize[('int', long)] = _uuid_deserialize[('int', int)]
 
 

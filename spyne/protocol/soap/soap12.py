@@ -89,6 +89,7 @@ class Soap12(Soap11):
                         **{'{%s}lang' % NS_XML: inst.lang}))
 
         subelts = [
+            None,  # The code tag is put here down the road
             reason,
             E("{%s}Role" % self.ns_soap_env, inst.faultactor),
         ]
@@ -96,6 +97,8 @@ class Soap12(Soap11):
         return self._fault_to_parent_impl(ctx, cls, inst, parent, ns, subelts)
 
     def _fault_to_parent_impl(self, ctx, cls, inst, parent, ns, subelts, **_):
+        assert isinstance(subelts, list)
+
         tag_name = "{%s}Fault" % self.ns_soap_env
 
         if isinstance(inst.faultcode, string_types):
@@ -110,13 +113,15 @@ class Soap12(Soap11):
                     child_subcode = self.generate_subcode(value, child_subcode)
                 else:
                     child_subcode = self.generate_subcode(value)
+
             if child_subcode != 0:
                 code.append(child_subcode)
 
-            _append(subelts, code)
+            subelts[0] = code
 
         if isinstance(inst.detail, dict):
-            _append(subelts, E('{%s}Detail' % self.ns_soap_env, root_dict_to_etree(inst.detail)))
+            _append(subelts, E('{%s}Detail' % self.ns_soap_env,
+                                               root_dict_to_etree(inst.detail)))
 
         elif inst.detail is None:
             pass

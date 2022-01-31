@@ -156,7 +156,7 @@ class TestSingle(unittest.TestCase):
         for n in [b'self', b'import', b'return', b'from']:
             assert n in self.wsdl_str, '"%s" not in self.wsdl_str'
 
-class TestMultiple(unittest.TestCase):
+class TestReturn(unittest.TestCase):
     def setUp(self):
         self.app = Application([MultipleReturnService], 'tns', in_protocol=Soap11(), out_protocol=Soap11())
         self.app.transport = 'none'

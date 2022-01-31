@@ -74,7 +74,7 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
     :param row_class: value that goes inside the <tr class="">
     :param cell_class: value that goes inside the <td class="">
     :param header_cell_class: value that goes inside the <th class="">
-    :param mrpc_delim_text: The text that goes between mrpc calls.
+    :param mrpc_delim_text: The text that goes between mrpc sessions.
     """
 
     def __init__(self, *args, **kwargs):

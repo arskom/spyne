@@ -22,6 +22,7 @@ distinguish. These are just type markers, they are not of much use without
 protocols.
 """
 
+from spyne.model._base import Ignored
 from spyne.model._base import ModelBase
 from spyne.model._base import PushBase
 from spyne.model._base import Null

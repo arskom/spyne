@@ -21,7 +21,7 @@ from spyne.protocol.xml import XmlDocument
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import Service
 from spyne.test.protocol.test_soap11 import TestService, TestSingle, \
-    TestMultiple, MultipleReturnService
+    TestReturn, MultipleReturnService
 from spyne.util.six import BytesIO
 
 
@@ -77,7 +77,7 @@ class TestSingleSoap12(TestSingle):
         self.wsdl_doc = etree.fromstring(self.wsdl_str)
 
 
-class TestMultipleSoap12(TestMultiple):
+class TestMultipleSoap12(TestReturn):
     def setUp(self):
         self.app = Application([MultipleReturnService], 'tns', in_protocol=Soap12(), out_protocol=Soap12())
         self.app.transport = 'none'
@@ -146,10 +146,6 @@ class TestSoap12(unittest.TestCase):
             <soap12env:Envelope xmlns:soap12env="http://www.w3.org/2003/05/soap-envelope">
               <soap12env:Body>
                 <soap12env:Fault>
-                  <soap12env:Reason>
-                      <soap12env:Text xml:lang="en">A plausible fault</soap12env:Text>
-                  </soap12env:Reason>
-                  <soap12env:Role>http://faultactor.example.com</soap12env:Role>
                   <soap12env:Code>
                     <soap12env:Value>soap12env:Sender</soap12env:Value>
                     <soap12env:Subcode>
@@ -159,6 +155,10 @@ class TestSoap12(unittest.TestCase):
                       </soap12env:Subcode>
                     </soap12env:Subcode>
                   </soap12env:Code>
+                  <soap12env:Reason>
+                      <soap12env:Text xml:lang="en">A plausible fault</soap12env:Text>
+                  </soap12env:Reason>
+                  <soap12env:Role>http://faultactor.example.com</soap12env:Role>
                   <soap12env:Detail>
                     <some>extra info</some>
                   </soap12env:Detail>

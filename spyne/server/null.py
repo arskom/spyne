@@ -29,7 +29,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from spyne import MethodContext, BODY_STYLE_BARE, ComplexModelBase, \
-    BODY_STYLE_EMPTY, BODY_STYLE_OUT_BARE, BODY_STYLE_EMPTY_OUT_BARE
+    BODY_STYLE_EMPTY, Ignored
 
 from spyne.client import Factory
 from spyne.const.ansi_color import LIGHT_RED
@@ -151,7 +151,8 @@ class _FunctionCall(object):
             else:
                 ctx.descriptor.aux.initialize_context(ctx, p_ctx, error=None)
 
-            # do logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
+            # do
+            # logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
             # to hide the following
             logger.warning("%s start context %s" % (_small_header,
                                                                  _small_footer))
@@ -203,7 +204,12 @@ def _cb_sync(ctx, cnt, fc):
         raise ctx.out_error
 
     else:
-        if ctx.descriptor.is_out_bare():
+        if isinstance(ctx.out_object, (list, tuple)) \
+                and len(ctx.out_object) > 0 \
+                and isinstance(ctx.out_object[0], Ignored):
+            retval = ctx.out_object[0]
+
+        elif ctx.descriptor.is_out_bare():
             retval = ctx.out_object[0]
 
         elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:

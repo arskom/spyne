@@ -108,11 +108,13 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
     logged = None
 
     if hasattr(cls, 'Attributes'):
+        # init cls_attrs
         if prot is None:
             cls_attrs = cls.Attributes
         else:
             cls_attrs = prot.get_cls_attrs(cls)
 
+        # init logged
         logged = cls_attrs.logged
         if not logged:
             return "%s(...)" % cls.get_type_name()
@@ -120,10 +122,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
         if logged == '...':
             return "(...)"
 
-    if issubclass(cls, File) and isinstance(obj, File.Value):
-        cls = obj.__class__
-
-    if cls_attrs.logged == 'len':
+    if logged == 'len':
         l = '?'
         try:
             if isinstance(obj, (list, tuple)):
@@ -137,7 +136,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
 
         return "<len=%s>" % l
 
-    if callable(cls_attrs.logged):
+    if callable(logged):
         try:
             return cls_attrs.logged(obj)
         except Exception as e:
@@ -145,7 +144,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
             logger.exception(e)
             pass
 
-    if issubclass(cls, AnyDict):
+    if issubclass(cls, AnyDict) or isinstance(obj, dict):
         retval = []
 
         if isinstance(obj, dict):
@@ -185,6 +184,9 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
 
                     retval.append('%r: %s' % (k,
                                               log_repr(v, parent=k, tags=tags)))
+            elif logged is None:
+                return "(...)"
+
             else:
                 raise ValueError("Invalid value logged=%r", logged)
 
@@ -204,7 +206,10 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
 
             return "[%s]" % ', '.join(retval)
 
-    if (issubclass(cls, Array) or (cls_attrs.max_occurs > 1)) and not from_array:
+    if ( issubclass(cls, Array)
+                     or (cls_attrs is not None and cls_attrs.max_occurs > 1) ) \
+            and not from_array:
+
         if id(obj) in tags:
             return "%s(...)" % obj.__class__.__name__
 
@@ -277,6 +282,9 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
             return '%r(...)' % obj[:MAX_STRING_FIELD_LENGTH]
 
         return repr(obj)
+
+    if issubclass(cls, File) and isinstance(obj, File.Value):
+        cls = obj.__class__
 
     if issubclass(cls, File) and isinstance(obj, FileData):
         return log_repr(obj, FileData, tags=tags)

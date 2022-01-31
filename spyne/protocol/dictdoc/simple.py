@@ -21,7 +21,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 import re
-RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
 from collections import deque
 from collections import defaultdict
@@ -33,6 +32,9 @@ from spyne.model import ByteArray, String, File, ComplexModelBase, Array, \
     SimpleModel, Any, AnyDict, Unicode
 
 from spyne.protocol.dictdoc import DictDocument
+
+
+RE_HTTP_ARRAY_INDEX = re.compile(r"\[([0-9]+)]")
 
 
 def _s2cmi(m, nidx):
@@ -222,6 +224,7 @@ class SimpleDictDocument(DictDocument):
             cfreq_key = cls, idx
 
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
+
             for pkey in member.path[:-1]:
                 nidx = 0
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)

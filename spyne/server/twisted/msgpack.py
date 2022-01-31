@@ -124,7 +124,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.idle_timer = None
         self.out_chunks = deque()
         self.inreq_queue = OrderedDict()
-        self.inactive_queue = list()
+        self.inactive_queue = deque()
         self.disconnecting = False  # FIXME: should we use this to raise an
                                     # invalid connection state exception ?
 
@@ -163,7 +163,7 @@ class TwistedMessagePackProtocol(Protocol):
         self.idle_timer = None
         self.out_chunks = deque()
         self.inreq_queue = OrderedDict()
-        self.inactive_queue = list()
+        self.inactive_queue = deque()
         self.active_queue = dict()
         self.disconnecting = False  # FIXME: should we use this to raise an
                                     # invalid connection state exception ?
@@ -203,7 +203,14 @@ class TwistedMessagePackProtocol(Protocol):
         self._reset_idle_timer()
 
         for msg in self._buffer:
-            self.process_incoming_message(msg)
+            try:
+                self.process_incoming_message(msg)
+            except Exception as e:
+                # If you get this error, you are in serious trouble
+                # This needs to be fixed ASAP
+                logger.error(
+                           "Error %r while processing incoming data %r", e, msg)
+                raise
 
             if self.disconnecting:
                 return
@@ -262,7 +269,7 @@ class TwistedMessagePackProtocol(Protocol):
 
         if self.max_in_queue_size == 0:
             while self.num_inactive_contexts > 0:
-                p_ctx, others = self.inactive_queue.pop()
+                p_ctx, others = self.inactive_queue.popleft()
                 self.active_queue[id(p_ctx)] = p_ctx
 
                 self.inreq_queue[id(p_ctx)] = None
@@ -271,7 +278,7 @@ class TwistedMessagePackProtocol(Protocol):
         else:
             while self.num_active_contexts < self.max_in_queue_size and \
                                                  self.num_inactive_contexts > 0:
-                p_ctx, others = self.inactive_queue.pop()
+                p_ctx, others = self.inactive_queue.popleft()
                 self.active_queue[id(p_ctx)] = p_ctx
 
                 self.inreq_queue[id(p_ctx)] = None
@@ -365,21 +372,28 @@ class TwistedMessagePackProtocol(Protocol):
         if isinstance(data, dict):
             data = list(data.values())
 
-        out_object = (error, msgpack.packb(data),)
+        # tag debug responses with the one from the relevant request
+        tag = getattr(p_ctx.transport, 'tag', None)
+        if tag is None:
+            out_object = (error, msgpack.packb(data))
+        else:
+            out_object = (error, msgpack.packb(data), tag)
+
         if p_ctx.oob_ctx is not None:
             p_ctx.oob_ctx.d.callback(out_object)
             return
 
-        out_string = msgpack.packb(out_object)
-        p_ctx.transport.resp_length = len(out_string)
-        self.enqueue_outresp_data(id(p_ctx), out_string)
+        if p_ctx.transport is not None:
+            out_string = msgpack.packb(out_object)
+            p_ctx.transport.resp_length = len(out_string)
+            self.enqueue_outresp_data(id(p_ctx), out_string)
 
         try:
             process_contexts(self, others, p_ctx, error=error)
 
         except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
-            logger.error("Exception ignored from auxiliary method: %r", e)
+            logger.error("Exception ignored from aux method: %r", e)
             logger.exception(e)
 
     def _register_callbacks(self, d, p_ctx, others):

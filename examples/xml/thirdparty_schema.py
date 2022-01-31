@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-# this doesn't work yet because <union> is not implemented
+# !!!!!!!!!1111!!!!!!!!!! ATTENTION !!!!!11111!!!!!!!!!!!!!
+# This example is not finished. It doesn't work yet because
+# <union> is not implemented
+# !!11111!!!!!!!11111!!!! ATTENTION !!!!!one!!!!!11111!!!!!
 
 from __future__ import print_function
 
@@ -65,8 +68,9 @@ from spyne import Service
 from spyne.util.xml import parse_schema_file
 
 
-for fn in files:
+for ns, fn in files.items():
     if not isfile(fn):
+        print("Missing file", fn)
         raise Exception("Please run 'make' in this script's directory to fetch"
                         "schema files before running this example")
 

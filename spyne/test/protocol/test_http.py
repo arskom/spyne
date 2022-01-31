@@ -684,7 +684,8 @@ class Test(unittest.TestCase):
 
         def start_response(code, headers):
             print(headers)
-            assert len([s for s in string if ('Set-Cookie', s) in headers]) == len(string)
+            assert len([s for s in string
+                                if ('Set-Cookie', s) in headers]) == len(string)
             assert dict(headers)['Expires'] == 'Tue, 01 Jan 2013 00:00:00 GMT'
 
         app = Application([SomeService], 'tns',
@@ -724,7 +725,7 @@ class TestHttpPatterns(unittest.TestCase):
 
         class SomeService(Service):
             @srpc(Integer, _returns=Integer, _patterns=[
-                                      HttpPattern('/%s/<some_int>'% _fragment)])
+                                     HttpPattern('/%s/<some_int>' % _fragment)])
             def some_call(some_int):
                 assert some_int == _int
 

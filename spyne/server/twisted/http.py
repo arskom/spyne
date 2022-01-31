@@ -70,7 +70,7 @@ from spyne.application import logger_server
 from spyne.application import get_fault_string_from_exception
 
 from spyne.util import six
-from spyne.error import InternalError
+from spyne.error import InternalError, ValidationError
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
@@ -192,8 +192,16 @@ class _Transformer(object):
 
     def get(self, key, default):
         key = key.lower()
-        if key.startswith((b'http_', b'http-')):
-            key = key[5:]
+        if six.PY2:
+            if key.startswith((b'http_', b'http-')):
+                key = key[5:]
+        else:
+            if isinstance(key, bytes):
+                if key.startswith((b'http_', b'http-')):
+                    key = key[5:]
+            else:
+                if key.startswith(('http_', 'http-')):
+                    key = key[5:]
 
         retval = self.req.getHeader(key)
         if retval is None:
@@ -243,12 +251,29 @@ class TwistedHttpMethodContext(HttpMethodContext):
 
 def _decode_path(fragment):
     if six.PY2:
-        return unquote(fragment).decode('utf8')
+        return unquote(fragment)
 
-    return unquote_to_bytes(fragment).decode('utf8')
+    return unquote_to_bytes(fragment)
 
 
 class TwistedHttpTransport(HttpBase):
+    SLASH = b'/'
+    SLASHPER = b'/%s'
+
+    KEY_ENCODING = 'utf8'
+
+    @classmethod
+    def get_patt_verb(cls, patt):
+        return patt.verb_b_re
+
+    @classmethod
+    def get_patt_host(cls, patt):
+        return patt.host_b_re
+
+    @classmethod
+    def get_patt_address(cls, patt):
+        return patt.address_b_re
+
     def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
                                                          block_length=8 * 1024):
         super(TwistedHttpTransport, self).__init__(app, chunked=chunked,
@@ -327,6 +352,42 @@ class TwistedHttpTransport(HttpBase):
 
         return retval
 
+    def _decode_dict_py2(self, d):
+        retval = {}
+
+        for k, v in d.items():
+            l = []
+            for v2 in v:
+                if isinstance(v2, string_types):
+                    l.append(unquote(v2))
+                else:
+                    l.append(v2)
+            retval[k] = l
+
+        return retval
+
+    def _decode_dict(self, d):
+        retval = {}
+
+        for k, v in d.items():
+            l = []
+            for v2 in v:
+                if isinstance(v2, str):
+                    l.append(unquote(v2))
+                elif isinstance(v2, bytes):
+                    l.append(unquote(v2.decode(self.KEY_ENCODING)))
+                else:
+                    l.append(v2)
+
+            if isinstance(k, str):
+                retval[k] = l
+            elif isinstance(k, bytes):
+                retval[k.decode(self.KEY_ENCODING)] = l
+            else:
+                raise ValidationError(k)
+
+        return retval
+
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
         twisted web's Request object is parsed into ``ctx.in_body_doc`` and
@@ -366,8 +427,9 @@ class TwistedHttpTransport(HttpBase):
 
         if ctx.method_request_string is None: # no pattern match
             ctx.method_request_string = u'{%s}%s' % (
-                                 self.app.interface.get_tns(),
-                                 _decode_path(request.path.rsplit(b'/', 1)[-1]))
+                self.app.interface.get_tns(),
+                _decode_path(request.path.rsplit(b'/', 1)[-1]).decode("utf8"),
+            )
 
         logger.debug(u"%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
@@ -378,21 +440,21 @@ class TwistedHttpTransport(HttpBase):
             ctx.in_body_doc[k] = val
 
         r = {}
-        for k, v in ctx.in_body_doc.items():
-            l = []
-            for v2 in v:
-                if isinstance(v2, string_types):
-                    l.append(unquote(v2))
-                else:
-                    l.append(v2)
-            r[k] = l
-        ctx.in_body_doc = r
+        if six.PY2:
+            ctx.in_header_doc = self._decode_dict_py2(ctx.in_header_doc)
+            ctx.in_body_doc = self._decode_dict_py2(ctx.in_body_doc)
+
+        else:
+            ctx.in_header_doc = self._decode_dict(ctx.in_header_doc)
+            ctx.in_body_doc = self._decode_dict(ctx.in_body_doc)
 
         # This is consistent with what server.wsgi does.
         if request.method in ('POST', 'PUT', 'PATCH'):
             for k, v in ctx.in_body_doc.items():
                 if v == ['']:
                     ctx.in_body_doc[k] = [None]
+
+        logger.debug("%r", ctx.in_body_doc)
 
 
 FIELD_NAME_RE = re.compile(r'name="([^"]+)"')
@@ -471,7 +533,7 @@ def get_twisted_child_with_default(res, path, request):
     if res.prepath is None:
         request.realprepath = b'/' + b'/'.join(request.prepath)
     else:
-        if not res.prepath.startswith('/'):
+        if not res.prepath.startswith(b'/'):
             request.realprepath = b'/' + res.prepath
         else:
             request.realprepath = res.prepath
@@ -516,6 +578,7 @@ class TwistedWebResource(Resource):
 
     def handle_rpc_error(self, p_ctx, others, error, request):
         logger.error(error)
+
         resp_code = p_ctx.transport.resp_code
         # If user code set its own response code, don't touch it.
         if resp_code is None:
