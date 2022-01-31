@@ -52,7 +52,7 @@ try:
     from sqlalchemy.orm import mapperlib
     _mapper_registries = mapperlib._mapper_registries
 
-except ImportError:
+except (ImportError, AttributeError):
     from sqlalchemy.orm import _mapper_registry as _mapper_registries
 
 from spyne.store.relational.simple import PGLTree
