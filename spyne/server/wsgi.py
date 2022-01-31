@@ -23,6 +23,7 @@ A server that uses http as transport via wsgi. It doesn't contain any server
 logic.
 """
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -32,11 +33,10 @@ import threading
 from inspect import isgenerator
 from itertools import chain
 
-from spyne import Address
+from spyne import Address, File, Fault
 from spyne.util.six.moves.http_cookies import SimpleCookie
 from spyne.util.six.moves.urllib.parse import unquote, quote
 
-from spyne import File, Fault
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
@@ -58,6 +58,7 @@ except ImportError as _import_error_1:
     _local_import_error_1 = _import_error_1  # python 3 workaround
     def apply_mtom(*args, **kwargs):
         raise _local_import_error_1
+
 
 try:
     from werkzeug.formparser import parse_form_data
@@ -114,6 +115,7 @@ def _reconstruct_url(environ, protocol=True, server_name=True, path=True,
             url += '?' + environ['QUERY_STRING']
 
     return url
+
 
 def _parse_qs(qs):
     pairs = (s2 for s1 in qs.split('&') for s2 in s1.split(';'))

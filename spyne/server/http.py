@@ -239,6 +239,9 @@ class HttpMethodContext(MethodContext):
 class HttpBase(ServerBase):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
+    SLASH = '/'
+    SLASHPER = '/%s'
+
     def __init__(self, app, chunked=False,
                 max_content_length=2 * 1024 * 1024,
                 block_length=8 * 1024):
@@ -263,7 +266,19 @@ class HttpBase(ServerBase):
         self._http_patterns = list(reversed(sorted(self._http_patterns,
                                            key=lambda x: (x.address, x.host) )))
 
-    def match_pattern(self, ctx, method=b'', path=b'', host=b''):
+    @classmethod
+    def get_patt_verb(cls, patt):
+        return patt.verb_re
+
+    @classmethod
+    def get_patt_host(cls, patt):
+        return patt.host_re
+
+    @classmethod
+    def get_patt_address(cls, patt):
+        return patt.address_re
+
+    def match_pattern(self, ctx, method='', path='', host=''):
         """Sets ctx.method_request_string if there's a match. It's O(n) which
         means you should keep your number of patterns as low as possible.
 
@@ -274,15 +289,15 @@ class HttpBase(ServerBase):
             there)
         """
 
-        if not path.startswith(b'/'):
-            path = b'/%s' % (path,)
+        if not path.startswith(self.SLASH):
+            path = self.SLASHPER % (path,)
 
         params = defaultdict(list)
         for patt in self._http_patterns:
             assert isinstance(patt, HttpPattern)
 
             if patt.verb is not None:
-                match = patt.verb_re.match(method)
+                match = self.get_patt_verb(patt).match(method)
                 if match is None:
                     continue
                 if not (match.span() == (0, len(method))):
@@ -292,7 +307,7 @@ class HttpBase(ServerBase):
                     params[k].append(v)
 
             if patt.host is not None:
-                match = patt.host_re.match(host)
+                match = self.get_patt_host(patt).match(host)
                 if match is None:
                     continue
                 if not (match.span() == (0, len(host))):
@@ -302,11 +317,11 @@ class HttpBase(ServerBase):
                     params[k].append(v)
 
             if patt.address is None:
-                if path.split(b'/')[-1] != patt.endpoint.name:
+                if path.split(self.SLASH)[-1] != patt.endpoint.name:
                     continue
 
             else:
-                match = patt.address_re.match(path)
+                match = self.get_patt_address(patt).match(path)
                 if match is None:
                     continue
 

@@ -34,11 +34,7 @@ from spyne.model import ByteArray, String, File, ComplexModelBase, Array, \
 from spyne.protocol.dictdoc import DictDocument
 
 
-if six.PY2:
-    RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
-else:
-    RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
-    RE_HTTP_ARRAY_INDEX_BYTES = re.compile(b"\\[([0-9]+)\\]")
+RE_HTTP_ARRAY_INDEX = re.compile(r"\[([0-9]+)]")
 
 
 def _s2cmi(m, nidx):
@@ -185,12 +181,7 @@ class SimpleDictDocument(DictDocument):
 
         idxmap = defaultdict(dict)
         for orig_k, v in sorted(doc.items(), key=lambda _k: _k[0]):
-            if six.PY2:
-                k = RE_HTTP_ARRAY_INDEX.sub(b"", orig_k)
-            elif isinstance(orig_k, bytes):
-                k = RE_HTTP_ARRAY_INDEX_BYTES.sub(b"", orig_k).decode('ascii')
-            elif isinstance(orig_k, str):
-                k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
+            k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
             member = simple_type_info.get(k, None)
             if member is None:
@@ -232,12 +223,7 @@ class SimpleDictDocument(DictDocument):
             pkey = member.path[0]
             cfreq_key = cls, idx
 
-            if six.PY2:
-                indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
-            elif isinstance(orig_k, bytes):
-                indexes = deque(RE_HTTP_ARRAY_INDEX_BYTES.findall(orig_k))
-            else:
-                indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
+            indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
 
             for pkey in member.path[:-1]:
                 nidx = 0
