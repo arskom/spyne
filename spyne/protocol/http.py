@@ -419,11 +419,8 @@ class HttpPattern(object):
         pattern = _full_pattern_re.sub(r'(?P<\1>[^/]*)', pattern)
 
         pattern_b = pattern_s.encode(cls.URL_ENCODING)
-        print(pattern_b.decode('latin1'))
         pattern_b = _fragment_pattern_b_re.sub(b'(?P<\\1>[^/]*)', pattern_b)
-        print(pattern_b.decode('latin1'))
         pattern_b = _full_pattern_b_re.sub(b'(?P<\\1>[^/]*)', pattern_b)
-        print(pattern_b.decode('latin1'))
 
         return re.compile(pattern), re.compile(pattern_b)
 
