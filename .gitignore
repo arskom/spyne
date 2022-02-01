@@ -34,8 +34,8 @@ Test*.html
 
 ## run_tests.sh
 jython-installer-*
-Python-2.[67].*
-Python-3.[3456789].*
+Python-2.*.*
+Python-3.*.*
 
 ## wsi-test
 wsi-test-tools
