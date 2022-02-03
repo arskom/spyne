@@ -2,6 +2,20 @@
 Changelog
 =========
 
+spyne-2.14.0
+------------
+* Python 3.10 support
+* msgpack 1.x support
+* sqlalchemy 1.2, 1.3, 1.4 support
+* Ported the Http subsystem to Python 3
+* Support for interface document customization
+  Thanks to github.com/PyGuDev
+* Dropped deprecated integration for SqlAlchemy.
+  In other words, ``spyne.model.table`` is gone.
+* Bug fixes and one DoS fix: GHSL-2021-115.
+  Thanks to github.com/kevinbackhouse and Github security team.
+* Jenkins run: https://jenkins.arskom.com.tr/job/spyne/job/origin-stable/192/
+
 spyne-2.13.16
 -------------
 * Python 3.9 support
