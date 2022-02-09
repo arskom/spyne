@@ -29,59 +29,45 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from __future__ import absolute_import, print_function
+import sys
 
-from lxml import etree
+from datetime import datetime
+from spyne.protocol.soap import Soap11
+from spyne.server.wsgi import WsgiApplication
 
-from spyne import ComplexModel, Unicode, Integer, Array
-from spyne.util.xml import get_object_as_xml_polymorphic
-
-
-NS = "https://spyne.io/examples/polymorphism"
-
-
-class Vehicle(ComplexModel):
-    __namespace__ = NS
-    _type_info = [
-        ('owner', Unicode),
-    ]
+from spyne.util.cherry import cherry_graft_and_start
+from spyne import DateTime, Unicode, Integer, ComplexModel, rpc, Application, \
+    Service
 
 
-class Car(Vehicle):
-    __namespace__ = NS
-    _type_info = [
-        ('color', Unicode),
-        ('speed', Integer),
-    ]
+class A(ComplexModel):
+    i = Integer
 
 
-class Bike(Vehicle):
-    __namespace__ = NS
-    _type_info = [
-        ('size', Integer),
-    ]
+class B(A):
+    s = Unicode
 
 
-class Garage(ComplexModel):
-    __namespace__ = NS
-    _type_info = [
-        ('vehicles', Array(Vehicle)),
-    ]
+class C(A):
+    d = DateTime
 
 
-garage = Garage(
-    vehicles=[
-        Car(
-            color="blue",
-            speed=100,
-            owner="Simba"
-        ),
-        Bike(
-            size=58,
-            owner="Nala"
-        ),
-    ]
+class SomeService(Service):
+    @rpc(Unicode(values=['A', 'B', 'C']), _returns=A)
+    def get_some_a(self, type_name):
+        if type_name == 'A':
+            return A(i=1)
+
+        if type_name == 'B':
+            return B(i=2, s='s')
+
+        if type_name == 'C':
+            return C(i=3, d=datetime.utcnow())
+
+
+application = Application([SomeService], 'tns',
+    in_protocol=Soap11(validator='lxml'),
+    out_protocol=Soap11(polymorphic=True)
 )
 
-elt = get_object_as_xml_polymorphic(garage)
-print(etree.tostring(elt, pretty_print=True))
+sys.exit(cherry_graft_and_start(WsgiApplication(application)))
