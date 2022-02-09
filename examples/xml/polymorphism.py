@@ -85,3 +85,20 @@ garage = Garage(
 
 elt = get_object_as_xml_polymorphic(garage)
 print(etree.tostring(elt, pretty_print=True))
+
+# Output:
+""" 
+<tns:Garage xmlns:tns="https://spyne.io/examples/polymorphism" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <tns:vehicles>
+    <tns:Vehicle xsi:type="tns:Car">
+      <tns:owner>Simba</tns:owner>
+      <tns:color>blue</tns:color>
+      <tns:speed>100</tns:speed>
+    </tns:Vehicle>
+    <tns:Vehicle xsi:type="tns:Bike">
+      <tns:owner>Nala</tns:owner>
+      <tns:size>58</tns:size>
+    </tns:Vehicle>
+  </tns:vehicles>
+</tns:Garage>
+"""
