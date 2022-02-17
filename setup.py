@@ -37,15 +37,12 @@ PYVER = ''.join([str(i) for i in sys.version_info[:2]])
 with io.open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r') as v:
     VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 
-SHORT_DESC="A transport and architecture agnostic rpc library that focuses on" \
-" exposing public services with a well-defined API."
+SHORT_DESC = "RPC toolkit with pluggable protocols and transports"
 
 LONG_DESC = """Homepage: http://spyne.io
 
-Spyne aims to save the protocol implementers the hassle of
-implementing their own remote procedure call api and the application programmers
-the hassle of jumping through hoops just to expose their services using multiple
-protocols and transports.
+Spyne is an RPC toolkit with a unified model API and pluggable transports,
+protocols and interface documents.
 """
 
 try:
