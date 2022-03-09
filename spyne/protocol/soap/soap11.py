@@ -191,7 +191,7 @@ class Soap11(XmlDocument):
             # work with proper POST requests.
             content_type = ctx.transport.get_request_content_type()
             http_verb = ctx.transport.get_request_method()
-            if content_type is None or http_verb != "POST":
+            if content_type is None or six.ensure_binary(http_verb) != b"POST":
                 ctx.transport.resp_code = HTTP_405
                 raise RequestNotAllowed(
                         "You must issue a POST request with the Content-Type "
