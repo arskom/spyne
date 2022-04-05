@@ -103,7 +103,7 @@ class FaultTests(unittest.TestCase):
 
         element = Element(SOAP11_ENV('Fault'))
         fcode = SubElement(element, 'faultcode')
-        fcode.text = 'soap11env:other'
+        fcode.text = 'SOAP-ENV:other'
         fstr = SubElement(element, 'faultstring')
         fstr.text = 'Testing'
         actor = SubElement(element, 'faultactor')

@@ -393,7 +393,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     # object. Opening the first <ns0:string> tag below is wrong.
     #
     #<SOAP-ENV:Envelope xmlns:ns0="spyne.test.interop.server"
-    #                   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    #                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     #                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     #                   xmlns:ns1="http://schemas.xmlsoap.org/soap/envelope/"
     #                   xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">

@@ -46,14 +46,14 @@ class TestOperationRequestSuffix(unittest.TestCase):
 
     # output is not affected, will use soap output for all tests
     result_body = '''
-        <soap11env:Body>
+        <SOAP-ENV:Body>
             <tns:echoResponse>
                 <tns:echoResult>
                     <tns:string>Echo, test</tns:string>
                     <tns:string>Echo, test</tns:string>
                 </tns:echoResult>
             </tns:echoResponse>
-        </soap11env:Body>'''
+        </SOAP-ENV:Body>'''
 
     def get_function_names(self, suffix, _operation_name=None,
                            _in_message_name=None):
@@ -165,8 +165,8 @@ class TestOperationRequestSuffix(unittest.TestCase):
             '<wsdl:operation name="{0}"'.format(operation_name),
             '<{0}:operation soapAction="{1}"'.format(PREFMAP[NS_WSDL11_SOAP], operation_name),
             '<wsdl:input name="{0}">'.format(request_name),
-            '<xs:element name="{0}"'.format(request_name),
-            '<xs:complexType name="{0}">'.format(request_name),
+            '<xsd:element name="{0}"'.format(request_name),
+            '<xsd:complexType name="{0}">'.format(request_name),
         ]
         for soap_string in soap_strings:
             self.assertTrue(soap_string in wsdl,

@@ -64,7 +64,7 @@ Service ( HelloWorldService ) tns="spyne.helloworld"
    Ports (1):
       (Application)
          Methods (1):
-            say_hello(xs:string name, xs:integer times, )
+            say_hello(xsd:string name, xsd:integer times, )
          Types (3):
             say_hello
             say_helloResponse

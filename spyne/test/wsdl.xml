@@ -5,751 +5,751 @@
                   xmlns:s1="hunk.sunk"
                   xmlns:s2="bar"
                   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-                  xmlns:soap11enc="http://schemas.xmlsoap.org/soap/encoding/"
-                  xmlns:soap11env="http://schemas.xmlsoap.org/soap/envelope/"
+                  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+                  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
                   xmlns:soap12enc="http://www.w3.org/2003/05/soap-encoding"
                   xmlns:soap12env="http://www.w3.org/2003/05/soap-envelope"
                   xmlns:tns="spyne.test.interop.server"
                   xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing"
                   xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
                   xmlns:xop="http://www.w3.org/2004/08/xop/include"
-                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <wsdl:types>
-    <xs:schema elementFormDefault="qualified" targetNamespace="bar">
-      <xs:import namespace="punk.tunk"/>
-      <xs:import namespace="hunk.sunk"/>
-      <xs:element name="ExtensionClass" type="s2:ExtensionClass"/>
-      <xs:complexType name="ExtensionClass">
-        <xs:complexContent>
-          <xs:extension base="s0:NestedClass">
-            <xs:sequence>
-              <xs:element minOccurs="0" name="l" nillable="true" type="xs:dateTime"/>
-              <xs:element minOccurs="0" name="q" nillable="true" type="xs:integer"/>
-              <xs:element minOccurs="0" name="p" nillable="true" type="s1:NonNillableClass"/>
-            </xs:sequence>
-          </xs:extension>
-        </xs:complexContent>
-      </xs:complexType>
-    </xs:schema>
-    <xs:schema elementFormDefault="qualified" targetNamespace="hunk.sunk">
-      <xs:element name="NonNillableClass" type="s1:NonNillableClass"/>
-      <xs:simpleType name="NonNillableClass_sType">
-        <xs:restriction base="xs:string">
-          <xs:minLength value="1"/>
-        </xs:restriction>
-      </xs:simpleType>
-      <xs:complexType name="NonNillableClass">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="i" type="xs:integer"/>
-          <xs:element minOccurs="0" name="s" type="s1:NonNillableClass_sType"/>
-          <xs:element name="dt" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-    </xs:schema>
-    <xs:schema elementFormDefault="qualified" targetNamespace="punk.tunk">
-      <xs:import namespace="spyne.test.interop.server"/>
-      <xs:element name="NestedClass" type="s0:NestedClass"/>
-      <xs:element name="NestedClassArray" type="s0:NestedClassArray"/>
-      <xs:complexType name="NestedClass">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="f" nillable="true" type="xs:float"/>
-          <xs:element minOccurs="0" name="simple" nillable="true" type="tns:SimpleClassArray"/>
-          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer"/>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
-          <xs:element minOccurs="0" name="other" nillable="true" type="tns:OtherClass"/>
-          <xs:element minOccurs="0" name="ai" nillable="true" type="tns:integerArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="NestedClassArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="NestedClass" nillable="true" type="s0:NestedClass"/>
-        </xs:sequence>
-      </xs:complexType>
-    </xs:schema>
-    <xs:schema elementFormDefault="qualified" targetNamespace="spyne.test.interop.server">
-      <xs:import namespace="punk.tunk"/>
-      <xs:import namespace="bar"/>
-      <xs:import namespace="hunk.sunk"/>
-      <xs:element name="ClassWithSelfReference" type="tns:ClassWithSelfReference"/>
-      <xs:element name="DocumentedFault" type="tns:DocumentedFault"/>
-      <xs:element name="InHeader" type="tns:InHeader"/>
-      <xs:element name="InTraceHeader" type="tns:InTraceHeader"/>
-      <xs:element name="OtherClass" type="tns:OtherClass"/>
-      <xs:element name="OtherClassArray" type="tns:OtherClassArray"/>
-      <xs:element name="OutHeader" type="tns:OutHeader"/>
-      <xs:element name="OutTraceHeader" type="tns:OutTraceHeader"/>
-      <xs:element name="RoleEnumArray" type="tns:RoleEnumArray"/>
-      <xs:element name="SimpleClass" type="tns:SimpleClass"/>
-      <xs:element name="SimpleClassArray" type="tns:SimpleClassArray"/>
-      <xs:element name="base64BinaryArray" type="tns:base64BinaryArray"/>
-      <xs:element name="booleanArray" type="tns:booleanArray"/>
-      <xs:element name="booleanArrayArray" type="tns:booleanArrayArray"/>
-      <xs:element name="complex_return" type="tns:complex_return"/>
-      <xs:element name="complex_returnResponse" type="tns:complex_returnResponse"/>
-      <xs:element name="dateTimeArray" type="tns:dateTimeArray"/>
-      <xs:element name="do_something" type="tns:do_something"/>
-      <xs:element name="do_something_elseResponse" type="tns:do_something_elseResponse"/>
-      <xs:element name="documented_exception" type="tns:documented_exception"/>
-      <xs:element name="documented_exceptionResponse" type="tns:documented_exceptionResponse"/>
-      <xs:element name="doubleArray" type="tns:doubleArray"/>
-      <xs:element name="echo_any" type="tns:echo_any"/>
-      <xs:element name="echo_anyResponse" type="tns:echo_anyResponse"/>
-      <xs:element name="echo_any_as_dict" type="tns:echo_any_as_dict"/>
-      <xs:element name="echo_any_as_dictResponse" type="tns:echo_any_as_dictResponse"/>
-      <xs:element name="echo_array_in_array" type="tns:echo_array_in_array"/>
-      <xs:element name="echo_array_in_arrayResponse" type="tns:echo_array_in_arrayResponse"/>
-      <xs:element name="echo_attachment" type="tns:echo_attachment"/>
-      <xs:element name="echo_attachmentResponse" type="tns:echo_attachmentResponse"/>
-      <xs:element name="echo_attachment_array" type="tns:echo_attachment_array"/>
-      <xs:element name="echo_attachment_arrayResponse" type="tns:echo_attachment_arrayResponse"/>
-      <xs:element name="echo_boolean" type="tns:echo_boolean"/>
-      <xs:element name="echo_booleanResponse" type="tns:echo_booleanResponse"/>
-      <xs:element name="echo_boolean_array" type="tns:echo_boolean_array"/>
-      <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse"/>
-      <xs:element name="echo_bytearray" type="tns:echo_bytearray"/>
-      <xs:element name="echo_bytearrayResponse" type="tns:echo_bytearrayResponse"/>
-      <xs:element name="echo_class_with_self_reference" type="tns:echo_class_with_self_reference"/>
-      <xs:element name="echo_class_with_self_referenceResponse" type="tns:echo_class_with_self_referenceResponse"/>
-      <xs:element name="echo_complex_bare" type="tns:stringArray"/>
-      <xs:element name="echo_complex_bareResponse" type="tns:stringArray"/>
-      <xs:element name="echo_date" type="tns:echo_date"/>
-      <xs:element name="echo_dateResponse" type="tns:echo_dateResponse"/>
-      <xs:element name="echo_date_time_array" type="tns:echo_date_time_array"/>
-      <xs:element name="echo_date_time_arrayResponse" type="tns:echo_date_time_arrayResponse"/>
-      <xs:element name="echo_date_with_invalid_format" type="tns:echo_date_with_invalid_format"/>
-      <xs:element name="echo_date_with_invalid_formatResponse" type="tns:echo_date_with_invalid_formatResponse"/>
-      <xs:element name="echo_datetime" type="tns:echo_datetime"/>
-      <xs:element name="echo_datetimeResponse" type="tns:echo_datetimeResponse"/>
-      <xs:element name="echo_datetime_with_invalid_format" type="tns:echo_datetime_with_invalid_format"/>
-      <xs:element name="echo_datetime_with_invalid_formatResponse" type="tns:echo_datetime_with_invalid_formatResponse"/>
-      <xs:element name="echo_double" type="tns:echo_double"/>
-      <xs:element name="echo_doubleResponse" type="tns:echo_doubleResponse"/>
-      <xs:element name="echo_double_array" type="tns:echo_double_array"/>
-      <xs:element name="echo_double_arrayResponse" type="tns:echo_double_arrayResponse"/>
-      <xs:element name="echo_duration" type="tns:echo_duration"/>
-      <xs:element name="echo_durationResponse" type="tns:echo_durationResponse"/>
-      <xs:element name="echo_enum" type="tns:echo_enum"/>
-      <xs:element name="echo_enumResponse" type="tns:echo_enumResponse"/>
-      <xs:element name="echo_extension_class" type="tns:echo_extension_class"/>
-      <xs:element name="echo_extension_classResponse" type="tns:echo_extension_classResponse"/>
-      <xs:element name="echo_float" type="tns:echo_float"/>
-      <xs:element name="echo_floatResponse" type="tns:echo_floatResponse"/>
-      <xs:element name="echo_float_array" type="tns:echo_float_array"/>
-      <xs:element name="echo_float_arrayResponse" type="tns:echo_float_arrayResponse"/>
-      <xs:element name="echo_in_complex_header" type="tns:echo_in_complex_header"/>
-      <xs:element name="echo_in_complex_headerResponse" type="tns:echo_in_complex_headerResponse"/>
-      <xs:element name="echo_in_header" type="tns:echo_in_header"/>
-      <xs:element name="echo_in_headerResponse" type="tns:echo_in_headerResponse"/>
-      <xs:element name="echo_integer" type="tns:echo_integer"/>
-      <xs:element name="echo_integerResponse" type="tns:echo_integerResponse"/>
-      <xs:element name="echo_integer_array" type="tns:echo_integer_array"/>
-      <xs:element name="echo_integer_arrayResponse" type="tns:echo_integer_arrayResponse"/>
-      <xs:element name="echo_nested_class" type="tns:echo_nested_class"/>
-      <xs:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse"/>
-      <xs:element name="echo_nested_class_array" type="tns:echo_nested_class_array"/>
-      <xs:element name="echo_nested_class_arrayResponse" type="tns:echo_nested_class_arrayResponse"/>
-      <xs:element name="echo_simple_bare" type="xs:string"/>
-      <xs:element name="echo_simple_bareResponse" type="xs:string"/>
-      <xs:element name="echo_simple_boolean_array" type="tns:echo_simple_boolean_array"/>
-      <xs:element name="echo_simple_boolean_arrayResponse" type="tns:echo_simple_boolean_arrayResponse"/>
-      <xs:element name="echo_simple_class" type="tns:echo_simple_class"/>
-      <xs:element name="echo_simple_classResponse" type="tns:echo_simple_classResponse"/>
-      <xs:element name="echo_simple_class_array" type="tns:echo_simple_class_array"/>
-      <xs:element name="echo_simple_class_arrayResponse" type="tns:echo_simple_class_arrayResponse"/>
-      <xs:element name="echo_string" type="tns:echo_string"/>
-      <xs:element name="echo_stringResponse" type="tns:echo_stringResponse"/>
-      <xs:element name="echo_string_array" type="tns:echo_string_array"/>
-      <xs:element name="echo_string_arrayResponse" type="tns:echo_string_arrayResponse"/>
-      <xs:element name="echo_time" type="tns:echo_time"/>
-      <xs:element name="echo_timeResponse" type="tns:echo_timeResponse"/>
-      <xs:element name="echo_time_with_invalid_format" type="tns:echo_time_with_invalid_format"/>
-      <xs:element name="echo_time_with_invalid_formatResponse" type="tns:echo_time_with_invalid_formatResponse"/>
-      <xs:element name="empty_input_bare" type="tns:empty_input_bare"/>
-      <xs:element name="empty_input_bareResponse" type="xs:string"/>
-      <xs:element name="empty_output_bare" type="xs:string"/>
-      <xs:element name="empty_output_bareResponse" type="tns:empty_output_bareResponse"/>
-      <xs:element name="floatArray" type="tns:floatArray"/>
-      <xs:element name="getCustomMessagesMsgIn" type="tns:getCustomMessagesMsgIn"/>
-      <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut"/>
-      <xs:element name="huge_number" type="tns:huge_number"/>
-      <xs:element name="huge_numberResponse" type="tns:huge_numberResponse"/>
-      <xs:element name="integerArray" type="tns:integerArray"/>
-      <xs:element name="long_string" type="tns:long_string"/>
-      <xs:element name="long_stringResponse" type="tns:long_stringResponse"/>
-      <xs:element name="multi_param" type="tns:multi_param"/>
-      <xs:element name="multi_paramResponse" type="tns:multi_paramResponse"/>
-      <xs:element name="non_nillable" type="tns:non_nillable"/>
-      <xs:element name="non_nillableResponse" type="tns:non_nillableResponse"/>
-      <xs:element name="python_exception" type="tns:python_exception"/>
-      <xs:element name="python_exceptionResponse" type="tns:python_exceptionResponse"/>
-      <xs:element name="return_binary_data" type="tns:return_binary_data"/>
-      <xs:element name="return_binary_dataResponse" type="tns:return_binary_dataResponse"/>
-      <xs:element name="return_invalid_data" type="tns:return_invalid_data"/>
-      <xs:element name="return_invalid_dataResponse" type="tns:return_invalid_dataResponse"/>
-      <xs:element name="return_other_class_array" type="tns:return_other_class_array"/>
-      <xs:element name="return_other_class_arrayResponse" type="tns:return_other_class_arrayResponse"/>
-      <xs:element name="send_out_complex_header" type="tns:send_out_complex_header"/>
-      <xs:element name="send_out_complex_headerResponse" type="tns:send_out_complex_headerResponse"/>
-      <xs:element name="send_out_header" type="tns:send_out_header"/>
-      <xs:element name="send_out_headerResponse" type="tns:send_out_headerResponse"/>
-      <xs:element name="soap_exception" type="tns:soap_exception"/>
-      <xs:element name="soap_exceptionResponse" type="tns:soap_exceptionResponse"/>
-      <xs:element name="stringArray" type="tns:stringArray"/>
-      <xs:element name="test_empty" type="tns:test_empty"/>
-      <xs:element name="test_emptyResponse" type="tns:test_emptyResponse"/>
-      <xs:simpleType name="DaysOfWeekEnum">
-        <xs:restriction base="xs:string">
-          <xs:enumeration value="Monday"/>
-          <xs:enumeration value="Tuesday"/>
-          <xs:enumeration value="Wednesday"/>
-          <xs:enumeration value="Friday"/>
-          <xs:enumeration value="Saturday"/>
-          <xs:enumeration value="Sunday"/>
-        </xs:restriction>
-      </xs:simpleType>
-      <xs:simpleType name="RoleEnum">
-        <xs:restriction base="xs:string">
-          <xs:enumeration value="MEMBER"/>
-        </xs:restriction>
-      </xs:simpleType>
-      <xs:complexType name="ClassWithSelfReference">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer"/>
-          <xs:element minOccurs="0" name="sr" nillable="true" type="tns:ClassWithSelfReference"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="DocumentedFault"/>
-      <xs:complexType name="InHeader">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer"/>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="InTraceHeader">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="callDate" nillable="true" type="xs:dateTime"/>
-          <xs:element minOccurs="0" name="client" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OtherClass">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="b" nillable="true" type="xs:boolean"/>
-          <xs:element minOccurs="0" name="d" nillable="true" type="xs:double"/>
-          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OtherClassArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="OtherClass" nillable="true" type="tns:OtherClass"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OutHeader">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="f" nillable="true" type="xs:float"/>
-          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OutTraceHeader">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="receiptDate" nillable="true" type="xs:dateTime"/>
-          <xs:element minOccurs="0" name="returnDate" nillable="true" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="RoleEnumArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="RoleEnum" nillable="true" type="tns:RoleEnum"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="SimpleClass">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer"/>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="SimpleClassArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="SimpleClass" nillable="true" type="tns:SimpleClass"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="base64BinaryArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="base64Binary" nillable="true" type="xs:base64Binary"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="booleanArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="boolean" nillable="true" type="xs:boolean"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="booleanArrayArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="booleanArray" nillable="true" type="tns:booleanArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="complex_return"/>
-      <xs:complexType name="complex_returnResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="resultCode" nillable="true" type="xs:integer"/>
-          <xs:element minOccurs="0" name="resultDescription" nillable="true" type="xs:string"/>
-          <xs:element minOccurs="0" name="transactionId" nillable="true" type="xs:integer"/>
-          <xs:element minOccurs="0" name="roles" nillable="true" type="tns:RoleEnumArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="dateTimeArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="dateTime" nillable="true" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="do_something">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="do_something_elseResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="do_something_elseResult" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="documented_exception"/>
-      <xs:complexType name="documented_exceptionResponse"/>
-      <xs:complexType name="doubleArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="double" nillable="true" type="xs:double"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_any">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="xml" nillable="true" type="xs:anyType"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_anyResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_anyResult" nillable="true" type="xs:anyType"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_any_as_dict">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="xml_as_dict" nillable="true" type="xs:anyType"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_any_as_dictResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_any_as_dictResult" nillable="true" type="xs:anyType"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_array_in_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="baa" nillable="true" type="tns:booleanArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_array_in_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_array_in_arrayResult" nillable="true" type="tns:booleanArrayArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_attachment">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="a" nillable="true" type="xs:base64Binary"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_attachmentResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_attachmentResult" nillable="true" type="xs:base64Binary"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_attachment_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="aa" nillable="true" type="tns:base64BinaryArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_attachment_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_attachment_arrayResult" nillable="true" type="tns:base64BinaryArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_boolean">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="b" nillable="true" type="xs:boolean"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_booleanResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_booleanResult" nillable="true" type="xs:boolean"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_boolean_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="ba" nillable="true" type="tns:booleanArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_boolean_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_boolean_arrayResult" nillable="true" type="tns:booleanArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_bytearray">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="data" nillable="true" type="xs:base64Binary"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_bytearrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_bytearrayResult" nillable="true" type="xs:base64Binary"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_class_with_self_reference">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="sr" nillable="true" type="tns:ClassWithSelfReference"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_class_with_self_referenceResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_class_with_self_referenceResult" nillable="true" type="tns:ClassWithSelfReference"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_date">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="d" nillable="true" type="xs:date"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_dateResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_dateResult" nillable="true" type="xs:date"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_date_time_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="dta" nillable="true" type="tns:dateTimeArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_date_time_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_date_time_arrayResult" nillable="true" type="tns:dateTimeArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_date_with_invalid_format">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="d" nillable="true" type="xs:date"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_date_with_invalid_formatResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_date_with_invalid_formatResult" nillable="true" type="xs:date"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_datetime">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_datetimeResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_datetimeResult" nillable="true" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_datetime_with_invalid_format">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_datetime_with_invalid_formatResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_datetime_with_invalid_formatResult" nillable="true" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_double">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="f" nillable="true" type="xs:double"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_doubleResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_doubleResult" nillable="true" type="xs:double"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_double_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="da" nillable="true" type="tns:doubleArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_double_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_double_arrayResult" nillable="true" type="tns:doubleArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_duration">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="dur" nillable="true" type="xs:duration"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_durationResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_durationResult" nillable="true" type="xs:duration"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_enum">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="day" nillable="true" type="tns:DaysOfWeekEnum"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_enumResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_enumResult" nillable="true" type="tns:DaysOfWeekEnum"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_extension_class">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="nc" nillable="true" type="s2:ExtensionClass"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_extension_classResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_extension_classResult" nillable="true" type="s2:ExtensionClass"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_float">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="f" nillable="true" type="xs:float"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_floatResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_floatResult" nillable="true" type="xs:float"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_float_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="fa" nillable="true" type="tns:floatArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_float_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_float_arrayResult" nillable="true" type="tns:floatArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_in_complex_header"/>
-      <xs:complexType name="echo_in_complex_headerResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_in_complex_headerResult0" nillable="true" type="tns:InHeader"/>
-          <xs:element minOccurs="0" name="echo_in_complex_headerResult1" nillable="true" type="tns:InTraceHeader"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_in_header"/>
-      <xs:complexType name="echo_in_headerResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_in_headerResult" nillable="true" type="tns:InHeader"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_integer">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_integerResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_integerResult" nillable="true" type="xs:integer"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_integer_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="ia" nillable="true" type="tns:integerArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_integer_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_integer_arrayResult" nillable="true" type="tns:integerArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_nested_class">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="nc" nillable="true" type="s0:NestedClass"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_nested_classResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_nested_classResult" nillable="true" type="s0:NestedClass"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_nested_class_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="nca" nillable="true" type="s0:NestedClassArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_nested_class_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_nested_class_arrayResult" nillable="true" type="s0:NestedClassArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_simple_boolean_array">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="ba" nillable="true" type="xs:boolean"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_simple_boolean_arrayResponse">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="echo_simple_boolean_arrayResult" nillable="true" type="xs:boolean"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_simple_class">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="sc" nillable="true" type="tns:SimpleClass"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_simple_classResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_simple_classResult" nillable="true" type="tns:SimpleClass"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_simple_class_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="sca" nillable="true" type="tns:SimpleClassArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_simple_class_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_simple_class_arrayResult" nillable="true" type="tns:SimpleClassArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_string">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_stringResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_stringResult" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_string_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="sa" nillable="true" type="tns:stringArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_string_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_string_arrayResult" nillable="true" type="tns:stringArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_time">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="t" nillable="true" type="xs:time"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_timeResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_timeResult" nillable="true" type="xs:time"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_time_with_invalid_format">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="t" nillable="true" type="xs:time"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_time_with_invalid_formatResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_time_with_invalid_formatResult" nillable="true" type="xs:time"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="empty_input_bare"/>
-      <xs:complexType name="empty_output_bareResponse"/>
-      <xs:complexType name="floatArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="float" nillable="true" type="xs:float"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="getCustomMessagesMsgIn">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="getCustomMessagesMsgOut">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="CustomMessages" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="huge_number"/>
-      <xs:complexType name="huge_numberResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="huge_numberResult" nillable="true" type="xs:integer"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="integerArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="integer" nillable="true" type="xs:integer"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="long_string"/>
-      <xs:complexType name="long_stringResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="long_stringResult" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="multi_param">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string"/>
-          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer"/>
-          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="multi_paramResponse"/>
-      <xs:complexType name="non_nillable">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="n" nillable="true" type="s1:NonNillableClass"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="non_nillableResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="non_nillableResult" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="python_exception"/>
-      <xs:complexType name="python_exceptionResponse"/>
-      <xs:complexType name="return_binary_data"/>
-      <xs:complexType name="return_binary_dataResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="return_binary_dataResult" nillable="true" type="xs:base64Binary"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="return_invalid_data"/>
-      <xs:complexType name="return_invalid_dataResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="return_invalid_dataResult" nillable="true" type="xs:integer"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="return_other_class_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="num" nillable="true" type="xs:integer"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="return_other_class_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="return_other_class_arrayResult" nillable="true" type="tns:OtherClassArray"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="send_out_complex_header"/>
-      <xs:complexType name="send_out_complex_headerResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="send_out_complex_headerResult0" nillable="true" type="tns:OutHeader"/>
-          <xs:element minOccurs="0" name="send_out_complex_headerResult1" nillable="true" type="tns:OutTraceHeader"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="send_out_header"/>
-      <xs:complexType name="send_out_headerResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="send_out_headerResult" nillable="true" type="tns:OutHeader"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="soap_exception"/>
-      <xs:complexType name="soap_exceptionResponse"/>
-      <xs:complexType name="stringArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="string" nillable="true" type="xs:string"/>
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="test_empty"/>
-      <xs:complexType name="test_emptyResponse"/>
-    </xs:schema>
+    <xsd:schema elementFormDefault="qualified" targetNamespace="bar">
+      <xsd:import namespace="punk.tunk"/>
+      <xsd:import namespace="hunk.sunk"/>
+      <xsd:element name="ExtensionClass" type="s2:ExtensionClass"/>
+      <xsd:complexType name="ExtensionClass">
+        <xsd:complexContent>
+          <xsd:extension base="s0:NestedClass">
+            <xsd:sequence>
+              <xsd:element minOccurs="0" name="l" nillable="true" type="xsd:dateTime"/>
+              <xsd:element minOccurs="0" name="q" nillable="true" type="xsd:integer"/>
+              <xsd:element minOccurs="0" name="p" nillable="true" type="s1:NonNillableClass"/>
+            </xsd:sequence>
+          </xsd:extension>
+        </xsd:complexContent>
+      </xsd:complexType>
+    </xsd:schema>
+    <xsd:schema elementFormDefault="qualified" targetNamespace="hunk.sunk">
+      <xsd:element name="NonNillableClass" type="s1:NonNillableClass"/>
+      <xsd:simpleType name="NonNillableClass_sType">
+        <xsd:restriction base="xsd:string">
+          <xsd:minLength value="1"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name="NonNillableClass">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="i" type="xsd:integer"/>
+          <xsd:element minOccurs="0" name="s" type="s1:NonNillableClass_sType"/>
+          <xsd:element name="dt" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:schema>
+    <xsd:schema elementFormDefault="qualified" targetNamespace="punk.tunk">
+      <xsd:import namespace="spyne.test.interop.server"/>
+      <xsd:element name="NestedClass" type="s0:NestedClass"/>
+      <xsd:element name="NestedClassArray" type="s0:NestedClassArray"/>
+      <xsd:complexType name="NestedClass">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="f" nillable="true" type="xsd:float"/>
+          <xsd:element minOccurs="0" name="simple" nillable="true" type="tns:SimpleClassArray"/>
+          <xsd:element minOccurs="0" name="i" nillable="true" type="xsd:integer"/>
+          <xsd:element minOccurs="0" name="s" nillable="true" type="xsd:string"/>
+          <xsd:element minOccurs="0" name="other" nillable="true" type="tns:OtherClass"/>
+          <xsd:element minOccurs="0" name="ai" nillable="true" type="tns:integerArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="NestedClassArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="NestedClass" nillable="true" type="s0:NestedClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:schema>
+    <xsd:schema elementFormDefault="qualified" targetNamespace="spyne.test.interop.server">
+      <xsd:import namespace="punk.tunk"/>
+      <xsd:import namespace="bar"/>
+      <xsd:import namespace="hunk.sunk"/>
+      <xsd:element name="ClassWithSelfReference" type="tns:ClassWithSelfReference"/>
+      <xsd:element name="DocumentedFault" type="tns:DocumentedFault"/>
+      <xsd:element name="InHeader" type="tns:InHeader"/>
+      <xsd:element name="InTraceHeader" type="tns:InTraceHeader"/>
+      <xsd:element name="OtherClass" type="tns:OtherClass"/>
+      <xsd:element name="OtherClassArray" type="tns:OtherClassArray"/>
+      <xsd:element name="OutHeader" type="tns:OutHeader"/>
+      <xsd:element name="OutTraceHeader" type="tns:OutTraceHeader"/>
+      <xsd:element name="RoleEnumArray" type="tns:RoleEnumArray"/>
+      <xsd:element name="SimpleClass" type="tns:SimpleClass"/>
+      <xsd:element name="SimpleClassArray" type="tns:SimpleClassArray"/>
+      <xsd:element name="base64BinaryArray" type="tns:base64BinaryArray"/>
+      <xsd:element name="booleanArray" type="tns:booleanArray"/>
+      <xsd:element name="booleanArrayArray" type="tns:booleanArrayArray"/>
+      <xsd:element name="complex_return" type="tns:complex_return"/>
+      <xsd:element name="complex_returnResponse" type="tns:complex_returnResponse"/>
+      <xsd:element name="dateTimeArray" type="tns:dateTimeArray"/>
+      <xsd:element name="do_something" type="tns:do_something"/>
+      <xsd:element name="do_something_elseResponse" type="tns:do_something_elseResponse"/>
+      <xsd:element name="documented_exception" type="tns:documented_exception"/>
+      <xsd:element name="documented_exceptionResponse" type="tns:documented_exceptionResponse"/>
+      <xsd:element name="doubleArray" type="tns:doubleArray"/>
+      <xsd:element name="echo_any" type="tns:echo_any"/>
+      <xsd:element name="echo_anyResponse" type="tns:echo_anyResponse"/>
+      <xsd:element name="echo_any_as_dict" type="tns:echo_any_as_dict"/>
+      <xsd:element name="echo_any_as_dictResponse" type="tns:echo_any_as_dictResponse"/>
+      <xsd:element name="echo_array_in_array" type="tns:echo_array_in_array"/>
+      <xsd:element name="echo_array_in_arrayResponse" type="tns:echo_array_in_arrayResponse"/>
+      <xsd:element name="echo_attachment" type="tns:echo_attachment"/>
+      <xsd:element name="echo_attachmentResponse" type="tns:echo_attachmentResponse"/>
+      <xsd:element name="echo_attachment_array" type="tns:echo_attachment_array"/>
+      <xsd:element name="echo_attachment_arrayResponse" type="tns:echo_attachment_arrayResponse"/>
+      <xsd:element name="echo_boolean" type="tns:echo_boolean"/>
+      <xsd:element name="echo_booleanResponse" type="tns:echo_booleanResponse"/>
+      <xsd:element name="echo_boolean_array" type="tns:echo_boolean_array"/>
+      <xsd:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse"/>
+      <xsd:element name="echo_bytearray" type="tns:echo_bytearray"/>
+      <xsd:element name="echo_bytearrayResponse" type="tns:echo_bytearrayResponse"/>
+      <xsd:element name="echo_class_with_self_reference" type="tns:echo_class_with_self_reference"/>
+      <xsd:element name="echo_class_with_self_referenceResponse" type="tns:echo_class_with_self_referenceResponse"/>
+      <xsd:element name="echo_complex_bare" type="tns:stringArray"/>
+      <xsd:element name="echo_complex_bareResponse" type="tns:stringArray"/>
+      <xsd:element name="echo_date" type="tns:echo_date"/>
+      <xsd:element name="echo_dateResponse" type="tns:echo_dateResponse"/>
+      <xsd:element name="echo_date_time_array" type="tns:echo_date_time_array"/>
+      <xsd:element name="echo_date_time_arrayResponse" type="tns:echo_date_time_arrayResponse"/>
+      <xsd:element name="echo_date_with_invalid_format" type="tns:echo_date_with_invalid_format"/>
+      <xsd:element name="echo_date_with_invalid_formatResponse" type="tns:echo_date_with_invalid_formatResponse"/>
+      <xsd:element name="echo_datetime" type="tns:echo_datetime"/>
+      <xsd:element name="echo_datetimeResponse" type="tns:echo_datetimeResponse"/>
+      <xsd:element name="echo_datetime_with_invalid_format" type="tns:echo_datetime_with_invalid_format"/>
+      <xsd:element name="echo_datetime_with_invalid_formatResponse" type="tns:echo_datetime_with_invalid_formatResponse"/>
+      <xsd:element name="echo_double" type="tns:echo_double"/>
+      <xsd:element name="echo_doubleResponse" type="tns:echo_doubleResponse"/>
+      <xsd:element name="echo_double_array" type="tns:echo_double_array"/>
+      <xsd:element name="echo_double_arrayResponse" type="tns:echo_double_arrayResponse"/>
+      <xsd:element name="echo_duration" type="tns:echo_duration"/>
+      <xsd:element name="echo_durationResponse" type="tns:echo_durationResponse"/>
+      <xsd:element name="echo_enum" type="tns:echo_enum"/>
+      <xsd:element name="echo_enumResponse" type="tns:echo_enumResponse"/>
+      <xsd:element name="echo_extension_class" type="tns:echo_extension_class"/>
+      <xsd:element name="echo_extension_classResponse" type="tns:echo_extension_classResponse"/>
+      <xsd:element name="echo_float" type="tns:echo_float"/>
+      <xsd:element name="echo_floatResponse" type="tns:echo_floatResponse"/>
+      <xsd:element name="echo_float_array" type="tns:echo_float_array"/>
+      <xsd:element name="echo_float_arrayResponse" type="tns:echo_float_arrayResponse"/>
+      <xsd:element name="echo_in_complex_header" type="tns:echo_in_complex_header"/>
+      <xsd:element name="echo_in_complex_headerResponse" type="tns:echo_in_complex_headerResponse"/>
+      <xsd:element name="echo_in_header" type="tns:echo_in_header"/>
+      <xsd:element name="echo_in_headerResponse" type="tns:echo_in_headerResponse"/>
+      <xsd:element name="echo_integer" type="tns:echo_integer"/>
+      <xsd:element name="echo_integerResponse" type="tns:echo_integerResponse"/>
+      <xsd:element name="echo_integer_array" type="tns:echo_integer_array"/>
+      <xsd:element name="echo_integer_arrayResponse" type="tns:echo_integer_arrayResponse"/>
+      <xsd:element name="echo_nested_class" type="tns:echo_nested_class"/>
+      <xsd:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse"/>
+      <xsd:element name="echo_nested_class_array" type="tns:echo_nested_class_array"/>
+      <xsd:element name="echo_nested_class_arrayResponse" type="tns:echo_nested_class_arrayResponse"/>
+      <xsd:element name="echo_simple_bare" type="xsd:string"/>
+      <xsd:element name="echo_simple_bareResponse" type="xsd:string"/>
+      <xsd:element name="echo_simple_boolean_array" type="tns:echo_simple_boolean_array"/>
+      <xsd:element name="echo_simple_boolean_arrayResponse" type="tns:echo_simple_boolean_arrayResponse"/>
+      <xsd:element name="echo_simple_class" type="tns:echo_simple_class"/>
+      <xsd:element name="echo_simple_classResponse" type="tns:echo_simple_classResponse"/>
+      <xsd:element name="echo_simple_class_array" type="tns:echo_simple_class_array"/>
+      <xsd:element name="echo_simple_class_arrayResponse" type="tns:echo_simple_class_arrayResponse"/>
+      <xsd:element name="echo_string" type="tns:echo_string"/>
+      <xsd:element name="echo_stringResponse" type="tns:echo_stringResponse"/>
+      <xsd:element name="echo_string_array" type="tns:echo_string_array"/>
+      <xsd:element name="echo_string_arrayResponse" type="tns:echo_string_arrayResponse"/>
+      <xsd:element name="echo_time" type="tns:echo_time"/>
+      <xsd:element name="echo_timeResponse" type="tns:echo_timeResponse"/>
+      <xsd:element name="echo_time_with_invalid_format" type="tns:echo_time_with_invalid_format"/>
+      <xsd:element name="echo_time_with_invalid_formatResponse" type="tns:echo_time_with_invalid_formatResponse"/>
+      <xsd:element name="empty_input_bare" type="tns:empty_input_bare"/>
+      <xsd:element name="empty_input_bareResponse" type="xsd:string"/>
+      <xsd:element name="empty_output_bare" type="xsd:string"/>
+      <xsd:element name="empty_output_bareResponse" type="tns:empty_output_bareResponse"/>
+      <xsd:element name="floatArray" type="tns:floatArray"/>
+      <xsd:element name="getCustomMessagesMsgIn" type="tns:getCustomMessagesMsgIn"/>
+      <xsd:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut"/>
+      <xsd:element name="huge_number" type="tns:huge_number"/>
+      <xsd:element name="huge_numberResponse" type="tns:huge_numberResponse"/>
+      <xsd:element name="integerArray" type="tns:integerArray"/>
+      <xsd:element name="long_string" type="tns:long_string"/>
+      <xsd:element name="long_stringResponse" type="tns:long_stringResponse"/>
+      <xsd:element name="multi_param" type="tns:multi_param"/>
+      <xsd:element name="multi_paramResponse" type="tns:multi_paramResponse"/>
+      <xsd:element name="non_nillable" type="tns:non_nillable"/>
+      <xsd:element name="non_nillableResponse" type="tns:non_nillableResponse"/>
+      <xsd:element name="python_exception" type="tns:python_exception"/>
+      <xsd:element name="python_exceptionResponse" type="tns:python_exceptionResponse"/>
+      <xsd:element name="return_binary_data" type="tns:return_binary_data"/>
+      <xsd:element name="return_binary_dataResponse" type="tns:return_binary_dataResponse"/>
+      <xsd:element name="return_invalid_data" type="tns:return_invalid_data"/>
+      <xsd:element name="return_invalid_dataResponse" type="tns:return_invalid_dataResponse"/>
+      <xsd:element name="return_other_class_array" type="tns:return_other_class_array"/>
+      <xsd:element name="return_other_class_arrayResponse" type="tns:return_other_class_arrayResponse"/>
+      <xsd:element name="send_out_complex_header" type="tns:send_out_complex_header"/>
+      <xsd:element name="send_out_complex_headerResponse" type="tns:send_out_complex_headerResponse"/>
+      <xsd:element name="send_out_header" type="tns:send_out_header"/>
+      <xsd:element name="send_out_headerResponse" type="tns:send_out_headerResponse"/>
+      <xsd:element name="soap_exception" type="tns:soap_exception"/>
+      <xsd:element name="soap_exceptionResponse" type="tns:soap_exceptionResponse"/>
+      <xsd:element name="stringArray" type="tns:stringArray"/>
+      <xsd:element name="test_empty" type="tns:test_empty"/>
+      <xsd:element name="test_emptyResponse" type="tns:test_emptyResponse"/>
+      <xsd:simpleType name="DaysOfWeekEnum">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="Monday"/>
+          <xsd:enumeration value="Tuesday"/>
+          <xsd:enumeration value="Wednesday"/>
+          <xsd:enumeration value="Friday"/>
+          <xsd:enumeration value="Saturday"/>
+          <xsd:enumeration value="Sunday"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="RoleEnum">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="MEMBER"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name="ClassWithSelfReference">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="i" nillable="true" type="xsd:integer"/>
+          <xsd:element minOccurs="0" name="sr" nillable="true" type="tns:ClassWithSelfReference"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="DocumentedFault"/>
+      <xsd:complexType name="InHeader">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="i" nillable="true" type="xsd:integer"/>
+          <xsd:element minOccurs="0" name="s" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="InTraceHeader">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="callDate" nillable="true" type="xsd:dateTime"/>
+          <xsd:element minOccurs="0" name="client" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="OtherClass">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="b" nillable="true" type="xsd:boolean"/>
+          <xsd:element minOccurs="0" name="d" nillable="true" type="xsd:double"/>
+          <xsd:element minOccurs="0" name="dt" nillable="true" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="OtherClassArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="OtherClass" nillable="true" type="tns:OtherClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="OutHeader">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="f" nillable="true" type="xsd:float"/>
+          <xsd:element minOccurs="0" name="dt" nillable="true" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="OutTraceHeader">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="receiptDate" nillable="true" type="xsd:dateTime"/>
+          <xsd:element minOccurs="0" name="returnDate" nillable="true" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="RoleEnumArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="RoleEnum" nillable="true" type="tns:RoleEnum"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="SimpleClass">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="i" nillable="true" type="xsd:integer"/>
+          <xsd:element minOccurs="0" name="s" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="SimpleClassArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="SimpleClass" nillable="true" type="tns:SimpleClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="base64BinaryArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="base64Binary" nillable="true" type="xsd:base64Binary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="booleanArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="boolean" nillable="true" type="xsd:boolean"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="booleanArrayArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="booleanArray" nillable="true" type="tns:booleanArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="complex_return"/>
+      <xsd:complexType name="complex_returnResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="resultCode" nillable="true" type="xsd:integer"/>
+          <xsd:element minOccurs="0" name="resultDescription" nillable="true" type="xsd:string"/>
+          <xsd:element minOccurs="0" name="transactionId" nillable="true" type="xsd:integer"/>
+          <xsd:element minOccurs="0" name="roles" nillable="true" type="tns:RoleEnumArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="dateTimeArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="dateTime" nillable="true" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="do_something">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="s" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="do_something_elseResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="do_something_elseResult" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="documented_exception"/>
+      <xsd:complexType name="documented_exceptionResponse"/>
+      <xsd:complexType name="doubleArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="double" nillable="true" type="xsd:double"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_any">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="xml" nillable="true" type="xsd:anyType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_anyResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_anyResult" nillable="true" type="xsd:anyType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_any_as_dict">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="xml_as_dict" nillable="true" type="xsd:anyType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_any_as_dictResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_any_as_dictResult" nillable="true" type="xsd:anyType"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_array_in_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="baa" nillable="true" type="tns:booleanArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_array_in_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_array_in_arrayResult" nillable="true" type="tns:booleanArrayArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_attachment">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="a" nillable="true" type="xsd:base64Binary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_attachmentResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_attachmentResult" nillable="true" type="xsd:base64Binary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_attachment_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="aa" nillable="true" type="tns:base64BinaryArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_attachment_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_attachment_arrayResult" nillable="true" type="tns:base64BinaryArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_boolean">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="b" nillable="true" type="xsd:boolean"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_booleanResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_booleanResult" nillable="true" type="xsd:boolean"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_boolean_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="ba" nillable="true" type="tns:booleanArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_boolean_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_boolean_arrayResult" nillable="true" type="tns:booleanArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_bytearray">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="data" nillable="true" type="xsd:base64Binary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_bytearrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_bytearrayResult" nillable="true" type="xsd:base64Binary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_class_with_self_reference">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="sr" nillable="true" type="tns:ClassWithSelfReference"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_class_with_self_referenceResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_class_with_self_referenceResult" nillable="true" type="tns:ClassWithSelfReference"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_date">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="d" nillable="true" type="xsd:date"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_dateResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_dateResult" nillable="true" type="xsd:date"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_date_time_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="dta" nillable="true" type="tns:dateTimeArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_date_time_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_date_time_arrayResult" nillable="true" type="tns:dateTimeArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_date_with_invalid_format">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="d" nillable="true" type="xsd:date"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_date_with_invalid_formatResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_date_with_invalid_formatResult" nillable="true" type="xsd:date"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_datetime">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="dt" nillable="true" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_datetimeResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_datetimeResult" nillable="true" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_datetime_with_invalid_format">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="dt" nillable="true" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_datetime_with_invalid_formatResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_datetime_with_invalid_formatResult" nillable="true" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_double">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="f" nillable="true" type="xsd:double"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_doubleResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_doubleResult" nillable="true" type="xsd:double"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_double_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="da" nillable="true" type="tns:doubleArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_double_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_double_arrayResult" nillable="true" type="tns:doubleArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_duration">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="dur" nillable="true" type="xsd:duration"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_durationResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_durationResult" nillable="true" type="xsd:duration"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_enum">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="day" nillable="true" type="tns:DaysOfWeekEnum"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_enumResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_enumResult" nillable="true" type="tns:DaysOfWeekEnum"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_extension_class">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="nc" nillable="true" type="s2:ExtensionClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_extension_classResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_extension_classResult" nillable="true" type="s2:ExtensionClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_float">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="f" nillable="true" type="xsd:float"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_floatResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_floatResult" nillable="true" type="xsd:float"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_float_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="fa" nillable="true" type="tns:floatArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_float_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_float_arrayResult" nillable="true" type="tns:floatArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_in_complex_header"/>
+      <xsd:complexType name="echo_in_complex_headerResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_in_complex_headerResult0" nillable="true" type="tns:InHeader"/>
+          <xsd:element minOccurs="0" name="echo_in_complex_headerResult1" nillable="true" type="tns:InTraceHeader"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_in_header"/>
+      <xsd:complexType name="echo_in_headerResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_in_headerResult" nillable="true" type="tns:InHeader"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_integer">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="i" nillable="true" type="xsd:integer"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_integerResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_integerResult" nillable="true" type="xsd:integer"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_integer_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="ia" nillable="true" type="tns:integerArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_integer_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_integer_arrayResult" nillable="true" type="tns:integerArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_nested_class">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="nc" nillable="true" type="s0:NestedClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_nested_classResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_nested_classResult" nillable="true" type="s0:NestedClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_nested_class_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="nca" nillable="true" type="s0:NestedClassArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_nested_class_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_nested_class_arrayResult" nillable="true" type="s0:NestedClassArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_simple_boolean_array">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="ba" nillable="true" type="xsd:boolean"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_simple_boolean_arrayResponse">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="echo_simple_boolean_arrayResult" nillable="true" type="xsd:boolean"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_simple_class">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="sc" nillable="true" type="tns:SimpleClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_simple_classResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_simple_classResult" nillable="true" type="tns:SimpleClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_simple_class_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="sca" nillable="true" type="tns:SimpleClassArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_simple_class_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_simple_class_arrayResult" nillable="true" type="tns:SimpleClassArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_string">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="s" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_stringResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_stringResult" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_string_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="sa" nillable="true" type="tns:stringArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_string_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_string_arrayResult" nillable="true" type="tns:stringArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_time">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="t" nillable="true" type="xsd:time"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_timeResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_timeResult" nillable="true" type="xsd:time"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_time_with_invalid_format">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="t" nillable="true" type="xsd:time"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="echo_time_with_invalid_formatResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="echo_time_with_invalid_formatResult" nillable="true" type="xsd:time"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="empty_input_bare"/>
+      <xsd:complexType name="empty_output_bareResponse"/>
+      <xsd:complexType name="floatArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="float" nillable="true" type="xsd:float"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="getCustomMessagesMsgIn">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="s" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="getCustomMessagesMsgOut">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="CustomMessages" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="huge_number"/>
+      <xsd:complexType name="huge_numberResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="huge_numberResult" nillable="true" type="xsd:integer"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="integerArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="integer" nillable="true" type="xsd:integer"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="long_string"/>
+      <xsd:complexType name="long_stringResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="long_stringResult" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="multi_param">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="s" nillable="true" type="xsd:string"/>
+          <xsd:element minOccurs="0" name="i" nillable="true" type="xsd:integer"/>
+          <xsd:element minOccurs="0" name="dt" nillable="true" type="xsd:dateTime"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="multi_paramResponse"/>
+      <xsd:complexType name="non_nillable">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="n" nillable="true" type="s1:NonNillableClass"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="non_nillableResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="non_nillableResult" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="python_exception"/>
+      <xsd:complexType name="python_exceptionResponse"/>
+      <xsd:complexType name="return_binary_data"/>
+      <xsd:complexType name="return_binary_dataResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="return_binary_dataResult" nillable="true" type="xsd:base64Binary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="return_invalid_data"/>
+      <xsd:complexType name="return_invalid_dataResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="return_invalid_dataResult" nillable="true" type="xsd:integer"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="return_other_class_array">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="num" nillable="true" type="xsd:integer"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="return_other_class_arrayResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="return_other_class_arrayResult" nillable="true" type="tns:OtherClassArray"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="send_out_complex_header"/>
+      <xsd:complexType name="send_out_complex_headerResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="send_out_complex_headerResult0" nillable="true" type="tns:OutHeader"/>
+          <xsd:element minOccurs="0" name="send_out_complex_headerResult1" nillable="true" type="tns:OutTraceHeader"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="send_out_header"/>
+      <xsd:complexType name="send_out_headerResponse">
+        <xsd:sequence>
+          <xsd:element minOccurs="0" name="send_out_headerResult" nillable="true" type="tns:OutHeader"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="soap_exception"/>
+      <xsd:complexType name="soap_exceptionResponse"/>
+      <xsd:complexType name="stringArray">
+        <xsd:sequence>
+          <xsd:element maxOccurs="unbounded" minOccurs="0" name="string" nillable="true" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="test_empty"/>
+      <xsd:complexType name="test_emptyResponse"/>
+    </xsd:schema>
   </wsdl:types>
   <wsdl:message name="DocumentedFault">
     <wsdl:part element="tns:DocumentedFault" name="DocumentedFault"/>

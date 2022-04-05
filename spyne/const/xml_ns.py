@@ -35,13 +35,13 @@ soap12_enc = 'http://www.w3.org/2003/05/soap-encoding'
 
 const_nsmap = {
     'xml': xml,
-    'xs': xsd,
+    'xsd': xsd,
     'xsi': xsi,
     'plink': plink,
     'soap': soap,
     'wsdl': wsdl,
-    'soap11enc': soap11_enc,
-    'soap11env': soap11_env,
+    'SOAP-ENC': soap11_enc,
+    'SOAP-ENV': soap11_env,
     'soap12env': soap12_env,
     'soap12enc': soap12_enc,
     'wsa': wsa,
@@ -58,6 +58,7 @@ regen_prefmap()
 schema_location = {
     xsd: 'http://www.w3.org/2001/XMLSchema.xsd',
 }
+
 
 class DEFAULT_NS(object):
     pass

@@ -82,7 +82,7 @@ class TestEnum(unittest.TestCase):
         wsdl = self.wsdl.get_interface_document()
 
         elt = etree.fromstring(wsdl)
-        simple_type = elt.xpath('//xs:simpleType', namespaces=self.app.interface.nsmap)[0]
+        simple_type = elt.xpath('//xsd:simpleType', namespaces=self.app.interface.nsmap)[0]
 
         print((etree.tostring(elt, pretty_print=True)))
         print(simple_type)

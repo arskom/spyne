@@ -128,10 +128,10 @@ class Fault(ComplexModelBase, Exception):
     #
     # From http://schemas.xmlsoap.org/soap/envelope/
     #
-    # <xs:element name="faultcode" type="xs:QName"/>
-    # <xs:element name="faultstring" type="xs:string"/>
-    # <xs:element name="faultactor" type="xs:anyURI" minOccurs="0"/>
-    # <xs:element name="detail" type="tns:detail" minOccurs="0"/>
+    # <xsd:element name="faultcode" type="xsd:QName"/>
+    # <xsd:element name="faultstring" type="xsd:string"/>
+    # <xsd:element name="faultactor" type="xsd:anyURI" minOccurs="0"/>
+    # <xsd:element name="detail" type="tns:detail" minOccurs="0"/>
     #
     @staticmethod
     def to_list(cls, value, prot=None):

@@ -268,9 +268,9 @@ def parse_schema_string(s, files={}, repr_=Thier_repr(with_ns=False),
 
 def parse_schema_element(elt, files={}, repr_=Thier_repr(with_ns=False),
                                                          skip_errors=False):
-    """Parses a `<xs:schema>` element and returns a _Schema object.
+    """Parses a `<xsd:schema>` element and returns a _Schema object.
 
-    :param elt: The `<xs:schema>` element, an lxml.etree._Element instance.
+    :param elt: The `<xsd:schema>` element, an lxml.etree._Element instance.
     :param files: A dict that maps namespaces to path to schema files that
         contain the schema document for those namespaces.
     :param repr_: A callable that functions as `repr`.

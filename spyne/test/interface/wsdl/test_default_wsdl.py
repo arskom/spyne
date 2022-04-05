@@ -45,7 +45,7 @@ from spyne.model.primitive import String
 
 ns = {
     'wsdl': 'http://schemas.xmlsoap.org/wsdl/',
-    'xs': 'http://www.w3.org/2001/XMLSchema',
+    'xsd': 'http://www.w3.org/2001/XMLSchema',
 }
 
 
@@ -185,7 +185,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         wsdl = etree.fromstring(wsdl.get_interface_document())
 
         schema = wsdl.xpath(
-            '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace="tns"]',
+            '/wsdl:definitions/wsdl:types/xsd:schema[@targetNamespace="tns"]',
             namespaces=ns,
         )
         assert len(schema) == 1
@@ -193,14 +193,14 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         print(etree.tostring(wsdl, pretty_print=True))
 
         elts = schema[0].xpath(
-            'xs:element[@name="whatever%s"]' % REQUEST_SUFFIX, namespaces=ns)
+            'xsd:element[@name="whatever%s"]' % REQUEST_SUFFIX, namespaces=ns)
         assert len(elts) > 0
-        assert elts[0].attrib['type'] == 'xs:string'
+        assert elts[0].attrib['type'] == 'xsd:string'
 
         elts = schema[0].xpath(
-            'xs:element[@name="whatever%s"]' % RESPONSE_SUFFIX, namespaces=ns)
+            'xsd:element[@name="whatever%s"]' % RESPONSE_SUFFIX, namespaces=ns)
         assert len(elts) > 0
-        assert elts[0].attrib['type'] == 'xs:string'
+        assert elts[0].attrib['type'] == 'xsd:string'
 
     def test_bare_with_conflicting_types(self):
         class SomeService(Service):
@@ -219,25 +219,25 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         wsdl.build_interface_document('url')
         wsdl = etree.fromstring(wsdl.get_interface_document())
         schema, = wsdl.xpath(
-            '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace="tns"]',
+            '/wsdl:definitions/wsdl:types/xsd:schema[@targetNamespace="tns"]',
             namespaces=ns,
         )
 
         print(etree.tostring(schema, pretty_print=True))
 
         assert len(schema.xpath(
-            'xs:complexType[@name="string%s"]' % ARRAY_SUFFIX,
+            'xsd:complexType[@name="string%s"]' % ARRAY_SUFFIX,
                                                              namespaces=ns)) > 0
 
         elts = schema.xpath(
-            'xs:element[@name="whatever_bare%s"]' % REQUEST_SUFFIX,
+            'xsd:element[@name="whatever_bare%s"]' % REQUEST_SUFFIX,
                                                                   namespaces=ns)
 
         assert len(elts) > 0
         assert elts[0].attrib['type'] == 'tns:string%s' % ARRAY_SUFFIX
 
         elts = schema.xpath(
-            'xs:element[@name="whatever_bare%s"]' % RESPONSE_SUFFIX,
+            'xsd:element[@name="whatever_bare%s"]' % RESPONSE_SUFFIX,
                                                                   namespaces=ns)
 
         assert len(elts) > 0

@@ -70,12 +70,12 @@ class TestXmlSchema(unittest.TestCase):
         docs = get_schema_documents([SomeObject])
         doc = docs['tns']
         print(etree.tostring(doc, pretty_print=True))
-        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
-                                   '/xs:sequence/xs:element[@name="punk"]',
-            namespaces={'xs': NS_XSD})) > 0
-        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
-                    '/xs:sequence/xs:choice/xs:element[@name="one"]',
-            namespaces={'xs': NS_XSD})) > 0
+        assert len(doc.xpath('/xsd:schema/xsd:complexType[@name="SomeObject"]'
+                                   '/xsd:sequence/xsd:element[@name="punk"]',
+            namespaces={'xsd': NS_XSD})) > 0
+        assert len(doc.xpath('/xsd:schema/xsd:complexType[@name="SomeObject"]'
+                    '/xsd:sequence/xsd:choice/xsd:element[@name="one"]',
+            namespaces={'xsd': NS_XSD})) > 0
 
     def test_customized_class_with_empty_subclass(self):
         class SummaryStatsOfDouble(ComplexModel):
@@ -178,19 +178,19 @@ class TestXmlSchema(unittest.TestCase):
             out_protocol=Soap11()
         )
 
-        _ns = {'xs': NS_XSD}
+        _ns = {'xsd': NS_XSD}
         pref_xs = ns.PREFMAP[NS_XSD]
         xs = XmlSchema(app.interface)
         xs.build_interface_document()
         elt = xs.get_interface_document()['tns'].xpath(
-                    '//xs:complexType[@name="Product"]',
+                    '//xsd:complexType[@name="Product"]',
                     namespaces=_ns)[0]
 
-        assert elt.xpath('//xs:element[@name="base64_1"]/@type',
+        assert elt.xpath('//xsd:element[@name="base64_1"]/@type',
                             namespaces=_ns)[0] == '%s:base64Binary' % pref_xs
-        assert elt.xpath('//xs:element[@name="base64_2"]/@type',
+        assert elt.xpath('//xsd:element[@name="base64_2"]/@type',
                             namespaces=_ns)[0] == '%s:base64Binary' % pref_xs
-        assert elt.xpath('//xs:element[@name="hex"]/@type',
+        assert elt.xpath('//xsd:element[@name="hex"]/@type',
                             namespaces=_ns)[0] == '%s:hexBinary' % pref_xs
 
     def test_multilevel_customized_simple_type(self):
@@ -266,9 +266,9 @@ class TestXmlSchema(unittest.TestCase):
         schema = self._build_xml_data_test_schema(custom_root=False)
 
         assert len(schema.get_interface_document()['tns'].xpath(
-                '/xs:schema/xs:complexType[@name="ProductEdition"]'
-                '/xs:simpleContent/xs:extension/xs:attribute[@name="id"]'
-                ,namespaces={'xs': NS_XSD})) == 1
+                '/xsd:schema/xsd:complexType[@name="ProductEdition"]'
+                '/xsd:simpleContent/xsd:extension/xsd:attribute[@name="id"]'
+                ,namespaces={'xsd': NS_XSD})) == 1
 
     def _test_xml_data_validation(self):
         schema = self._build_xml_data_test_schema(custom_root=False)
@@ -294,7 +294,7 @@ class TestXmlSchema(unittest.TestCase):
     def test_subs(self):
         from lxml import etree
         from spyne.util.xml import get_schema_documents
-        xpath = lambda o, x: o.xpath(x, namespaces={"xs": NS_XSD})
+        xpath = lambda o, x: o.xpath(x, namespaces={"xsd": NS_XSD})
 
         m = {
             "s0": "aa",
@@ -312,20 +312,20 @@ class TestXmlSchema(unittest.TestCase):
         elt = get_schema_documents([C], "aa")['tns']
         print(etree.tostring(elt, pretty_print=True))
 
-        seq, = xpath(elt, "xs:complexType/xs:sequence")
+        seq, = xpath(elt, "xsd:complexType/xsd:sequence")
 
         assert len(seq) == 4
-        assert len(xpath(seq, 'xs:element[@name="a"]')) == 1
-        assert len(xpath(seq, 'xs:element[@name="bb"]')) == 1
+        assert len(xpath(seq, 'xsd:element[@name="a"]')) == 1
+        assert len(xpath(seq, 'xsd:element[@name="bb"]')) == 1
 
         # FIXME: this doesn't feel right.
         # check the spec to see whether it should it be prefixed.
         #
-        #assert len(xpath(seq, 'xs:element[@name="{cc}c"]')) == 1
-        #assert len(xpath(seq, 'xs:element[@name="{dd}dd"]')) == 1
+        #assert len(xpath(seq, 'xsd:element[@name="{cc}c"]')) == 1
+        #assert len(xpath(seq, 'xsd:element[@name="{dd}dd"]')) == 1
 
     def test_mandatory(self):
-        xpath = lambda o, x: o.xpath(x, namespaces={"xs": NS_XSD})
+        xpath = lambda o, x: o.xpath(x, namespaces={"xsd": NS_XSD})
 
         class C(ComplexModel):
             __namespace__ = "aa"
@@ -333,7 +333,7 @@ class TestXmlSchema(unittest.TestCase):
 
         elt = get_schema_documents([C])['tns']
         print(etree.tostring(elt, pretty_print=True))
-        foo, = xpath(elt, 'xs:complexType/xs:attribute[@name="foo"]')
+        foo, = xpath(elt, 'xsd:complexType/xsd:attribute[@name="foo"]')
         attrs = foo.attrib
         assert 'use' in attrs and attrs['use'] == 'required'
 
@@ -347,8 +347,8 @@ class TestXmlSchema(unittest.TestCase):
 
         schema = get_schema_documents([SomeClass], tns)['tns']
         print(etree.tostring(schema, pretty_print=True))
-        assert schema.xpath("//xs:documentation/text()",
-                                             namespaces={'xs': NS_XSD}) == [doc]
+        assert schema.xpath("//xsd:documentation/text()",
+                                             namespaces={'xsd': NS_XSD}) == [doc]
 
 
 class TestParseOwnXmlSchema(unittest.TestCase):

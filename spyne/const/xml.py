@@ -40,14 +40,14 @@ NS_WSDL11_HTTP = 'http://schemas.xmlsoap.org/wsdl/http/'
 
 NSMAP = {
     'xml': NS_XML,
-    'xs': NS_XSD,
+    'xsd': NS_XSD,
     'xsi': NS_XSI,
     'plink': NS_PLINK,
     'wsdlsoap11': NS_WSDL11_SOAP,
     'wsdlsoap12': NS_WSDL11_SOAP12,
     'wsdl': NS_WSDL11,
-    'soap11enc': NS_SOAP11_ENC,
-    'soap11env': NS_SOAP11_ENV,
+    'SOAP-ENC': NS_SOAP11_ENC,
+    'SOAP-ENV': NS_SOAP11_ENV,
     'soap12env': NS_SOAP12_ENV,
     'soap12enc': NS_SOAP12_ENC,
     'wsa': NS_WSA,
