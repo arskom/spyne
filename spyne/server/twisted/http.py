@@ -135,6 +135,19 @@ def _render_file(file, request):
         return ''
 
     producer.start()
+
+    # and make sure the connection doesn't get closed
+    return NOT_DONE_YET
+
+
+def _render_file_like_object(fileForReading, request):
+    producer = _gen_producer(fileForReading, request)
+
+    if request.method == 'HEAD':
+        return ''
+
+    producer.start()
+
     # and make sure the connection doesn't get closed
     return NOT_DONE_YET
 
@@ -215,6 +228,12 @@ class TwistedHttpTransportContext(HttpTransportContext):
             what = what.encode('ascii', errors='replace')
         super(TwistedHttpTransportContext, self).set_mime_type(what)
         self.req.setHeader('Content-Type', what)
+
+    def set_content_encoding(self, what):
+        if isinstance(what, text_type):
+            what = what.encode('ascii', errors='replace')
+        super(TwistedHttpTransportContext, self).set_content_encoding(what)
+        self.req.setHeader('Content-Encoding', what)
 
     def get_cookie(self, key):
         return self.req.getCookie(key)
@@ -747,21 +766,23 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     ### start response
     retval = NOT_DONE_YET
 
+    is_file = ((isclass(om) and issubclass(om, File)) or
+               (isclass(single_class) and issubclass(single_class, File)))
+    is_http = isinstance(p_ctx.out_protocol, HttpRpc)
+
     if isinstance(ret, PushBase):
         resource.http_transport.init_root_push(ret, p_ctx, others)
 
-    elif ((isclass(om) and issubclass(om, File)) or
-          (isclass(single_class) and issubclass(single_class, File))) and \
-         isinstance(p_ctx.out_protocol, HttpRpc) and \
-                                      getattr(ret, 'abspath', None) is not None:
-
+    elif is_file and is_http and getattr(ret, 'abspath', None) is not None:
         file = static.File(ret.abspath,
-                        defaultType=str(ret.type) or 'application/octet-stream')
+                    defaultType=str(ret.type) or 'application/octet-stream')
+
         retval = _render_file(file, request)
         if retval != NOT_DONE_YET and cb:
             request.write(retval)
             request.finish()
             p_ctx.close()
+
         else:
             def _close_only_context(ret):
                 p_ctx.close()
@@ -827,7 +848,8 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
 
         except Exception as e:
             logger_server.exception(e)
-            p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
+            p_ctx.out_error = Fault('Server',
+                                             get_fault_string_from_exception(e))
 
             p_ctx.fire_event('method_redirect_exception')
 
@@ -841,7 +863,7 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
         request.write(ret)
 
     else:
-        p_ctx.out_error = InternalError(ret.value)
+        p_ctx.out_error = InternalError()
         logger.error(ret.getTraceback())
 
         ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)

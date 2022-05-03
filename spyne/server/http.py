@@ -124,6 +124,9 @@ class HttpTransportContext(TransportContext):
     def set_mime_type(self, what):
         self.resp_headers['Content-Type'] = what
 
+    def set_content_encoding(self, what):
+        self.resp_headers['Content-Encoding'] = what
+
     def respond(self, resp_code, **kwargs):
         self.resp_code = resp_code
         if resp_code in (HTTP_301, HTTP_302, HTTP_303, HTTP_307):
