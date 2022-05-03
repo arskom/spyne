@@ -136,6 +136,8 @@ class ByteArray(SimpleModel):
         #FIXME: Find out why we need to do this.
         if isinstance(value, six.text_type):
             value = value.encode('utf8')
+        if (len(value) % 4) != 0:
+            value += '=' * (4 - (len(value) % 4))
         try:
             if isinstance(value, (list, tuple)):
                 return (urlsafe_b64decode(_bytes_join(value)),)
