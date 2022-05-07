@@ -767,14 +767,16 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
 
     is_file = ((isclass(om) and issubclass(om, File)) or
                (isclass(single_class) and issubclass(single_class, File)))
+    is_an_actual_file = is_file and getattr(ret, 'abspath', None) is not None
     is_http = isinstance(p_ctx.out_protocol, HttpRpc)
 
     if isinstance(ret, PushBase):
         resource.http_transport.init_root_push(ret, p_ctx, others)
 
-    elif is_file and is_http and getattr(ret, 'abspath', None) is not None:
+    elif is_http and is_an_actual_file:
         file = static.File(ret.abspath,
-                    defaultType=str(ret.type) or 'application/octet-stream')
+                    defaultType=str(getattr(ret, 'type', ''))
+                                                  or 'application/octet-stream')
 
         retval = _render_file(file, request)
         if retval != NOT_DONE_YET and cb:
