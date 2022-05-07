@@ -803,7 +803,9 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
                 .addErrback(log_and_let_go, logger)
 
             try:
-                request.registerProducer(producer, False)
+                if not (request.channel is None):
+                    request.registerProducer(producer, False)
+
             except Exception as e:
                 logger_server.exception(e)
                 try:
