@@ -100,13 +100,12 @@ def _render_file(file, request):
     Begin sending the contents of this L{File} (or a subset of the
     contents, based on the 'range' header) to the given request.
     """
-    file.restat(False)
 
+    file.restat(False)
     if file.type is None:
-        file.type, file.encoding = getTypeAndEncoding(file.basename(),
-                                                      file.contentTypes,
-                                                      file.contentEncodings,
-                                                      file.defaultType)
+        file.type, file.encoding = getTypeAndEncoding(
+                file.basename(), file.contentTypes, file.contentEncodings,
+                                                               file.defaultType)
 
     if not file.exists():
         return file.childNotFound.render(request)
