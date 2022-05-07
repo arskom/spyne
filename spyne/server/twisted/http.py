@@ -125,14 +125,12 @@ def _render_file(file, request):
         else:
             raise
 
-    #if request.setLastModified(file.getmtime()) is CACHED:
-    #    return ''
+    if request.method == 'HEAD':
+        fileForReading.close()
+        file._setContentHeaders(request)
+        return b''
 
     producer = file.makeProducer(request, fileForReading)
-
-    if request.method == 'HEAD':
-        return ''
-
     producer.start()
 
     # and make sure the connection doesn't get closed
