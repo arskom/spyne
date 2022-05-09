@@ -95,7 +95,7 @@ if not six.PY2:
     from urllib.request import unquote_to_bytes
 
 
-def _render_file(file, request):
+def _render_file(file, request, file_value):
     """
     Begin sending the contents of this L{File} (or a subset of the
     contents, based on the 'range' header) to the given request.
@@ -106,6 +106,8 @@ def _render_file(file, request):
         file.type, file.encoding = getTypeAndEncoding(
                 file.basename(), file.contentTypes, file.contentEncodings,
                                                                file.defaultType)
+    if str(getattr(file_value, 'type', '')) != '':
+        file.type = file_value.type
 
     if not file.exists():
         return file.childNotFound.render(request)
@@ -772,11 +774,8 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
         resource.http_transport.init_root_push(ret, p_ctx, others)
 
     elif is_http and is_an_actual_file:
-        file = static.File(ret.abspath,
-                    defaultType=str(getattr(ret, 'type', ''))
-                                                  or 'application/octet-stream')
-
-        retval = _render_file(file, request)
+        file = static.File(ret.abspath)
+        retval = _render_file(file, request, ret)
         if retval != NOT_DONE_YET and cb:
             request.write(retval)
             request.finish()
