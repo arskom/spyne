@@ -11,7 +11,9 @@ assignees: ''
 
 See the readme file for more information.
 
-If you are here to report a bug, please delete this bit and go on. 
+If you are here to report a proper issue, please delete this bit and go on. Sorry about the inconvenience.
+
+If you are not sure, just start a discussion. We will happily convert it to an issue if it's necessary.
 
  Thanks!
 
