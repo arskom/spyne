@@ -105,7 +105,11 @@ def _parse_xml_string(xml_string, parser, charset=None):
         string = ''.join(chain( (chunk,), xml_string ))
 
     if charset:
-        string = string.decode(charset)
+        try:
+            string = string.decode(charset)
+        except UnicodeDecodeError as e:
+            logger_invalid.error("%r in string %r", e, string)
+            raise Fault('Client.XMLSyntaxError', str(e))
 
     try:
         try:
