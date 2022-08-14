@@ -244,6 +244,18 @@ b'''<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         # quick and dirty test href reconstruction
         self.assertEqual(len(payload[0]), 2)
 
+    def test_empty_body(self):
+        # If the soap request has no body, then you get an empty iterable
+        # as the envelope string.
+        # This should be treated as a client error.
+        envelope_string = iter([])
+
+        with self.assertRaises(Fault) as cm:
+            _parse_xml_string(envelope_string,
+                              etree.XMLParser(), 'utf8')
+        self.assertEqual(cm.exception.faultcode, 'Client.XMLSyntaxError')
+        self.assertEqual(cm.exception.faultstring, 'Missing body')
+
     def test_namespaces(self):
         m = ComplexModel.produce(
             namespace="some_namespace",
