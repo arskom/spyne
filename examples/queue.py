@@ -207,7 +207,7 @@ if __name__ == '__main__':
 
         init()
 
-    except ImportError, e:
+    except ImportError as e:
         logging.error("Install 'termcolor' and 'colorama' packages to get "
                       "colored log output")
         def colored(s, *args, **kwargs):
