@@ -26,6 +26,8 @@ to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
 
+from functools import wraps
+import inspect
 import spyne.const.xml
 
 from copy import copy
@@ -570,3 +572,30 @@ def srpc(*params, **kparams):
 def mrpc(*params, **kparams):
     kparams["_no_self"] = False
     return rpc(*params, **kparams)
+
+
+def typed_rpc(*args, **kwargs):
+    no_args = False
+    if len(args) == 1 and not kwargs and callable(args[0]):
+        # Called without args
+        func = args[0]
+        no_args = True
+    def _typed_rpc(func):
+        inputs = []
+        definition = inspect.signature(func)
+        for param_name, param_type in definition.parameters.items():
+            if param_name == "self":
+                continue
+            inputs.append(param_type.annotation)
+
+        new_func = rpc(*inputs, _returns=definition.return_annotation, **kwargs)(func)
+
+        @wraps(new_func)
+        def wrapper(*args, **kwargs):
+            return new_func(*args, **kwargs)
+
+        return wrapper
+    if no_args:
+        return _typed_rpc(func)
+    else:
+        return _typed_rpc
