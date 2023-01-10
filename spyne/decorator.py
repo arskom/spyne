@@ -600,7 +600,7 @@ def typed_rpc(*args, **kwargs):
             
         if missing_type_annotations:
             caller = inspect.getframeinfo(inspect.stack()[2][0])
-            raise TypeError(f"{caller.filename}:{caller.lineno} - Missing type annotation for the parameters: {missing_type_annotations}")
+            raise ValueError(f"{caller.filename}:{caller.lineno} - Missing type annotation for the parameters: {missing_type_annotations}")
 
         if definition.return_annotation is not inspect._empty:
             new_func = rpc(*inputs, _returns=definition.return_annotation, **kwargs)(func)

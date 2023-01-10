@@ -514,13 +514,6 @@ class TestBodyStyle(unittest.TestCase):
             @typed_rpc
             def someCall(ctx, x: someCallResponse) -> Array(String):
                 return ['abc', 'def']
-
-        Application(
-            [SomeService], 
-            'tns', 
-            in_protocol=Soap11(),
-            out_protocol=Soap11(cleanup_namespaces=True)
-        )
         
     def test_typed_rpc_works_with_kwargs(self):
         class someCallResponse(ComplexModel):
@@ -532,12 +525,6 @@ class TestBodyStyle(unittest.TestCase):
             def someCall(ctx, x: someCallResponse) -> Array(String):
                 return ['abc', 'def']
 
-        Application(
-            [SomeService], 
-            'tns', 
-            in_protocol=Soap11(),
-            out_protocol=Soap11(cleanup_namespaces=True)
-        )
         
     def test_typed_rpc_works_with_no_response_works(self):
         class someCallResponse(ComplexModel):
@@ -548,31 +535,18 @@ class TestBodyStyle(unittest.TestCase):
             @typed_rpc(_is_async=True)
             def someCall(ctx, x: someCallResponse):
                 return ['abc', 'def']
-
-        Application(
-            [SomeService], 
-            'tns', 
-            in_protocol=Soap11(),
-            out_protocol=Soap11(cleanup_namespaces=True)
-        )
         
     def test_typed_rpc_works_with__returns_kwarg_raises(self):
         class someCallResponse(ComplexModel):
             __namespace__ = 'tns'
             s = String
-
-        class SomeService(Service):
-            @typed_rpc(someCallResponse, _returns=Array(String))
-            def someCall(ctx, x: someCallResponse) -> Array(String):
-                return ['abc', 'def']
+        
         expected_message = "_returns must be omitted when type annotations are used. Please annotate the return type"
         try:
-            Application(
-                [SomeService], 
-                'tns', 
-                in_protocol=Soap11(),
-                out_protocol=Soap11(cleanup_namespaces=True)
-            )
+            class SomeService(Service):
+                @typed_rpc(_returns=Array(String))
+                def someCall(ctx, x: someCallResponse) -> Array(String):
+                    return ['abc', 'def']
         except ValueError as e:
             assert str(e) == expected_message
         else:
@@ -583,18 +557,13 @@ class TestBodyStyle(unittest.TestCase):
             __namespace__ = 'tns'
             s = String
 
-        class SomeService(Service):
-            @typed_rpc(someCallResponse)
-            def someCall(ctx, x: someCallResponse, y) -> Array(String):
-                return ['abc', 'def']
-        expected_sub_message = "Missing type annotation for the parameters: ['b']"
+        
+        expected_sub_message = "Missing type annotation for the parameters: ['y']"
         try:
-            Application(
-                [SomeService], 
-                'tns', 
-                in_protocol=Soap11(),
-                out_protocol=Soap11(cleanup_namespaces=True)
-            )
+            class SomeService(Service):
+                @typed_rpc(_is_async=True)
+                def someCall(ctx, x: someCallResponse, y) -> Array(String):
+                    return ['abc', 'def']
         except ValueError as e:
             assert expected_sub_message in str(e)
         else:
