@@ -10,13 +10,11 @@ shift focus or change maintainers in the future. This can result in patches
 which may cause incompatibilities with your existing code base. The only way to
 detect such corner cases is to have a great test suite.
 
-Spyne's master repository is already integrated with travis-ci.org. Head over
-to http://travis-ci.org/arskom/spyne to see the test results for yourself.
-
-As the necessary configuration is already done, it's very simple to integrate
-your own fork of Spyne with travis-ci.org, which should come in handy even if
-you don't plan to be a long-time contributor to Spyne. Just sign in with your
-Github account and follow instructions.
+Spyne's master repository is supposed to be run under a typical Jenkins
+installation on linux. Head over to https://jenkins.arskom.com.tr/job/spyne/
+to see an example. Jenkins just calls the run_tests.sh with environment
+variables set from what it calls a "multi-configuration project".
+See the comments at the top of the script for more information.
 
 If you want to run the tests locally, first you have to install all dependencies
 (you may want to use virtualenv for that). ::
@@ -27,10 +25,6 @@ and after all dependencies are installed you can run tests using the canonical
 test command ::
 
     python setup.py test
-
-If you want to run only tests that are supposed to pass under Python 3, run: ::
-
-    python setup.py test_python3
 
 We use tox as well, but only for django tests. So if you just want to run
 Spyne <=> Django interop tests with all combinations of supported CPython
@@ -124,17 +118,3 @@ Here's the directory tree from a working setup:
     |       |-- README.txt
     |       `-- (...)
     `-- (...)
-
-
-***************************
-Integrating with CI systems
-***************************
-
-Spyne is already integrated with Jenkins and travis-ci.org.
-
-The travis configuration file is located in the root of the source repository,
-under its standard name: .travis.yml
-
-A script for running Spyne test suite inside Jenkins can also be found in the
-project root directory, under the name run_tests.sh. It's supposed to be used
-as a multi-configuration project. See the script header for more information.
