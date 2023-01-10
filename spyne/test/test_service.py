@@ -35,7 +35,7 @@ from spyne.const import RESPONSE_SUFFIX
 from spyne.model.primitive import NATIVE_MAP
 
 from spyne.service import Service
-from spyne.decorator import rpc, srpc
+from spyne.decorator import rpc, srpc, typed_rpc
 from spyne.application import Application
 from spyne.auxproc.sync import SyncAuxProc
 from spyne.auxproc.thread import ThreadAuxProc
@@ -505,6 +505,87 @@ class TestBodyStyle(unittest.TestCase):
             raise Exception("Must fail with: "
                         "'SelfReference can't be used inside @rpc and its ilk'")
 
+    def test_typed_rpc_works_with_no_kwargs(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        class SomeService(Service):
+            @typed_rpc
+            def someCall(ctx, x: someCallResponse) -> String:
+                return ['abc', 'def']
+
+        Application(
+            [SomeService], 
+            'tns', 
+            in_protocol=Soap11(),
+            out_protocol=Soap11(cleanup_namespaces=True)
+        )
+        
+    def test_typed_rpc_works_with_kwargs(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        class SomeService(Service):
+            @typed_rpc(_is_async=True)
+            def someCall(ctx, x: someCallResponse) -> String:
+                return ['abc', 'def']
+
+        Application(
+            [SomeService], 
+            'tns', 
+            in_protocol=Soap11(),
+            out_protocol=Soap11(cleanup_namespaces=True)
+        )
+        
+    def test_typed_rpc_works_with_args_raises(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        class SomeService(Service):
+            @typed_rpc(someCallResponse, _is_async=True)
+            def someCall(ctx, x: someCallResponse) -> String:
+                return ['abc', 'def']
+        expected_message = "*params must be empty when type annotations are used"
+        try:
+            Application(
+                [SomeService], 
+                'tns', 
+                in_protocol=Soap11(),
+                out_protocol=Soap11(cleanup_namespaces=True)
+            )
+        except ValueError as e:
+            assert str(e) == expected_message
+        else:
+            raise Exception(f"Must fail with: ValueError('{expected_message}'")
+        
+    def test_typed_rpc_works_with_no_response_raises(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        class SomeService(Service):
+            @typed_rpc(_is_async=True)
+            def someCall(ctx, x: someCallResponse):
+                return ['abc', 'def']
+
+        expected_message= "Missing type annotation for the nth argument"
+        try:
+            Application(
+                [SomeService], 
+                'tns', 
+                in_protocol=Soap11(),
+                out_protocol=Soap11(cleanup_namespaces=True)
+            )
+        except ValueError as e:
+            assert str(e) == expected_message
+        else:
+            raise Exception("Must fail with: ValueError('{expected_message}')")
+        
+        
+    
 
 if __name__ == '__main__':
     unittest.main()

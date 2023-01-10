@@ -574,11 +574,14 @@ def mrpc(*params, **kparams):
     return rpc(*params, **kparams)
 
 
+class TypedRPCException(Exception):
+    ...
+
 def typed_rpc(*args, **kwargs):
     no_args = False
     
     if len(args) > 0 and inspect.isclass(args[0]):
-        raise Exception("*params must be empty when type annotations are used")
+        raise ValueError("*params must be empty when type annotations are used")
     
     if len(args) == 1 and not kwargs and callable(args[0]):
         # Called without args
@@ -588,12 +591,12 @@ def typed_rpc(*args, **kwargs):
         inputs = []
         definition = inspect.signature(func)
         for param_name, param_type in definition.parameters.items():
-            if param_name == "self":
+            if param_name in ("self", "ctx"):
                 continue
             inputs.append(param_type.annotation)
 
         if definition.return_annotation is inspect._empty:
-            raise Exception("_returns must be omitted when type annotations are used. Please annotate the return type")
+            raise ValueError("_returns must be omitted when type annotations are used. Please annotate the return type")
         
         new_func = rpc(*inputs, _returns=definition.return_annotation, **kwargs)(func)
 
