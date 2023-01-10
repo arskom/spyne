@@ -574,14 +574,14 @@ def mrpc(*params, **kparams):
     return rpc(*params, **kparams)
 
 
-class TypedRPCException(Exception):
-    ...
-
 def typed_rpc(*args, **kwargs):
     no_args = False
     
     if len(args) > 0 and inspect.isclass(args[0]):
         raise ValueError("*params must be empty when type annotations are used")
+    
+    if "_returns" in kwargs:
+        raise ValueError("_returns must be omitted when type annotations are used. Please annotate the return type")
     
     if len(args) == 1 and not kwargs and callable(args[0]):
         # Called without args
@@ -590,15 +590,22 @@ def typed_rpc(*args, **kwargs):
     def _typed_rpc(func):
         inputs = []
         definition = inspect.signature(func)
+        missing_type_annotations = []
         for param_name, param_type in definition.parameters.items():
             if param_name in ("self", "ctx"):
                 continue
+            if param_type.annotation is inspect._empty:
+                missing_type_annotations.append(param_name)
             inputs.append(param_type.annotation)
+            
+        if missing_type_annotations:
+            caller = inspect.getframeinfo(inspect.stack()[2][0])
+            raise TypeError(f"{caller.filename}:{caller.lineno} - Missing type annotation for the parameters: {missing_type_annotations}")
 
-        if definition.return_annotation is inspect._empty:
-            raise ValueError("_returns must be omitted when type annotations are used. Please annotate the return type")
-        
-        new_func = rpc(*inputs, _returns=definition.return_annotation, **kwargs)(func)
+        if definition.return_annotation is not inspect._empty:
+            new_func = rpc(*inputs, _returns=definition.return_annotation, **kwargs)(func)
+        else:
+            new_func = rpc(*inputs, **kwargs)(func)
 
         @wraps(new_func)
         def wrapper(*args, **kwargs):
