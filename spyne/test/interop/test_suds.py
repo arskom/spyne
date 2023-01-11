@@ -325,12 +325,12 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         val.simple.SimpleClass[1].i = 12
         val.simple.SimpleClass[1].s = "qwe"
 
-        val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass");
+        val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass")
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
 
-        val.p = self.client.factory.create("{hunk.sunk}NonNillableClass");
+        val.p = self.client.factory.create("{hunk.sunk}NonNillableClass")
         val.p.dt = datetime(2010, 6, 2)
         val.p.i = 123
         val.p.s = "punk"
