@@ -56,7 +56,7 @@ class Soap12(Soap11):
     def generate_subcode(self, value, subcode=None):
         subcode_node = E("{%s}Subcode" % self.ns_soap_env)
         subcode_node.append(E("{%s}Value" % self.ns_soap_env, value))
-        if subcode:
+        if subcode is not None:
             subcode_node.append(subcode)
         return subcode_node
 
@@ -107,14 +107,14 @@ class Soap12(Soap11):
             code = E("{%s}Code" % self.ns_soap_env)
             code.append(E("{%s}Value" % self.ns_soap_env, value))
 
-            child_subcode = False
+            child_subcode = None
             for value in faultcodes[::-1]:
-                if child_subcode:
+                if child_subcode is not None:
                     child_subcode = self.generate_subcode(value, child_subcode)
                 else:
                     child_subcode = self.generate_subcode(value)
 
-            if child_subcode != 0:
+            if child_subcode is not None:
                 code.append(child_subcode)
 
             subelts[0] = code

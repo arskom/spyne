@@ -71,6 +71,6 @@ class SpyneIntegrationTest(unittest.TestCase):
 
         request = Request(env)
         resp = request.get_response(wsgi_app)
-        self.assert_(resp.status.startswith("200 "))
+        self.assertTrue(resp.status.startswith("200 "))
         node = etree.XML(resp.body)  # will throw exception if non well formed
 
