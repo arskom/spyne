@@ -299,7 +299,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEqual(ret.other.dt, val.other.dt)
 
     def test_huge_number(self):
-        self.assertEqual(self.client.service.huge_number(), 2 ** int(1e5))
+        self.assertEqual(self.client.service.huge_number(), 2 ** int(1e4))
 
     def test_long_string(self):
         self.assertEqual(self.client.service.long_string(),

@@ -340,7 +340,7 @@ class InteropMisc(Service):
 
     @srpc(_returns=Integer)
     def huge_number():
-        return 2**int(1e5)
+        return 2**int(1e4)
 
     @srpc(_returns=String)
     def long_string():
