@@ -77,8 +77,8 @@ class SvgClock(ProtocolBase):
         ctx.out_body_doc.xpath("//x:tspan[@id='date_text']", namespaces=ns)[0] \
                 .text = '%04d-%02d-%02d' % (d.year, d.month, d.day)
 
-        minute_hand = d.minute * 360 / 60;
-        hour_hand = (d.hour % 12) * 360.0 / 12 + minute_hand / 12;
+        minute_hand = d.minute * 360 / 60
+        hour_hand = (d.hour % 12) * 360.0 / 12 + minute_hand / 12
         ctx.out_body_doc.xpath("//x:path[@id='akrep']", namespaces=ns)[0] \
             .attrib['transform'] += \
             ' rotate(%d, %d, %d)' % (hour_hand, self.length /2, self.length / 2)
