@@ -35,7 +35,7 @@ from spyne.const import RESPONSE_SUFFIX
 from spyne.model.primitive import NATIVE_MAP
 
 from spyne.service import Service
-from spyne.decorator import rpc, srpc, typed_rpc
+from spyne.decorator import rpc, srpc
 from spyne.application import Application
 from spyne.auxproc.sync import SyncAuxProc
 from spyne.auxproc.thread import ThreadAuxProc
@@ -505,38 +505,38 @@ class TestBodyStyle(unittest.TestCase):
             raise Exception("Must fail with: "
                         "'SelfReference can't be used inside @rpc and its ilk'")
 
-    def test_typed_rpc_works_with_no_kwargs(self):
+    def test_annotated_rpc_works_with_no_kwargs(self):
         class someCallResponse(ComplexModel):
             __namespace__ = 'tns'
             s = String
 
         class SomeService(Service):
-            @typed_rpc
+            @rpc
             def someCall(ctx, x: someCallResponse) -> Array(String):
                 return ['abc', 'def']
         
-    def test_typed_rpc_works_with_kwargs(self):
+    def test_annotated_rpc_works_with_kwargs(self):
         class someCallResponse(ComplexModel):
             __namespace__ = 'tns'
             s = String
 
         class SomeService(Service):
-            @typed_rpc(_is_async=True)
+            @rpc(_is_async=True)
             def someCall(ctx, x: someCallResponse) -> Array(String):
                 return ['abc', 'def']
 
         
-    def test_typed_rpc_works_with_no_response_works(self):
+    def test_annotated_rpc_works_with_no_response_works(self):
         class someCallResponse(ComplexModel):
             __namespace__ = 'tns'
             s = String
 
         class SomeService(Service):
-            @typed_rpc(_is_async=True)
+            @rpc(_is_async=True)
             def someCall(ctx, x: someCallResponse):
                 return ['abc', 'def']
         
-    def test_typed_rpc_works_with__returns_kwarg_raises(self):
+    def test_annotated_rpc_works_with__returns_kwarg_raises(self):
         class someCallResponse(ComplexModel):
             __namespace__ = 'tns'
             s = String
@@ -544,7 +544,7 @@ class TestBodyStyle(unittest.TestCase):
         expected_message = "_returns must be omitted when type annotations are used. Please annotate the return type"
         try:
             class SomeService(Service):
-                @typed_rpc(_returns=Array(String))
+                @rpc(_returns=Array(String))
                 def someCall(ctx, x: someCallResponse) -> Array(String):
                     return ['abc', 'def']
         except ValueError as e:
@@ -552,7 +552,7 @@ class TestBodyStyle(unittest.TestCase):
         else:
             raise Exception(f"Must fail with: ValueError('{expected_message}'")
     
-    def test_typed_rpc_works_with_missing_type_annotation_raises(self):
+    def test_annotated_rpc_works_with_missing_type_annotation_raises(self):
         class someCallResponse(ComplexModel):
             __namespace__ = 'tns'
             s = String
@@ -561,7 +561,7 @@ class TestBodyStyle(unittest.TestCase):
         expected_sub_message = "Missing type annotation for the parameters: ['y']"
         try:
             class SomeService(Service):
-                @typed_rpc(_is_async=True)
+                @rpc(_is_async=True)
                 def someCall(ctx, x: someCallResponse, y) -> Array(String):
                     return ['abc', 'def']
         except ValueError as e:

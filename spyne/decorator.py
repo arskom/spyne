@@ -587,21 +587,21 @@ def rpc(*args, **kwargs):
         warnings.warn(*spyne.const.READ_ANNOTATIONS_WARNING)
         return _rpc
 
-    def _typed_rpc(func):
+    def _annotated_rpc(func):
         inputs = []
         definition = inspect.signature(func)
         missing_type_annotations = []
 
         input_type_annotations = [_param.annotation for _param in definition.parameters.values() if _param.annotation is not inspect._empty]
-        is_typed = definition.return_annotation is not inspect._empty or input_type_annotations
+        is_annotated = definition.return_annotation is not inspect._empty or input_type_annotations
 
-        if is_typed and args and inspect.isclass(args[0]):
+        if is_annotated and args and inspect.isclass(args[0]):
             raise ValueError("*params must be empty when type annotations are used")
 
-        if is_typed and "_returns" in kwargs:
+        if is_annotated and "_returns" in kwargs:
             raise ValueError("_returns must be omitted when type annotations are used. Please annotate the return type")
 
-        if not is_typed:
+        if not is_annotated:
             warnings.warn(*spyne.const.READ_ANNOTATIONS_WARNING)
             return _rpc(*args, *kwargs)
         
@@ -627,4 +627,4 @@ def rpc(*args, **kwargs):
 
         return wrapper
 
-    return _typed_rpc(func) if no_args else _typed_rpc
+    return _annotated_rpc(func) if no_args else _annotated_rpc
