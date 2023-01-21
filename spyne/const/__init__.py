@@ -76,6 +76,13 @@ WARN_ON_DUPLICATE_FAULTCODE = True
 """Warn about duplicate faultcodes in all Fault subclasses globally. Only works
 when CODE class attribute is set for every Fault subclass."""
 
+READ_ANNOTATIONS = True
+"""Whether to use the type annotations as a mechanism of constructing the rpc call
+"""
+READ_ANNOTATIONS_WARNING = ('Using types in @rpc will be depreciated in future releases, '
+                            'please use python type annotations for both your request and response', 
+                            DeprecationWarning, 
+                            stacklevel=2)
 
 def add_request_suffix(string):
     """Concatenates REQUEST_SUFFIX to end of string"""

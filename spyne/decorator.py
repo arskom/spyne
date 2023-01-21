@@ -28,12 +28,14 @@ decorator is a simple example of this.
 
 from functools import wraps
 import inspect
+import warnings
 import spyne.const.xml
 
 from copy import copy
 from inspect import isclass
 
 from spyne import MethodDescriptor
+import spyne.const
 
 # Empty means empty input, bare output. Doesn't say anything about response
 # being empty
@@ -300,7 +302,7 @@ def _get_event_managers(kparams):
     return _event_managers if _event_managers is not None else []
 
 
-def rpc(*params, **kparams):
+def _rpc(*params, **kparams):
     """Method decorator to tag a method as a remote procedure call in a
     :class:`spyne.service.Service` subclass.
 
@@ -566,53 +568,63 @@ def srpc(*params, **kparams):
     """
 
     kparams["_no_ctx"] = True
-    return rpc(*params, **kparams)
+    return _rpc(*params, **kparams)
 
 
 def mrpc(*params, **kparams):
     kparams["_no_self"] = False
-    return rpc(*params, **kparams)
+    return _rpc(*params, **kparams)
 
 
-def typed_rpc(*args, **kwargs):
+def rpc(*args, **kwargs):
     no_args = False
-    
-    if len(args) > 0 and inspect.isclass(args[0]):
-        raise ValueError("*params must be empty when type annotations are used")
-    
-    if "_returns" in kwargs:
-        raise ValueError("_returns must be omitted when type annotations are used. Please annotate the return type")
-    
     if len(args) == 1 and not kwargs and callable(args[0]):
         # Called without args
         func = args[0]
         no_args = True
+
+    if not spyne.const.READ_ANNOTATIONS:
+        warnings.warn(*spyne.const.READ_ANNOTATIONS_WARNING)
+        return _rpc
+
     def _typed_rpc(func):
         inputs = []
         definition = inspect.signature(func)
         missing_type_annotations = []
+
+        input_type_annotations = [_param.annotation for _param in definition.parameters.values() if _param.annotation is not inspect._empty]
+        is_typed = definition.return_annotation is not inspect._empty or input_type_annotations
+
+        if is_typed and args and inspect.isclass(args[0]):
+            raise ValueError("*params must be empty when type annotations are used")
+
+        if is_typed and "_returns" in kwargs:
+            raise ValueError("_returns must be omitted when type annotations are used. Please annotate the return type")
+
+        if not is_typed:
+            warnings.warn(*spyne.const.READ_ANNOTATIONS_WARNING)
+            return _rpc(*args, *kwargs)
+        
         for param_name, param_type in definition.parameters.items():
             if param_name in ("self", "ctx"):
                 continue
             if param_type.annotation is inspect._empty:
                 missing_type_annotations.append(param_name)
             inputs.append(param_type.annotation)
-            
+
         if missing_type_annotations:
             caller = inspect.getframeinfo(inspect.stack()[2][0])
             raise ValueError(f"{caller.filename}:{caller.lineno} - Missing type annotation for the parameters: {missing_type_annotations}")
 
         if definition.return_annotation is not inspect._empty:
-            new_func = rpc(*inputs, _returns=definition.return_annotation, **kwargs)(func)
+            new_func = _rpc(*inputs, _returns=definition.return_annotation, **kwargs)(func)
         else:
-            new_func = rpc(*inputs, **kwargs)(func)
+            new_func = _rpc(*inputs, **kwargs)(func)
 
         @wraps(new_func)
         def wrapper(*args, **kwargs):
             return new_func(*args, **kwargs)
 
         return wrapper
-    if no_args:
-        return _typed_rpc(func)
-    else:
-        return _typed_rpc
+
+    return _typed_rpc(func) if no_args else _typed_rpc
