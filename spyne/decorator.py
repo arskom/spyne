@@ -592,14 +592,23 @@ def rpc(*args, **kwargs):
         definition = inspect.signature(func)
         missing_type_annotations = []
 
-        input_type_annotations = [_param.annotation for _param in definition.parameters.values() if _param.annotation is not inspect._empty]
-        is_annotated = definition.return_annotation is not inspect._empty or input_type_annotations
+        input_type_annotations = [
+            _param.annotation for _param in definition.parameters.values() 
+            if _param.annotation is not inspect._empty
+        ]
+        is_annotated = definition.return_annotation is not inspect._empty \
+            or input_type_annotations
 
         if is_annotated and args and inspect.isclass(args[0]):
-            raise ValueError("*params must be empty when type annotations are used")
+            raise ValueError(
+                "*params must be empty when type annotations are used"
+                )
 
         if is_annotated and "_returns" in kwargs:
-            raise ValueError("_returns must be omitted when type annotations are used. Please annotate the return type")
+            raise ValueError(
+                "_returns must be omitted when type annotations are used. "
+                "Please annotate the return type"
+                )
 
         if not is_annotated:
             warnings.warn(*spyne.const.READ_ANNOTATIONS_WARNING)
@@ -614,10 +623,16 @@ def rpc(*args, **kwargs):
 
         if missing_type_annotations:
             caller = inspect.getframeinfo(inspect.stack()[2][0])
-            raise ValueError(f"{caller.filename}:{caller.lineno} - Missing type annotation for the parameters: {missing_type_annotations}")
+            raise ValueError(
+                f"{caller.filename}:{caller.lineno} - " 
+                "Missing type annotation for the parameters: "
+                f"{missing_type_annotations}"
+                )
 
         if definition.return_annotation is not inspect._empty:
-            new_func = _rpc(*inputs, _returns=definition.return_annotation, **kwargs)(func)
+            new_func = _rpc(
+                *inputs, _returns=definition.return_annotation, **kwargs
+            )(func)
         else:
             new_func = _rpc(*inputs, **kwargs)(func)
 

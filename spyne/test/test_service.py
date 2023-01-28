@@ -541,7 +541,8 @@ class TestBodyStyle(unittest.TestCase):
             __namespace__ = 'tns'
             s = String
         
-        expected_message = "_returns must be omitted when type annotations are used. Please annotate the return type"
+        expected_message = "_returns must be omitted when type annotations " \
+            "are used. Please annotate the return type"
         try:
             class SomeService(Service):
                 @rpc(_returns=Array(String))
@@ -558,16 +559,16 @@ class TestBodyStyle(unittest.TestCase):
             s = String
 
         
-        expected_sub_message = "Missing type annotation for the parameters: ['y']"
+        e_sub_message = "Missing type annotation for the parameters: ['y']"
         try:
             class SomeService(Service):
                 @rpc(_is_async=True)
                 def someCall(ctx, x: someCallResponse, y) -> Array(String):
                     return ['abc', 'def']
         except ValueError as e:
-            assert expected_sub_message in str(e)
+            assert e_sub_message in str(e)
         else:
-            raise Exception(f"Must fail with: ValueError('{expected_sub_message}'")
+            raise Exception(f"Must fail with: ValueError('{e_sub_message}'")
         
     
 
