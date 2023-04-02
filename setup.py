@@ -291,6 +291,10 @@ setup(
     maintainer='Burak Arslan',
     maintainer_email='burak+package@spyne.io',
     url='http://spyne.io',
+    project_urls={
+        'Documentation': 'http://spyne.io/docs',
+        'Source': 'https://github.com/arskom/spyne',
+    },
     license='LGPL-2.1',
     zip_safe=False,
     install_requires=[
