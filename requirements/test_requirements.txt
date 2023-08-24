@@ -1,3 +1,4 @@
+zope.interface<6
 pytest>=2.9
 pytest-twisted
 pytest-cov
