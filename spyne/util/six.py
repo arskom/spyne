@@ -29,7 +29,7 @@ import sys
 import types
 
 __author__ = "Benjamin Peterson <benjamin@python.org>"
-__version__ = "1.14.0"
+__version__ = "1.16.0"
 
 
 # Useful for very coarse version differentiation.
@@ -70,6 +70,11 @@ else:
             # 64-bit
             MAXSIZE = int((1 << 63) - 1)
         del X
+
+if PY34:
+    from importlib.util import spec_from_loader
+else:
+    spec_from_loader = None
 
 
 def _add_doc(func, doc):
@@ -186,6 +191,11 @@ class _SixMetaPathImporter(object):
             return self
         return None
 
+    def find_spec(self, fullname, path, target=None):
+        if fullname in self.known_modules:
+            return spec_from_loader(fullname, self)
+        return None
+
     def __get_module(self, fullname):
         try:
             return self.known_modules[fullname]
@@ -223,6 +233,12 @@ class _SixMetaPathImporter(object):
         return None
     get_source = get_code  # same as get_code
 
+    def create_module(self, spec):
+        return self.load_module(spec.name)
+
+    def exec_module(self, module):
+        pass
+
 _importer = _SixMetaPathImporter(__name__)
 
 
@@ -247,7 +263,7 @@ _moved_attributes = [
     MovedAttribute("reduce", "__builtin__", "functools"),
     MovedAttribute("shlex_quote", "pipes", "shlex", "quote"),
     MovedAttribute("StringIO", "StringIO", "io"),
-    MovedAttribute("UserDict", "UserDict", "collections"),
+    MovedAttribute("UserDict", "UserDict", "collections", "IterableUserDict", "UserDict"),
     MovedAttribute("UserList", "UserList", "collections"),
     MovedAttribute("UserString", "UserString", "collections"),
     MovedAttribute("xrange", "__builtin__", "builtins", "xrange", "range"),
@@ -347,8 +363,6 @@ _urllib_parse_moved_attributes = [
     MovedAttribute("splittag", "urllib", "urllib.parse"),
     MovedAttribute("splituser", "urllib", "urllib.parse"),
     MovedAttribute("splitvalue", "urllib", "urllib.parse"),
-    MovedAttribute("splittype", "urllib", "urllib.parse"),
-    MovedAttribute("splithost", "urllib", "urllib.parse"),
     MovedAttribute("uses_fragment", "urlparse", "urllib.parse"),
     MovedAttribute("uses_netloc", "urlparse", "urllib.parse"),
     MovedAttribute("uses_params", "urlparse", "urllib.parse"),
@@ -517,7 +531,6 @@ if PY3:
     _func_code = "__code__"
     _func_defaults = "__defaults__"
     _func_globals = "__globals__"
-    _func_name = "__name__"
 else:
     _meth_func = "im_func"
     _meth_self = "im_self"
@@ -526,7 +539,6 @@ else:
     _func_code = "func_code"
     _func_defaults = "func_defaults"
     _func_globals = "func_globals"
-    _func_name = "func_name"
 
 
 try:
@@ -580,7 +592,6 @@ get_function_closure = operator.attrgetter(_func_closure)
 get_function_code = operator.attrgetter(_func_code)
 get_function_defaults = operator.attrgetter(_func_defaults)
 get_function_globals = operator.attrgetter(_func_globals)
-get_function_name = operator.attrgetter(_func_name)
 
 
 if PY3:
@@ -895,12 +906,11 @@ def ensure_binary(s, encoding='utf-8', errors='strict'):
       - `str` -> encoded to `bytes`
       - `bytes` -> `bytes`
     """
+    if isinstance(s, binary_type):
+        return s
     if isinstance(s, text_type):
         return s.encode(encoding, errors)
-    elif isinstance(s, binary_type):
-        return s
-    else:
-        raise TypeError("not expecting type '%s'" % type(s))
+    raise TypeError("not expecting type '%s'" % type(s))
 
 
 def ensure_str(s, encoding='utf-8', errors='strict'):
@@ -914,12 +924,15 @@ def ensure_str(s, encoding='utf-8', errors='strict'):
       - `str` -> `str`
       - `bytes` -> decoded to `str`
     """
-    if not isinstance(s, (text_type, binary_type)):
-        raise TypeError("not expecting type '%s'" % type(s))
+    # Optimization: Fast return for the common case.
+    if type(s) is str:
+        return s
     if PY2 and isinstance(s, text_type):
-        s = s.encode(encoding, errors)
+        return s.encode(encoding, errors)
     elif PY3 and isinstance(s, binary_type):
-        s = s.decode(encoding, errors)
+        return s.decode(encoding, errors)
+    elif not isinstance(s, (text_type, binary_type)):
+        raise TypeError("not expecting type '%s'" % type(s))
     return s
 
 
