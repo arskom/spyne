@@ -291,7 +291,7 @@ setup(
     maintainer='Burak Arslan',
     maintainer_email='burak+package@spyne.io',
     url='http://spyne.io',
-    license='LGPL-2.1',
+    license='LGPL-2.1-or-later',
     zip_safe=False,
     install_requires=[
       'pytz',
