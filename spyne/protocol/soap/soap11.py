@@ -93,14 +93,23 @@ def _from_soap(in_envelope_xml, xmlids=None, **kwargs):
 
 def _parse_xml_string(xml_string, parser, charset=None):
     xml_string = iter(xml_string)
-    chunk = next(xml_string)
+    try:
+        chunk = next(xml_string)
+    except StopIteration:
+        logger_invalid.error("missing body")
+        raise Fault('Client.XMLSyntaxError', 'Missing body')
+
     if isinstance(chunk, six.binary_type):
         string = b''.join(chain( (chunk,), xml_string ))
     else:
         string = ''.join(chain( (chunk,), xml_string ))
 
     if charset:
-        string = string.decode(charset)
+        try:
+            string = string.decode(charset)
+        except UnicodeDecodeError as e:
+            logger_invalid.error("%r in string %r", e, string)
+            raise Fault('Client.XMLSyntaxError', str(e))
 
     try:
         try:

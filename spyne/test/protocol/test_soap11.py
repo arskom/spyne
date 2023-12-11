@@ -244,6 +244,41 @@ b'''<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         # quick and dirty test href reconstruction
         self.assertEqual(len(payload[0]), 2)
 
+    def test_empty_body(self):
+        # If the soap request has no body, then you get an empty iterable
+        # as the envelope string.
+        # This should be treated as a client error.
+        envelope_string = iter([])
+
+        with self.assertRaises(Fault) as cm:
+            _parse_xml_string(envelope_string,
+                              etree.XMLParser(), 'utf8')
+        self.assertEqual(cm.exception.faultcode, 'Client.XMLSyntaxError')
+        self.assertEqual(cm.exception.faultstring, 'Missing body')
+
+    def test_bad_encoding(self):
+        # Encode string with non-ascii characters as Latin-1, so that later
+        # when decoding as utf-8 you will get an decode error.
+        # This should result in a client error.
+        envelope_string = ['''
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tns="http://tempuri.org/"
+       xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+    <tns:myResponse xsi:type="tns:myResponse">
+      <myResult href="bad-encoding-é#id1" />
+    </tns:myResponse>
+  </soap:Body>
+</soap:Envelope>
+'''.encode('latin-1')]
+
+        with self.assertRaises(Fault) as cm:
+            _parse_xml_string(envelope_string,
+                              etree.XMLParser(), 'utf8')
+        self.assertEqual(cm.exception.faultcode, 'Client.XMLSyntaxError')
+        self.assertIn("'utf-8' codec can't decode byte",
+                      cm.exception.faultstring)
+
     def test_namespaces(self):
         m = ComplexModel.produce(
             namespace="some_namespace",
