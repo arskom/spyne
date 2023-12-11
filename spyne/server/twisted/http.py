@@ -183,7 +183,7 @@ def _reconstruct_url(request):
         url_scheme = 'http'
 
     uri = _decode_path(request.uri)
-    return ''.join([url_scheme, "://", server_name, uri])
+    return ''.join([url_scheme, "://", server_name, uri.decode('utf-8')])
 
 
 class _Transformer(object):
