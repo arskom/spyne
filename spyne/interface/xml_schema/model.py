@@ -183,6 +183,7 @@ def complex_add(document, cls, tags):
 
     deferred = deque()
     choice_tags = defaultdict(lambda: etree.Element(XSD('choice')))
+    all_tags = defaultdict(lambda: etree.Element(XSD('all')))
 
     for k, v in type_info.items():
         assert isinstance(k, string_types)
@@ -253,14 +254,27 @@ def complex_add(document, cls, tags):
             doc = etree.SubElement(annotation, XSD('documentation'))
             doc.text = v_doc_text
 
-        if a.xml_choice_group is None:
-            sequence.append(member)
-        else:
+        if all([a.xml_choice_group, a.xml_all_group]):
+            raise ValueError("Cannot specify xml_choice_group and xml_all_group"
+                             " at the same time. Class: %r. Groups: %r"
+                             % (cls.__name__,
+                                [a.xml_choice_group, a.xml_all_group]))
+        elif a.xml_choice_group is not None:
             choice_tags[a.xml_choice_group].append(member)
+        elif a.xml_all_group is not None:
+            all_tags[a.xml_all_group].append(member)
+        else:
+            sequence.append(member)
 
     sequence.extend(choice_tags.values())
 
-    if len(sequence) > 0:
+    if len(sequence) == 0:
+        if len(all_tags) > 1:
+            raise ValueError("Cannot specify more than one xml_all_group"
+                             " at the same time. Class: %r. Groups: %r"
+                             % (cls.__name__, [key for key in all_tags.keys()]))
+        sequence_parent.extend(all_tags.values())
+    else:
         sequence_parent.append(sequence)
 
     _ext_elements = dict()
