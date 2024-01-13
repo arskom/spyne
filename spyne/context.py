@@ -403,7 +403,7 @@ class MethodContext(object):
             dt = (time() - t)
             _LAST_GC_RUN = t
 
-            logger.debug("gc.collect() took around %dms.", round(dt, 2) * 1000)
+            logger.info("gc.collect() took around %dms.", round(dt, 2) * 1000)
 
     def set_out_protocol(self, what):
         self._out_protocol = what

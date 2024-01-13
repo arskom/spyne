@@ -189,10 +189,13 @@ class MessagePackDocument(HierDictDocument):
 
     def integer_to_bytes(self, cls, value, **_):
         # if it's inside the range msgpack can deal with
-        if -1<<63 <= value < 1<<64:
-            return value
-        else:
-            return super(MessagePackDocument, self).integer_to_bytes(cls, value)
+        try:
+            if -1<<63 <= value < 1<<64:
+                return value
+        except TypeError as e:
+            raise ValidationError(value)
+
+        return super(MessagePackDocument, self).integer_to_bytes(cls, value)
 
 
 class MessagePackRpc(MessagePackDocument):

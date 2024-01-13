@@ -46,5 +46,5 @@ print(c.service.get_preferences(user_name))
 
 try:
     print(c.service.get_preferences('smith'))
-except WebFault, e:
+except WebFault as e:
     print(e)
