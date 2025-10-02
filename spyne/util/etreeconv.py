@@ -23,7 +23,7 @@ hierarchy to python dicts and vice versa.
 try:
     from collections.abc import Sized
 except ImportError:  # Python 2
-    from collections import Sized
+    from collections.abc import Sized
 
 from lxml import etree
 
@@ -39,7 +39,7 @@ def root_dict_to_etree(d):
 
     assert len(d) == 1, "Incoming dict len must be exactly 1. Data: %r" % d
 
-    key, = d.keys()
+    (key,) = d.keys()
     retval = etree.Element(key)
     for val in d.values():
         break
@@ -121,10 +121,10 @@ def etree_to_dict(element, iterable=(list, list.append)):
 def etree_strip_namespaces(element):
     """Removes any namespace information form the given element recursively."""
 
-    retval = etree.Element(element.tag.rpartition('}')[-1])
+    retval = etree.Element(element.tag.rpartition("}")[-1])
     retval.text = element.text
     for a in element.attrib:
-        retval.attrib[a.rpartition('}')[-1]] = element.attrib[a]
+        retval.attrib[a.rpartition("}")[-1]] = element.attrib[a]
 
     for e in element:
         retval.append(etree_strip_namespaces(e))

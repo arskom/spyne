@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -31,64 +30,63 @@ def compile_uuid_sqlite(type_, compiler, **kw):
     return "BLOB"
 
 
-
 class PGLTree(Concatenable, UserDefinedType):
     """Postgresql `ltree` type."""
 
     class Comparator(Concatenable.Comparator):
         def ancestor_of(self, other):
             if isinstance(other, list):
-                return self.op('@>')(sql.cast(other, PGArray(PGLTree)))
+                return self.op("@>")(sql.cast(other, PGArray(PGLTree)))
             else:
-                return self.op('@>')(other)
+                return self.op("@>")(other)
 
         def descendant_of(self, other):
             if isinstance(other, list):
-                return self.op('<@')(sql.cast(other, PGArray(PGLTree)))
+                return self.op("<@")(sql.cast(other, PGArray(PGLTree)))
             else:
-                return self.op('<@')(other)
+                return self.op("<@")(other)
 
         def lquery(self, other):
             if isinstance(other, list):
-                return self.op('?')(sql.cast(other, PGArray(PGLQuery)))
+                return self.op("?")(sql.cast(other, PGArray(PGLQuery)))
             else:
-                return self.op('~')(other)
+                return self.op("~")(other)
 
         def ltxtquery(self, other):
-            return self.op('@')(other)
+            return self.op("@")(other)
 
     comparator_factory = Comparator
 
-    __visit_name__ = 'LTREE'
+    __visit_name__ = "LTREE"
 
 
 class PGLQuery(UserDefinedType):
     """Postresql `lquery` type."""
 
-    __visit_name__ = 'LQUERY'
+    __visit_name__ = "LQUERY"
 
 
 class PGLTxtQuery(UserDefinedType):
     """Postresql `ltxtquery` type."""
 
-    __visit_name__ = 'LTXTQUERY'
+    __visit_name__ = "LTXTQUERY"
 
 
-ischema_names['ltree'] = PGLTree
-ischema_names['lquery'] = PGLQuery
-ischema_names['ltxtquery'] = PGLTxtQuery
+ischema_names["ltree"] = PGLTree
+ischema_names["lquery"] = PGLQuery
+ischema_names["ltxtquery"] = PGLTxtQuery
 
 
 def visit_LTREE(self, type_, **kw):
-    return 'LTREE'
+    return "LTREE"
 
 
 def visit_LQUERY(self, type_, **kw):
-    return 'LQUERY'
+    return "LQUERY"
 
 
 def visit_LTXTQUERY(self, type_, **kw):
-    return 'LTXTQUERY'
+    return "LTXTQUERY"
 
 
 PGTypeCompiler.visit_LTREE = visit_LTREE

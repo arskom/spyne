@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,7 +17,7 @@
 #
 
 NATIVE_MAP = {}
-string_encoding = 'UTF-8'  # ???
+string_encoding = "UTF-8"  # ???
 
 from spyne.model.primitive._base import Any
 from spyne.model.primitive._base import AnyDict
@@ -85,7 +84,7 @@ from spyne.model.primitive.number import UnsignedInteger32
 from spyne.model.primitive.number import UnsignedInt
 from spyne.model.primitive.number import UnsignedInteger64
 from spyne.model.primitive.number import UnsignedLong
-from spyne.model.primitive.number import NonNegativeInteger # Xml Schema calls it so
+from spyne.model.primitive.number import NonNegativeInteger  # Xml Schema calls it so
 from spyne.model.primitive.number import UnsignedInteger
 
 from spyne.model.primitive.network import MacAddress
@@ -128,11 +127,21 @@ class Mandatory:
     Short = Integer16
     Byte = Integer8
 
-    UnsignedInteger = UnsignedInteger(type_name="MandatoryUnsignedInteger", min_occurs=1, nillable=False)
-    UnsignedInteger64 = UnsignedInteger64(type_name="MandatoryUnsignedLong", min_occurs=1, nillable=False)
-    UnsignedInteger32 = UnsignedInteger32(type_name="MandatoryUnsignedInt", min_occurs=1, nillable=False)
-    UnsignedInteger16 = UnsignedInteger16(type_name="MandatoryUnsignedShort", min_occurs=1, nillable=False)
-    UnsignedInteger8 = UnsignedInteger8(type_name="MandatoryUnsignedByte", min_occurs=1, nillable=False)
+    UnsignedInteger = UnsignedInteger(
+        type_name="MandatoryUnsignedInteger", min_occurs=1, nillable=False
+    )
+    UnsignedInteger64 = UnsignedInteger64(
+        type_name="MandatoryUnsignedLong", min_occurs=1, nillable=False
+    )
+    UnsignedInteger32 = UnsignedInteger32(
+        type_name="MandatoryUnsignedInt", min_occurs=1, nillable=False
+    )
+    UnsignedInteger16 = UnsignedInteger16(
+        type_name="MandatoryUnsignedShort", min_occurs=1, nillable=False
+    )
+    UnsignedInteger8 = UnsignedInteger8(
+        type_name="MandatoryUnsignedByte", min_occurs=1, nillable=False
+    )
 
     UnsignedLong = UnsignedInteger64
     UnsignedInt = UnsignedInteger32
@@ -146,10 +155,16 @@ class Mandatory:
     LineString = Line
     Polygon = Polygon(type_name="Polygon", min_len=1, min_occurs=1, nillable=False)
 
-    MultiPoint = MultiPoint(type_name="MandatoryMultiPoint", min_len=1, min_occurs=1, nillable=False)
-    MultiLine = MultiLine(type_name="MandatoryMultiLineString", min_len=1, min_occurs=1, nillable=False)
+    MultiPoint = MultiPoint(
+        type_name="MandatoryMultiPoint", min_len=1, min_occurs=1, nillable=False
+    )
+    MultiLine = MultiLine(
+        type_name="MandatoryMultiLineString", min_len=1, min_occurs=1, nillable=False
+    )
     MultiLineString = MultiLine
-    MultiPolygon = MultiPolygon(type_name="MandatoryMultiPolygon", min_len=1, min_occurs=1, nillable=False)
+    MultiPolygon = MultiPolygon(
+        type_name="MandatoryMultiPolygon", min_len=1, min_occurs=1, nillable=False
+    )
 
 
 assert Mandatory.Long == Mandatory.Integer64

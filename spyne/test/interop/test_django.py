@@ -281,13 +281,13 @@ class DjangoServiceTestCase(TestCase):
     def test_handle_does_not_exist(self):
         """Test if Django service handles `ObjectDoesNotExist` exceptions."""
         client = DjangoTestClient('/api/', app)
-        with self.assertRaisesRegexp(Fault, 'Client.FieldContainerNotFound'):
+        with self.assertRaisesRegex(Fault, 'Client.FieldContainerNotFound'):
             client.service.raise_does_not_exist()
 
     def test_handle_validation_error(self):
         """Test if Django service handles `ValidationError` exceptions."""
         client = DjangoTestClient('/api/', app)
-        with self.assertRaisesRegexp(Fault, 'Client.ValidationError'):
+        with self.assertRaisesRegex(Fault, 'Client.ValidationError'):
             client.service.raise_validation_error()
 
 

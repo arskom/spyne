@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -32,7 +31,7 @@ def get_version(package):
     if isinstance(package, (six.text_type, six.binary_type)):
         package = __import__(package)
 
-    verstr = getattr(package, '__version__')
+    verstr = getattr(package, "__version__")
     retval = []
 
     for f in verstr.split("."):

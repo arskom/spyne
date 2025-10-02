@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,9 +16,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from datetime import datetime
@@ -36,8 +35,8 @@ from spyne.util.six import string_types
 _MISSING = type("_MISSING", (object,), {})()
 
 
-class ProtocolMixin(object):
-    mime_type = 'application/octet-stream'
+class ProtocolMixin:
+    mime_type = "application/octet-stream"
 
     SOFT_VALIDATION = type("Soft", (object,), {})
     REQUEST = type("Request", (object,), {})
@@ -55,8 +54,14 @@ class ProtocolMixin(object):
     type_attrs = {}
     """Default customizations to be passed to underlying classes."""
 
-    def __init__(self, app=None, mime_type=None, ignore_wrappers=None,
-                                    binary_encoding=None, string_encoding=None):
+    def __init__(
+        self,
+        app=None,
+        mime_type=None,
+        ignore_wrappers=None,
+        binary_encoding=None,
+        string_encoding=None,
+    ):
         self.__app = None
         self.set_app(app)
 
@@ -158,31 +163,32 @@ class ProtocolMixin(object):
 
     @staticmethod
     def strip_wrappers(cls, inst):
-        ti = getattr(cls, '_type_info', {})
+        ti = getattr(cls, "_type_info", {})
 
         while len(ti) == 1 and cls.Attributes._wrapper:
             # Wrappers are auto-generated objects that have exactly one
             # child type.
-            key, = ti.keys()
+            (key,) = ti.keys()
             if not issubclass(cls, Array):
                 inst = getattr(inst, key, None)
-            cls, = ti.values()
-            ti = getattr(cls, '_type_info', {})
+            (cls,) = ti.values()
+            ti = getattr(cls, "_type_info", {})
 
         return cls, inst
 
     def set_app(self, value):
-        assert self.__app is None, "One protocol instance should belong to one " \
-                                   "application instance. It currently belongs " \
-                                   "to: %r" % self.__app
+        assert self.__app is None, (
+            "One protocol instance should belong to one "
+            "application instance. It currently belongs "
+            "to: %r" % self.__app
+        )
         self.__app = value
 
     @staticmethod
     def issubclass(sub, cls):
-        suborig = getattr(sub, '__orig__', None)
-        clsorig = getattr(cls, '__orig__', None)
-        return issubclass(sub if suborig is None else suborig,
-                          cls if clsorig is None else clsorig)
+        suborig = getattr(sub, "__orig__", None)
+        clsorig = getattr(cls, "__orig__", None)
+        return issubclass(sub if suborig is None else suborig, cls if clsorig is None else clsorig)
 
     def get_cls_attrs(self, cls):
         logger.debug("%r attrcache size: %d", self, len(self._attrcache))
@@ -190,10 +196,13 @@ class ProtocolMixin(object):
         if attr is not None:
             return attr
 
-        self._attrcache[cls] = attr = DefaultAttrDict([
+        self._attrcache[cls] = attr = DefaultAttrDict(
+            [
                 (k, getattr(cls.Attributes, k))
-                        for k in dir(cls.Attributes) + META_ATTR
-                                                     if not k.startswith('__')])
+                for k in dir(cls.Attributes) + META_ATTR
+                if not k.startswith("__")
+            ]
+        )
 
         if cls.Attributes.prot_attrs:
             cls_attrs = cls.Attributes.prot_attrs.get(self.__class__, {})
@@ -240,8 +249,8 @@ class ProtocolMixin(object):
         """
 
         name = ctx.method_request_string
-        if not name.startswith(u"{"):
-            name = u'{%s}%s' % (self.app.interface.get_tns(), name)
+        if not name.startswith("{"):
+            name = "{%s}%s" % (self.app.interface.get_tns(), name)
 
         call_handles = self.app.interface.service_method_map.get(name, [])
 
@@ -259,26 +268,29 @@ class ProtocolMixin(object):
         orig_cls = cls.__orig__ or cls
 
         if inst.__class__ is orig_cls:
-            logger.debug("PMORPH Skipped: Instance class %r is the same as "
-                                        "designated base class", inst.__class__)
+            logger.debug(
+                "PMORPH Skipped: Instance class %r is the same as designated base class",
+                inst.__class__,
+            )
             return cls, False
 
         if not isinstance(inst, orig_cls):
-            logger.debug("PMORPH Skipped: Instance class %r is not a subclass "
-                        "of designated base class %r", inst.__class__, orig_cls)
+            logger.debug(
+                "PMORPH Skipped: Instance class %r is not a subclass of designated base class %r",
+                inst.__class__,
+                orig_cls,
+            )
             return cls, False
 
         cls_attr = self.get_cls_attrs(cls)
         polymap_cls = cls_attr.polymap.get(inst.__class__, None)
 
         if polymap_cls is not None:
-            logger.debug("PMORPH OK: cls switch with polymap: %r => %r",
-                                                               cls, polymap_cls)
+            logger.debug("PMORPH OK: cls switch with polymap: %r => %r", cls, polymap_cls)
             return polymap_cls, True
 
         else:
-            logger.debug("PMORPH OK: cls switch without polymap: %r => %r",
-                                                            cls, inst.__class__)
+            logger.debug("PMORPH OK: cls switch without polymap: %r => %r", cls, inst.__class__)
             return inst.__class__, True
 
     @staticmethod
@@ -309,8 +321,7 @@ class ProtocolMixin(object):
             else:
                 _log_tr = "translated to '%s' with"
 
-        logger.debug(' '.join(("%r ", _log_tr, _log_locale)),
-                                                            cls, retval, locale)
+        logger.debug(" ".join(("%r ", _log_tr, _log_locale)), cls, retval, locale)
 
         return retval
 
@@ -362,8 +373,7 @@ class ProtocolMixin(object):
             else:
                 _log_tr = "translated to '%s' with"
 
-        logger.debug(' '.join(("%r ", _log_tr, _log_locale)),
-                                                         trdict, retval, locale)
+        logger.debug(" ".join(("%r ", _log_tr, _log_locale)), trdict, retval, locale)
 
         return retval
 
@@ -415,4 +425,4 @@ class ProtocolMixin(object):
         return items
 
 
-META_ATTR = ['nullable', 'default_factory']
+META_ATTR = ["nullable", "default_factory"]

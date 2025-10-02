@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -55,7 +54,9 @@ base
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class cdict(dict):
     def __getitem__(self, cls):
@@ -63,7 +64,7 @@ class cdict(dict):
             return dict.__getitem__(self, cls)
 
         except KeyError as e:
-            if not hasattr(cls, '__bases__'):
+            if not hasattr(cls, "__bases__"):
                 cls = cls.__class__
 
             for b in reversed(cls.__bases__):

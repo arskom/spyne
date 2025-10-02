@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,9 +16,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import re
@@ -41,9 +40,29 @@ except ImportError:
     html = None
 
 from spyne.protocol._base import ProtocolMixin
-from spyne.model import ModelBase, XmlAttribute, Array, Null, \
-    ByteArray, File, ComplexModelBase, AnyXml, AnyHtml, Unicode, String, \
-    Decimal, Double, Integer, Time, DateTime, Uuid, Date, Duration, Boolean, Any
+from spyne.model import (
+    ModelBase,
+    XmlAttribute,
+    Array,
+    Null,
+    ByteArray,
+    File,
+    ComplexModelBase,
+    AnyXml,
+    AnyHtml,
+    Unicode,
+    String,
+    Decimal,
+    Double,
+    Integer,
+    Time,
+    DateTime,
+    Uuid,
+    Date,
+    Duration,
+    Boolean,
+    Any,
+)
 
 from spyne.error import ValidationError
 
@@ -59,15 +78,15 @@ from spyne.util.cdict import cdict
 _date_re = re.compile(DATE_PATTERN)
 _time_re = re.compile(TIME_PATTERN)
 _duration_re = re.compile(
-        r'(?P<sign>-?)'
-        r'P'
-        r'(?:(?P<years>\d+)Y)?'
-        r'(?:(?P<months>\d+)M)?'
-        r'(?:(?P<days>\d+)D)?'
-        r'(?:T(?:(?P<hours>\d+)H)?'
-        r'(?:(?P<minutes>\d+)M)?'
-        r'(?:(?P<seconds>\d+(.\d+)?)S)?)?'
-    )
+    r"(?P<sign>-?)"
+    r"P"
+    r"(?:(?P<years>\d+)Y)?"
+    r"(?:(?P<months>\d+)M)?"
+    r"(?:(?P<days>\d+)D)?"
+    r"(?:T(?:(?P<hours>\d+)H)?"
+    r"(?:(?P<minutes>\d+)M)?"
+    r"(?:(?P<seconds>\d+(.\d+)?)S)?)?"
+)
 
 
 class InProtocolBase(ProtocolMixin):
@@ -96,14 +115,24 @@ class InProtocolBase(ProtocolMixin):
         default instead of subclassing the releavant protocol implementation.
     """
 
-    def __init__(self, app=None, validator=None, mime_type=None,
-             ignore_wrappers=False, binary_encoding=None, string_encoding=None):
-
+    def __init__(
+        self,
+        app=None,
+        validator=None,
+        mime_type=None,
+        ignore_wrappers=False,
+        binary_encoding=None,
+        string_encoding=None,
+    ):
         self.validator = None
 
-        super(InProtocolBase, self).__init__(app=app, mime_type=mime_type,
+        super().__init__(
+            app=app,
+            mime_type=mime_type,
             ignore_wrappers=ignore_wrappers,
-               binary_encoding=binary_encoding, string_encoding=string_encoding)
+            binary_encoding=binary_encoding,
+            string_encoding=string_encoding,
+        )
 
         self.message = None
         self.validator = None
@@ -128,7 +157,7 @@ class InProtocolBase(ProtocolMixin):
             EnumBase: self.enum_base_from_bytes,
             ModelBase: self.model_base_from_bytes,
             XmlAttribute: self.xmlattribute_from_bytes,
-            ComplexModelBase: self.complex_model_base_from_bytes
+            ComplexModelBase: self.complex_model_base_from_bytes,
         }
 
         self._from_bytes_handlers = cdict(fsh)
@@ -148,14 +177,13 @@ class InProtocolBase(ProtocolMixin):
         self._from_unicode_handlers[DateTime] = self.datetime_from_unicode
         self._from_unicode_handlers[Duration] = self.duration_from_unicode
 
-
         self._datetime_dsmap = {
             None: self._datetime_from_unicode,
-            'sec': self._datetime_from_sec,
-            'sec_float': self._datetime_from_sec_float,
-            'msec': self._datetime_from_msec,
-            'msec_float': self._datetime_from_msec_float,
-            'usec': self._datetime_from_usec,
+            "sec": self._datetime_from_sec,
+            "sec_float": self._datetime_from_sec_float,
+            "msec": self._datetime_from_msec,
+            "msec_float": self._datetime_from_msec_float,
+            "usec": self._datetime_from_usec,
         }
 
     def _datetime_from_sec(self, cls, value):
@@ -227,8 +255,11 @@ class InProtocolBase(ProtocolMixin):
         if string is None:
             return None
 
-        if isinstance(string, six.string_types) and \
-                           len(string) == 0 and class_.Attributes.empty_is_none:
+        if (
+            isinstance(string, six.string_types)
+            and len(string) == 0
+            and class_.Attributes.empty_is_none
+        ):
             return None
 
         handler = self._from_bytes_handlers[class_]
@@ -238,15 +269,14 @@ class InProtocolBase(ProtocolMixin):
         if string is None:
             return None
 
-        #if not six.PY2:
+        # if not six.PY2:
         #    assert isinstance(string, str), \
         #        "Invalid type passed to `from_unicode`: {}".format(
         #                                         (class_, type(string), string))
 
         cls_attrs = self.get_cls_attrs(class_)
 
-        if isinstance(string, six.string_types) and len(string) == 0 and \
-                                                        cls_attrs.empty_is_none:
+        if isinstance(string, six.string_types) and len(string) == 0 and cls_attrs.empty_is_none:
             return None
 
         handler = self._from_unicode_handlers[class_]
@@ -283,8 +313,8 @@ class InProtocolBase(ProtocolMixin):
 
         retval = string
 
-        if ser_as in ('bytes', 'bytes_le'):
-            retval, = binary_decoding_handlers[encoding](string)
+        if ser_as in ("bytes", "bytes_le"):
+            (retval,) = binary_decoding_handlers[encoding](string)
 
         try:
             retval = _uuid_deserialize[ser_as](retval)
@@ -303,10 +333,10 @@ class InProtocolBase(ProtocolMixin):
 
         retval = string
 
-        if ser_as in ('bytes', 'bytes_le'):
-            retval, = binary_decoding_handlers[encoding](string)
+        if ser_as in ("bytes", "bytes_le"):
+            (retval,) = binary_decoding_handlers[encoding](string)
         elif isinstance(string, six.binary_type):
-            retval = string.decode('ascii')
+            retval = string.decode("ascii")
 
         try:
             retval = _uuid_deserialize[ser_as](retval)
@@ -322,12 +352,10 @@ class InProtocolBase(ProtocolMixin):
             cls_attrs = self.get_cls_attrs(cls)
 
             if cls_attrs.encoding is not None:
-                retval = six.text_type(value, cls_attrs.encoding,
-                                                errors=cls_attrs.unicode_errors)
+                retval = six.text_type(value, cls_attrs.encoding, errors=cls_attrs.unicode_errors)
 
             elif self.string_encoding is not None:
-                retval = six.text_type(value, self.string_encoding,
-                                                errors=cls_attrs.unicode_errors)
+                retval = six.text_type(value, self.string_encoding, errors=cls_attrs.unicode_errors)
 
             else:
                 retval = six.text_type(value, errors=cls_attrs.unicode_errors)
@@ -339,8 +367,9 @@ class InProtocolBase(ProtocolMixin):
         cls_attrs = self.get_cls_attrs(cls)
         if isinstance(value, six.text_type):
             if cls_attrs.encoding is None:
-                raise Exception("You need to define a source encoding for "
-                                "decoding incoming unicode values.")
+                raise Exception(
+                    "You need to define a source encoding for decoding incoming unicode values."
+                )
             else:
                 retval = value.encode(cls_attrs.encoding)
 
@@ -348,10 +377,10 @@ class InProtocolBase(ProtocolMixin):
 
     def decimal_from_unicode(self, cls, string):
         cls_attrs = self.get_cls_attrs(cls)
-        if cls_attrs.max_str_len is not None and len(string) > \
-                                                     cls_attrs.max_str_len:
-            raise ValidationError(string, "Decimal %%r longer than %d "
-                                          "characters" % cls_attrs.max_str_len)
+        if cls_attrs.max_str_len is not None and len(string) > cls_attrs.max_str_len:
+            raise ValidationError(
+                string, "Decimal %%r longer than %d characters" % cls_attrs.max_str_len
+            )
 
         try:
             return D(string)
@@ -359,8 +388,7 @@ class InProtocolBase(ProtocolMixin):
             raise ValidationError(string, "%%r: %r" % e)
 
     def decimal_from_bytes(self, cls, string):
-        return self.decimal_from_unicode(cls,
-                                    string.decode(self.default_string_encoding))
+        return self.decimal_from_unicode(cls, string.decode(self.default_string_encoding))
 
     def double_from_bytes(self, cls, string):
         try:
@@ -371,12 +399,14 @@ class InProtocolBase(ProtocolMixin):
     def integer_from_bytes(self, cls, string):
         cls_attrs = self.get_cls_attrs(cls)
 
-        if isinstance(string, (six.text_type, six.binary_type)) and \
-                                    cls_attrs.max_str_len is not None and \
-                                    len(string) > cls_attrs.max_str_len:
-            raise ValidationError(string,
-                                         "Integer %%r longer than %d characters"
-                                                        % cls_attrs.max_str_len)
+        if (
+            isinstance(string, (six.text_type, six.binary_type))
+            and cls_attrs.max_str_len is not None
+            and len(string) > cls_attrs.max_str_len
+        ):
+            raise ValidationError(
+                string, "Integer %%r longer than %d characters" % cls_attrs.max_str_len
+            )
 
         try:
             return int(string)
@@ -388,18 +418,16 @@ class InProtocolBase(ProtocolMixin):
 
         match = _time_re.match(string)
         if match is None:
-            raise ValidationError(string, "%%r does not match regex %r " %
-                                                               _time_re.pattern)
+            raise ValidationError(string, "%%r does not match regex %r " % _time_re.pattern)
 
         fields = match.groupdict(0)
-        microsec = fields.get('sec_frac')
+        microsec = fields.get("sec_frac")
         if microsec is None or microsec == 0:
             microsec = 0
         else:
             microsec = min(999999, int(round(float(microsec) * 1e6)))
 
-        return time(int(fields['hr']), int(fields['min']),
-                                                   int(fields['sec']), microsec)
+        return time(int(fields["hr"]), int(fields["min"]), int(fields["sec"]), microsec)
 
     def time_from_bytes(self, cls, string):
         if isinstance(string, six.binary_type):
@@ -413,23 +441,22 @@ class InProtocolBase(ProtocolMixin):
         """
 
         try:
-            return date(*(strptime(string, u'%Y-%m-%d')[0:3]))
+            return date(*(strptime(string, "%Y-%m-%d")[0:3]))
 
         except ValueError:
             match = cls._offset_re.match(string)
 
             if match:
-                year = int(match.group('year'))
-                month = int(match.group('month'))
-                day = int(match.group('day'))
+                year = int(match.group("year"))
+                month = int(match.group("month"))
+                day = int(match.group("day"))
 
                 return date(year, month, day)
 
             raise ValidationError(string)
 
     def enum_base_from_bytes(self, cls, value):
-        if self.validator is self.SOFT_VALIDATION and not (
-                                        cls.validate_string(cls, value)):
+        if self.validator is self.SOFT_VALIDATION and not (cls.validate_string(cls, value)):
             raise ValidationError(value)
         return getattr(cls, value)
 
@@ -450,8 +477,7 @@ class InProtocolBase(ProtocolMixin):
         if match is None:
             match = cls._offset_re.match(string)
             if match:
-                tz_hr, tz_min = [int(match.group(x))
-                                                   for x in ("tz_hr", "tz_min")]
+                tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
                 tz = FixedOffset(tz_hr * 60 + tz_min, {})
                 retval = _parse_datetime_iso_match(match, tz=tz)
                 if astz is not None:
@@ -494,11 +520,11 @@ class InProtocolBase(ProtocolMixin):
         except ValueError as e:
             match = cls._offset_re.match(string)
             if match:
-                return date(int(match.group('year')),
-                            int(match.group('month')), int(match.group('day')))
+                return date(
+                    int(match.group("year")), int(match.group("month")), int(match.group("day"))
+                )
             else:
-                raise ValidationError(string,
-                                         "%%r: %s" % repr(e).replace("%", "%%"))
+                raise ValidationError(string, "%%r: %s" % repr(e).replace("%", "%%"))
 
     def date_from_unicode(self, cls, string):
         date_format = self._get_date_format(self.get_cls_attrs(cls))
@@ -512,8 +538,9 @@ class InProtocolBase(ProtocolMixin):
         except ValueError as e:
             match = cls._offset_re.match(string)
             if match:
-                return date(int(match.group('year')),
-                            int(match.group('month')), int(match.group('day')))
+                return date(
+                    int(match.group("year")), int(match.group("month")), int(match.group("day"))
+                )
             else:
                 # the message from ValueError is quite nice already
                 raise ValidationError(e.message, "%s")
@@ -521,24 +548,25 @@ class InProtocolBase(ProtocolMixin):
     def duration_from_unicode(self, cls, string):
         duration = _duration_re.match(string).groupdict(0)
         if duration is None:
-            raise ValidationError(string,
-                "Time data '%%s' does not match regex '%s'" %
-                                                        (_duration_re.pattern,))
+            raise ValidationError(
+                string, "Time data '%%s' does not match regex '%s'" % (_duration_re.pattern,)
+            )
 
-        days = int(duration['days'])
-        days += int(duration['months']) * 30
-        days += int(duration['years']) * 365
-        hours = int(duration['hours'])
-        minutes = int(duration['minutes'])
-        seconds = float(duration['seconds'])
+        days = int(duration["days"])
+        days += int(duration["months"]) * 30
+        days += int(duration["years"]) * 365
+        hours = int(duration["hours"])
+        minutes = int(duration["minutes"])
+        seconds = float(duration["seconds"])
         f, i = modf(seconds)
         seconds = i
         microseconds = int(1e6 * f)
 
-        delta = timedelta(days=days, hours=hours, minutes=minutes,
-            seconds=seconds, microseconds=microseconds)
+        delta = timedelta(
+            days=days, hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds
+        )
 
-        if duration['sign'] == "-":
+        if duration["sign"] == "-":
             delta *= -1
 
         return delta
@@ -550,7 +578,7 @@ class InProtocolBase(ProtocolMixin):
         return self.duration_from_unicode(cls, string)
 
     def boolean_from_bytes(self, cls, string):
-        return string.lower() in ('true', '1')
+        return string.lower() in ("true", "1")
 
     def byte_array_from_bytes(self, cls, value, suggested_encoding=None):
         encoding = self.get_cls_attrs(cls).encoding
@@ -569,12 +597,12 @@ class InProtocolBase(ProtocolMixin):
         raise TypeError("Only primitives can be deserialized from string.")
 
     def array_from_bytes(self, cls, string, **_):
-        if self.get_cls_attrs(cls).serialize_as != 'sd-list':
+        if self.get_cls_attrs(cls).serialize_as != "sd-list":
             raise TypeError("Only primitives can be deserialized from string.")
 
         # sd-list being space-delimited list.
         retval = []
-        inner_type, = cls._type_info.values()
+        (inner_type,) = cls._type_info.values()
         for s in string.split():
             retval.append(self.from_bytes(inner_type, s))
 
@@ -607,9 +635,9 @@ class InProtocolBase(ProtocolMixin):
                 # FIXME: perhaps it should encode to string's encoding instead
                 # of utf8 all the time
                 if isinstance(dt_format, six.text_type):
-                    dt_format = dt_format.encode('utf8')
+                    dt_format = dt_format.encode("utf8")
                 if isinstance(string, six.text_type):
-                    string = string.encode('utf8')
+                    string = string.encode("utf8")
 
             retval = datetime.strptime(string, dt_format)
 
@@ -624,31 +652,31 @@ class InProtocolBase(ProtocolMixin):
 
 
 _uuid_deserialize = {
-    None: lambda s: uuid.UUID(s.decode('ascii') if isinstance(s, bytes) else s),
-    'hex': lambda s: uuid.UUID(hex=s),
-    'urn': lambda s: uuid.UUID(hex=s),
-    'bytes': lambda s: uuid.UUID(bytes=s),
-    'bytes_le': lambda s: uuid.UUID(bytes_le=s),
-    'fields': lambda s: uuid.UUID(fields=s),
-    'int': lambda s: uuid.UUID(int=s),
-    ('int', int): lambda s: uuid.UUID(int=s),
-    ('int', str): lambda s: uuid.UUID(int=int(s)),
+    None: lambda s: uuid.UUID(s.decode("ascii") if isinstance(s, bytes) else s),
+    "hex": lambda s: uuid.UUID(hex=s),
+    "urn": lambda s: uuid.UUID(hex=s),
+    "bytes": lambda s: uuid.UUID(bytes=s),
+    "bytes_le": lambda s: uuid.UUID(bytes_le=s),
+    "fields": lambda s: uuid.UUID(fields=s),
+    "int": lambda s: uuid.UUID(int=s),
+    ("int", int): lambda s: uuid.UUID(int=s),
+    ("int", str): lambda s: uuid.UUID(int=int(s)),
 }
 
 if six.PY2:
     _uuid_deserialize[None] = lambda s: uuid.UUID(s)
-    _uuid_deserialize[('int', long)] = _uuid_deserialize[('int', int)]
+    _uuid_deserialize[("int", long)] = _uuid_deserialize[("int", int)]
 
 
 def _parse_datetime_iso_match(date_match, tz=None):
     fields = date_match.groupdict()
 
-    year = int(fields.get('year'))
-    month = int(fields.get('month'))
-    day = int(fields.get('day'))
-    hour = int(fields.get('hr'))
-    minute = int(fields.get('min'))
-    second = int(fields.get('sec'))
+    year = int(fields.get("year"))
+    month = int(fields.get("month"))
+    day = int(fields.get("day"))
+    hour = int(fields.get("hr"))
+    minute = int(fields.get("min"))
+    second = int(fields.get("sec"))
     usecond = fields.get("sec_frac")
     if usecond is None:
         usecond = 0
@@ -660,50 +688,41 @@ def _parse_datetime_iso_match(date_match, tz=None):
     return datetime(year, month, day, hour, minute, second, usecond, tz)
 
 
-_dt_sec = lambda cls, val: \
-        int(mktime(val.timetuple()))
-_dt_sec_float = lambda cls, val: \
-        mktime(val.timetuple()) + (val.microsecond / 1e6)
+_dt_sec = lambda cls, val: int(mktime(val.timetuple()))
+_dt_sec_float = lambda cls, val: mktime(val.timetuple()) + (val.microsecond / 1e6)
 
-_dt_msec = lambda cls, val: \
-        int(mktime(val.timetuple())) * 1000 + (val.microsecond // 1000)
-_dt_msec_float = lambda cls, val: \
-        mktime(val.timetuple()) * 1000 + (val.microsecond / 1000.0)
+_dt_msec = lambda cls, val: int(mktime(val.timetuple())) * 1000 + (val.microsecond // 1000)
+_dt_msec_float = lambda cls, val: mktime(val.timetuple()) * 1000 + (val.microsecond / 1000.0)
 
-_dt_usec = lambda cls, val: \
-        int(mktime(val.timetuple())) * 1000000 + val.microsecond
+_dt_usec = lambda cls, val: int(mktime(val.timetuple())) * 1000000 + val.microsecond
 
 _datetime_smap = {
-    'sec': _dt_sec,
-    'secs': _dt_sec,
-    'second': _dt_sec,
-    'seconds': _dt_sec,
-
-    'sec_float': _dt_sec_float,
-    'secs_float': _dt_sec_float,
-    'second_float': _dt_sec_float,
-    'seconds_float': _dt_sec_float,
-
-    'msec': _dt_msec,
-    'msecs': _dt_msec,
-    'msecond': _dt_msec,
-    'mseconds': _dt_msec,
-    'millisecond': _dt_msec,
-    'milliseconds': _dt_msec,
-
-    'msec_float': _dt_msec_float,
-    'msecs_float': _dt_msec_float,
-    'msecond_float': _dt_msec_float,
-    'mseconds_float': _dt_msec_float,
-    'millisecond_float': _dt_msec_float,
-    'milliseconds_float': _dt_msec_float,
-
-    'usec': _dt_usec,
-    'usecs': _dt_usec,
-    'usecond': _dt_usec,
-    'useconds': _dt_usec,
-    'microsecond': _dt_usec,
-    'microseconds': _dt_usec,
+    "sec": _dt_sec,
+    "secs": _dt_sec,
+    "second": _dt_sec,
+    "seconds": _dt_sec,
+    "sec_float": _dt_sec_float,
+    "secs_float": _dt_sec_float,
+    "second_float": _dt_sec_float,
+    "seconds_float": _dt_sec_float,
+    "msec": _dt_msec,
+    "msecs": _dt_msec,
+    "msecond": _dt_msec,
+    "mseconds": _dt_msec,
+    "millisecond": _dt_msec,
+    "milliseconds": _dt_msec,
+    "msec_float": _dt_msec_float,
+    "msecs_float": _dt_msec_float,
+    "msecond_float": _dt_msec_float,
+    "mseconds_float": _dt_msec_float,
+    "millisecond_float": _dt_msec_float,
+    "milliseconds_float": _dt_msec_float,
+    "usec": _dt_usec,
+    "usecs": _dt_usec,
+    "usecond": _dt_usec,
+    "useconds": _dt_usec,
+    "microsecond": _dt_usec,
+    "microseconds": _dt_usec,
 }
 
 

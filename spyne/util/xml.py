@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -21,6 +20,7 @@
 """The `spyne.util.xml` module contains various Xml and Xml Schema related
 utility functions.
 """
+
 from inspect import isgenerator
 
 from lxml import etree
@@ -42,7 +42,7 @@ from spyne.util.six import BytesIO
 from spyne.util.tlist import tlist
 
 
-class FakeApplication(object):
+class FakeApplication:
     def __init__(self, default_namespace):
         self.tns = default_namespace
         self.services = ()
@@ -99,7 +99,7 @@ def get_validation_schema(models, default_namespace=None):
 
 def _dig(par):
     for elt in par:
-        elt.tag = elt.tag.split('}')[-1]
+        elt.tag = elt.tag.split("}")[-1]
         _dig(elt)
 
 
@@ -121,8 +121,7 @@ def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=False):
         cls = inst.__class__
 
     parent = etree.Element("parent")
-    _xml_object.to_parent(None, cls, inst, parent, cls.get_namespace(),
-                                                                  root_tag_name)
+    _xml_object.to_parent(None, cls, inst, parent, cls.get_namespace(), root_tag_name)
     if no_namespace:
         _dig(parent)
         etree.cleanup_namespaces(parent)
@@ -130,8 +129,7 @@ def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=False):
     return parent[0]
 
 
-def get_object_as_xml_polymorphic(inst, cls=None, root_tag_name=None,
-                                                            no_namespace=False):
+def get_object_as_xml_polymorphic(inst, cls=None, root_tag_name=None, no_namespace=False):
     """Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
@@ -146,29 +144,24 @@ def get_object_as_xml_polymorphic(inst, cls=None, root_tag_name=None,
         cls = inst.__class__
 
     if no_namespace:
-        app = Application([ServiceBase], tns="",
-                                     out_protocol=XmlDocument(polymorphic=True))
+        app = Application([ServiceBase], tns="", out_protocol=XmlDocument(polymorphic=True))
     else:
         tns = cls.get_namespace()
         if tns is None:
-            raise ValueError(
-                "Either set a namespace for %r or pass no_namespace=True"
-                                                                      % (cls, ))
+            raise ValueError("Either set a namespace for %r or pass no_namespace=True" % (cls,))
 
         class _DummyService(ServiceBase):
             @srpc(cls)
             def f(_):
                 pass
 
-        app = Application([_DummyService], tns=tns,
-                                     out_protocol=XmlDocument(polymorphic=True))
+        app = Application([_DummyService], tns=tns, out_protocol=XmlDocument(polymorphic=True))
 
     unregister_application(app)
 
     parent = etree.Element("parent", nsmap=app.interface.nsmap)
 
-    app.out_protocol.to_parent(None, cls, inst, parent, cls.get_namespace(),
-                                                                  root_tag_name)
+    app.out_protocol.to_parent(None, cls, inst, parent, cls.get_namespace(), root_tag_name)
 
     if no_namespace:
         _dig(parent)
@@ -188,22 +181,21 @@ def get_xml_as_object_polymorphic(elt, cls):
 
     tns = cls.get_namespace()
     if tns is None:
-        raise ValueError("Please set a namespace for %r" % (cls, ))
+        raise ValueError("Please set a namespace for %r" % (cls,))
 
     class _DummyService(ServiceBase):
         @srpc(cls)
         def f(_):
             pass
 
-    app = Application([_DummyService], tns=tns,
-                                      in_protocol=XmlDocument(polymorphic=True))
+    app = Application([_DummyService], tns=tns, in_protocol=XmlDocument(polymorphic=True))
 
     unregister_application(app)
 
     return app.in_protocol.from_element(FakeContext(app=app), cls, elt)
 
 
-def get_object_as_xml_cloth(inst, cls=None, no_namespace=False, encoding='utf8'):
+def get_object_as_xml_cloth(inst, cls=None, no_namespace=False, encoding="utf8"):
     """Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
@@ -247,8 +239,7 @@ def get_xml_as_object(elt, cls):
     return _xml_object.from_element(None, cls, elt)
 
 
-def parse_schema_string(s, files={}, repr_=Thier_repr(with_ns=False),
-                                                         skip_errors=False):
+def parse_schema_string(s, files={}, repr_=Thier_repr(with_ns=False), skip_errors=False):
     """Parses a schema string and returns a _Schema object.
 
     :param s: The string or bytes object that contains the schema document.
@@ -262,12 +253,10 @@ def parse_schema_string(s, files={}, repr_=Thier_repr(with_ns=False),
     """
 
     elt = etree.fromstring(s, parser=PARSER)
-    return XmlSchemaParser(files, repr_=repr_,
-                            skip_errors=skip_errors).parse_schema(elt)
+    return XmlSchemaParser(files, repr_=repr_, skip_errors=skip_errors).parse_schema(elt)
 
 
-def parse_schema_element(elt, files={}, repr_=Thier_repr(with_ns=False),
-                                                         skip_errors=False):
+def parse_schema_element(elt, files={}, repr_=Thier_repr(with_ns=False), skip_errors=False):
     """Parses a `<xs:schema>` element and returns a _Schema object.
 
     :param elt: The `<xs:schema>` element, an lxml.etree._Element instance.
@@ -280,12 +269,10 @@ def parse_schema_element(elt, files={}, repr_=Thier_repr(with_ns=False),
     :return: :class:`spyne.interface.xml_schema.parser._Schema` instance.
     """
 
-    return XmlSchemaParser(files, repr_=repr_,
-                            skip_errors=skip_errors).parse_schema(elt)
+    return XmlSchemaParser(files, repr_=repr_, skip_errors=skip_errors).parse_schema(elt)
 
 
-def parse_schema_file(file_name, files=None, repr_=Thier_repr(with_ns=False),
-                                                         skip_errors=False):
+def parse_schema_file(file_name, files=None, repr_=Thier_repr(with_ns=False), skip_errors=False):
     """Parses a schema file and returns a _Schema object. Schema files typically
     have the `*.xsd` extension.
 
@@ -303,7 +290,6 @@ def parse_schema_file(file_name, files=None, repr_=Thier_repr(with_ns=False),
     if files is None:
         files = dict()
 
-    elt = etree.fromstring(open(file_name, 'rb').read(), parser=PARSER)
+    elt = etree.fromstring(open(file_name, "rb").read(), parser=PARSER)
     wd = abspath(dirname(file_name))
-    return XmlSchemaParser(files, wd, repr_=repr_,
-                            skip_errors=skip_errors).parse_schema(elt)
+    return XmlSchemaParser(files, wd, repr_=repr_, skip_errors=skip_errors).parse_schema(elt)

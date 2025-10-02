@@ -44,14 +44,15 @@ class Soap12(Soap11):
     The base implementation of a subset of the Soap 1.2 standard. The
     document is available here: http://www.w3.org/TR/soap12/
     """
-    mime_type = 'application/soap+xml; charset=utf-8'
+
+    mime_type = "application/soap+xml; charset=utf-8"
 
     soap_env = PREFMAP[NS_SOAP12_ENV]
     ns_soap_env = NS_SOAP12_ENV
 
     type = set(Soap11.type)
-    type.discard('soap11')
-    type.update(('soap', 'soap12'))
+    type.discard("soap11")
+    type.update(("soap", "soap12"))
 
     def generate_subcode(self, value, subcode=None):
         subcode_node = E("{%s}Subcode" % self.ns_soap_env)
@@ -61,32 +62,33 @@ class Soap12(Soap11):
         return subcode_node
 
     def gen_fault_codes(self, faultstring):
-        faultstrings = faultstring.split('.')
+        faultstrings = faultstring.split(".")
         value = faultstrings.pop(0)
-        if value == 'Client':
-            value = '%s:Sender' % self.soap_env
-        elif value == 'Server':
-            value = '%s:Receiver' % self.soap_env
+        if value == "Client":
+            value = "%s:Sender" % self.soap_env
+        elif value == "Server":
+            value = "%s:Receiver" % self.soap_env
         else:
-            raise TypeError('Wrong fault code, got', type(faultstring))
+            raise TypeError("Wrong fault code, got", type(faultstring))
 
         return value, faultstrings
 
     def generate_faultcode(self, element):
         nsmap = element.nsmap
         faultcode = []
-        faultcode.append(element.find('soap:Code/soap:Value', namespaces=nsmap).text)
-        subcode = element.find('soap:Code/soap:Subcode', namespaces=nsmap)
+        faultcode.append(element.find("soap:Code/soap:Value", namespaces=nsmap).text)
+        subcode = element.find("soap:Code/soap:Subcode", namespaces=nsmap)
         while subcode is not None:
-            faultcode.append(subcode.find('soap:Value', namespaces=nsmap).text)
-            subcode = subcode.find('soap:Subcode', namespaces=nsmap)
+            faultcode.append(subcode.find("soap:Value", namespaces=nsmap).text)
+            subcode = subcode.find("soap:Subcode", namespaces=nsmap)
 
-        return '.'.join(faultcode)
+        return ".".join(faultcode)
 
     def fault_to_parent(self, ctx, cls, inst, parent, ns, **_):
         reason = E("{%s}Reason" % self.ns_soap_env)
-        reason.append(E("{%s}Text" % self.ns_soap_env, inst.faultstring,
-                        **{'{%s}lang' % NS_XML: inst.lang}))
+        reason.append(
+            E("{%s}Text" % self.ns_soap_env, inst.faultstring, **{"{%s}lang" % NS_XML: inst.lang})
+        )
 
         subelts = [
             None,  # The code tag is put here down the road
@@ -120,17 +122,15 @@ class Soap12(Soap11):
             subelts[0] = code
 
         if isinstance(inst.detail, dict):
-            _append(subelts, E('{%s}Detail' % self.ns_soap_env,
-                                               root_dict_to_etree(inst.detail)))
+            _append(subelts, E("{%s}Detail" % self.ns_soap_env, root_dict_to_etree(inst.detail)))
 
         elif inst.detail is None:
             pass
 
         else:
-            raise TypeError('Fault detail Must be dict, got', type(inst.detail))
+            raise TypeError("Fault detail Must be dict, got", type(inst.detail))
 
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
-                                                        subelts, add_type=False)
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts, add_type=False)
 
     def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns, **_):
         subelts = [
@@ -148,10 +148,9 @@ class Soap12(Soap11):
         role = element.find("soap:Role", namespaces=nsmap)
         node = element.find("soap:Node", namespaces=nsmap)
         detail = element.find("soap:Detail", namespaces=nsmap)
-        faultactor = ''
+        faultactor = ""
         if role is not None:
             faultactor += role.text.strip()
         if node is not None:
             faultactor += node.text.strip()
-        return cls(faultcode=code, faultstring=reason,
-                   faultactor=faultactor, detail=detail)
+        return cls(faultcode=code, faultstring=reason, faultactor=faultactor, detail=detail)

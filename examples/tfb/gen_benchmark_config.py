@@ -39,8 +39,8 @@ class BenchmarkConfigElement(ComplexModel):
 
     os = M(Unicode(default='Linux'))
     database_os = M(Unicode(default='Linux'))
-    
-    
+
+
 class BenchmarkConfig(ComplexModel):
     framework = M(Unicode)
     tests = Array(BenchmarkConfigElement, wrapped=False)

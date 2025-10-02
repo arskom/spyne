@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,6 +17,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from multiprocessing.pool import ThreadPool
@@ -36,7 +36,7 @@ class ThreadAuxProc(AuxProcBase):
     """
 
     def __init__(self, pool_size=1):
-        super(ThreadAuxProc, self).__init__()
+        super().__init__()
 
         self.pool = None
         self.__pool_size = pool_size

@@ -1,4 +1,3 @@
-# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -35,16 +34,16 @@ def get_resource_path(ns, fn):
 
 
 def get_resource_file(ns, fn):
-    return open(get_resource_path(ns, fn), 'rb')
+    return open(get_resource_path(ns, fn), "rb")
 
 
 def get_resource_file_contents(ns, fn, enc=None):
     resfn = get_resource_path(ns, fn)
 
     if enc is None:
-        return open(resfn, 'rb').read()
+        return open(resfn, "rb").read()
     else:
-        return open(resfn, 'rb').read().decode(enc)
+        return open(resfn, "rb").read().decode(enc)
 
 
 def parse_xml_resource(ns, fn):
@@ -66,7 +65,8 @@ def parse_html_resource(ns, fn):
 def parse_cloth_resource(ns, fn):
     from lxml import html
 
-    retval = html.fragment_fromstring(get_resource_file_contents(ns, fn),
-                                                     create_parent='spyne-root')
-    retval.attrib['spyne-tagbag'] = ''
+    retval = html.fragment_fromstring(
+        get_resource_file_contents(ns, fn), create_parent="spyne-root"
+    )
+    retval.attrib["spyne-tagbag"] = ""
     return retval

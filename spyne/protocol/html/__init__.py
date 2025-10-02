@@ -1,4 +1,3 @@
-# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #

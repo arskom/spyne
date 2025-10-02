@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -28,47 +27,45 @@ from spyne.model.fault import Fault
 class InvalidCredentialsError(Fault):
     """Raised when requested resource is forbidden."""
 
-    CODE = 'Client.InvalidCredentialsError'
+    CODE = "Client.InvalidCredentialsError"
     STR = "You do not have permission to access this resource."
 
     def __init__(self, fault_string=STR, params=None):
-        super(InvalidCredentialsError, self) \
-                               .__init__(self.CODE, fault_string, detail=params)
+        super().__init__(self.CODE, fault_string, detail=params)
 
 
 class RequestTooLongError(Fault):
     """Raised when request is too long."""
 
-    CODE = 'Client.RequestTooLong'
+    CODE = "Client.RequestTooLong"
 
     def __init__(self, faultstring="Request too long"):
-        super(RequestTooLongError, self).__init__(self.CODE, faultstring)
+        super().__init__(self.CODE, faultstring)
 
 
 class RequestNotAllowed(Fault):
     """Raised when request is incomplete."""
 
-    CODE = 'Client.RequestNotAllowed'
+    CODE = "Client.RequestNotAllowed"
 
     def __init__(self, faultstring=""):
-        super(RequestNotAllowed, self).__init__(self.CODE, faultstring)
+        super().__init__(self.CODE, faultstring)
 
 
 class ArgumentError(Fault):
     """Raised when there is a general problem with input data."""
 
-    CODE = 'Client.ArgumentError'
+    CODE = "Client.ArgumentError"
 
     def __init__(self, faultstring=""):
-        super(ArgumentError, self).__init__(self.CODE, faultstring)
+        super().__init__(self.CODE, faultstring)
 
 
 class InvalidInputError(Fault):
     """Raised when there is a general problem with input data."""
 
     def __init__(self, faultstring="", data=""):
-        super(InvalidInputError, self) \
-                     .__init__('Client.InvalidInput', repr((faultstring, data)))
+        super().__init__("Client.InvalidInput", repr((faultstring, data)))
 
 
 InvalidRequestError = InvalidInputError
@@ -77,7 +74,7 @@ InvalidRequestError = InvalidInputError
 class MissingFieldError(InvalidInputError):
     """Raised when a mandatory value is missing."""
 
-    CODE = 'Client.InvalidInput'
+    CODE = "Client.InvalidInput"
 
     def __init__(self, field_name, message="Field '%s' is missing."):
         try:
@@ -85,42 +82,39 @@ class MissingFieldError(InvalidInputError):
         except TypeError:
             pass
 
-        super(MissingFieldError, self).__init__(self.CODE, message)
+        super().__init__(self.CODE, message)
 
 
 class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
 
-    CODE = 'Client.ValidationError'
+    CODE = "Client.ValidationError"
 
-    def __init__(self, obj, custom_msg='The value %r could not be validated.'):
+    def __init__(self, obj, custom_msg="The value %r could not be validated."):
         try:
             msg = custom_msg % (obj,)
         except TypeError:
             msg = custom_msg
 
-        super(ValidationError, self).__init__(self.CODE, msg)
+        super().__init__(self.CODE, msg)
 
 
 class InternalError(Fault):
     """Raised to communicate server-side errors."""
 
-    CODE = 'Server'
+    CODE = "Server"
 
     def __init__(self, error):
-        super(InternalError, self) \
-            .__init__(self.CODE, "InternalError: An unknown error has occured.")
+        super().__init__(self.CODE, "InternalError: An unknown error has occured.")
 
 
 class ResourceNotFoundError(Fault):
     """Raised when requested resource is not found."""
 
-    CODE = 'Client.ResourceNotFound'
+    CODE = "Client.ResourceNotFound"
 
-    def __init__(self, fault_object,
-                                fault_string="Requested resource %r not found"):
-        super(ResourceNotFoundError, self) \
-                            .__init__(self.CODE, fault_string % (fault_object,))
+    def __init__(self, fault_object, fault_string="Requested resource %r not found"):
+        super().__init__(self.CODE, fault_string % (fault_object,))
 
 
 class RespawnError(ResourceNotFoundError):
@@ -130,21 +124,20 @@ class RespawnError(ResourceNotFoundError):
 class ResourceAlreadyExistsError(Fault):
     """Raised when requested resource already exists on server side."""
 
-    CODE = 'Client.ResourceAlreadyExists'
+    CODE = "Client.ResourceAlreadyExists"
 
     def __init__(self, fault_object, fault_string="Resource %r already exists"):
-        super(ResourceAlreadyExistsError, self) \
-                               .__init__(self.CODE, fault_string % fault_object)
+        super().__init__(self.CODE, fault_string % fault_object)
 
 
 class Redirect(Fault):
     """Raised when client needs to make another request for the same
     resource."""
 
-    CODE = 'Client.Redirect'
+    CODE = "Client.Redirect"
 
     def __init__(self, ctx, location, orig_exc=None):
-        super(Redirect, self).__init__(self.CODE, faultstring=location)
+        super().__init__(self.CODE, faultstring=location)
 
         self.ctx = ctx
         self.location = location

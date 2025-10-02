@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -40,7 +39,7 @@ from twisted.web.iweb import UNKNOWN_LENGTH
 from twisted.web.http_headers import Headers
 
 
-class _Producer(object):
+class _Producer:
     if six.PY2:
         implements(IBodyProducer)
 
@@ -53,7 +52,7 @@ class _Producer(object):
 
         # check to see if we can determine the length
         try:
-            len(body) # iterator?
+            len(body)  # iterator?
             self.length = sum([len(fragment) for fragment in body])
             self.body = iter(body)
 
@@ -76,7 +75,7 @@ class _Producer(object):
             if self.__paused:
                 break
         else:
-            self._deferred.callback(None) # done producing forever
+            self._deferred.callback(None)  # done producing forever
 
     def pauseProducing(self):
         self.__paused = True
@@ -107,7 +106,7 @@ class _RemoteProcedure(RemoteProcedureBase):
         # The comma-in-assignment trick is a pedantic way of getting the first
         # and the only variable from an iterable. so if there's more than one
         # element in the iterable, it'll fail miserably.
-        self.ctx, = self.contexts
+        (self.ctx,) = self.contexts
 
         self.get_out_object(self.ctx, args, kwargs)
         self.get_out_string(self.ctx)
@@ -116,10 +115,10 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         agent = Agent(reactor)
         d = agent.request(
-            b'POST', self.url,
-            Headers({b'User-Agent':
-                         [b'Spyne Twisted Http Client %s' % VERSION.encode()]}),
-            _Producer(self.ctx.out_string)
+            b"POST",
+            self.url,
+            Headers({b"User-Agent": [b"Spyne Twisted Http Client %s" % VERSION.encode()]}),
+            _Producer(self.ctx.out_string),
         )
 
         def _process_response(_, response):
@@ -143,6 +142,6 @@ class _RemoteProcedure(RemoteProcedureBase):
 
 class TwistedHttpClient(ClientBase):
     def __init__(self, url, app):
-        super(TwistedHttpClient, self).__init__(url, app)
+        super().__init__(url, app)
 
         self.service = RemoteService(_RemoteProcedure, url, app)

@@ -91,4 +91,3 @@ class TestMessagePackServer(unittest.TestCase):
         prot.dataReceived(msgpack.packb([1, request]))
 
         return p_ctx[0].out_object[0].addCallback(_ccb)
-

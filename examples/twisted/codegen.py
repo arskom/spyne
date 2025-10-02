@@ -33,5 +33,3 @@ if __name__ == '__main__':
 
     reactor.listenTCP(8000, site, interface='0.0.0.0')
     reactor.run()
-
-

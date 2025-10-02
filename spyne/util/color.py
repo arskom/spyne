@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,35 +16,31 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import absolute_import
-
 
 try:
     import colorama
-    R = lambda s: ''.join((colorama.Fore.RED, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL))
-    G = lambda s: ''.join((colorama.Fore.GREEN, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL))
-    B = lambda s: ''.join((colorama.Fore.BLUE, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL))
 
-    DARK_R = lambda s: ''.join((colorama.Fore.RED, s, colorama.Style.RESET_ALL))
-    DARK_G = lambda s: ''.join((colorama.Fore.GREEN, s, colorama.Style.RESET_ALL))
-    DARK_B = lambda s: ''.join((colorama.Fore.BLUE, s, colorama.Style.RESET_ALL))
+    R = lambda s: "".join((colorama.Fore.RED, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL))
+    G = lambda s: "".join((colorama.Fore.GREEN, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL))
+    B = lambda s: "".join((colorama.Fore.BLUE, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL))
 
-    YEL = lambda s: ''.join((colorama.Fore.YELLOW, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL))
-    MAG = lambda s: ''.join((colorama.Fore.MAGENTA, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL))
-    CYA = lambda s: ''.join((colorama.Fore.CYAN, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL))
+    DARK_R = lambda s: "".join((colorama.Fore.RED, s, colorama.Style.RESET_ALL))
+    DARK_G = lambda s: "".join((colorama.Fore.GREEN, s, colorama.Style.RESET_ALL))
+    DARK_B = lambda s: "".join((colorama.Fore.BLUE, s, colorama.Style.RESET_ALL))
 
-    DARK_YEL = lambda s: ''.join((colorama.Fore.YELLOW, s,
-                                                      colorama.Style.RESET_ALL))
-    DARK_MAG = lambda s: ''.join((colorama.Fore.MAGENTA, s,
-                                                      colorama.Style.RESET_ALL))
-    DARK_CYA = lambda s: ''.join((colorama.Fore.CYAN, s,
-                                                      colorama.Style.RESET_ALL))
+    YEL = lambda s: "".join(
+        (colorama.Fore.YELLOW, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL)
+    )
+    MAG = lambda s: "".join(
+        (colorama.Fore.MAGENTA, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL)
+    )
+    CYA = lambda s: "".join(
+        (colorama.Fore.CYAN, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL)
+    )
+
+    DARK_YEL = lambda s: "".join((colorama.Fore.YELLOW, s, colorama.Style.RESET_ALL))
+    DARK_MAG = lambda s: "".join((colorama.Fore.MAGENTA, s, colorama.Style.RESET_ALL))
+    DARK_CYA = lambda s: "".join((colorama.Fore.CYAN, s, colorama.Style.RESET_ALL))
 
 except ImportError:
     R = lambda s: s
@@ -62,7 +57,7 @@ except ImportError:
     DARK_CYA = lambda s: s
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(R("RED"))
     print(G("GREEN"))
     print(B("BLUE"))

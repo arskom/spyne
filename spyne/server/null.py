@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -23,13 +22,11 @@ objects.
 The name comes from the "null modem connection". Look it up.
 """
 
-from __future__ import absolute_import
-
 import logging
+
 logger = logging.getLogger(__name__)
 
-from spyne import MethodContext, BODY_STYLE_BARE, ComplexModelBase, \
-    BODY_STYLE_EMPTY, Ignored
+from spyne import MethodContext, BODY_STYLE_BARE, ComplexModelBase, BODY_STYLE_EMPTY, Ignored
 
 from spyne.client import Factory
 from spyne.const.ansi_color import LIGHT_RED
@@ -38,10 +35,10 @@ from spyne.const.ansi_color import END_COLOR
 from spyne.server import ServerBase
 
 
-_big_header = ('=' * 40) + LIGHT_RED
-_big_footer = END_COLOR + ('=' * 40)
-_small_header = ('-' * 20) + LIGHT_BLUE
-_small_footer = END_COLOR + ('-' * 20)
+_big_header = ("=" * 40) + LIGHT_RED
+_big_footer = END_COLOR + ("=" * 40)
+_small_header = ("-" * 20) + LIGHT_BLUE
+_small_footer = END_COLOR + ("-" * 20)
 
 
 class NullServer(ServerBase):
@@ -57,13 +54,13 @@ class NullServer(ServerBase):
         to hide context delimiters in logs.
     """
 
-    transport = 'noconn://null.spyne'
+    transport = "noconn://null.spyne"
     MethodContext = MethodContext
 
-    def __init__(self, app, ostr=False, locale='C', appinit=True):
+    def __init__(self, app, ostr=False, locale="C", appinit=True):
         self.do_appinit = appinit
 
-        super(NullServer, self).__init__(app)
+        super().__init__(app)
 
         self.service = _FunctionProxy(self, self.app, is_async=False)
         self.is_async = _FunctionProxy(self, self.app, is_async=True)
@@ -74,20 +71,19 @@ class NullServer(ServerBase):
 
     def appinit(self):
         if self.do_appinit:
-            super(NullServer, self).appinit()
+            super().appinit()
 
     def get_wsdl(self):
         return self.app.get_interface_document(self.url)
 
     def set_options(self, **kwargs):
-        self.service.in_header = kwargs.get('soapheaders',
-                                                         self.service.in_header)
+        self.service.in_header = kwargs.get("soapheaders", self.service.in_header)
 
     def get_services(self):
         return self.app.interface.service_method_map
 
 
-class _FunctionProxy(object):
+class _FunctionProxy:
     def __init__(self, server, app, is_async):
         self._app = app
         self._server = server
@@ -95,14 +91,21 @@ class _FunctionProxy(object):
         self.is_async = is_async
 
     def __getattr__(self, key):
-        return _FunctionCall(self._app, self._server, key, self.in_header,
-                          self._server.ostr, self._server.locale, self.is_async)
+        return _FunctionCall(
+            self._app,
+            self._server,
+            key,
+            self.in_header,
+            self._server.ostr,
+            self._server.locale,
+            self.is_async,
+        )
 
     def __getitem__(self, key):
         return self.__getattr__(key)
 
 
-class _FunctionCall(object):
+class _FunctionCall:
     def __init__(self, app, server, key, in_header, ostr, locale, async_):
         self.app = app
 
@@ -143,8 +146,7 @@ class _FunctionCall(object):
                     ctx.in_object[i] = val
 
             if ctx.descriptor.body_style == BODY_STYLE_BARE:
-                ctx.in_object = ctx.descriptor.in_message \
-                                      .get_serialization_instance(ctx.in_object)
+                ctx.in_object = ctx.descriptor.in_message.get_serialization_instance(ctx.in_object)
 
             if cnt == 0:
                 p_ctx = ctx
@@ -154,15 +156,12 @@ class _FunctionCall(object):
             # do
             # logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
             # to hide the following
-            logger.warning("%s start context %s" % (_small_header,
-                                                                 _small_footer))
-            logger.info("%r.%r" % (ctx.service_class,
-                                                       ctx.descriptor.function))
+            logger.warning("%s start context %s" % (_small_header, _small_footer))
+            logger.info("%r.%r" % (ctx.service_class, ctx.descriptor.function))
             try:
                 self.app.process_request(ctx)
             finally:
-                logger.warning("%s  end context  %s" % (_small_header,
-                                                                 _small_footer))
+                logger.warning("%s  end context  %s" % (_small_header, _small_footer))
 
             if cnt == 0:
                 if self._async and isinstance(ctx.out_object[0], Deferred):
@@ -204,9 +203,11 @@ def _cb_sync(ctx, cnt, fc):
         raise ctx.out_error
 
     else:
-        if isinstance(ctx.out_object, (list, tuple)) \
-                and len(ctx.out_object) > 0 \
-                and isinstance(ctx.out_object[0], Ignored):
+        if (
+            isinstance(ctx.out_object, (list, tuple))
+            and len(ctx.out_object) > 0
+            and isinstance(ctx.out_object[0], Ignored)
+        ):
             retval = ctx.out_object[0]
 
         elif ctx.descriptor.is_out_bare():

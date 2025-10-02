@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,7 +17,8 @@
 #
 
 import logging
-logger = logging.getLogger('spyne')
+
+logger = logging.getLogger("spyne")
 
 from spyne import LogicError
 from spyne.util import six
@@ -27,25 +27,64 @@ from spyne.service import Service, ServiceBaseBase
 from spyne.const.xml import DEFAULT_NS
 
 
-class BODY_STYLE_WRAPPED: pass
-class BODY_STYLE_EMPTY: pass
-class BODY_STYLE_BARE: pass
-class BODY_STYLE_OUT_BARE: pass
-class BODY_STYLE_EMPTY_OUT_BARE: pass
+class BODY_STYLE_WRAPPED:
+    pass
 
 
-class MethodDescriptor(object):
+class BODY_STYLE_EMPTY:
+    pass
+
+
+class BODY_STYLE_BARE:
+    pass
+
+
+class BODY_STYLE_OUT_BARE:
+    pass
+
+
+class BODY_STYLE_EMPTY_OUT_BARE:
+    pass
+
+
+class MethodDescriptor:
     """This class represents the method signature of an exposed service. It is
     produced by the :func:`spyne.decorator.srpc` decorator.
     """
 
-    def __init__(self, function, in_message, out_message, doc,
-                 is_callback, is_async, mtom, in_header, out_header, faults,
-                 parent_class, port_type, no_ctx, udd, class_key, aux, patterns,
-                 body_style, args, operation_name, no_self, translations,
-                 when, static_when, service_class, href, internal_key_suffix,
-                 default_on_null, event_managers, logged):
-
+    def __init__(
+        self,
+        function,
+        in_message,
+        out_message,
+        doc,
+        is_callback,
+        is_async,
+        mtom,
+        in_header,
+        out_header,
+        faults,
+        parent_class,
+        port_type,
+        no_ctx,
+        udd,
+        class_key,
+        aux,
+        patterns,
+        body_style,
+        args,
+        operation_name,
+        no_self,
+        translations,
+        when,
+        static_when,
+        service_class,
+        href,
+        internal_key_suffix,
+        default_on_null,
+        event_managers,
+        logged,
+    ):
         self.__real_function = function
         """The original callable for the user code."""
 
@@ -86,9 +125,9 @@ class MethodDescriptor(object):
         self.is_callback = is_callback
         self.is_async = is_async
         self.mtom = mtom
-        #"""Flag to indicate whether to use MTOM transport with SOAP."""
+        # """Flag to indicate whether to use MTOM transport with SOAP."""
         self.port_type = port_type
-        #"""The portType this function belongs to."""
+        # """The portType this function belongs to."""
 
         self.in_header = in_header
         """An iterable of :class:`spyne.model.complex.ComplexModel`
@@ -194,7 +233,7 @@ class MethodDescriptor(object):
         """
 
         if locale is None:
-            locale = 'en_US'
+            locale = "en_US"
         if self.translations is not None:
             return self.translations.get(locale, default)
         return default
@@ -205,8 +244,7 @@ class MethodDescriptor(object):
 
         assert not (self.in_message.get_namespace() is DEFAULT_NS)
 
-        return '{%s}%s' % (
-            self.in_message.get_namespace(), self.in_message.get_type_name())
+        return "{%s}%s" % (self.in_message.get_namespace(), self.in_message.get_type_name())
 
     @property
     def internal_key(self):
@@ -220,16 +258,18 @@ class MethodDescriptor(object):
             dn = self.name
             # prevent duplicate class name. this happens when the class is a
             # direct subclass of ComplexModel
-            if dn.split('.', 1)[0] != on:
+            if dn.split(".", 1)[0] != on:
                 return "{%s}%s.%s" % (mn, on, dn)
 
             return "{%s}%s" % (mn, dn)
 
         sc = self.service_class
         if sc is not None:
-            return '{%s}%s%s' % (sc.get_internal_key(),
-                                    six.get_function_name(self.function),
-                                                       self.internal_key_suffix)
+            return "{%s}%s%s" % (
+                sc.get_internal_key(),
+                six.get_function_name(self.function),
+                self.internal_key_suffix,
+            )
 
     @staticmethod
     def get_owner_name(cls):
@@ -240,32 +280,32 @@ class MethodDescriptor(object):
     def gen_interface_key(self, cls):
         # this is a regular service method decorated by @rpc
         if issubclass(cls, ServiceBaseBase):
-            return u'{}.{}.{}'.format(cls.__module__,
-                                            self.get_owner_name(cls), self.name)
+            return f"{cls.__module__}.{self.get_owner_name(cls)}.{self.name}"
 
         # this is a member method decorated by @mrpc
         else:
-            mn = cls.get_namespace() or '__none__'
+            mn = cls.get_namespace() or "__none__"
             on = cls.get_type_name()
 
             dn = self.name
             # prevent duplicate class name. this happens when the class is a
             # direct subclass of ComplexModel
-            if dn.split(u'.', 1)[0] != on:
-                return u'.'.join( (mn, on, dn) )
+            if dn.split(".", 1)[0] != on:
+                return ".".join((mn, on, dn))
 
-            return u'.'.join( (mn, dn) )
+            return ".".join((mn, dn))
 
     @staticmethod
     def _get_class_module_name(cls):
-        return '.'.join([frag for frag in cls.__module__.split('.')
-                                                   if not frag.startswith('_')])
+        return ".".join([frag for frag in cls.__module__.split(".") if not frag.startswith("_")])
 
     def is_out_bare(self):
-        return self.body_style in (BODY_STYLE_EMPTY_OUT_BARE,
-                                   BODY_STYLE_EMPTY,
-                                   BODY_STYLE_BARE,
-                                   BODY_STYLE_OUT_BARE)
+        return self.body_style in (
+            BODY_STYLE_EMPTY_OUT_BARE,
+            BODY_STYLE_EMPTY,
+            BODY_STYLE_BARE,
+            BODY_STYLE_OUT_BARE,
+        )
 
     def reset_function(self, val=None):
         if val != None:
@@ -279,6 +319,7 @@ class MethodDescriptor(object):
     @in_header.setter
     def in_header(self, in_header):
         from spyne.model._base import ModelBase
+
         try:
             is_model = issubclass(in_header, ModelBase)
         except TypeError:
@@ -297,6 +338,7 @@ class MethodDescriptor(object):
     @out_header.setter
     def out_header(self, out_header):
         from spyne.model._base import ModelBase
+
         try:
             is_model = issubclass(out_header, ModelBase)
         except TypeError:

@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -21,6 +20,7 @@ from spyne.model import SimpleModel
 
 # adapted from: http://code.activestate.com/recipes/413486/
 
+
 class EnumBase(SimpleModel):
     __namespace__ = None
 
@@ -32,9 +32,8 @@ class EnumBase(SimpleModel):
 
     @staticmethod
     def validate_string(cls, value):
-        return (    SimpleModel.validate_string(cls, value)
-                and value in cls.__values__
-            )
+        return SimpleModel.validate_string(cls, value) and value in cls.__values__
+
 
 def Enum(*values, **kwargs):
     """The enum type that can only return ``True`` when compared to types of
@@ -59,17 +58,17 @@ def Enum(*values, **kwargs):
     In the above example, ``SomeEnum`` can be used as a regular Spyne model.
     """
 
-    type_name = kwargs.get('type_name', None)
-    docstr = kwargs.get('doc', '')
+    type_name = kwargs.get("type_name", None)
+    docstr = kwargs.get("doc", "")
     if type_name is None:
         raise Exception("Please specify 'type_name' as a keyword argument")
 
     assert len(values) > 0, "Empty enums are meaningless"
 
-    maximum = len(values) # to make __invert__ work
+    maximum = len(values)  # to make __invert__ work
 
-    class EnumValue(object):
-        __slots__ = ('__value',)
+    class EnumValue:
+        __slots__ = ("__value",)
 
         def __init__(self, value):
             self.__value = value
@@ -110,10 +109,10 @@ def Enum(*values, **kwargs):
             return values[i]
 
         def __repr__(self):
-            return 'Enum' + str(enumerate(values))
+            return "Enum" + str(enumerate(values))
 
         def __str__(self):
-            return 'enum ' + str(values)
+            return "enum " + str(values)
 
     for i, v in enumerate(values):
         setattr(EnumType, v, EnumValue(i))

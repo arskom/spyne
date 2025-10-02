@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -21,12 +20,13 @@
 class LogicError(Exception):
     pass
 
-__version__ = '2.15.0-alpha'
+
+__version__ = "2.15.0-alpha"
 
 from pytz import utc as LOCAL_TZ
 from decimal import Decimal as D
 
-DEFAULT_LANGUAGE = 'en'
+DEFAULT_LANGUAGE = "en"
 
 from spyne._base import Address
 
@@ -81,6 +81,9 @@ from spyne.server import ServerBase, NullServer
 
 def _vercheck():
     import sys
+
     if not hasattr(sys, "version_info") or sys.version_info < (2, 6):
         raise RuntimeError("Spyne requires Python 2.6 or later. Trust us.")
+
+
 _vercheck()

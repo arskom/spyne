@@ -1,4 +1,3 @@
-# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -26,14 +25,12 @@ from email.message import tspecials
 from spyne import TransportContext, MethodDescriptor, MethodContext, Redirect
 from spyne.server import ServerBase
 from spyne.protocol.http import HttpPattern
-from spyne.const.http import gen_body_redirect, HTTP_301, HTTP_302, HTTP_303, \
-    HTTP_307
+from spyne.const.http import gen_body_redirect, HTTP_301, HTTP_302, HTTP_303, HTTP_307
 
 
 class HttpRedirect(Redirect):
     def __init__(self, ctx, location, orig_exc=None, code=HTTP_302):
-        super(HttpRedirect, self) \
-                      .__init__(ctx, location, orig_exc=orig_exc)
+        super().__init__(ctx, location, orig_exc=orig_exc)
 
         self.ctx = ctx
         self.location = location
@@ -47,6 +44,7 @@ class HttpRedirect(Redirect):
             raise TypeError(self.ctx.transport)
 
         self.ctx.transport.respond(self.code, location=self.location)
+
 
 #
 # Plagiarized HttpTransport.add_header() and _formatparam() function from
@@ -73,24 +71,24 @@ def _formatparam(param, value=None, quote=True):
     # instance.  RFC 2231 encoded values are never quoted, per RFC.
     if isinstance(value, tuple):
         # Encode as per RFC 2231
-        param += '*'
+        param += "*"
         value = encode_rfc2231(value[2], value[0], value[1])
-        return '%s=%s' % (param, value)
+        return "%s=%s" % (param, value)
 
     try:
-        value.encode('ascii')
+        value.encode("ascii")
 
     except UnicodeEncodeError:
-        param += '*'
-        value = encode_rfc2231(value, 'utf-8', '')
-        return '%s=%s' % (param, value)
+        param += "*"
+        value = encode_rfc2231(value, "utf-8", "")
+        return "%s=%s" % (param, value)
 
     # BAW: Please check this.  I think that if quote is set it should
     # force quoting even if not necessary.
     if quote or tspecials.search(value):
         return '%s="%s"' % (param, utils.quote(value))
 
-    return '%s=%s' % (param, value)
+    return "%s=%s" % (param, value)
 
 
 class HttpTransportContext(TransportContext):
@@ -98,7 +96,7 @@ class HttpTransportContext(TransportContext):
     :class:`HttpMethodContext` class and its subclasses."""
 
     def __init__(self, parent, transport, request, content_type):
-        super(HttpTransportContext, self).__init__(parent, transport, 'http')
+        super().__init__(parent, transport, "http")
 
         self.req = request
         """HTTP Request. This is transport-specific"""
@@ -119,18 +117,18 @@ class HttpTransportContext(TransportContext):
         """The error when handling WSDL requests."""
 
     def get_mime_type(self):
-        return self.resp_headers.get('Content-Type', None)
+        return self.resp_headers.get("Content-Type", None)
 
     def set_mime_type(self, what):
-        self.resp_headers['Content-Type'] = what
+        self.resp_headers["Content-Type"] = what
 
     def respond(self, resp_code, **kwargs):
         self.resp_code = resp_code
         if resp_code in (HTTP_301, HTTP_302, HTTP_303, HTTP_307):
-            l = kwargs.pop('location')
-            self.resp_headers['Location'] = l
+            l = kwargs.pop("location")
+            self.resp_headers["Location"] = l
             self.parent.out_string = [gen_body_redirect(resp_code, l)]
-            self.mime_type = 'text/html'
+            self.mime_type = "text/html"
 
         else:
             # So that deserialization is skipped.
@@ -163,15 +161,15 @@ class HttpTransportContext(TransportContext):
 
         for k, v in kwargs.items():
             if v is None:
-                parts.append(k.replace('_', '-'))
+                parts.append(k.replace("_", "-"))
 
             else:
-                parts.append(_formatparam(k.replace('_', '-'), v))
+                parts.append(_formatparam(k.replace("_", "-"), v))
 
         if _value is not None:
             parts.insert(0, _value)
 
-        return '; '.join(parts)
+        return "; ".join(parts)
 
     def add_header(self, _name, _value, **kwargs):
         """Extended header setting.
@@ -219,10 +217,9 @@ class HttpMethodContext(MethodContext):
     HttpTransportContext = HttpTransportContext
 
     def __init__(self, transport, req_env, content_type):
-        super(HttpMethodContext, self).__init__(transport, MethodContext.SERVER)
+        super().__init__(transport, MethodContext.SERVER)
 
-        self.transport = self.HttpTransportContext(self, transport,
-                                                          req_env, content_type)
+        self.transport = self.HttpTransportContext(self, transport, req_env, content_type)
         """Holds the HTTP-specific information"""
 
     def set_out_protocol(self, what):
@@ -237,15 +234,15 @@ class HttpMethodContext(MethodContext):
 
 
 class HttpBase(ServerBase):
-    transport = 'http://schemas.xmlsoap.org/soap/http'
+    transport = "http://schemas.xmlsoap.org/soap/http"
 
-    SLASH = '/'
-    SLASHPER = '/%s'
+    SLASH = "/"
+    SLASHPER = "/%s"
 
-    def __init__(self, app, chunked=False,
-                max_content_length=2 * 1024 * 1024,
-                block_length=8 * 1024):
-        super(HttpBase, self).__init__(app)
+    def __init__(
+        self, app, chunked=False, max_content_length=2 * 1024 * 1024, block_length=8 * 1024
+    ):
+        super().__init__(app)
 
         self.chunked = chunked
         self.max_content_length = max_content_length
@@ -263,8 +260,9 @@ class HttpBase(ServerBase):
         # this makes sure similar addresses with patterns are evaluated after
         # addresses with wildcards, which puts the more specific addresses to
         # the front.
-        self._http_patterns = list(reversed(sorted(self._http_patterns,
-                                           key=lambda x: (x.address, x.host) )))
+        self._http_patterns = list(
+            reversed(sorted(self._http_patterns, key=lambda x: (x.address, x.host)))
+        )
 
     @classmethod
     def get_patt_verb(cls, patt):
@@ -278,7 +276,7 @@ class HttpBase(ServerBase):
     def get_patt_address(cls, patt):
         return patt.address_re
 
-    def match_pattern(self, ctx, method='', path='', host=''):
+    def match_pattern(self, ctx, method="", path="", host=""):
         """Sets ctx.method_request_string if there's a match. It's O(n) which
         means you should keep your number of patterns as low as possible.
 
@@ -303,7 +301,7 @@ class HttpBase(ServerBase):
                 if not (match.span() == (0, len(method))):
                     continue
 
-                for k,v in match.groupdict().items():
+                for k, v in match.groupdict().items():
                     params[k].append(v)
 
             if patt.host is not None:
@@ -328,7 +326,7 @@ class HttpBase(ServerBase):
                 if not (match.span() == (0, len(path))):
                     continue
 
-                for k,v in match.groupdict().items():
+                for k, v in match.groupdict().items():
                     params[k].append(v)
 
             d = patt.endpoint

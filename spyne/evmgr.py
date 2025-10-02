@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -21,7 +20,7 @@
 from spyne.util.oset import oset
 
 
-class EventManager(object):
+class EventManager:
     """Spyne supports a simple event system that can be used to have repetitive
     boilerplate code that has to run for every method call nicely tucked away
     in one or more event handlers. The popular use-cases include things like
@@ -67,7 +66,6 @@ class EventManager(object):
             del self.handlers[event_name]
         else:
             self.handlers[event_name].remove(handler)
-
 
     def fire_event(self, event_name, ctx, *args, **kwargs):
         """Run all the handlers for a given event name.

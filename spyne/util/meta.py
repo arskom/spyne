@@ -1,4 +1,3 @@
-# encoding: utf-8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -59,8 +58,9 @@ class Prepareable(type):
             # Don't bother with this shit unless the user *explicitly* asked for
             # it
             for c in chain(bases, [cls]):
-                if hasattr(c,'Attributes') and not \
-                               (c.Attributes.declare_order in (None, 'random')):
+                if hasattr(c, "Attributes") and not (
+                    c.Attributes.declare_order in (None, "random")
+                ):
                     break
             else:
                 return constructor(cls, name, bases, attributes)
@@ -89,30 +89,26 @@ class Prepareable(type):
                     if current_frame.f_back:
                         current_frame = current_frame.f_back
                     else:
-                        raise ClassNotFoundException(
-                            "Can't find class declaration in any frame")
+                        raise ClassNotFoundException("Can't find class declaration in any frame")
 
-            def get_index(attribute_name,
-                            _names=class_declaration.co_names):
+            def get_index(attribute_name, _names=class_declaration.co_names):
                 try:
                     return _names.index(attribute_name)
                 except ValueError:
-                    if attribute_name.startswith('_'):
+                    if attribute_name.startswith("_"):
                         # we don't care about the order of magic and non
                         # public attributes
                         return 0
                     else:
-                        msg = ("Can't find {0} in {1} class declaration. "
-                                .format(attribute_name,
-                                        class_declaration.co_name))
-                        msg += ("HINT: use spyne.util.odict.odict for "
-                                "class attributes if you populate them"
-                                " dynamically.")
+                        msg = f"Can't find {attribute_name} in {class_declaration.co_name} class declaration. "
+                        msg += (
+                            "HINT: use spyne.util.odict.odict for "
+                            "class attributes if you populate them"
+                            " dynamically."
+                        )
                         raise AttributeNotFoundException(msg)
 
-            by_appearance = sorted(
-                attributes.items(), key=lambda item: get_index(item[0])
-            )
+            by_appearance = sorted(attributes.items(), key=lambda item: get_index(item[0]))
 
             namespace = cls.__prepare__(name, bases)
             for key, value in by_appearance:
@@ -122,18 +118,17 @@ class Prepareable(type):
 
             found_module = inspect.getmodule(class_declaration)
             assert found_module is not None, (
-                'Module is not found for class_declaration {0}, name {1}'
-                .format(class_declaration, name))
+                f"Module is not found for class_declaration {class_declaration}, name {name}"
+            )
             assert found_module.__name__ == new_cls.__module__, (
-                'Found wrong class declaration of {0}: {1} != {2}.'
-                .format(name, found_module.__name__, new_cls.__module__))
+                f"Found wrong class declaration of {name}: {found_module.__name__} != {new_cls.__module__}."
+            )
 
             return new_cls
 
         try:
             attributes["__new__"] = wraps(constructor)(preparing_constructor)
         except:
-            warn("Wrapping class initializer failed. This is normal "
-                          "when running under Nuitka")
+            warn("Wrapping class initializer failed. This is normal when running under Nuitka")
 
         return type.__new__(cls, name, bases, attributes)

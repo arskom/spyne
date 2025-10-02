@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -23,8 +22,8 @@ This could have been named just coroutine.py if it wasn't for the coroutine
 decorator.
 """
 
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 from itertools import chain
@@ -33,6 +32,7 @@ from inspect import isgeneratorfunction
 
 class Break(Exception):
     """Raised for breaking out of infinite loops inside coroutines."""
+
     pass
 
 
@@ -43,8 +43,13 @@ def coroutine(func):
         try:
             ret = func(*args, **kwargs)
         except TypeError as e:
-            logger.error("Function %r at %s:%d got error %r", func.func_name,
-                         func.__module__, func.__code__.co_firstlineno, e)
+            logger.error(
+                "Function %r at %s:%d got error %r",
+                func.func_name,
+                func.__module__,
+                func.__code__.co_firstlineno,
+                e,
+            )
             raise
 
         try:
@@ -54,7 +59,7 @@ def coroutine(func):
             return None
 
         except Exception as e:
-            if not hasattr(e, 'logged'):
+            if not hasattr(e, "logged"):
                 logger.error("Exception in coroutine")
                 logger.exception(e)
                 try:
@@ -76,8 +81,13 @@ def keepfirst(func):
         try:
             ret = func(*args, **kwargs)
         except TypeError as e:
-            logger.error("Function %r at %s:%d got error %r", func.func_name,
-                         func.__module__, func.__code__.co_firstlineno, e)
+            logger.error(
+                "Function %r at %s:%d got error %r",
+                func.func_name,
+                func.__module__,
+                func.__code__.co_firstlineno,
+                e,
+            )
             raise
 
         try:
@@ -87,7 +97,7 @@ def keepfirst(func):
             return None
 
         except Exception as e:
-            if not hasattr(e, 'logged'):
+            if not hasattr(e, "logged"):
                 logger.error("Exception in coroutine")
                 logger.exception(e)
                 try:

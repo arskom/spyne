@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -26,9 +25,8 @@ tested.
 Testcases and preferably improvements are most welcome.
 """
 
-from __future__ import print_function, unicode_literals
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 import re
@@ -84,14 +82,17 @@ def _join_attachment(ns_soap_env, href_id, envelope, payload, prefix=True):
             message = child
             break
 
-    idprefix = ''
+    idprefix = ""
 
     if prefix:
         idprefix = "cid:"
-    href_id = "%s%s" % (idprefix, href_id,)
+    href_id = "%s%s" % (
+        idprefix,
+        href_id,
+    )
 
     num = 0
-    xpath = ".//xop:Include[@href=\"{}\"]".format(href_id)
+    xpath = f'.//xop:Include[@href="{href_id}"]'
 
     for num, node in enumerate(message.xpath(xpath, namespaces=XPATH_NSDICT)):
         parent = node.getparent()
@@ -125,50 +126,50 @@ def collapse_swa(ctx, content_type, ns_soap_env):
     if not six.PY2:
         assert isinstance(mime_type, six.text_type)
 
-    if u'multipart/related' not in mime_type:
+    if "multipart/related" not in mime_type:
         return envelope
 
-    charset = content_data.get('charset', None)
+    charset = content_data.get("charset", None)
     if charset is None:
-        charset = 'ascii'
+        charset = "ascii"
 
-    boundary = content_data.get('boundary', None)
+    boundary = content_data.get("boundary", None)
     if boundary is None:
-        raise ValidationError(None, u"Missing 'boundary' value from "
-                                                         u"Content-Type header")
+        raise ValidationError(None, "Missing 'boundary' value from Content-Type header")
 
     envelope = list(envelope)
 
     # What an ugly hack...
-    request = MIMEMultipart('related', boundary=boundary)
-    msg_string = re.sub(r"\n\n.*", '', request.as_string())
+    request = MIMEMultipart("related", boundary=boundary)
+    msg_string = re.sub(r"\n\n.*", "", request.as_string())
     msg_string = chain(
-        (msg_string.encode(charset), generator.NL.encode('ascii')),
+        (msg_string.encode(charset), generator.NL.encode("ascii")),
         (e for e in envelope),
     )
 
-    msg_string = b''.join(msg_string)
+    msg_string = b"".join(msg_string)
     msg = message_from_bytes(msg_string)  # our message
 
     soapmsg = None
-    root = msg.get_param('start')
+    root = msg.get_param("start")
 
     # walk through sections, reconstructing pure SOAP
     for part in msg.walk():
         # skip the multipart container section
-        if part.get_content_maintype() == 'multipart':
+        if part.get_content_maintype() == "multipart":
             continue
 
         # detect main soap section
-        if (part.get('Content-ID') and part.get('Content-ID') == root) or \
-                (root is None and part == msg.get_payload()[0]):
+        if (part.get("Content-ID") and part.get("Content-ID") == root) or (
+            root is None and part == msg.get_payload()[0]
+        ):
             soapmsg = part.get_payload()
             continue
 
         # binary packages
         cte = part.get("Content-Transfer-Encoding")
 
-        if cte != 'base64':
+        if cte != "base64":
             payload = b64encode(part.get_payload(decode=True))
         else:
             payload = part.get_payload()
@@ -179,14 +180,11 @@ def collapse_swa(ctx, content_type, ns_soap_env):
 
         # Check for Content-ID and make replacement
         if cid:
-            soapmsg, numreplaces = _join_attachment(
-                                             ns_soap_env, cid, soapmsg, payload)
+            soapmsg, numreplaces = _join_attachment(ns_soap_env, cid, soapmsg, payload)
 
         # Check for Content-Location and make replacement
         if cloc and not cid and not numreplaces:
-            soapmsg, numreplaces = _join_attachment(
-                                            ns_soap_env, cloc, soapmsg, payload,
-                                                                          False)
+            soapmsg, numreplaces = _join_attachment(ns_soap_env, cloc, soapmsg, payload, False)
 
     if soapmsg is None:
         raise ValidationError(None, "Invalid MtoM request")
@@ -215,7 +213,7 @@ def apply_mtom(headers, envelope, params, paramvals):
     """
 
     # grab the XML element of the message in the SOAP body
-    envelope = ''.join(envelope)
+    envelope = "".join(envelope)
 
     soaptree = etree.fromstring(envelope)
     soapbody = soaptree.find("{%s}Body" % _ns_soap_env)
@@ -231,36 +229,36 @@ def apply_mtom(headers, envelope, params, paramvals):
     # Get additional parameters from original Content-Type
     ctarray = []
     for n, v in headers.items():
-        if n.lower() == 'content-type':
-            ctarray = v.split(';')
+        if n.lower() == "content-type":
+            ctarray = v.split(";")
             break
 
     roottype = ctarray[0].strip()
     rootparams = {}
     for ctparam in ctarray[1:]:
-        n, v = ctparam.strip().split('=')
+        n, v = ctparam.strip().split("=")
         rootparams[n] = v.strip("\"'")
 
     # Set up initial MIME parts.
-    mtompkg = MIMEMultipart('related', boundary='?//<><>spyne_MIME_boundary<>')
-    rootpkg = MIMEApplication(envelope, 'xop+xml', encode_7or8bit)
+    mtompkg = MIMEMultipart("related", boundary="?//<><>spyne_MIME_boundary<>")
+    rootpkg = MIMEApplication(envelope, "xop+xml", encode_7or8bit)
 
     # Set up multipart headers.
-    del mtompkg['mime-version']
-    mtompkg.set_param('start-info', roottype)
-    mtompkg.set_param('start', '<spyneEnvelope>')
-    if 'SOAPAction' in headers:
-        mtompkg.add_header('SOAPAction', headers.get('SOAPAction'))
+    del mtompkg["mime-version"]
+    mtompkg.set_param("start-info", roottype)
+    mtompkg.set_param("start", "<spyneEnvelope>")
+    if "SOAPAction" in headers:
+        mtompkg.add_header("SOAPAction", headers.get("SOAPAction"))
 
     # Set up root SOAP part headers.
-    del rootpkg['mime-version']
+    del rootpkg["mime-version"]
 
-    rootpkg.add_header('Content-ID', '<spyneEnvelope>')
+    rootpkg.add_header("Content-ID", "<spyneEnvelope>")
 
     for n, v in rootparams.items():
         rootpkg.set_param(n, v)
 
-    rootpkg.set_param('type', roottype)
+    rootpkg.set_param("type", roottype)
 
     mtompkg.attach(rootpkg)
 
@@ -269,7 +267,7 @@ def apply_mtom(headers, envelope, params, paramvals):
         name, typ = params[i]
 
         if issubclass(typ, (ByteArray, File)):
-            id = "SpyneAttachment_%s" % (len(mtompkg.get_payload()), )
+            id = "SpyneAttachment_%s" % (len(mtompkg.get_payload()),)
 
             param = message[i]
             param.text = ""
@@ -283,20 +281,20 @@ def apply_mtom(headers, envelope, params, paramvals):
             if issubclass(type, File):
                 data = paramvals[i].data
             else:
-                data = ''.join(paramvals[i])
+                data = "".join(paramvals[i])
 
             attachment = MIMEApplication(data, _encoder=encode_7or8bit)
 
-            del attachment['mime-version']
+            del attachment["mime-version"]
 
-            attachment.add_header('Content-ID', '<%s>' % (id, ))
+            attachment.add_header("Content-ID", "<%s>" % (id,))
             mtompkg.attach(attachment)
 
     # Update SOAP envelope.
     rootpkg.set_payload(etree.tostring(soaptree))
 
     # extract body string from MIMEMultipart message
-    bound = '--%s' % (mtompkg.get_boundary(), )
+    bound = "--%s" % (mtompkg.get_boundary(),)
     marray = mtompkg.as_string().split(bound)
     mtombody = bound
     mtombody += bound.join(marray[1:])

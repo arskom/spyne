@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -40,7 +39,6 @@
 # THE SOFTWARE.
 #
 
-from __future__ import print_function
 
 # Direct plagiarization of https://github.com/un33k/django-ipware/
 # at 57897c03026913892e61a164bc8b022778802ab9
@@ -53,16 +51,17 @@ TRUSTED_PROXIES = []
 # Search for the real IP address in the following order
 # Configurable via settings.py
 PRECEDENCE = (
-    'HTTP_X_FORWARDED_FOR', 'X_FORWARDED_FOR',
+    "HTTP_X_FORWARDED_FOR",
+    "X_FORWARDED_FOR",
     # (client, proxy1, proxy2) OR (proxy2, proxy1, client)
-    'HTTP_CLIENT_IP',
-    'HTTP_X_REAL_IP',
-    'HTTP_X_FORWARDED',
-    'HTTP_X_CLUSTER_CLIENT_IP',
-    'HTTP_FORWARDED_FOR',
-    'HTTP_FORWARDED',
-    'HTTP_VIA',
-    'REMOTE_ADDR',
+    "HTTP_CLIENT_IP",
+    "HTTP_X_REAL_IP",
+    "HTTP_X_FORWARDED",
+    "HTTP_X_CLUSTER_CLIENT_IP",
+    "HTTP_FORWARDED_FOR",
+    "HTTP_FORWARDED",
+    "HTTP_VIA",
+    "REMOTE_ADDR",
 )
 
 # Private IP addresses
@@ -72,36 +71,49 @@ PRECEDENCE = (
 # Regex would be ideal here, but this is keeping it simple
 # as fields are configurable via settings.py
 PRIVATE_IP_PREFIXES = (
-    '0.',  # externally non-routable
-    '10.',  # class A private block
-    '169.254.',  # link-local block
-    '172.16.', '172.17.', '172.18.', '172.19.',
-    '172.20.', '172.21.', '172.22.', '172.23.',
-    '172.24.', '172.25.', '172.26.', '172.27.',
-    '172.28.', '172.29.', '172.30.', '172.31.',
+    "0.",  # externally non-routable
+    "10.",  # class A private block
+    "169.254.",  # link-local block
+    "172.16.",
+    "172.17.",
+    "172.18.",
+    "172.19.",
+    "172.20.",
+    "172.21.",
+    "172.22.",
+    "172.23.",
+    "172.24.",
+    "172.25.",
+    "172.26.",
+    "172.27.",
+    "172.28.",
+    "172.29.",
+    "172.30.",
+    "172.31.",
     # class B private blocks
-    '192.0.2.',
+    "192.0.2.",
     # reserved for documentation and example code
-    '192.168.',  # class C private block
-    '255.255.255.',  # IPv4 broadcast address
+    "192.168.",  # class C private block
+    "255.255.255.",  # IPv4 broadcast address
 ) + (
-    '2001:db8:',
+    "2001:db8:",
     # reserved for documentation and example code
-    'fc00:',  # IPv6 private block
-    'fe80:',  # link-local unicast
-    'ff00:',  # IPv6 multicast
+    "fc00:",  # IPv6 private block
+    "fe80:",  # link-local unicast
+    "ff00:",  # IPv6 multicast
 )
 
 LOOPBACK_PREFIX = (
-    '127.',  # IPv4 loopback device
-    '::1',  # IPv6 loopback device
+    "127.",  # IPv4 loopback device
+    "::1",  # IPv6 loopback device
 )
 
 NON_PUBLIC_IP_PREFIXES = PRIVATE_IP_PREFIXES + LOOPBACK_PREFIX
 
 
-def set_address_parser_settings(trusted_proxies, field_precedence=PRECEDENCE,
-                                    private_ip_prefixes=NON_PUBLIC_IP_PREFIXES):
+def set_address_parser_settings(
+    trusted_proxies, field_precedence=PRECEDENCE, private_ip_prefixes=NON_PUBLIC_IP_PREFIXES
+):
     """Changes global parameters for Spyne's residend ip address parser.
 
     :param trusted_proxies: Tuple of reverse proxies that are under YOUR control.
@@ -113,29 +125,27 @@ def set_address_parser_settings(trusted_proxies, field_precedence=PRECEDENCE,
 
     global address_parser
 
-    address_parser = AddressParser(trusted_proxies=trusted_proxies,
-                                    field_precedence=field_precedence,
-                                        private_ip_prefixes=private_ip_prefixes)
+    address_parser = AddressParser(
+        trusted_proxies=trusted_proxies,
+        field_precedence=field_precedence,
+        private_ip_prefixes=private_ip_prefixes,
+    )
 
 
-class AddressParser(object):
-    def __init__(self, private_ip_prefixes=None, trusted_proxies=(),
-                                                   field_precedence=PRECEDENCE):
+class AddressParser:
+    def __init__(self, private_ip_prefixes=None, trusted_proxies=(), field_precedence=PRECEDENCE):
         if private_ip_prefixes is not None:
             self.private_ip_prefixes = private_ip_prefixes
         else:
-            self.private_ip_prefixes = \
-                            tuple([ip.lower() for ip in NON_PUBLIC_IP_PREFIXES])
+            self.private_ip_prefixes = tuple([ip.lower() for ip in NON_PUBLIC_IP_PREFIXES])
 
         if len(trusted_proxies) > 0:
             self.trusted_proxies = trusted_proxies
 
         else:
-            self.trusted_proxies = \
-                  tuple([ip.lower() for ip in TRUSTED_PROXIES])
+            self.trusted_proxies = tuple([ip.lower() for ip in TRUSTED_PROXIES])
 
         self.field_precedence = field_precedence
-
 
     def get_port(self, wsgi_env):
         return wsgi_env.get("REMOTE_PORT", 0)
@@ -149,19 +159,18 @@ class AddressParser(object):
         for key in self.field_precedence:
             value = wsgi_env.get(key, None)
             if value is None:
-                value = wsgi_env.get(key.replace('_', '-'), None)
+                value = wsgi_env.get(key.replace("_", "-"), None)
 
-            if value is None or value == '':
+            if value is None or value == "":
                 continue
 
-            ips = [ip.strip().lower() for ip in value.split(',')]
+            ips = [ip.strip().lower() for ip in value.split(",")]
 
             if right_most_proxy and len(ips) > 1:
                 ips = reversed(ips)
 
             for ip_str in ips:
-                if ip_str is None or ip_str == '' or not \
-                                              AddressParser.is_valid_ip(ip_str):
+                if ip_str is None or ip_str == "" or not AddressParser.is_valid_ip(ip_str):
                     continue
 
                 if not ip_str.startswith(self.private_ip_prefixes):
@@ -173,8 +182,7 @@ class AddressParser(object):
                     if best_matched_ip is None:
                         best_matched_ip = ip_str
 
-                    elif best_matched_ip.startswith(loopback) \
-                                    and not ip_str.startswith(loopback):
+                    elif best_matched_ip.startswith(loopback) and not ip_str.startswith(loopback):
                         best_matched_ip = ip_str
 
         return best_matched_ip
@@ -184,11 +192,9 @@ class AddressParser(object):
         Returns client's best-matched `real` `externally-routable` ip-address,
         or None
         """
-        return self.get_ip(wsgi_env, real_ip_only=True,
-                                              right_most_proxy=right_most_proxy)
+        return self.get_ip(wsgi_env, real_ip_only=True, right_most_proxy=right_most_proxy)
 
-    def get_trusted_ip(self, wsgi_env, right_most_proxy=False,
-                                                          trusted_proxies=None):
+    def get_trusted_ip(self, wsgi_env, right_most_proxy=False, trusted_proxies=None):
         """
         Returns client's ip-address from `trusted` proxy server(s) or None
         """
@@ -202,17 +208,17 @@ class AddressParser(object):
         if trusted_proxies is None or len(trusted_proxies) == 0:
             return
 
-        meta_keys = ['HTTP_X_FORWARDED_FOR', 'X_FORWARDED_FOR']
+        meta_keys = ["HTTP_X_FORWARDED_FOR", "X_FORWARDED_FOR"]
 
         for key in meta_keys:
             value = wsgi_env.get(key, None)
             if value is None:
-                value = wsgi_env.get(key.replace('_', '-'), None)
+                value = wsgi_env.get(key.replace("_", "-"), None)
 
-            if value is None or value == '':
+            if value is None or value == "":
                 continue
 
-            ips = [ip.strip().lower() for ip in value.split(',')]
+            ips = [ip.strip().lower() for ip in value.split(",")]
 
             if len(ips) > 1:
                 if right_most_proxy:
@@ -237,11 +243,11 @@ class AddressParser(object):
         except AttributeError:  # pragma: no cover
             try:  # Fall-back on legacy API or False
                 socket.inet_aton(ip_str)
-            except (AttributeError, socket.error):
+            except (OSError, AttributeError):
                 return False
-            return ip_str.count('.') == 3
+            return ip_str.count(".") == 3
 
-        except socket.error:
+        except OSError:
             return False
 
         return True
@@ -258,7 +264,7 @@ class AddressParser(object):
         try:
             socket.inet_pton(socket.AF_INET6, ip_str)
 
-        except socket.error:
+        except OSError:
             return False
 
         return True
@@ -269,8 +275,7 @@ class AddressParser(object):
         Check the validity of an IP address
         """
 
-        return AddressParser.is_valid_ipv4(ip_str) or \
-                                             AddressParser.is_valid_ipv6(ip_str)
+        return AddressParser.is_valid_ipv4(ip_str) or AddressParser.is_valid_ipv6(ip_str)
 
 
 address_parser = AddressParser()

@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,9 +16,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import getpass
@@ -50,20 +49,20 @@ def email_exception(exception_address, message="", bcc=None):
     mod = inspect.getmodule(frm[0])
     module_name = mod.__name__ if mod else frm[1]
 
-    sender = 'robot@spyne.io'
+    sender = "robot@spyne.io"
     recipients = [exception_address]
     if bcc is not None:
         recipients.extend(bcc)
 
-    error_str = ("%s\n\n%s" % (message, traceback.format_exc()))
-    msg = MIMEText(error_str.encode('utf8'), 'plain', 'utf8')
-    msg['To'] = exception_address
-    msg['From'] = 'Spyne <robot@spyne.io>'
-    msg['Date'] = formatdate()
-    msg['Subject'] = "(%s@%s) %s" % (getpass.getuser(), gethostname(), module_name)
+    error_str = "%s\n\n%s" % (message, traceback.format_exc())
+    msg = MIMEText(error_str.encode("utf8"), "plain", "utf8")
+    msg["To"] = exception_address
+    msg["From"] = "Spyne <robot@spyne.io>"
+    msg["Date"] = formatdate()
+    msg["Subject"] = "(%s@%s) %s" % (getpass.getuser(), gethostname(), module_name)
 
     try:
-        smtp_object = smtplib.SMTP('localhost')
+        smtp_object = smtplib.SMTP("localhost")
         smtp_object.sendmail(sender, recipients, msg.as_string())
         logger.error("Error email sent")
 
@@ -72,19 +71,18 @@ def email_exception(exception_address, message="", bcc=None):
         logger.exception(e)
 
 
-def email_text_smtp(addresses, sender=None, subject='', message="",
-                                                     host='localhost', port=25):
+def email_text_smtp(addresses, sender=None, subject="", message="", host="localhost", port=25):
     if sender is None:
-        sender = 'Spyne <robot@spyne.io>'
+        sender = "Spyne <robot@spyne.io>"
 
     exc = traceback.format_exc()
     if exc is not None:
-        message = (u"%s\n\n%s" % (message, exc))
-    msg = MIMEText(message.encode('utf8'), 'plain', 'utf8')
-    msg['To'] = COMMASPACE.join(addresses)
-    msg['From'] = sender
-    msg['Date'] = formatdate()
-    msg['Subject'] = subject
+        message = "%s\n\n%s" % (message, exc)
+    msg = MIMEText(message.encode("utf8"), "plain", "utf8")
+    msg["To"] = COMMASPACE.join(addresses)
+    msg["From"] = sender
+    msg["Date"] = formatdate()
+    msg["Subject"] = subject
 
     smtp_object = smtplib.SMTP(host, port)
     if six.PY2:
@@ -94,18 +92,17 @@ def email_text_smtp(addresses, sender=None, subject='', message="",
     logger.info("Text email sent to: %r.", addresses)
 
 
-def email_text(addresses, sender=None, subject="", message="", bcc=None,
-                                                                      att=None):
+def email_text(addresses, sender=None, subject="", message="", bcc=None, att=None):
     if att is None:
         att = {}
 
     if sender is None:
-        sender = 'Spyne <robot@spyne.io>'
+        sender = "Spyne <robot@spyne.io>"
 
     exc = traceback.format_exc()
-    if exc is not None and exc != 'None\n' and exc != 'NoneType: None\n':
-        message = (u"%s\n\n%s" % (message, exc))
-    msg = MIMEText(message.encode('utf8'), 'plain', 'utf8')
+    if exc is not None and exc != "None\n" and exc != "NoneType: None\n":
+        message = "%s\n\n%s" % (message, exc)
+    msg = MIMEText(message.encode("utf8"), "plain", "utf8")
     if len(att) > 0:
         newmsg = MIMEMultipart()
         newmsg.attach(msg)
@@ -114,9 +111,9 @@ def email_text(addresses, sender=None, subject="", message="", bcc=None,
             if mime_type == "message/rfc822":
                 part = MIMEMessage(message_from_string(v))
             elif mime_type.startswith("image/"):
-                part = MIMEImage(v, mime_type.rsplit('/', 1)[-1])
+                part = MIMEImage(v, mime_type.rsplit("/", 1)[-1])
             elif mime_type is not None:
-                mime_type_main, mime_type_sub = mime_type.split('/', 1)
+                mime_type_main, mime_type_sub = mime_type.split("/", 1)
                 part = MIMENonMultipart(mime_type_main, mime_type_sub)
                 part.set_payload(v)
                 encode_base64(part)
@@ -124,16 +121,16 @@ def email_text(addresses, sender=None, subject="", message="", bcc=None,
                 part = MIMEApplication(v)
 
             newmsg.attach(part)
-            part.add_header('Content-Disposition', 'attachment', filename=k)
+            part.add_header("Content-Disposition", "attachment", filename=k)
 
         msg = newmsg
 
-    msg['To'] = COMMASPACE.join(addresses)
-    msg['From'] = sender
-    msg['Date'] = formatdate()
-    msg['Subject'] = subject
+    msg["To"] = COMMASPACE.join(addresses)
+    msg["From"] = sender
+    msg["Date"] = formatdate()
+    msg["Subject"] = subject
 
-    cmd = ["/usr/sbin/sendmail", "-oi", '--']
+    cmd = ["/usr/sbin/sendmail", "-oi", "--"]
     cmd.extend(addresses)
     if bcc is not None:
         cmd.extend(bcc)

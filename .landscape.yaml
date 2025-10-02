@@ -1,4 +1,4 @@
-ignore-paths: 
+ignore-paths:
   - bin
   - examples
 ignore-patterns:

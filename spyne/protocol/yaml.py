@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -23,9 +22,8 @@ Currently, only :class:`spyne.protocol.yaml.YamlDocument` is supported.
 Initially released in 2.10.0-rc.
 """
 
-from __future__ import absolute_import
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 from spyne import ValidationError
@@ -40,6 +38,7 @@ from spyne.protocol.dictdoc import HierDictDocument
 import yaml
 
 from yaml.parser import ParserError
+
 try:
     from yaml import CLoader as Loader
     from yaml import CDumper as Dumper
@@ -72,10 +71,10 @@ class YamlDocument(HierDictDocument):
     ``indent=4`` by default.
     """
 
-    mime_type = 'text/yaml'
+    mime_type = "text/yaml"
 
     type = set(HierDictDocument.type)
-    type.add('yaml')
+    type.add("yaml")
 
     text_based = True
 
@@ -84,21 +83,33 @@ class YamlDocument(HierDictDocument):
     # for test classes
     _decimal_as_string = True
 
-    def __init__(self, app=None, validator=None, mime_type=None,
-                                        ignore_uncap=False,
-                                        # DictDocument specific
-                                        ignore_wrappers=True,
-                                        complex_as=dict,
-                                        ordered=False,
-                                        polymorphic=False,
-                                        # YamlDocument specific
-                                        safe=True,
-                                        encoding='UTF-8',
-                                        allow_unicode=True,
-                                        **kwargs):
-
-        super(YamlDocument, self).__init__(app, validator, mime_type,
-                ignore_uncap, ignore_wrappers, complex_as, ordered, polymorphic)
+    def __init__(
+        self,
+        app=None,
+        validator=None,
+        mime_type=None,
+        ignore_uncap=False,
+        # DictDocument specific
+        ignore_wrappers=True,
+        complex_as=dict,
+        ordered=False,
+        polymorphic=False,
+        # YamlDocument specific
+        safe=True,
+        encoding="UTF-8",
+        allow_unicode=True,
+        **kwargs,
+    ):
+        super().__init__(
+            app,
+            validator,
+            mime_type,
+            ignore_uncap,
+            ignore_wrappers,
+            complex_as,
+            ordered,
+            polymorphic,
+        )
 
         self._from_unicode_handlers[Double] = self._ret_number
         self._from_unicode_handlers[Boolean] = self._ret_bool
@@ -112,25 +123,24 @@ class YamlDocument(HierDictDocument):
         dumper = Dumper
         if safe:
             loader = SafeLoader
-            dumper =  SafeDumper
+            dumper = SafeDumper
 
         self.in_kwargs = dict(kwargs)
         self.out_kwargs = dict(kwargs)
 
-        self.in_kwargs['Loader'] = loader
-        self.out_kwargs['Dumper'] = dumper
+        self.in_kwargs["Loader"] = loader
+        self.out_kwargs["Dumper"] = dumper
 
-        loader.add_constructor('tag:yaml.org,2002:python/unicode',
-                                                                _unicode_loader)
+        loader.add_constructor("tag:yaml.org,2002:python/unicode", _unicode_loader)
 
-        self.out_kwargs['encoding'] = encoding
-        self.out_kwargs['allow_unicode'] = allow_unicode
+        self.out_kwargs["encoding"] = encoding
+        self.out_kwargs["allow_unicode"] = allow_unicode
 
-        if not 'indent' in self.out_kwargs:
-            self.out_kwargs['indent'] = 4
+        if not "indent" in self.out_kwargs:
+            self.out_kwargs["indent"] = 4
 
-        if not 'default_flow_style' in self.out_kwargs:
-            self.out_kwargs['default_flow_style'] = False
+        if not "default_flow_style" in self.out_kwargs:
+            self.out_kwargs["default_flow_style"] = False
 
     def _ret(self, _, value):
         return value
@@ -151,28 +161,28 @@ class YamlDocument(HierDictDocument):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
 
         if in_string_encoding is None:
-            in_string_encoding = 'UTF-8'
+            in_string_encoding = "UTF-8"
 
         try:
             try:
-                s = b''.join(ctx.in_string).decode(in_string_encoding)
+                s = b"".join(ctx.in_string).decode(in_string_encoding)
             except TypeError:
-                s = ''.join(ctx.in_string)
+                s = "".join(ctx.in_string)
 
             ctx.in_document = yaml.load(s, **self.in_kwargs)
 
         except ParserError as e:
-            raise Fault('Client.YamlDecodeError', repr(e))
+            raise Fault("Client.YamlDecodeError", repr(e))
 
-    def create_out_string(self, ctx, out_string_encoding='utf8'):
+    def create_out_string(self, ctx, out_string_encoding="utf8"):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
 
-        ctx.out_string = (yaml.dump(o, **self.out_kwargs)
-                                                      for o in ctx.out_document)
+        ctx.out_string = (yaml.dump(o, **self.out_kwargs) for o in ctx.out_document)
         if six.PY2 and out_string_encoding is not None:
             ctx.out_string = (
                 yaml.dump(o, **self.out_kwargs).encode(out_string_encoding)
-                                                      for o in ctx.out_document)
+                for o in ctx.out_document
+            )
 
 
 def _unicode_loader(loader, node):

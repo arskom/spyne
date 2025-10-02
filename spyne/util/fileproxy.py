@@ -1,4 +1,3 @@
-
 #
 # Copyright (C) 2013-2014 by Hong Minhee <http://hongminhee.org/>
 #
@@ -25,7 +24,7 @@ import os
 
 from spyne.util.six.moves.collections_abc import Iterator
 
-__all__ = 'FileProxy', 'ReusableFileProxy', 'SeekableFileProxy'
+__all__ = "FileProxy", "ReusableFileProxy", "SeekableFileProxy"
 
 
 class FileProxy(Iterator):
@@ -41,7 +40,7 @@ class FileProxy(Iterator):
 
     def __iter__(self):
         f = self.wrapped
-        it = getattr(f, '__iter__', None)
+        it = getattr(f, "__iter__", None)
         if callable(it):
             return it()
         return self
@@ -50,7 +49,7 @@ class FileProxy(Iterator):
         """Implementation of :class:`collections.Iterator` protocol."""
         line = self.readline()
         if not line:
-            raise StopIteration('hit eof')
+            raise StopIteration("hit eof")
         return line
 
     next = __next__
@@ -184,7 +183,7 @@ class ReusableFileProxy(SeekableFileProxy):
     def __enter__(self):
         self.initial_offset = self.tell()
         self.seek(0)
-        return super(ReusableFileProxy, self).__enter__()
+        return super().__enter__()
 
     def __exit__(self, exc_type, value, traceback):
         self.seek(self.initial_offset)

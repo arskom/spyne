@@ -5,11 +5,18 @@ import logging
 import cherrypy
 
 
-def cherry_graft_and_start(wsgi_application, host="0.0.0.0", port=8080,
-             num_threads=30, ssl_module=None, cert=None, key=None, cacert=None):
-
+def cherry_graft_and_start(
+    wsgi_application,
+    host="0.0.0.0",
+    port=8080,
+    num_threads=30,
+    ssl_module=None,
+    cert=None,
+    key=None,
+    cacert=None,
+):
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+    logging.getLogger("spyne.protocol.xml").setLevel(logging.DEBUG)
 
     # Mount the application
     cherrypy.tree.graft(wsgi_application, "/")
@@ -27,9 +34,9 @@ def cherry_graft_and_start(wsgi_application, host="0.0.0.0", port=8080,
 
     # For SSL Support
     if ssl_module is not None:
-        server.ssl_module            = ssl_module  # eg. 'pyopenssl'
-        server.ssl_certificate       = cert  # eg. 'ssl/certificate.crt'
-        server.ssl_private_key       = key  # eg. 'ssl/private.key'
+        server.ssl_module = ssl_module  # eg. 'pyopenssl'
+        server.ssl_certificate = cert  # eg. 'ssl/certificate.crt'
+        server.ssl_private_key = key  # eg. 'ssl/private.key'
         server.ssl_certificate_chain = cacert  # eg. 'ssl/bundle.crt'
 
     # Subscribe this server

@@ -1,4 +1,3 @@
-# encoding: utf-8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -24,26 +23,27 @@
 
 """
 
-from __future__ import absolute_import
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 import re
 
 from itertools import chain
 
-from django.core.exceptions import (ImproperlyConfigured, ObjectDoesNotExist,
-                                    ValidationError as DjValidationError)
-from django.core.validators import (slug_re,
-                                    MinLengthValidator, MaxLengthValidator)
+from django.core.exceptions import (
+    ImproperlyConfigured,
+    ObjectDoesNotExist,
+    ValidationError as DjValidationError,
+)
+from django.core.validators import slug_re, MinLengthValidator, MaxLengthValidator
+
 try:
     from django.core.validators import comma_separated_int_list_re
 except ImportError:
-    comma_separated_int_list_re = re.compile(r'^[\d,]+$')
+    comma_separated_int_list_re = re.compile(r"^[\d,]+$")
 
-from spyne.error import (ResourceNotFoundError, ValidationError as
-                         BaseValidationError, Fault)
+from spyne.error import ResourceNotFoundError, ValidationError as BaseValidationError, Fault
 from spyne.model import primitive
 from spyne.model.complex import ComplexModelMeta, ComplexModelBase
 from spyne.service import Service
@@ -63,29 +63,32 @@ email_re = re.compile(
     # domain should contain at least 2 parts, the last one is TLD
     r"[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+"
     # TLD should contain only letters, at least 2
-    r"[A-Za-z]{2,}", re.IGNORECASE)
+    r"[A-Za-z]{2,}",
+    re.IGNORECASE,
+)
 
 
 def _handle_minlength(validator, params):
     new_min = validator.limit_value
-    old_min = params.setdefault('min_len', new_min)
-    params['min_len'] = max(old_min, new_min)
+    old_min = params.setdefault("min_len", new_min)
+    params["min_len"] = max(old_min, new_min)
 
 
 def _handle_maxlength(validator, params):
     new_max = validator.limit_value
-    old_max = params.setdefault('max_len', new_max)
-    params['max_len'] = min(old_max, new_max)
+    old_max = params.setdefault("max_len", new_max)
+    params["max_len"] = min(old_max, new_max)
 
 
-class BaseDjangoFieldMapper(object):
-
+class BaseDjangoFieldMapper:
     """Abstrace base class for field mappers."""
 
-    _VALIDATOR_HANDLERS = cdict({
-        MinLengthValidator: _handle_minlength,
-        MaxLengthValidator: _handle_maxlength,
-    })
+    _VALIDATOR_HANDLERS = cdict(
+        {
+            MinLengthValidator: _handle_minlength,
+            MaxLengthValidator: _handle_maxlength,
+        }
+    )
 
     @staticmethod
     def is_field_nullable(field, **kwargs):
@@ -114,11 +117,10 @@ class BaseDjangoFieldMapper(object):
         required = not (field.has_default() or blank or field.primary_key)
 
         if field.has_default():
-            params['default'] = field.get_default()
+            params["default"] = field.get_default()
 
         spyne_model = self.get_spyne_model(field, **kwargs)
-        customized_model = spyne_model(nullable=nullable,
-                                       min_occurs=int(required), **params)
+        customized_model = spyne_model(nullable=nullable, min_occurs=int(required), **params)
 
         return (field.attname, customized_model)
 
@@ -134,7 +136,6 @@ class BaseDjangoFieldMapper(object):
 
 
 class DjangoFieldMapper(BaseDjangoFieldMapper):
-
     """Basic mapper for django fields."""
 
     def __init__(self, spyne_model):
@@ -147,7 +148,6 @@ class DjangoFieldMapper(BaseDjangoFieldMapper):
 
 
 class DecimalMapper(DjangoFieldMapper):
-
     """Mapper for DecimalField."""
 
     def map(self, field, **kwargs):
@@ -157,15 +157,16 @@ class DecimalMapper(DjangoFieldMapper):
 
         """
         params = kwargs.copy()
-        params.update({
-            'total_digits': field.max_digits,
-            'fraction_digits': field.decimal_places,
-        })
-        return super(DecimalMapper, self).map(field, **params)
+        params.update(
+            {
+                "total_digits": field.max_digits,
+                "fraction_digits": field.decimal_places,
+            }
+        )
+        return super().map(field, **params)
 
 
 class RelationMapper(BaseDjangoFieldMapper):
-
     """Mapper for relation fields (ForeignKey, OneToOneField)."""
 
     def __init__(self, django_model_mapper):
@@ -179,13 +180,16 @@ class RelationMapper(BaseDjangoFieldMapper):
         Otherwise use basic behaviour.
 
         """
-        optional_relations = kwargs.get('optional_relations', False)
-        return (optional_relations or
-                BaseDjangoFieldMapper.is_field_blank(field, **kwargs))
+        optional_relations = kwargs.get("optional_relations", False)
+        return optional_relations or BaseDjangoFieldMapper.is_field_blank(field, **kwargs)
 
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model configured by related field."""
-        related_field = field.rel.get_related_field() if hasattr(field, 'rel') else field.remote_field.get_related_field()
+        related_field = (
+            field.rel.get_related_field()
+            if hasattr(field, "rel")
+            else field.remote_field.get_related_field()
+        )
         field_type = related_field.__class__.__name__
         field_mapper = self.django_model_mapper.get_field_mapper(field_type)
 
@@ -193,8 +197,7 @@ class RelationMapper(BaseDjangoFieldMapper):
         return related_spyne_model
 
 
-class DjangoModelMapper(object):
-
+class DjangoModelMapper:
     r"""Mapper from django models to spyne complex models.
 
     You can extend it registering new field types: ::
@@ -218,7 +221,6 @@ class DjangoModelMapper(object):
     field_mapper_class = DjangoFieldMapper
 
     class UnknownFieldMapperException(Exception):
-
         """Raises when there is no field mapper for given django_type."""
 
     def __init__(self, django_spyne_models=()):
@@ -239,8 +241,7 @@ class DjangoModelMapper(object):
         try:
             return self._registry[django_type]
         except KeyError:
-            raise self.UnknownFieldMapperException(
-                'No mapper for field type {0}'.format(django_type))
+            raise self.UnknownFieldMapperException(f"No mapper for field type {django_type}")
 
     def register(self, django_type, spyne_model):
         """Register default field mapper for django_type and spyne_model.
@@ -263,32 +264,33 @@ class DjangoModelMapper(object):
 
     @staticmethod
     def get_all_field_names(meta):
-        if hasattr(meta, 'get_all_field_names'):
+        if hasattr(meta, "get_all_field_names"):
             return meta.get_all_field_names()
 
-        return list(set(chain.from_iterable(
-            (field.name, field.attname) if hasattr(field, 'attname') else (
-            field.name,)
-            for field in meta.get_fields()
-            # For complete backwards compatibility, you may want to exclude
-            # GenericForeignKey from the results.
-            if not (field.many_to_one and field.related_model is None)
-        )))
+        return list(
+            set(
+                chain.from_iterable(
+                    (field.name, field.attname) if hasattr(field, "attname") else (field.name,)
+                    for field in meta.get_fields()
+                    # For complete backwards compatibility, you may want to exclude
+                    # GenericForeignKey from the results.
+                    if not (field.many_to_one and field.related_model is None)
+                )
+            )
+        )
 
     @staticmethod
     def _get_fields(django_model, exclude=None):
         field_names = set(exclude) if exclude is not None else set()
         meta = django_model._meta  # pylint: disable=W0212
-        unknown_fields_names = \
-             field_names.difference(DjangoModelMapper.get_all_field_names(meta))
+        unknown_fields_names = field_names.difference(DjangoModelMapper.get_all_field_names(meta))
 
         if unknown_fields_names:
             raise ImproperlyConfigured(
-                'Unknown field names: {0}'
-                .format(', '.join(unknown_fields_names)))
+                "Unknown field names: {}".format(", ".join(unknown_fields_names))
+            )
 
-        return [field for field in meta.fields if field.name not in
-                field_names]
+        return [field for field in meta.fields if field.name not in field_names]
 
     def map(self, django_model, exclude=None, **kwargs):
         """Prepare dict of model fields mapped to spyne models.
@@ -312,11 +314,10 @@ class DjangoModelMapper(object):
                 # mapper for this field is not registered
                 if not (field.has_default() or field.null):
                     # field is required
-                    raise self.UnknownFieldMapperException(
-                        'No mapper for field type {0}'.format(field_type))
+                    raise self.UnknownFieldMapperException(f"No mapper for field type {field_type}")
                 else:
                     # skip this field
-                    logger.info('Field {0} is skipped from mapping.')
+                    logger.info("Field {0} is skipped from mapping.")
                     continue
 
             attr_name, spyne_model = field_mapper.map(field, **kwargs)
@@ -337,10 +338,10 @@ def strip_regex_metachars(pattern):
     start = 0
     till = len(pattern)
 
-    if pattern.startswith('^'):
+    if pattern.startswith("^"):
         start = 1
 
-    if pattern.endswith('$'):
+    if pattern.endswith("$"):
         till -= 1
 
     return pattern[start:till]
@@ -349,39 +350,44 @@ def strip_regex_metachars(pattern):
 # django's own slug_re.pattern is invalid according to xml schema -- it doesn't
 # like the location of the dash character. using the equivalent pattern accepted
 # by xml schema here.
-SLUG_RE_PATTERN = '[a-zA-Z0-9_-]+'
+SLUG_RE_PATTERN = "[a-zA-Z0-9_-]+"
 
 
 DEFAULT_FIELD_MAP = (
-    ('AutoField', primitive.Integer32),
-    ('CharField', primitive.NormalizedString),
-    ('SlugField', primitive.Unicode(
-        type_name='Slug', pattern=strip_regex_metachars(SLUG_RE_PATTERN))),
-    ('TextField', primitive.Unicode),
-    ('EmailField', primitive.Unicode(
-        type_name='Email', pattern=strip_regex_metachars(email_re.pattern))),
-    ('CommaSeparatedIntegerField', primitive.Unicode(
-        type_name='CommaSeparatedField',
-        pattern=strip_regex_metachars(comma_separated_int_list_re.pattern))),
-    ('URLField', primitive.AnyUri),
-    ('FilePathField', primitive.Unicode),
-
-    ('BooleanField', primitive.Boolean),
-    ('NullBooleanField', primitive.Boolean),
-    ('IntegerField', primitive.Integer),
-    ('BigIntegerField', primitive.Integer64),
-    ('PositiveIntegerField', primitive.UnsignedInteger32),
-    ('SmallIntegerField', primitive.Integer16),
-    ('PositiveSmallIntegerField', primitive.UnsignedInteger16),
-    ('FloatField', primitive.Double),
-
-    ('TimeField', primitive.Time),
-    ('DateField', primitive.Date),
-    ('DateTimeField', primitive.DateTime),
-
+    ("AutoField", primitive.Integer32),
+    ("CharField", primitive.NormalizedString),
+    (
+        "SlugField",
+        primitive.Unicode(type_name="Slug", pattern=strip_regex_metachars(SLUG_RE_PATTERN)),
+    ),
+    ("TextField", primitive.Unicode),
+    (
+        "EmailField",
+        primitive.Unicode(type_name="Email", pattern=strip_regex_metachars(email_re.pattern)),
+    ),
+    (
+        "CommaSeparatedIntegerField",
+        primitive.Unicode(
+            type_name="CommaSeparatedField",
+            pattern=strip_regex_metachars(comma_separated_int_list_re.pattern),
+        ),
+    ),
+    ("URLField", primitive.AnyUri),
+    ("FilePathField", primitive.Unicode),
+    ("BooleanField", primitive.Boolean),
+    ("NullBooleanField", primitive.Boolean),
+    ("IntegerField", primitive.Integer),
+    ("BigIntegerField", primitive.Integer64),
+    ("PositiveIntegerField", primitive.UnsignedInteger32),
+    ("SmallIntegerField", primitive.Integer16),
+    ("PositiveSmallIntegerField", primitive.UnsignedInteger16),
+    ("FloatField", primitive.Double),
+    ("TimeField", primitive.Time),
+    ("DateField", primitive.Date),
+    ("DateTimeField", primitive.DateTime),
     # simple fixed defaults for relation fields
-    ('ForeignKey', primitive.Integer32),
-    ('OneToOneField', primitive.Integer32),
+    ("ForeignKey", primitive.Integer32),
+    ("OneToOneField", primitive.Integer32),
 )
 
 
@@ -394,59 +400,53 @@ def model_mapper_factory(mapper_class, field_map):
     model_mapper = mapper_class(field_map)
 
     # register relation field mappers that are aware of related field type
-    model_mapper.register_field_mapper(
-        'ForeignKey', RelationMapper(model_mapper))
+    model_mapper.register_field_mapper("ForeignKey", RelationMapper(model_mapper))
 
-    model_mapper.register_field_mapper(
-        'OneToOneField', RelationMapper(model_mapper))
+    model_mapper.register_field_mapper("OneToOneField", RelationMapper(model_mapper))
 
-    model_mapper.register_field_mapper('DecimalField',
-                                       DecimalMapper(primitive.Decimal))
+    model_mapper.register_field_mapper("DecimalField", DecimalMapper(primitive.Decimal))
     return model_mapper
 
 
-default_model_mapper = model_mapper_factory(DjangoModelMapper,
-                                            DEFAULT_FIELD_MAP)
+default_model_mapper = model_mapper_factory(DjangoModelMapper, DEFAULT_FIELD_MAP)
 
 
 class DjangoComplexModelMeta(ComplexModelMeta):
-
     """Meta class for complex spyne models representing Django models."""
 
     def __new__(mcs, name, bases, attrs):  # pylint: disable=C0202
         """Populate new complex type from configured Django model."""
-        super_new = super(DjangoComplexModelMeta, mcs).__new__
+        super_new = super().__new__
 
-        abstract = bool(attrs.get('__abstract__', False))
+        abstract = bool(attrs.get("__abstract__", False))
 
         if abstract:
             # skip processing of abstract models
             return super_new(mcs, name, bases, attrs)
 
-        attributes = attrs.get('Attributes')
+        attributes = attrs.get("Attributes")
 
         if attributes is None:
-            raise ImproperlyConfigured('You have to define Attributes and '
-                                       'specify Attributes.django_model')
+            raise ImproperlyConfigured(
+                "You have to define Attributes and specify Attributes.django_model"
+            )
 
-        if getattr(attributes, 'django_model', None) is None:
-            raise ImproperlyConfigured('You have to define django_model '
-                                       'attribute in Attributes')
+        if getattr(attributes, "django_model", None) is None:
+            raise ImproperlyConfigured("You have to define django_model attribute in Attributes")
 
-        mapper = getattr(attributes, 'django_mapper', default_model_mapper)
+        mapper = getattr(attributes, "django_mapper", default_model_mapper)
         attributes.django_mapper = mapper
-        exclude = getattr(attributes, 'django_exclude', None)
-        optional_relations = getattr(attributes, 'django_optional_relations',
-                                     False)
-        spyne_attrs = mapper.map(attributes.django_model, exclude=exclude,
-                                 optional_relations=optional_relations)
+        exclude = getattr(attributes, "django_exclude", None)
+        optional_relations = getattr(attributes, "django_optional_relations", False)
+        spyne_attrs = mapper.map(
+            attributes.django_model, exclude=exclude, optional_relations=optional_relations
+        )
         spyne_attrs.update(attrs)
         return super_new(mcs, name, bases, spyne_attrs)
 
 
 @add_metaclass(DjangoComplexModelMeta)
 class DjangoComplexModel(ComplexModelBase):
-
     """Base class with Django model mapping support.
 
     Sample usage: ::
@@ -492,7 +492,6 @@ class DjangoComplexModel(ComplexModelBase):
 
 
 class ObjectNotFoundError(ResourceNotFoundError):
-
     """Fault constructed from `model.DoesNotExist` exception."""
 
     def __init__(self, does_not_exist_exc):
@@ -500,13 +499,10 @@ class ObjectNotFoundError(ResourceNotFoundError):
         message = str(does_not_exist_exc)
         object_name = message.split()[0]
         # we do not want to reuse initialization of ResourceNotFoundError
-        Fault.__init__(
-            self, faultcode='Client.{0}NotFound'.format(object_name),
-            faultstring=message)
+        Fault.__init__(self, faultcode=f"Client.{object_name}NotFound", faultstring=message)
 
 
 class ValidationError(BaseValidationError):
-
     """Fault constructed from `ValidationError` exception."""
 
     def __init__(self, validation_error_exc):
@@ -514,19 +510,18 @@ class ValidationError(BaseValidationError):
         message = str(validation_error_exc)
         # we do not want to reuse initialization of BaseValidationError
         Fault.__init__(
-            self, faultcode='Client.{0}'.format(
-                type(validation_error_exc).__name__), faultstring=message)
+            self, faultcode=f"Client.{type(validation_error_exc).__name__}", faultstring=message
+        )
 
 
 class DjangoService(Service):
-
     """Service with common Django exception handling."""
 
     @classmethod
     def call_wrapper(cls, ctx):
         """Handle common Django exceptions."""
         try:
-            out_object = super(DjangoService, cls).call_wrapper(ctx)
+            out_object = super().call_wrapper(ctx)
         except ObjectDoesNotExist as e:
             raise ObjectNotFoundError(e)
         except DjValidationError as e:

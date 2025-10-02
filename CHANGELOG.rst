@@ -57,7 +57,7 @@ spyne-2.13.3-alpha
 ------------------
 * Add support for sqlalchemy-1.2.
 * Implement _logged for @rpc.
-* Fix memory leak in ComplexModelBase.as_dict. 
+* Fix memory leak in ComplexModelBase.as_dict.
 * Switch to homegrown jenkins as test infrastructure. See
   https://jenkins.arskom.com.tr
 * Fix decimal totalDigits blunder.

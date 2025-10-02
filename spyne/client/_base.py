@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -23,7 +22,7 @@ from spyne.context import MethodContext
 from spyne.model.primitive import string_encoding
 
 
-class Factory(object):
+class Factory:
     def __init__(self, app):
         self.__app = app
 
@@ -31,7 +30,7 @@ class Factory(object):
         return self.__app.interface.get_class_instance(object_name)
 
 
-class RemoteService(object):
+class RemoteService:
     def __init__(self, rpc_class, url, app, *args, **kwargs):
         self.__app = app
         self.__url = url
@@ -41,11 +40,12 @@ class RemoteService(object):
         self.kwargs = kwargs
 
     def __getattr__(self, key):
-        return self.rpc_class(self.__url, self.__app, key, self.out_header,
-                                                    *self.args, **self.kwargs)
+        return self.rpc_class(
+            self.__url, self.__app, key, self.out_header, *self.args, **self.kwargs
+        )
 
 
-class RemoteProcedureBase(object):
+class RemoteProcedureBase:
     """Abstract base class that handles all (de)serialization.
 
     Child classes must implement the client transport in the __call__ method
@@ -67,8 +67,7 @@ class RemoteProcedureBase(object):
         initial_ctx.method_request_string = name
         initial_ctx.out_header = out_header
 
-        self.contexts = initial_ctx.out_protocol.generate_method_contexts(
-                                                                    initial_ctx)
+        self.contexts = initial_ctx.out_protocol.generate_method_contexts(initial_ctx)
 
     def __call__(self, *args, **kwargs):
         """Serializes its arguments, sends them, receives and deserializes the
@@ -110,16 +109,16 @@ class RemoteProcedureBase(object):
         ctx.out_protocol.serialize(ctx, ctx.out_protocol.REQUEST)
 
         if ctx.out_error is None:
-            ctx.fire_event('method_return_document')
+            ctx.fire_event("method_return_document")
         else:
-            ctx.fire_event('method_exception_document')
+            ctx.fire_event("method_exception_document")
 
         ctx.out_protocol.create_out_string(ctx, string_encoding)
 
         if ctx.out_error is None:
-            ctx.fire_event('method_return_string')
+            ctx.fire_event("method_return_string")
         else:
-            ctx.fire_event('method_exception_string')
+            ctx.fire_event("method_exception_string")
 
         if ctx.out_string is None:
             ctx.out_string = [""]
@@ -133,15 +132,13 @@ class RemoteProcedureBase(object):
         assert ctx.in_document is None
 
         self.app.in_protocol.create_in_document(ctx)
-        ctx.fire_event('method_accept_document')
+        ctx.fire_event("method_accept_document")
 
         # sets the ctx.in_body_doc and ctx.in_header_doc properties
-        self.app.in_protocol.decompose_incoming_envelope(ctx,
-                                          message=self.app.in_protocol.RESPONSE)
+        self.app.in_protocol.decompose_incoming_envelope(ctx, message=self.app.in_protocol.RESPONSE)
 
         # this sets ctx.in_object
-        self.app.in_protocol.deserialize(ctx,
-                                          message=self.app.in_protocol.RESPONSE)
+        self.app.in_protocol.deserialize(ctx, message=self.app.in_protocol.RESPONSE)
 
         type_info = ctx.descriptor.out_message._type_info
 
@@ -151,7 +148,7 @@ class RemoteProcedureBase(object):
             ctx.in_object = getattr(ctx.in_object, wrapper_attribute, None)
 
 
-class ClientBase(object):
+class ClientBase:
     """The base class for all client applications. ``self.service`` attribute
     should be initialized in the constructor of the child class.
     """
@@ -167,10 +164,11 @@ class ClientBase(object):
         :param soapheaders: A suds-compatible alias for out_header.
         """
 
-        if ('soapheaders' in kwargs) and ('out_header' in kwargs):
-            raise ValueError('you should specify only one of "soapheaders" or '
-                             '"out_header" keyword arguments.')
+        if ("soapheaders" in kwargs) and ("out_header" in kwargs):
+            raise ValueError(
+                'you should specify only one of "soapheaders" or "out_header" keyword arguments.'
+            )
 
-        self.service.out_header = kwargs.get('soapheaders', None)
+        self.service.out_header = kwargs.get("soapheaders", None)
         if self.service.out_header is None:
-            self.service.out_header = kwargs.get('out_header', None)
+            self.service.out_header = kwargs.get("out_header", None)

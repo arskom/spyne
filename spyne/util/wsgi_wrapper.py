@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -20,6 +19,7 @@
 """A Convenience module for wsgi wrapper routines."""
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import os
@@ -28,7 +28,7 @@ from spyne import Application
 from spyne.server.wsgi import WsgiApplication
 
 
-class WsgiMounter(object):
+class WsgiMounter:
     """Simple mounter object for wsgi callables. Takes a dict where the keys are
     uri fragments and values are :class:`spyne.application.Application`
     instances.
@@ -54,16 +54,16 @@ class WsgiMounter(object):
                 assert callable(v), "%r is not a valid wsgi app." % v
                 app = v
 
-            if k in ('', '/'):
+            if k in ("", "/"):
                 self.default = app
             else:
                 self.mounts[k] = app
 
     def __call__(self, environ, start_response):
-        path_info = environ.get('PATH_INFO', '')
-        fragments = [a for a in path_info.split('/') if len(a) > 0]
+        path_info = environ.get("PATH_INFO", "")
+        fragments = [a for a in path_info.split("/") if len(a) > 0]
 
-        script = ''
+        script = ""
         if len(fragments) > 0:
             script = fragments[0]
 
@@ -71,22 +71,22 @@ class WsgiMounter(object):
         if app is self.default:
             return app(environ, start_response)
 
-        original_script_name = environ.get('SCRIPT_NAME', '')
+        original_script_name = environ.get("SCRIPT_NAME", "")
 
         if len(script) > 0:
             script = "/" + script
-        environ['SCRIPT_NAME'] = ''.join(('/', original_script_name, script))
-        pi = ''.join(('/', '/'.join(fragments[1:])))
+        environ["SCRIPT_NAME"] = "".join(("/", original_script_name, script))
+        pi = "".join(("/", "/".join(fragments[1:])))
 
-        if pi == '/':
-            environ['PATH_INFO'] = ''
+        if pi == "/":
+            environ["PATH_INFO"] = ""
         else:
-            environ['PATH_INFO'] = pi
+            environ["PATH_INFO"] = pi
 
         return app(environ, start_response)
 
 
-def run_twisted(apps, port, static_dir='.', interface='0.0.0.0'):
+def run_twisted(apps, port, static_dir=".", interface="0.0.0.0"):
     """Twisted wrapper for the spyne.server.wsgi.WsgiApplication. Twisted can
     use one thread per request to run services, so code wrapped this way does
     not necessarily have to respect twisted way of doing things.

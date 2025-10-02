@@ -87,7 +87,7 @@ elt = get_object_as_xml_polymorphic(garage)
 print(etree.tostring(elt, pretty_print=True))
 
 # Output:
-""" 
+"""
 <tns:Garage xmlns:tns="https://spyne.io/examples/polymorphism" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <tns:vehicles>
     <tns:Vehicle xsi:type="tns:Car">

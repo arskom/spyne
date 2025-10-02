@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,6 +17,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from spyne.util import six
@@ -46,7 +46,7 @@ try:
     from urllib import splittype, splithost, quote, urlencode
     from urllib2 import urlopen, Request, HTTPError
 
-except ImportError: # Python 3
+except ImportError:  # Python 3
     import _thread as thread
 
     from urllib.parse import splittype, splithost, quote, urlencode
@@ -86,10 +86,12 @@ def sanitize_args(a):
 
 
 if six.PY2:
-    def _bytes_join(val, joiner=''):
+
+    def _bytes_join(val, joiner=""):
         return joiner.join(val)
 else:
-    def _bytes_join(val, joiner=b''):
+
+    def _bytes_join(val, joiner=b""):
         if isinstance(val, six.binary_type):
             return val
         return joiner.join(val)
@@ -97,7 +99,7 @@ else:
 
 def utf8(s):
     if isinstance(s, bytes):
-        return s.decode('utf8')
+        return s.decode("utf8")
 
     if isinstance(s, list):
         return [utf8(ss) for ss in s]

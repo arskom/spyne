@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -24,9 +23,8 @@ somewhat working state, it is not that easy to use. Expect a revamp in the
 coming versions.
 """
 
-from __future__ import absolute_import
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 import csv
@@ -42,11 +40,11 @@ else:
 
 
 def _complex_to_csv(prot, ctx):
-    cls, = ctx.descriptor.out_message._type_info.values()
+    (cls,) = ctx.descriptor.out_message._type_info.values()
 
     queue = StringIO()
 
-    serializer, = cls._type_info.values()
+    (serializer,) = cls._type_info.values()
 
     if issubclass(serializer, ComplexModelBase):
         type_info = serializer.get_flat_type_info(serializer)
@@ -58,7 +56,7 @@ def _complex_to_csv(prot, ctx):
 
     if ctx.out_error is not None:
         writer = csv.writer(queue, dialect=csv.excel)
-        writer.writerow(['Error in generating the document'])
+        writer.writerow(["Error in generating the document"])
         if ctx.out_error is not None:
             for r in ctx.out_error.to_bytes_iterable(ctx.out_error):
                 writer.writerow([r])
@@ -85,7 +83,7 @@ def _complex_to_csv(prot, ctx):
                 if six.PY2:
                     for k in d:
                         if isinstance(d[k], unicode):
-                            d[k] = d[k].encode('utf8')
+                            d[k] = d[k].encode("utf8")
 
                 writer.writerow(d)
                 yval = queue.getvalue()
@@ -94,20 +92,34 @@ def _complex_to_csv(prot, ctx):
 
 
 class Csv(HierDictDocument):
-    mime_type = 'text/csv'
+    mime_type = "text/csv"
     text_based = True
 
     type = set(HierDictDocument.type)
-    type.add('csv')
+    type.add("csv")
 
-    def __init__(self, app=None, validator=None, mime_type=None,
-            ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
-            ordered=False, polymorphic=False, header=True):
-
-        super(Csv, self).__init__(app=app, validator=validator,
-                        mime_type=mime_type, ignore_uncap=ignore_uncap,
-                        ignore_wrappers=ignore_wrappers, complex_as=complex_as,
-                        ordered=ordered, polymorphic=polymorphic)
+    def __init__(
+        self,
+        app=None,
+        validator=None,
+        mime_type=None,
+        ignore_uncap=False,
+        ignore_wrappers=True,
+        complex_as=dict,
+        ordered=False,
+        polymorphic=False,
+        header=True,
+    ):
+        super().__init__(
+            app=app,
+            validator=validator,
+            mime_type=mime_type,
+            ignore_uncap=ignore_uncap,
+            ignore_wrappers=ignore_wrappers,
+            complex_as=complex_as,
+            ordered=ordered,
+            polymorphic=polymorphic,
+        )
 
         self.header = header
 
@@ -115,22 +127,24 @@ class Csv(HierDictDocument):
         raise NotImplementedError()
 
     def serialize(self, ctx, message):
-        assert message in (self.RESPONSE, )
+        assert message in (self.RESPONSE,)
 
         if ctx.out_object is None:
             ctx.out_object = []
 
-        assert len(ctx.descriptor.out_message._type_info) == 1, \
-            "CSV Serializer supports functions with exactly one return type: " \
+        assert len(ctx.descriptor.out_message._type_info) == 1, (
+            "CSV Serializer supports functions with exactly one return type: "
             "%r" % ctx.descriptor.out_message._type_info
+        )
 
     def create_out_string(self, ctx):
         ctx.out_string = _complex_to_csv(self, ctx)
-        if 'http' in ctx.transport.type:
-            ctx.transport.resp_headers['Content-Disposition'] = (
-                           'attachment; filename=%s.csv;' % ctx.descriptor.name)
+        if "http" in ctx.transport.type:
+            ctx.transport.resp_headers["Content-Disposition"] = (
+                "attachment; filename=%s.csv;" % ctx.descriptor.name
+            )
 
     def any_uri_to_unicode(self, cls, value, **_):
         if isinstance(value, cls.Value):
             value = value.text
-        return super(Csv, self).any_uri_to_unicode(cls, value, **_)
+        return super().any_uri_to_unicode(cls, value, **_)

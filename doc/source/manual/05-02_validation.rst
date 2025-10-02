@@ -159,7 +159,7 @@ Spyne offers several primitives for this purpose. Please see the
 
 These primitives are:
 
-**validate_string** 
+**validate_string**
     invoked when the variable is extracted from the input XML data.
 **validate_native**
     invoked after the string is converted to a specific Python value.

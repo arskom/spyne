@@ -58,4 +58,3 @@ print(list(get_object_as_dict(SomeMapping(
     can_insert= True,
     can_update=True
 ), SomeMapping, ignore_wrappers=True, complex_as=list)))
-

@@ -74,7 +74,7 @@ Service ( HelloWorldService ) tns="spyne.helloworld"
 >>> res = cli.service.say_hello('justin', 5)
 >>> res
 (stringArray){
-   string[] = 
+   string[] =
       "Hello, justin",
       "Hello, justin",
       "Hello, justin",
@@ -85,7 +85,7 @@ Service ( HelloWorldService ) tns="spyne.helloworld"
 
 class HelloWorldService(Service):
     __namespace__ = tns
-    
+
     @rpc(String, Integer, _returns=Iterable(String))
     def say_hello(ctx, name, times):
         '''

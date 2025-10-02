@@ -1,4 +1,3 @@
-# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -31,7 +30,7 @@ class PrettyFormat(HtmlBase):
 
 class BooleanListProtocol(HtmlBase):
     def __init__(self, nothing=None):
-        super(BooleanListProtocol, self).__init__()
+        super().__init__()
 
         self.nothing = nothing
 

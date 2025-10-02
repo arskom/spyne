@@ -160,7 +160,7 @@ If we'd let the ``store_as()`` call out: ::
 ... the permissions field would not exist as far as SQLAlchemy is concerned.
 
 Calling ``store_as()`` is just a shortcut for calling
-``.customize(store_as='table')``\. 
+``.customize(store_as='table')``\.
 
 While the default is what appears to make most sense when defining such
 relations, it might not always be appropriate. Spyne offers the so-called
@@ -175,7 +175,7 @@ Using the :class:`spyne.model.complex.table` object, we change the
         permissions = Array(Permission).store_as(table(multi=True))
 
 In this case, Spyne takes care of creating a relation table with appropriate
-foreign key columns. 
+foreign key columns.
 
 We can also alter column names or the relation table name:
 

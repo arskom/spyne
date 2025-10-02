@@ -1,4 +1,3 @@
-# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,9 +16,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
@@ -29,8 +28,21 @@ from lxml import etree, html
 from lxml.builder import E
 
 from spyne.const.xml import NS_XSI, NS_SOAP11_ENV, SOAP11_ENV
-from spyne.model import PushBase, ComplexModelBase, AnyXml, Fault, AnyDict, \
-    AnyHtml, ModelBase, ByteArray, XmlData, Any, AnyUri, ImageUri, XmlAttribute
+from spyne.model import (
+    PushBase,
+    ComplexModelBase,
+    AnyXml,
+    Fault,
+    AnyDict,
+    AnyHtml,
+    ModelBase,
+    ByteArray,
+    XmlData,
+    Any,
+    AnyUri,
+    ImageUri,
+    XmlAttribute,
+)
 
 from spyne.model.enum import EnumBase
 from spyne.protocol import OutProtocolBase
@@ -44,30 +56,32 @@ from spyne.util.six import string_types
 
 
 class ToParentMixin(OutProtocolBase):
-    def __init__(self, app=None, mime_type=None, ignore_uncap=False,
-                                       ignore_wrappers=False, polymorphic=True):
-        super(ToParentMixin, self).__init__(app=app, mime_type=mime_type,
-                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers)
+    def __init__(
+        self, app=None, mime_type=None, ignore_uncap=False, ignore_wrappers=False, polymorphic=True
+    ):
+        super().__init__(
+            app=app, mime_type=mime_type, ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers
+        )
 
         self.polymorphic = polymorphic
         self.use_global_null_handler = True
 
-        self.serialization_handlers = cdict({
-            ModelBase: self.model_base_to_parent,
-
-            AnyXml: self.any_xml_to_parent,
-            AnyUri: self.any_uri_to_parent,
-            ImageUri: self.imageuri_to_parent,
-            AnyDict: self.any_dict_to_parent,
-            AnyHtml: self.any_html_to_parent,
-            Any: self.any_to_parent,
-
-            Fault: self.fault_to_parent,
-            EnumBase: self.enum_to_parent,
-            ByteArray: self.byte_array_to_parent,
-            ComplexModelBase: self.complex_to_parent,
-            SchemaValidationError: self.schema_validation_error_to_parent,
-        })
+        self.serialization_handlers = cdict(
+            {
+                ModelBase: self.model_base_to_parent,
+                AnyXml: self.any_xml_to_parent,
+                AnyUri: self.any_uri_to_parent,
+                ImageUri: self.imageuri_to_parent,
+                AnyDict: self.any_dict_to_parent,
+                AnyHtml: self.any_html_to_parent,
+                Any: self.any_to_parent,
+                Fault: self.fault_to_parent,
+                EnumBase: self.enum_to_parent,
+                ByteArray: self.byte_array_to_parent,
+                ComplexModelBase: self.complex_to_parent,
+                SchemaValidationError: self.schema_validation_error_to_parent,
+            }
+        )
 
     def start_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         """This is what subserialize calls"""
@@ -81,8 +95,7 @@ class ToParentMixin(OutProtocolBase):
     @staticmethod
     def get_subprot(ctx, cls_attrs, nosubprot=False):
         subprot = cls_attrs.prot
-        if subprot is not None and not nosubprot and not \
-                                           (subprot in ctx.protocol.prot_stack):
+        if subprot is not None and not nosubprot and not (subprot in ctx.protocol.prot_stack):
             return subprot
         return None
 
@@ -109,12 +122,10 @@ class ToParentMixin(OutProtocolBase):
         subprot = self.get_subprot(ctx, cls_attrs, nosubprot)
         if subprot is not None:
             logger.debug("Subprot from %r to %r", self, subprot)
-            ret = self.to_subprot(ctx, cls, inst, parent, name, subprot,
-                                                                       **kwargs)
+            ret = self.to_subprot(ctx, cls, inst, parent, name, subprot, **kwargs)
         else:
             # if there is a class cloth, switch to it
-            has_cloth, cor_handle = self.check_class_cloths(ctx, cls, inst,
-                                                         parent, name, **kwargs)
+            has_cloth, cor_handle = self.check_class_cloths(ctx, cls, inst, parent, name, **kwargs)
             if has_cloth:
                 ret = cor_handle
 
@@ -131,9 +142,10 @@ class ToParentMixin(OutProtocolBase):
                 # if instance is still None, use the global null handler to
                 # serialize it
                 if inst is None and self.use_global_null_handler:
-                    identifier = prot_name + '.null_to_parent'
-                    logger.debug("Writing %s using %s for %s.", name,
-                                                identifier, cls.get_type_name())
+                    identifier = prot_name + ".null_to_parent"
+                    logger.debug(
+                        "Writing %s using %s for %s.", name, identifier, cls.get_type_name()
+                    )
                     self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
                     return
@@ -144,12 +156,11 @@ class ToParentMixin(OutProtocolBase):
 
                 # if cls is an iterable of values and it's not being iterated
                 # on, do it
-                from_arr = kwargs.get('from_arr', False)
+                from_arr = kwargs.get("from_arr", False)
                 # we need cls.Attributes here because we need the ACTUAL attrs
                 # that were set by the Array.__new__
                 if not from_arr and cls.Attributes.max_occurs > 1:
-                    ret = self.array_to_parent(ctx, cls, inst, parent, name,
-                                                                       **kwargs)
+                    ret = self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
                 else:
                     # fetch the serializer for the class at hand
                     try:
@@ -162,17 +173,15 @@ class ToParentMixin(OutProtocolBase):
                             return  # ignore it if requested
 
                         # raise the error otherwise
-                        logger.error("%r is missing handler for "
-                                             "%r for field %r", self, cls, name)
+                        logger.error("%r is missing handler for %r for field %r", self, cls, name)
                         raise
 
                     # push the instance at hand to instance stack. this makes it
                     # easier for protocols to make decisions based on parents
                     # of instances at hand.
-                    ctx.outprot_ctx.inst_stack.append( (cls, inst, from_arr) )
+                    ctx.outprot_ctx.inst_stack.append((cls, inst, from_arr))
                     pushed = True
-                    logger.debug("%s %r pushed %r using %r",
-                                                     R("$"), self, cls, handler)
+                    logger.debug("%s %r pushed %r using %r", R("$"), self, cls, handler)
 
                     # disabled for performance reasons
                     # from spyne.util.web import log_repr
@@ -188,7 +197,7 @@ class ToParentMixin(OutProtocolBase):
         if isgenerator(ret):
             try:
                 while True:
-                    sv2 = (yield)
+                    sv2 = yield
                     ret.send(sv2)
 
             except Break as e:
@@ -203,8 +212,7 @@ class ToParentMixin(OutProtocolBase):
                         self._close_cloth(ctx, parent)
 
                     if pushed:
-                        logger.debug("%s %r popped %r %r", B("$"), self, cls,
-                                                                           inst)
+                        logger.debug("%s %r popped %r %r", B("$"), self, cls, inst)
                         ctx.outprot_ctx.inst_stack.pop()
 
         else:
@@ -232,16 +240,15 @@ class ToParentMixin(OutProtocolBase):
 
             try:
                 while True:
-                    sv = (yield)
+                    sv = yield
 
                     # disabled because to_parent is supposed to take care of this
-                    #ctx.protocol.inst_stack.append((cls, sv, True))
-                    kwargs['from_arr'] = True
-                    kwargs['array_index'] = i
+                    # ctx.protocol.inst_stack.append((cls, sv, True))
+                    kwargs["from_arr"] = True
+                    kwargs["array_index"] = i
 
                     if ser_subprot is not None:
-                        ser_subprot.column_table_before_row(ctx, cls, inst,
-                                                         parent, name, **kwargs)
+                        ser_subprot.column_table_before_row(ctx, cls, inst, parent, name, **kwargs)
 
                     ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
 
@@ -249,7 +256,7 @@ class ToParentMixin(OutProtocolBase):
                     if isgenerator(ret):
                         try:
                             while True:
-                                sv2 = (yield)
+                                sv2 = yield
                                 ret.send(sv2)
 
                         except Break as e:
@@ -260,43 +267,44 @@ class ToParentMixin(OutProtocolBase):
 
                         finally:
                             # disabled because to_parent is supposed to take care of this
-                            #popped_val = ctx.protocol.inst_stack.pop()
-                            #assert popped_val is sv
+                            # popped_val = ctx.protocol.inst_stack.pop()
+                            # assert popped_val is sv
 
                             if ser_subprot is not None:
-                                ser_subprot.column_table_before_row(ctx, cls,
-                                                   inst, parent, name, **kwargs)
+                                ser_subprot.column_table_before_row(
+                                    ctx, cls, inst, parent, name, **kwargs
+                                )
                     else:
                         # disabled because to_parent is supposed to take care of this
-                        #popped_val = ctx.protocol.inst_stack.pop()
-                        #assert popped_val is sv
+                        # popped_val = ctx.protocol.inst_stack.pop()
+                        # assert popped_val is sv
 
                         if ser_subprot is not None:
-                            ser_subprot.column_table_after_row(ctx, cls, inst,
-                                                         parent, name, **kwargs)
+                            ser_subprot.column_table_after_row(
+                                ctx, cls, inst, parent, name, **kwargs
+                            )
 
             except Break:
                 # pusher is done with pushing
                 pass
 
         else:
-            assert isinstance(inst, Iterable), ("%r is not iterable" % (inst,))
+            assert isinstance(inst, Iterable), "%r is not iterable" % (inst,)
 
             for i, sv in enumerate(inst):
                 # disabled because to_parent is supposed to take care of this
-                #ctx.protocol.inst_stack.append((cls, sv, True)
-                kwargs['from_arr'] = True
-                kwargs['array_index'] = i
+                # ctx.protocol.inst_stack.append((cls, sv, True)
+                kwargs["from_arr"] = True
+                kwargs["array_index"] = i
 
                 if ser_subprot is not None:
-                    ser_subprot.column_table_before_row(ctx, cls, inst, parent,
-                                                                 name, **kwargs)
+                    ser_subprot.column_table_before_row(ctx, cls, inst, parent, name, **kwargs)
 
                 ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
-                            sv2 = (yield)
+                            sv2 = yield
                             ret.send(sv2)
 
                     except Break as e:
@@ -307,21 +315,21 @@ class ToParentMixin(OutProtocolBase):
 
                     finally:
                         # disabled because to_parent is supposed to take care of this
-                        #popped_val = ctx.protocol.inst_stack.pop()
-                        #assert popped_val is sv
+                        # popped_val = ctx.protocol.inst_stack.pop()
+                        # assert popped_val is sv
 
                         if ser_subprot is not None:
-                            ser_subprot.column_table_after_row(ctx, cls, inst,
-                                                         parent, name, **kwargs)
+                            ser_subprot.column_table_after_row(
+                                ctx, cls, inst, parent, name, **kwargs
+                            )
 
                 else:
                     # disabled because to_parent is supposed to take care of this
-                    #popped_val = ctx.protocol.inst_stack.pop()
-                    #assert popped_val is sv
+                    # popped_val = ctx.protocol.inst_stack.pop()
+                    # assert popped_val is sv
 
                     if ser_subprot is not None:
-                        ser_subprot.column_table_after_row(ctx, cls, inst,
-                                                         parent, name, **kwargs)
+                        ser_subprot.column_table_after_row(ctx, cls, inst, parent, name, **kwargs)
 
     def not_supported(self, ctx, cls, *args, **kwargs):
         if not self.ignore_uncap:
@@ -340,7 +348,7 @@ class ToParentMixin(OutProtocolBase):
         parent.write(E(name, self.to_unicode(cls, inst)))
 
     def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        parent.write(E(name, **{'{%s}nil' % NS_XSI: 'true'}))
+        parent.write(E(name, **{"{%s}nil" % NS_XSI: "true"}))
 
     def enum_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         self.model_base_to_parent(ctx, cls, str(inst), parent, name)
@@ -432,12 +440,11 @@ class ToParentMixin(OutProtocolBase):
                 continue
 
             if subvalue is not None or attr.min_occurs > 0:
-                ret = self.to_parent(ctx, v, subvalue, parent, sub_name,
-                                                        use_ns=use_ns, **kwargs)
+                ret = self.to_parent(ctx, v, subvalue, parent, sub_name, use_ns=use_ns, **kwargs)
                 if ret is not None:
                     try:
                         while True:
-                            sv2 = (yield)
+                            sv2 = yield
                             ret.send(sv2)
                     except Break as b:
                         try:
@@ -454,7 +461,7 @@ class ToParentMixin(OutProtocolBase):
         if ret is not None:
             try:
                 while True:
-                    sv2 = (yield)  # may throw Break
+                    sv2 = yield  # may throw Break
                     ret.send(sv2)
 
             except Break:
@@ -463,27 +470,24 @@ class ToParentMixin(OutProtocolBase):
                 except StopIteration:
                     pass
 
-    def complex_to_parent(self, ctx, cls, inst, parent, name,
-                                         from_arr=False, use_ns=None, **kwargs):
+    def complex_to_parent(
+        self, ctx, cls, inst, parent, name, from_arr=False, use_ns=None, **kwargs
+    ):
         if not from_arr:
             inst = cls.get_serialization_instance(inst)
 
         attrib = self._gen_attrib_dict(inst, cls.get_flat_type_info(cls))
 
         if self.skip_root_tag:
-            self._complex_to_parent_do(ctx, cls, inst, parent,
-                                                    from_arr=from_arr, **kwargs)
+            self._complex_to_parent_do(ctx, cls, inst, parent, from_arr=from_arr, **kwargs)
 
         else:
-            if name is None or name == '':
-                name = self._gen_sub_name(cls, self.get_cls_attrs(cls),
-                                                    cls.get_type_name(), use_ns)
-                logger.debug("name is empty, long live name: %s, cls: %r",
-                                                                      name, cls)
+            if name is None or name == "":
+                name = self._gen_sub_name(cls, self.get_cls_attrs(cls), cls.get_type_name(), use_ns)
+                logger.debug("name is empty, long live name: %s, cls: %r", name, cls)
 
             with parent.element(name, attrib=attrib):
-                self._complex_to_parent_do(ctx, cls, inst, parent,
-                                                    from_arr=from_arr, **kwargs)
+                self._complex_to_parent_do(ctx, cls, inst, parent, from_arr=from_arr, **kwargs)
 
     def fault_to_parent(self, ctx, cls, inst, parent, name):
         PREF_SOAP_ENV = ctx.app.interface.prefmap[NS_SOAP11_ENV]
@@ -491,7 +495,7 @@ class ToParentMixin(OutProtocolBase):
 
         with parent.element(tag_name):
             parent.write(
-                E("faultcode", '%s:%s' % (PREF_SOAP_ENV, inst.faultcode)),
+                E("faultcode", "%s:%s" % (PREF_SOAP_ENV, inst.faultcode)),
                 E("faultstring", inst.faultstring),
                 E("faultactor", inst.faultactor),
             )
@@ -510,7 +514,7 @@ class ToParentMixin(OutProtocolBase):
 
         with parent.element(tag_name):
             parent.write(
-                E("faultcode", '%s:%s' % (PREF_SOAP_ENV, inst.faultcode)),
+                E("faultcode", "%s:%s" % (PREF_SOAP_ENV, inst.faultcode)),
                 # HACK: Does anyone know a better way of injecting raw xml entities?
                 E("faultstring", html.fromstring(inst.faultstring).text),
                 E("faultactor", inst.faultactor),

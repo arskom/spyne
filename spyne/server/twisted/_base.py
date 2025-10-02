@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -25,7 +24,7 @@ from zope.interface import implementer
 
 
 @implementer(IPullProducer)
-class Producer(object):
+class Producer:
     deferred = None
 
     def __init__(self, body, consumer):
@@ -33,7 +32,7 @@ class Producer(object):
 
         # check to see if we can determine the length
         try:
-            len(body) # iterator?
+            len(body)  # iterator?
             self.length = sum([len(fragment) for fragment in body])
             self.body = iter(body)
 
@@ -63,17 +62,17 @@ class Producer(object):
 
     def stopProducing(self):
         if self.deferred is not None:
-            self.deferred.errback(
-                               Exception("Consumer asked us to stop producing"))
+            self.deferred.errback(Exception("Consumer asked us to stop producing"))
         self.deferred = None
 
 
 from spyne import Address
-_TYPE_MAP = {'TCP': Address.TCP4, 'TCP6': Address.TCP6,
-             'UDP': Address.UDP4, 'UDP6': Address.UDP6}
+
+_TYPE_MAP = {"TCP": Address.TCP4, "TCP6": Address.TCP6, "UDP": Address.UDP4, "UDP6": Address.UDP6}
+
 
 def _address_from_twisted_address(peer):
-    return Address(
-            type=_TYPE_MAP.get(peer.type, None), host=peer.host, port=peer.port)
+    return Address(type=_TYPE_MAP.get(peer.type, None), host=peer.host, port=peer.port)
+
 
 Address.from_twisted_address = staticmethod(_address_from_twisted_address)

@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,7 +17,8 @@
 #
 
 import logging
-logger = logging.getLogger('.'.join(__name__.split(".")[:-1]))
+
+logger = logging.getLogger(".".join(__name__.split(".")[:-1]))
 
 import os
 import shutil
@@ -33,8 +33,17 @@ from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 from spyne.util.toposort import toposort2
 
-from spyne.model import SimpleModel, ByteArray, ComplexModelBase, Fault, \
-    Decimal, DateTime, Date, Time, Unicode
+from spyne.model import (
+    SimpleModel,
+    ByteArray,
+    ComplexModelBase,
+    Fault,
+    Decimal,
+    DateTime,
+    Date,
+    Time,
+    Unicode,
+)
 from spyne.model.enum import EnumBase
 from spyne.interface import InterfaceDocumentBase
 
@@ -49,24 +58,28 @@ from spyne.interface.xml_schema.model import unicode_get_restriction_tag
 from spyne.interface.xml_schema.model import Tget_range_restriction_tag
 
 
-_add_handlers = cdict({
-    object: lambda interface, cls, tags: None,
-    ByteArray: byte_array_add,
-    SimpleModel: simple_add,
-    ComplexModelBase: complex_add,
-    Fault: fault_add,
-    EnumBase: enum_add,
-})
+_add_handlers = cdict(
+    {
+        object: lambda interface, cls, tags: None,
+        ByteArray: byte_array_add,
+        SimpleModel: simple_add,
+        ComplexModelBase: complex_add,
+        Fault: fault_add,
+        EnumBase: enum_add,
+    }
+)
 
-_get_restriction_tag_handlers = cdict({
-    object: lambda self, cls: None,
-    SimpleModel: simple_get_restriction_tag,
-    Unicode: unicode_get_restriction_tag,
-    Decimal: Tget_range_restriction_tag(Decimal),
-    DateTime: Tget_range_restriction_tag(DateTime),
-    Time: Tget_range_restriction_tag(Time),
-    Date: Tget_range_restriction_tag(Date),
-})
+_get_restriction_tag_handlers = cdict(
+    {
+        object: lambda self, cls: None,
+        SimpleModel: simple_get_restriction_tag,
+        Unicode: unicode_get_restriction_tag,
+        Decimal: Tget_range_restriction_tag(Decimal),
+        DateTime: Tget_range_restriction_tag(DateTime),
+        Time: Tget_range_restriction_tag(Time),
+        Date: Tget_range_restriction_tag(Date),
+    }
+)
 
 _ns_xsd = ns.NS_XSD
 _ns_wsa = ns.NS_WSA
@@ -75,7 +88,7 @@ _ns_soap = ns.NS_WSDL11_SOAP
 _pref_wsa = ns.PREFMAP[_ns_wsa]
 
 
-class SchemaInfo(object):
+class SchemaInfo:
     def __init__(self):
         self.elements = odict()
         self.types = odict()
@@ -103,11 +116,11 @@ class XmlSchema(InterfaceDocumentBase):
             class.
     """
 
-    def __init__(self, interface, element_form_default='qualified'):
-        super(XmlSchema, self).__init__(interface)
+    def __init__(self, interface, element_form_default="qualified"):
+        super().__init__(interface)
 
         self.element_form_default = element_form_default
-        assert element_form_default in ('qualified', 'unqualified')
+        assert element_form_default in ("qualified", "unqualified")
 
         self.schema_dict = {}
         self.validation_schema = None
@@ -140,17 +153,16 @@ class XmlSchema(InterfaceDocumentBase):
 
             # append import tags
             for namespace in self.interface.imports[self.interface.nsmap[pref]]:
-                import_ = etree.SubElement(schema, ns.XSD('import'))
+                import_ = etree.SubElement(schema, ns.XSD("import"))
 
                 import_.set("namespace", namespace)
                 import_pref = self.interface.get_namespace_prefix(namespace)
-                if with_schema_location and \
-                                        self.namespaces.get(import_pref, False):
-                    import_.set('schemaLocation', "%s.xsd" % import_pref)
+                if with_schema_location and self.namespaces.get(import_pref, False):
+                    import_.set("schemaLocation", "%s.xsd" % import_pref)
 
                 sl = ns.schema_location.get(namespace, None)
                 if not (sl is None):
-                    import_.set('schemaLocation', sl)
+                    import_.set("schemaLocation", sl)
 
             # append simpleType and complexType tags
             for node in self.namespaces[pref].types.values():
@@ -162,8 +174,8 @@ class XmlSchema(InterfaceDocumentBase):
 
         self.add_missing_elements_for_methods()
 
-        self.event_manager.fire_event('document_built', self)
-        self.event_manager.fire_event('xml_document_built', self)
+        self.event_manager.fire_event("document_built", self)
+        self.event_manager.fire_event("xml_document_built", self)
 
     def add_missing_elements_for_methods(self):
         def missing_methods():
@@ -182,10 +194,9 @@ class XmlSchema(InterfaceDocumentBase):
                 name = method.in_message.get_type_name()
 
             if not name in elements:
-                element = etree.Element(ns.XSD('element'))
-                element.set('name', name)
-                element.set('type', method.in_message.get_type_name_ns(
-                                                                self.interface))
+                element = etree.Element(ns.XSD("element"))
+                element.set("name", name)
+                element.set("type", method.in_message.get_type_name_ns(self.interface))
                 elements[name] = element
                 schema_root.append(element)
 
@@ -194,10 +205,9 @@ class XmlSchema(InterfaceDocumentBase):
                 if name is None:
                     name = method.out_message.get_type_name()
                 if not name in elements:
-                    element = etree.Element(ns.XSD('element'))
-                    element.set('name', name)
-                    element.set('type', method.out_message \
-                                              .get_type_name_ns(self.interface))
+                    element = etree.Element(ns.XSD("element"))
+                    element.set("name", name)
+                    element.set("type", method.out_message.get_type_name_ns(self.interface))
                     elements[name] = element
                     schema_root.append(element)
 
@@ -207,30 +217,33 @@ class XmlSchema(InterfaceDocumentBase):
         self.build_schema_nodes(with_schema_location=True)
 
         pref_tns = self.interface.get_namespace_prefix(self.interface.tns)
-        tmp_dir_name = tempfile.mkdtemp(prefix='spyne')
-        logger.debug("generating schema for targetNamespace=%r, prefix: "
-                  "%r in dir %r" % (self.interface.tns, pref_tns, tmp_dir_name))
+        tmp_dir_name = tempfile.mkdtemp(prefix="spyne")
+        logger.debug(
+            "generating schema for targetNamespace=%r, prefix: "
+            "%r in dir %r" % (self.interface.tns, pref_tns, tmp_dir_name)
+        )
 
         try:
             # serialize nodes to files
             for k, v in self.schema_dict.items():
                 file_name = os.path.join(tmp_dir_name, "%s.xsd" % k)
-                with open(file_name, 'wb') as f:
+                with open(file_name, "wb") as f:
                     etree.ElementTree(v).write(f, pretty_print=True)
 
-                logger.debug("writing %r for ns %s" %
-                             (file_name, self.interface.nsmap[k]))
+                logger.debug("writing %r for ns %s" % (file_name, self.interface.nsmap[k]))
 
-            with open(os.path.join(tmp_dir_name, "%s.xsd" % pref_tns), 'r') as f:
+            with open(os.path.join(tmp_dir_name, "%s.xsd" % pref_tns)) as f:
                 try:
                     self.validation_schema = etree.XMLSchema(etree.parse(f))
 
                 except Exception:
                     f.seek(0)
-                    logger.error("This could be a Spyne error. Unless you're "
-                                 "sure the reason for this error is outside "
-                                 "Spyne, please open a new issue with a "
-                                 "minimal test case that reproduces it.")
+                    logger.error(
+                        "This could be a Spyne error. Unless you're "
+                        "sure the reason for this error is outside "
+                        "Spyne, please open a new issue with a "
+                        "minimal test case that reproduces it."
+                    )
                     raise
 
             shutil.rmtree(tmp_dir_name)
@@ -245,8 +258,7 @@ class XmlSchema(InterfaceDocumentBase):
         """Return schema node for the given namespace prefix."""
 
         if not (pref in self.schema_dict):
-            schema = etree.Element(ns.XSD('schema'),
-                                                     nsmap=self.interface.nsmap)
+            schema = etree.Element(ns.XSD("schema"), nsmap=self.interface.nsmap)
 
             schema.set("targetNamespace", self.interface.nsmap[pref])
             schema.set("elementFormDefault", self.element_form_default)

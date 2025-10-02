@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -24,6 +23,7 @@ executed.
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from spyne import AuxMethodContext
@@ -38,7 +38,7 @@ def process_contexts(server, contexts, p_ctx, error=None):
             ctx.descriptor.aux.process_context(server, ctx)
 
 
-class AuxProcBase(object):
+class AuxProcBase:
     def __init__(self, process_exceptions=False):
         """Abstract Base class shared by all AuxProcs.
 

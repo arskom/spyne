@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,6 +17,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import re
@@ -28,8 +28,17 @@ from collections import defaultdict
 from spyne.util import six
 from spyne.error import ValidationError
 
-from spyne.model import ByteArray, String, File, ComplexModelBase, Array, \
-    SimpleModel, Any, AnyDict, Unicode
+from spyne.model import (
+    ByteArray,
+    String,
+    File,
+    ComplexModelBase,
+    Array,
+    SimpleModel,
+    Any,
+    AnyDict,
+    Unicode,
+)
 
 from spyne.protocol.dictdoc import DictDocument
 
@@ -81,13 +90,27 @@ class SimpleDictDocument(DictDocument):
     flat dictionaries. The only example as of now is Http.
     """
 
-    def __init__(self, app=None, validator=None, mime_type=None,
-                 ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
-                            ordered=False, hier_delim='.', strict_arrays=False):
-        super(SimpleDictDocument, self).__init__(app=app, validator=validator,
-                        mime_type=mime_type, ignore_uncap=ignore_uncap,
-                        ignore_wrappers=ignore_wrappers, complex_as=complex_as,
-                                                                ordered=ordered)
+    def __init__(
+        self,
+        app=None,
+        validator=None,
+        mime_type=None,
+        ignore_uncap=False,
+        ignore_wrappers=True,
+        complex_as=dict,
+        ordered=False,
+        hier_delim=".",
+        strict_arrays=False,
+    ):
+        super().__init__(
+            app=app,
+            validator=validator,
+            mime_type=mime_type,
+            ignore_uncap=ignore_uncap,
+            ignore_wrappers=ignore_wrappers,
+            complex_as=complex_as,
+            ordered=ordered,
+        )
 
         self.hier_delim = hier_delim
         self.strict_arrays = strict_arrays
@@ -98,10 +121,13 @@ class SimpleDictDocument(DictDocument):
         for v2 in v:
             # some wsgi implementations pass unicode strings, some pass str
             # strings. we get unicode here when we can and should.
-            if v2 is not None and req_enc is not None \
-                                    and not issubclass(member.type, String) \
-                                    and issubclass(member.type, Unicode) \
-                                    and not isinstance(v2, six.text_type):
+            if (
+                v2 is not None
+                and req_enc is not None
+                and not issubclass(member.type, String)
+                and issubclass(member.type, Unicode)
+                and not isinstance(v2, six.text_type)
+            ):
                 try:
                     v2 = v2.decode(req_enc)
                 except UnicodeDecodeError as e:
@@ -109,8 +135,9 @@ class SimpleDictDocument(DictDocument):
 
             # validate raw data (before deserialization)
             try:
-                if (validator is self.SOFT_VALIDATION and not
-                                  member.type.validate_string(member.type, v2)):
+                if validator is self.SOFT_VALIDATION and not member.type.validate_string(
+                    member.type, v2
+                ):
                     raise ValidationError([orig_k, v2])
 
             except TypeError:
@@ -124,19 +151,18 @@ class SimpleDictDocument(DictDocument):
                 if isinstance(v2, File.Value):
                     native_v2 = v2
                 else:
-                    native_v2 = self.from_unicode(member.type, v2,
-                                                           self.binary_encoding)
+                    native_v2 = self.from_unicode(member.type, v2, self.binary_encoding)
 
             elif issubclass(member.type, ByteArray):
-                native_v2 = self.from_unicode(member.type, v2,
-                                                           self.binary_encoding)
+                native_v2 = self.from_unicode(member.type, v2, self.binary_encoding)
             else:
                 try:
                     native_v2 = self.from_unicode(member.type, v2)
                 except ValidationError as e:
                     ns = "%s.%s" % (cls.get_namespace(), cls.get_type_name())
-                    raise ValidationError(e.faultstring,
-                                  "Validation failed for %s.%s: %%s" % (ns, k))
+                    raise ValidationError(
+                        e.faultstring, "Validation failed for %s.%s: %%s" % (ns, k)
+                    )
 
             # validate native data (after deserialization)
             native_v2 = self._sanitize(cls_attrs, native_v2)
@@ -158,10 +184,12 @@ class SimpleDictDocument(DictDocument):
             return doc
 
         if not issubclass(cls, ComplexModelBase):
-            raise NotImplementedError("Interestingly, deserializing non complex"
-                                      " types is not yet implemented. You can"
-                                      " use a ComplexModel to wrap that field."
-                                      " Otherwise, patches are welcome.")
+            raise NotImplementedError(
+                "Interestingly, deserializing non complex"
+                " types is not yet implemented. You can"
+                " use a ComplexModel to wrap that field."
+                " Otherwise, patches are welcome."
+            )
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
@@ -174,8 +202,7 @@ class SimpleDictDocument(DictDocument):
         else:
             retval = cls.get_deserialization_instance(ctx)
 
-        simple_type_info = cls.get_simple_type_info_with_prot(cls, self,
-                                                     hier_delim=self.hier_delim)
+        simple_type_info = cls.get_simple_type_info_with_prot(cls, self, hier_delim=self.hier_delim)
 
         logger.debug("Simple type info key: %r", simple_type_info.keys())
 
@@ -189,7 +216,7 @@ class SimpleDictDocument(DictDocument):
                 continue
 
             if member.can_be_empty:
-                if v != ['empty']:  # maybe raise a ValidationError instead?
+                if v != ["empty"]:  # maybe raise a ValidationError instead?
                     # 'empty' is the only valid value at this point after all
                     continue
 
@@ -208,9 +235,7 @@ class SimpleDictDocument(DictDocument):
             else:
                 # extract native values from the list of strings in the flat dict
                 # entries.
-                value = self._to_native_values(cls, member, orig_k, k, v,
-                                                             req_enc, validator)
-
+                value = self._to_native_values(cls, member, orig_k, k, v, req_enc, validator)
 
             # assign the native value to the relevant class in the nested object
             # structure.
@@ -230,7 +255,7 @@ class SimpleDictDocument(DictDocument):
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
                 nattrs = self.get_cls_attrs(ncls)
                 if issubclass(ncls, Array):
-                    ncls, = ncls._type_info.values()
+                    (ncls,) = ncls._type_info.values()
 
                 ncls_attrs = self.get_cls_attrs(ncls)
                 mo = ncls_attrs.max_occurs
@@ -251,8 +276,7 @@ class SimpleDictDocument(DictDocument):
                             frequencies[cfreq_key][pkey] += 1
 
                         if nidx > len(ninst):
-                            raise ValidationError(orig_k,
-                                            "%%r Invalid array index %d." % idx)
+                            raise ValidationError(orig_k, "%%r Invalid array index %d." % idx)
                         if nidx == len(ninst):
                             ninst.append(ncls.get_deserialization_instance(ctx))
                             frequencies[cfreq_key][pkey] += 1
@@ -290,22 +314,18 @@ class SimpleDictDocument(DictDocument):
                 _v = getattr(cinst, member.path[-1], None)
                 is_set = True
                 if _v is None:
-                    is_set = cinst._safe_set(member.path[-1], value,
-                                                      member.type, member_attrs)
+                    is_set = cinst._safe_set(member.path[-1], value, member.type, member_attrs)
                 else:
                     _v.extend(value)
 
-                set_skip = 'set ' if is_set else 'SKIP'
-                logger.debug("\t%s arr %r(%r) = %r" %
-                                           (set_skip, member.path, pkey, value))
+                set_skip = "set " if is_set else "SKIP"
+                logger.debug("\t%s arr %r(%r) = %r" % (set_skip, member.path, pkey, value))
 
             else:
-                is_set = cinst._safe_set(member.path[-1], value[0],
-                                                      member.type, member_attrs)
+                is_set = cinst._safe_set(member.path[-1], value[0], member.type, member_attrs)
 
-                set_skip = 'set ' if is_set else 'SKIP'
-                logger.debug("\t%s val %r(%r) = %r" %
-                                        (set_skip, member.path, pkey, value[0]))
+                set_skip = "set " if is_set else "SKIP"
+                logger.debug("\t%s val %r(%r) = %r" % (set_skip, member.path, pkey, value[0]))
 
         if validator is self.SOFT_VALIDATION:
             logger.debug("\tvalidate_freq: \n%r", frequencies)
@@ -313,7 +333,7 @@ class SimpleDictDocument(DictDocument):
                 for i, path_cls in enumerate(k[:-1:2]):
                     attrs = self.get_cls_attrs(path_cls)
                     if not attrs.validate_freq:
-                        logger.debug("\t\tskip validate_freq: %r", k[:i*2])
+                        logger.debug("\t\tskip validate_freq: %r", k[: i * 2])
                         break
                 else:
                     path_cls = k[-2]
@@ -322,13 +342,14 @@ class SimpleDictDocument(DictDocument):
 
         if issubclass(cls, Array):
             # unwrap the request object
-            array_name, = cls._type_info.keys()
+            (array_name,) = cls._type_info.keys()
             retval = getattr(retval, array_name)
 
         return retval
 
-    def object_to_simple_dict(self, cls, inst, retval=None,
-                   prefix=None, subinst_eater=lambda prot, v, t: v, tags=None):
+    def object_to_simple_dict(
+        self, cls, inst, retval=None, prefix=None, subinst_eater=lambda prot, v, t: v, tags=None
+    ):
         """Converts a native python object to a flat dict.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -361,10 +382,9 @@ class SimpleDictDocument(DictDocument):
                 new_prefix.append(sub_name)
                 subinst = getattr(inst, k, None)
 
-                if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
-                                                            subinst is not None:
+                if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and subinst is not None:
                     if issubclass(v, Array):
-                        subtype, = v._type_info.values()
+                        (subtype,) = v._type_info.values()
                     else:
                         subtype = v
 
@@ -382,25 +402,30 @@ class SimpleDictDocument(DictDocument):
                         last_prefix = new_prefix[-1]
                         i = -1
                         for i, ssv in enumerate(subinst):
-                            new_prefix[-1] = '%s[%d]' % (last_prefix, i)
-                            self.object_to_simple_dict(subtype, ssv,
-                                    retval, new_prefix,
-                                         subinst_eater=subinst_eater, tags=tags)
+                            new_prefix[-1] = "%s[%d]" % (last_prefix, i)
+                            self.object_to_simple_dict(
+                                subtype,
+                                ssv,
+                                retval,
+                                new_prefix,
+                                subinst_eater=subinst_eater,
+                                tags=tags,
+                            )
 
                         if i == -1:
                             key = self.hier_delim.join(new_prefix)
-                            retval[key] = 'empty'
+                            retval[key] = "empty"
 
                 else:
-                    self.object_to_simple_dict(v, subinst, retval, new_prefix,
-                                         subinst_eater=subinst_eater, tags=tags)
+                    self.object_to_simple_dict(
+                        v, subinst, retval, new_prefix, subinst_eater=subinst_eater, tags=tags
+                    )
 
         else:
             key = self.hier_delim.join(prefix)
 
             if key in retval:
-                raise ValueError("%r.%s conflicts with previous value %r" %
-                                                        (cls, key, retval[key]))
+                raise ValueError("%r.%s conflicts with previous value %r" % (cls, key, retval[key]))
 
             retval[key] = subinst_eater(self, inst, cls)
 

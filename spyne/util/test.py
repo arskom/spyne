@@ -1,4 +1,3 @@
-# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -25,24 +24,26 @@ from spyne.util import urlencode
 def _start_response(code, headers):
     print(code, pformat(headers))
 
-def call_wsgi_app_kwargs(app, _mn='some_call', _headers=None, **kwargs):
+
+def call_wsgi_app_kwargs(app, _mn="some_call", _headers=None, **kwargs):
     return call_wsgi_app(app, _mn, _headers, kwargs.items())
 
-def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
+
+def call_wsgi_app(app, mn="some_call", headers=None, body_pairs=None):
     if headers is None:
         headers = {}
     if body_pairs is None:
         body_pairs = []
 
-    body_pairs = [(k,str(v)) for k,v in body_pairs]
+    body_pairs = [(k, str(v)) for k, v in body_pairs]
 
     request = {
-        'QUERY_STRING': urlencode(body_pairs),
-        'PATH_INFO': '/%s' % mn,
-        'REQUEST_METHOD': 'GET',
-        'SERVER_NAME': 'spyne.test',
-        'SERVER_PORT': '0',
-        'wsgi.url_scheme': 'http',
+        "QUERY_STRING": urlencode(body_pairs),
+        "PATH_INFO": "/%s" % mn,
+        "REQUEST_METHOD": "GET",
+        "SERVER_NAME": "spyne.test",
+        "SERVER_PORT": "0",
+        "wsgi.url_scheme": "http",
     }
 
     print(headers)
@@ -55,11 +56,12 @@ def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
         out_string.append(s)
 
     if t == bytes:
-        out_string = b''.join(out_string)
+        out_string = b"".join(out_string)
     else:
-        out_string = ''.join(out_string)
+        out_string = "".join(out_string)
 
     return out_string
+
 
 from os import mkdir, getcwd
 from os.path import join, basename
@@ -71,7 +73,7 @@ def show(elt, tn=None, stdout=True):
 
         for frame in inspect.stack():
             if frame[3].startswith("test_"):
-                cn = frame[0].f_locals['self'].__class__.__name__
+                cn = frame[0].f_locals["self"].__class__.__name__
                 tn = "%s.%s" % (cn, frame[3])
                 break
 
@@ -79,19 +81,20 @@ def show(elt, tn=None, stdout=True):
             raise Exception("don't be lazy and pass test name.")
 
     from lxml import html, etree
+
     out_string = etree.tostring(elt, pretty_print=True)
     if stdout:
         print(out_string)
 
-    fn = '%s.html' % tn
-    if basename(getcwd()) != 'test_html':
+    fn = "%s.html" % tn
+    if basename(getcwd()) != "test_html":
         try:
-            mkdir('test_html')
+            mkdir("test_html")
         except OSError:
             pass
 
-        f = open(join("test_html", fn), 'wb')
+        f = open(join("test_html", fn), "wb")
     else:
-        f = open(fn, 'wb')
+        f = open(fn, "wb")
 
     f.write(html.tostring(elt, pretty_print=True, doctype="<!DOCTYPE html>"))

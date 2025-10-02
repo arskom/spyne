@@ -22,7 +22,7 @@ definitions, interface and protocol choices. ::
     from spyne.application import Application
 
 The ``@srpc`` decorator exposes methods as remote procedure calls and declares
-the data types it accepts and returns. The 's' prefix is short for 'static' 
+the data types it accepts and returns. The 's' prefix is short for 'static'
 (or stateless, if you will) -- the function receives no implicit arguments.
 By contrast, the ``@rpc`` decorator passes a :class:`spyne.MethodContext`
 instance as first argument to the user code. ::
@@ -176,7 +176,7 @@ Deploying the service using HttpRpc/Json
 --------------------------------------------
 
 This time, we will use a Http as request protocol, and Json as response
-protocol. 
+protocol.
 
 This example is available here: http://github.com/arskom/spyne/blob/master/examples/helloworld_http.py
 
@@ -210,8 +210,8 @@ Once we run our daemon, we can test it using any Http client. Let's try: ::
 
     $ curl -s http://localhost:8000/say_hello?name=Dave\&times=3 | python -m json.tool
     [
-        "Hello, Dave", 
-        "Hello, Dave", 
+        "Hello, Dave",
+        "Hello, Dave",
         "Hello, Dave"
     ]
 

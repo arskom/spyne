@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,6 +17,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
@@ -29,7 +29,7 @@ from spyne.protocol import ProtocolBase
 from spyne.util import Break, coroutine
 
 
-class ServerBase(object):
+class ServerBase:
     """This class is the abstract base class for all server transport
     implementations. Unlike the client transports, this class does not define
     a pure-virtual method that needs to be implemented by all base classes.
@@ -70,8 +70,7 @@ class ServerBase(object):
 
             # sets ctx.in_body_doc, ctx.in_header_doc and
             # ctx.method_request_string
-            self.app.in_protocol.decompose_incoming_envelope(ctx,
-                                                           ProtocolBase.REQUEST)
+            self.app.in_protocol.decompose_incoming_envelope(ctx, ProtocolBase.REQUEST)
 
             # returns a list of contexts. multiple contexts can be returned
             # when the requested method also has bound auxiliary methods.
@@ -84,7 +83,7 @@ class ServerBase(object):
 
             retval = (ctx,)
 
-            ctx.fire_event('method_exception_object')
+            ctx.fire_event("method_exception_object")
 
         return retval
 
@@ -94,8 +93,7 @@ class ServerBase(object):
 
         try:
             # sets ctx.in_object and ctx.in_header
-            self.app.in_protocol.deserialize(ctx,
-                                           message=self.app.in_protocol.REQUEST)
+            self.app.in_protocol.deserialize(ctx, message=self.app.in_protocol.REQUEST)
 
         except Fault as e:
             logger.exception(e)
@@ -105,7 +103,7 @@ class ServerBase(object):
             ctx.in_error = e
             ctx.out_error = e
 
-            ctx.fire_event('method_exception_object')
+            ctx.fire_event("method_exception_object")
 
     def get_out_object(self, ctx):
         """Calls the matched user function by passing it the ``ctx.in_object``
@@ -117,16 +115,18 @@ class ServerBase(object):
         else:
             raise ctx.in_error
 
-        if isinstance(ctx.out_object, (list, tuple)) \
-                    and len(ctx.out_object) > 0 \
-                    and isinstance(ctx.out_object[0], Ignored):
+        if (
+            isinstance(ctx.out_object, (list, tuple))
+            and len(ctx.out_object) > 0
+            and isinstance(ctx.out_object[0], Ignored)
+        ):
             ctx.out_object = (None,)
 
         elif isinstance(ctx.out_object, Ignored):
             ctx.out_object = ()
 
     def convert_pull_to_push(self, ctx, gen):
-        oobj, = ctx.out_object
+        (oobj,) = ctx.out_object
         if oobj is None:
             gen.throw(Break())
 
@@ -155,8 +155,7 @@ class ServerBase(object):
         if ctx.out_document is None:
             ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
 
-            if isgenerator(ret) and ctx.out_object is not None and \
-                                                       len(ctx.out_object) == 1:
+            if isgenerator(ret) and ctx.out_object is not None and len(ctx.out_object) == 1:
                 if len(ctx.pusher_stack) > 0:
                     # we suspend request processing here because there now
                     # seems to be a PushBase waiting for input.
@@ -166,19 +165,19 @@ class ServerBase(object):
 
     def finalize_context(self, ctx):
         if ctx.out_error is None:
-            ctx.fire_event('method_return_document')
+            ctx.fire_event("method_return_document")
         else:
-            ctx.fire_event('method_exception_document')
+            ctx.fire_event("method_exception_document")
 
         ctx.out_protocol.create_out_string(ctx)
 
         if ctx.out_error is None:
-            ctx.fire_event('method_return_string')
+            ctx.fire_event("method_return_string")
         else:
-            ctx.fire_event('method_exception_string')
+            ctx.fire_event("method_exception_string")
 
         if ctx.out_string is None:
-            ctx.out_string = (b'',)
+            ctx.out_string = (b"",)
 
     # for backwards compatibility
     get_out_string = get_out_string_pull
@@ -191,7 +190,7 @@ class ServerBase(object):
         if isgenerator(ret):
             try:
                 while True:
-                    y = (yield)
+                    y = yield
                     ret.send(y)
 
             except Break:
@@ -217,7 +216,7 @@ class ServerBase(object):
         # the machinery in ServerBase can initialize them using this function.
 
         # fire events
-        p_ctx.fire_event('method_return_push')
+        p_ctx.fire_event("method_return_push")
 
         def _cb_push_finish():
             process_contexts(self, (), p_ctx)
@@ -239,25 +238,23 @@ class ServerBase(object):
         assert isinstance(ret, PushBase)
 
         if ret in p_ctx.pusher_stack:
-            logger.warning('PushBase reinit avoided.')
+            logger.warning("PushBase reinit avoided.")
             return
 
         p_ctx.pusher_stack.append(ret)
 
         # fire events
-        p_ctx.fire_event('method_return_push')
+        p_ctx.fire_event("method_return_push")
 
         # start push serialization
         gen = self.get_out_string_push(p_ctx)
 
-        assert isgenerator(gen), "It looks like this protocol is not " \
-                                 "async-compliant yet."
+        assert isgenerator(gen), "It looks like this protocol is not async-compliant yet."
 
         def _cb_push_finish():
             process_contexts(self, others, p_ctx)
 
-        retval = self.pusher_init(p_ctx, gen, _cb_push_finish, ret,
-                                                                  interim=False)
+        retval = self.pusher_init(p_ctx, gen, _cb_push_finish, ret, interim=False)
 
         self.pusher_try_close(p_ctx, ret, retval)
 

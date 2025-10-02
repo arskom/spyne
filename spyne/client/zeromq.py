@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -32,7 +31,7 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         self.get_out_object(self.ctx, args, kwargs)
         self.get_out_string(self.ctx)
-        out_string = b''.join(self.ctx.out_string)
+        out_string = b"".join(self.ctx.out_string)
 
         socket = context.socket(zmq.REQ)
         socket.connect(self.url)
@@ -49,6 +48,6 @@ class _RemoteProcedure(RemoteProcedureBase):
 
 class ZeroMQClient(ClientBase):
     def __init__(self, url, app):
-        super(ZeroMQClient, self).__init__(url, app)
+        super().__init__(url, app)
 
         self.service = RemoteService(_RemoteProcedure, url, app)

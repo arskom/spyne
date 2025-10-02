@@ -452,7 +452,7 @@ you need to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
         ]
 
 This comes with the added bonus of a predictable field order [#]_.  A second
-way of getting a predictable field order is to set the 
+way of getting a predictable field order is to set the
 :attr:`spyne.model.complex.ComplexModel.Attributes.declare_order` attribute.
 The default value of that attribute is going to change in future version
 of Spyne to ``"name"``.  Since the preivous example had the fields sorted by

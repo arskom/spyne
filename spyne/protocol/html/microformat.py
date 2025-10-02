@@ -1,4 +1,3 @@
-# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -24,19 +23,37 @@ from lxml.html.builder import E
 from spyne.util import six, coroutine, Break
 from spyne.util.cdict import cdict
 
-from spyne.model import Array, AnyHtml, ComplexModelBase, ByteArray, \
-    ModelBase, PushBase, ImageUri, AnyUri
+from spyne.model import (
+    Array,
+    AnyHtml,
+    ComplexModelBase,
+    ByteArray,
+    ModelBase,
+    PushBase,
+    ImageUri,
+    AnyUri,
+)
 
 from spyne.protocol.html import HtmlBase
 
 
 class HtmlMicroFormat(HtmlBase):
-    def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=False,
-                                cloth=None, cloth_parser=None, polymorphic=True,
-                                                      doctype="<!DOCTYPE html>",
-                       root_tag='div', child_tag='div', field_name_attr='class',
-                             field_name_tag=None, field_name_class='field_name',
-                                                        before_first_root=None):
+    def __init__(
+        self,
+        app=None,
+        ignore_uncap=False,
+        ignore_wrappers=False,
+        cloth=None,
+        cloth_parser=None,
+        polymorphic=True,
+        doctype="<!DOCTYPE html>",
+        root_tag="div",
+        child_tag="div",
+        field_name_attr="class",
+        field_name_tag=None,
+        field_name_class="field_name",
+        before_first_root=None,
+    ):
         """Protocol that returns the response object according to the "html
         microformat" specification. See
         https://en.wikipedia.org/wiki/Microformats for more info.
@@ -53,10 +70,16 @@ class HtmlMicroFormat(HtmlBase):
             field names of the complex object children.
         """
 
-        super(HtmlMicroFormat, self).__init__(app=app,
-                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
-                cloth=cloth, cloth_parser=cloth_parser, polymorphic=polymorphic,
-                                               hier_delim=None, doctype=doctype)
+        super().__init__(
+            app=app,
+            ignore_uncap=ignore_uncap,
+            ignore_wrappers=ignore_wrappers,
+            cloth=cloth,
+            cloth_parser=cloth_parser,
+            polymorphic=polymorphic,
+            hier_delim=None,
+            doctype=doctype,
+        )
 
         if six.PY2:
             text_type = basestring
@@ -76,18 +99,19 @@ class HtmlMicroFormat(HtmlBase):
             self.field_name_tag = E(field_name_tag)
         self._field_name_class = field_name_class
         if before_first_root is not None:
-            self.event_manager.add_listener("before_first_root",
-                                                              before_first_root)
+            self.event_manager.add_listener("before_first_root", before_first_root)
 
-        self.serialization_handlers = cdict({
-            Array: self.array_to_parent,
-            AnyUri: self.any_uri_to_parent,
-            AnyHtml: self.any_html_to_parent,
-            ImageUri: self.imageuri_to_parent,
-            ByteArray: self.not_supported,
-            ModelBase: self.model_base_to_parent,
-            ComplexModelBase: self.complex_model_to_parent,
-        })
+        self.serialization_handlers = cdict(
+            {
+                Array: self.array_to_parent,
+                AnyUri: self.any_uri_to_parent,
+                AnyHtml: self.any_html_to_parent,
+                ImageUri: self.imageuri_to_parent,
+                ByteArray: self.not_supported,
+                ModelBase: self.model_base_to_parent,
+                ComplexModelBase: self.complex_model_to_parent,
+            }
+        )
 
     def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         retval = self.gen_anchor(cls, inst, parent)
@@ -99,9 +123,8 @@ class HtmlMicroFormat(HtmlBase):
         data_str = self.to_unicode(cls, inst)
 
         if self.field_name_tag is not None:
-            field_name = cls.Attributes.translations.get( name)
-            field_name_tag = self.field_name_tag(field_name,
-                                             **{'class':self._field_name_class})
+            field_name = cls.Attributes.translations.get(name)
+            field_name_tag = self.field_name_tag(field_name, **{"class": self._field_name_class})
             field_name_tag.tail = data_str
             retval.append(field_name_tag)
 
@@ -114,7 +137,7 @@ class HtmlMicroFormat(HtmlBase):
         """This is what subserialize calls"""
 
         # if no doctype was written, write it
-        if not getattr(ctx.outprot_ctx, 'doctype_written', False):
+        if not getattr(ctx.outprot_ctx, "doctype_written", False):
             if len(ctx.protocol.prot_stack) == 1:
                 if self.doctype is not None:
                     parent.write_doctype(self.doctype)
@@ -126,22 +149,21 @@ class HtmlMicroFormat(HtmlBase):
         return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name,
-                                                        use_ns=False, **kwargs):
+    def complex_model_to_parent(self, ctx, cls, inst, parent, name, use_ns=False, **kwargs):
         attrs = {self.field_name_attr: name}
 
-        if not getattr(ctx.protocol, 'before_first_root', False):
-            self.event_manager.fire_event("before_first_root",
-                                         ctx, cls, inst, parent, name, **kwargs)
+        if not getattr(ctx.protocol, "before_first_root", False):
+            self.event_manager.fire_event(
+                "before_first_root", ctx, cls, inst, parent, name, **kwargs
+            )
             ctx.protocol.before_first_root = True
 
         with parent.element(self.root_tag, attrs):
-            ret = self._write_members(ctx, cls, inst, parent, use_ns=False,
-                                                                       **kwargs)
+            ret = self._write_members(ctx, cls, inst, parent, use_ns=False, **kwargs)
             if isgenerator(ret):
                 try:
                     while True:
-                        sv2 = (yield)
+                        sv2 = yield
                         ret.send(sv2)
                 except Break as e:
                     try:
@@ -154,19 +176,18 @@ class HtmlMicroFormat(HtmlBase):
         attrs = {self.field_name_attr: name}
 
         if issubclass(cls, Array):
-            cls, = cls._type_info.values()
+            (cls,) = cls._type_info.values()
 
         name = cls.get_type_name()
         with parent.element(self.root_tag, attrs):
             if isinstance(inst, PushBase):
                 while True:
-                    sv = (yield)
-                    ret = self.to_parent(ctx, cls, sv, parent, name,
-                                                        from_arr=True, **kwargs)
+                    sv = yield
+                    ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True, **kwargs)
                     if isgenerator(ret):
                         try:
                             while True:
-                                sv2 = (yield)
+                                sv2 = yield
                                 ret.send(sv2)
                         except Break as e:
                             try:
@@ -176,12 +197,11 @@ class HtmlMicroFormat(HtmlBase):
 
             else:
                 for sv in inst:
-                    ret = self.to_parent(ctx, cls, sv, parent, name,
-                                                        from_arr=True, **kwargs)
+                    ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True, **kwargs)
                     if isgenerator(ret):
                         try:
                             while True:
-                                sv2 = (yield)
+                                sv2 = yield
                                 ret.send(sv2)
                         except Break as e:
                             try:
@@ -190,8 +210,10 @@ class HtmlMicroFormat(HtmlBase):
                                 pass
 
     def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        return [ E(self.child_tag, **{self.field_name_attr: name}) ]
+        return [E(self.child_tag, **{self.field_name_attr: name})]
+
 
 # FIXME: yuck.
 from spyne.protocol.cloth import XmlCloth
+
 XmlCloth.HtmlMicroFormat = HtmlMicroFormat

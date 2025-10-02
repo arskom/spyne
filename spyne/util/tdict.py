@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,7 +17,6 @@
 #
 
 """The typed dict module"""
-
 
 from itertools import chain
 
@@ -62,7 +60,7 @@ class tdict(dict):
 
     def __setitem__(self, key, value):
         self.check(key, value)
-        super(tdict, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
     def update(self, E=None, **F):
         try:
@@ -77,14 +75,14 @@ class tdict(dict):
         self._check_k(k, d) if self._kt is None else None
         self._check_v(k, d) if self._vt is None else None
 
-        super(tdict, self).setdefault(k, d)
+        super().setdefault(k, d)
 
     @classmethod
     def fromkeys(cls, S, v=None):
         kt = vt = None
 
         if len(S) > 0:
-            kt, = set((type(s) for s in S))
+            (kt,) = set(type(s) for s in S)
 
         if v is not None:
             vt = type(v)
@@ -97,5 +95,4 @@ class tdict(dict):
         return retval
 
     def repr(self):
-        return "tdict(kt=%s, vt=%s, data=%s)" % \
-                             (self._kt, self._vt, super(tdict, self).__repr__())
+        return "tdict(kt=%s, vt=%s, data=%s)" % (self._kt, self._vt, super().__repr__())

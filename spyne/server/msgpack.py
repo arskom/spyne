@@ -1,4 +1,3 @@
-# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,9 +16,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import msgpack
@@ -36,7 +35,9 @@ from spyne.util.six import binary_type
 try:
     from twisted.internet.defer import Deferred
 except ImportError as e:
-    def Deferred(*_, **__): raise e
+
+    def Deferred(*_, **__):
+        raise e
 
 
 MSGPACK_SHELL_OVERHEAD = 10
@@ -64,7 +65,7 @@ def _process_v1_msg(prot, msg):
 
 class MessagePackTransportContext(TransportContext):
     def __init__(self, parent, transport):
-        super(MessagePackTransportContext, self).__init__(parent, transport)
+        super().__init__(parent, transport)
 
         self.in_header = None
         self.protocol = None
@@ -77,8 +78,8 @@ class MessagePackTransportContext(TransportContext):
             return Address.from_twisted_address(peer)
 
 
-class MessagePackOobMethodContext(object):
-    __slots__ = 'd'
+class MessagePackOobMethodContext:
+    __slots__ = "d"
 
     def __init__(self):
         if Deferred is not None:
@@ -97,10 +98,10 @@ class MessagePackMethodContext(MethodContext):
     def __init__(self, transport, way):
         self.oob_ctx = None
 
-        super(MessagePackMethodContext, self).__init__(transport, way)
+        super().__init__(transport, way)
 
     def close(self):
-        super(MessagePackMethodContext, self).close()
+        super().close()
         if self.transport is not None:
             self.transport.protocol = None
             self.transport = None
@@ -118,11 +119,9 @@ class MessagePackTransportBase(ServerBase):
     IN_REQUEST = None
 
     def __init__(self, app):
-        super(MessagePackTransportBase, self).__init__(app)
+        super().__init__(app)
 
-        self._version_map = {
-            self.IN_REQUEST: _process_v1_msg
-        }
+        self._version_map = {self.IN_REQUEST: _process_v1_msg}
 
     def produce_contexts(self, msg):
         """Produce contexts based on incoming message.
@@ -136,13 +135,11 @@ class MessagePackTransportBase(ServerBase):
 
         if not len(msg) >= 2:
             logger.debug("Incoming request: %r", msg)
-            raise ValidationError(len(msg), "Request must have at least two "
-                                                          "elements. It has %r")
+            raise ValidationError(len(msg), "Request must have at least two elements. It has %r")
 
         if not isinstance(msg[0], int):
             logger.debug("Incoming request: %r", msg)
-            raise ValidationError(msg[0], "Request version must be an integer. "
-                                                                    "It was %r")
+            raise ValidationError(msg[0], "Request version must be an integer. It was %r")
 
         processor = self._version_map.get(msg[0], None)
         if processor is None:
@@ -200,8 +197,7 @@ class MessagePackTransportBase(ServerBase):
         return msgpack.dumps(str(error))
 
     def pack(self, ctx):
-        ctx.out_string = msgpack.packb([self.OUT_RESPONSE_NO_ERROR,
-                                                     b''.join(ctx.out_string)]),
+        ctx.out_string = (msgpack.packb([self.OUT_RESPONSE_NO_ERROR, b"".join(ctx.out_string)]),)
 
 
 class MessagePackServerBase(MessagePackTransportBase):

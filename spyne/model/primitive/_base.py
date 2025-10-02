@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -25,9 +24,6 @@ in a single field.
 See :mod:`spyne.protocol._model` for {to,from}_string implementations.
 """
 
-
-from __future__ import absolute_import
-
 from spyne.model import SimpleModel
 from spyne.model.primitive import NATIVE_MAP
 from spyne.model._base import apply_pssm, msgpack, xml, json
@@ -49,7 +45,7 @@ class AnyXml(SimpleModel):
     """An xml node that can contain any number of sub nodes. It's represented by
     an ElementTree object."""
 
-    __type_name__ = 'anyType'
+    __type_name__ = "anyType"
 
     class Attributes(SimpleModel.Attributes):
         namespace = None
@@ -65,26 +61,26 @@ class Any(SimpleModel):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
-        store_as = apply_pssm(kwargs.get('store_as', None))
+        store_as = apply_pssm(kwargs.get("store_as", None))
         if store_as is not None:
-            kwargs['store_as'] = store_as
+            kwargs["store_as"] = store_as
 
-        return super(Any, cls).customize(**kwargs)
+        return super().customize(**kwargs)
 
 
 class AnyHtml(SimpleModel):
-    __type_name__ = 'string'
+    __type_name__ = "string"
 
     @classmethod
     def customize(cls, **kwargs):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
-        store_as = apply_pssm(kwargs.get('store_as', None))
+        store_as = apply_pssm(kwargs.get("store_as", None))
         if store_as is not None:
-            kwargs['store_as'] = store_as
+            kwargs["store_as"] = store_as
 
-        return super(AnyHtml, cls).customize(**kwargs)
+        return super().customize(**kwargs)
 
 
 class AnyDict(SimpleModel):
@@ -92,13 +88,13 @@ class AnyDict(SimpleModel):
     types. Its serialization is protocol-dependent.
     """
 
-    __type_name__ = 'anyType'
+    __type_name__ = "anyType"
     Value = dict
 
     class Attributes(SimpleModel.Attributes):
         store_as = None
         """Method for serializing to persistent storage. One of 'xml', 'json',
-        'jsonb', 'msgpack'. It makes sense to specify this only when this object 
+        'jsonb', 'msgpack'. It makes sense to specify this only when this object
         belongs to a `ComplexModel` sublass."""
 
     @classmethod
@@ -106,11 +102,11 @@ class AnyDict(SimpleModel):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
-        store_as = apply_pssm(kwargs.get('store_as', None))
+        store_as = apply_pssm(kwargs.get("store_as", None))
         if store_as is not None:
-            kwargs['store_as'] = store_as
+            kwargs["store_as"] = store_as
 
-        return super(AnyDict, cls).customize(**kwargs)
+        return super().customize(**kwargs)
 
 
 class Boolean(SimpleModel):
@@ -122,9 +118,11 @@ class Boolean(SimpleModel):
         builtins. It makes sense to specify this only when this object belongs
         to a `ComplexModel` sublass."""
 
-    __type_name__ = 'boolean'
+    __type_name__ = "boolean"
 
 
-NATIVE_MAP.update({
-    bool: Boolean,
-})
+NATIVE_MAP.update(
+    {
+        bool: Boolean,
+    }
+)

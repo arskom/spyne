@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,7 +16,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import unicode_literals
 
 import decimal
 import uuid
@@ -28,8 +26,7 @@ from spyne.model._base import SimpleModel
 from spyne.model.primitive._base import re_match_with_span
 
 
-UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
-                                                            {'x': '[a-fA-F0-9]'}
+UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % {"x": "[a-fA-F0-9]"}
 
 LTREE_PATTERN = r"\w+(\.\w+)*"
 
@@ -38,17 +35,20 @@ LTREE_OPTIMAL_SIZE = 2048
 LTREE_MAXIMUM_SIZE = 65536
 
 
-'[0-9A-Za-z!#$%&\'*+.^_`|~-]+/([0-9A-Za-z!#$%&\'*+.^_`|~-]+);[ \\t]*[0-9A-Za-z!#$%&\'*+.^_`|~-]+=(?:[0-9A-Za-z!#$%&\'*+.^_`|~-]+|"(?:[^"\\\\]|\\.)*");?[ \\t]*([0-9A-Za-z!#$%&\'*+.^_`|~-]+=(?:[0-9A-Za-z!#$%&\'*+.^_`|~-]+|"(?:[^"\\\\]|\\.)*");?[ \\t]*)*'
+"[0-9A-Za-z!#$%&'*+.^_`|~-]+/([0-9A-Za-z!#$%&'*+.^_`|~-]+);[ \\t]*[0-9A-Za-z!#$%&'*+.^_`|~-]+=(?:[0-9A-Za-z!#$%&'*+.^_`|~-]+|\"(?:[^\"\\\\]|\\.)*\");?[ \\t]*([0-9A-Za-z!#$%&'*+.^_`|~-]+=(?:[0-9A-Za-z!#$%&'*+.^_`|~-]+|\"(?:[^\"\\\\]|\\.)*\");?[ \\t]*)*"
+
 
 def _gen_mime_type_pattern(strict, with_params):
     ows = "[ \\t]*"  # Optional WhiteSpace
     token = "[0-9A-Za-z!#$%&'*+.^_`|~-]+"
-    quotedString = "\"(?:[^\"\\\\]|\\.)*\""
+    quotedString = '"(?:[^"\\\\]|\\.)*"'
     if strict:
-        main_type = "(" \
-                "application|audio|font|example|image|message|model|multipart" \
-                "|text|video|x-(?:" + token + ")" \
+        main_type = (
+            "("
+            "application|audio|font|example|image|message|model|multipart"
+            "|text|video|x-(?:" + token + ")"
             ")"
+        )
 
     else:
         main_type = token
@@ -57,23 +57,16 @@ def _gen_mime_type_pattern(strict, with_params):
         return main_type + "/" + "(" + token + ")"
 
     param = token + "=" + "(?:" + token + "|" + quotedString + ");?" + ows
-    params = \
-        "(" + ";" \
-             + "(" + ows + param + "(" + param + ")*" + ")?" \
-        + ")?"
+    params = "(" + ";" + "(" + ows + param + "(" + param + ")*" + ")?" + ")?"
 
     return main_type + "/" + "(" + token + ")" + params
 
 
-MIME_TYPE_PATTERN_STRICT = \
-    _gen_mime_type_pattern(strict=True, with_params=False)
-MIME_TYPE_PATTERN_PERMISSIVE = \
-    _gen_mime_type_pattern(strict=False, with_params=False)
+MIME_TYPE_PATTERN_STRICT = _gen_mime_type_pattern(strict=True, with_params=False)
+MIME_TYPE_PATTERN_PERMISSIVE = _gen_mime_type_pattern(strict=False, with_params=False)
 
-MEDIA_TYPE_PATTERN_STRICT = \
-    _gen_mime_type_pattern(strict=True, with_params=True)
-MEDIA_TYPE_PATTERN_PERMISSIVE = \
-    _gen_mime_type_pattern(strict=False, with_params=True)
+MEDIA_TYPE_PATTERN_STRICT = _gen_mime_type_pattern(strict=True, with_params=True)
+MEDIA_TYPE_PATTERN_PERMISSIVE = _gen_mime_type_pattern(strict=False, with_params=True)
 
 
 class Unicode(SimpleModel):
@@ -81,7 +74,7 @@ class Unicode(SimpleModel):
     or `str` with given encoding.
     """
 
-    __type_name__ = 'string'
+    __type_name__ = "string"
     Value = six.text_type
 
     class Attributes(SimpleModel.Attributes):
@@ -91,7 +84,7 @@ class Unicode(SimpleModel):
         min_len = 0
         """Minimum length of string. Can be set to any positive integer"""
 
-        max_len = decimal.Decimal('inf')
+        max_len = decimal.Decimal("inf")
         """Maximum length of string. Can be set to ``decimal.Decimal('inf')`` to
         accept strings of arbitrary length. You may also need to adjust
         :const:`spyne.server.wsgi.MAX_CONTENT_LENGTH`."""
@@ -107,7 +100,7 @@ class Unicode(SimpleModel):
         encoding = None
         """The encoding of binary data this class may have to deal with."""
 
-        unicode_errors = 'strict'
+        unicode_errors = "strict"
         """The argument to the ``unicode`` builtin; one of 'strict', 'replace'
         or 'ignore'."""
 
@@ -122,37 +115,37 @@ class Unicode(SimpleModel):
         assert len(args) <= 1
 
         if len(args) == 1:
-            kwargs['max_len'] = args[0]
+            kwargs["max_len"] = args[0]
 
-        retval = SimpleModel.__new__(cls,  ** kwargs)
+        retval = SimpleModel.__new__(cls, **kwargs)
 
         return retval
 
     @staticmethod
     def is_default(cls):
-        return (    SimpleModel.is_default(cls)
-                and cls.Attributes.min_len == Unicode.Attributes.min_len
-                and cls.Attributes.max_len == Unicode.Attributes.max_len
-                and cls.Attributes.pattern == Unicode.Attributes.pattern
-            )
+        return (
+            SimpleModel.is_default(cls)
+            and cls.Attributes.min_len == Unicode.Attributes.min_len
+            and cls.Attributes.max_len == Unicode.Attributes.max_len
+            and cls.Attributes.pattern == Unicode.Attributes.pattern
+        )
 
     @staticmethod
     def validate_string(cls, value):
-        return (     SimpleModel.validate_string(cls, value)
-            and (value is None or (
-                cls.Attributes.min_len <= len(value) <= cls.Attributes.max_len
-            )))
+        return SimpleModel.validate_string(cls, value) and (
+            value is None or (cls.Attributes.min_len <= len(value) <= cls.Attributes.max_len)
+        )
 
     @staticmethod
     def validate_native(cls, value):
-        return (SimpleModel.validate_native(cls, value)
-            and (value is None or (
-                re_match_with_span(cls.Attributes, value)
-            )))
+        return SimpleModel.validate_native(cls, value) and (
+            value is None or (re_match_with_span(cls.Attributes, value))
+        )
 
 
 class String(Unicode):
     pass
+
 
 if not six.PY2:
     String = Unicode
@@ -161,7 +154,7 @@ if not six.PY2:
 class AnyUri(Unicode):
     """A special kind of String type designed to hold an uri."""
 
-    __type_name__ = 'anyURI'
+    __type_name__ = "anyURI"
 
     class Attributes(String.Attributes):
         text = None
@@ -170,7 +163,7 @@ class AnyUri(Unicode):
         anchor_class = None
         """The class of the generated <a> tag."""
 
-    class Value(object):
+    class Value:
         """A special object that is just a better way of carrying the
         information carried with a link.
 
@@ -187,8 +180,7 @@ class AnyUri(Unicode):
             self.content = content
 
         def __repr__(self):
-            return "Uri(href={0!r}, text={1!r}, content={2!r})" \
-                                     .format(self.href, self.text, self.content)
+            return f"Uri(href={self.href!r}, text={self.text!r}, content={self.content!r})"
 
 
 class ImageUri(AnyUri):
@@ -196,11 +188,13 @@ class ImageUri(AnyUri):
 
 
 def _uuid_validate_string(cls, value):
-    return (     SimpleModel.validate_string(cls, value)
-        and (value is None or (
+    return SimpleModel.validate_string(cls, value) and (
+        value is None
+        or (
             cls.Attributes.min_len <= len(value) <= cls.Attributes.max_len
             and re_match_with_span(cls.Attributes, value)
-        )))
+        )
+    )
 
 
 def _Tuuid_validate(key):
@@ -208,31 +202,32 @@ def _Tuuid_validate(key):
 
     def _uvalid(cls, v):
         try:
-            UUID(**{key:v})
+            UUID(**{key: v})
         except ValueError:
             return False
         return True
+
     return _uvalid
 
 
 _uuid_validate = {
     None: _uuid_validate_string,
-    'hex': _Tuuid_validate('hex'),
-    'urn': _Tuuid_validate('urn'),
-    six.binary_type: _Tuuid_validate('bytes'),
-    'bytes': _Tuuid_validate('bytes'),
-    'bytes_le': _Tuuid_validate('bytes_le'),
-    'fields': _Tuuid_validate('fields'),
-    int: _Tuuid_validate('int'),
-    'int': _Tuuid_validate('int'),
+    "hex": _Tuuid_validate("hex"),
+    "urn": _Tuuid_validate("urn"),
+    six.binary_type: _Tuuid_validate("bytes"),
+    "bytes": _Tuuid_validate("bytes"),
+    "bytes_le": _Tuuid_validate("bytes_le"),
+    "fields": _Tuuid_validate("fields"),
+    int: _Tuuid_validate("int"),
+    "int": _Tuuid_validate("int"),
 }
 
 
 class Uuid(Unicode(pattern=UUID_PATTERN)):
     """Unicode subclass for Universially-Unique Identifiers."""
 
-    __namespace__ = 'http://spyne.io/schema'
-    __type_name__ = 'uuid'
+    __namespace__ = "http://spyne.io/schema"
+    __type_name__ = "uuid"
     Value = uuid.UUID
 
     class Attributes(Unicode(pattern=UUID_PATTERN).Attributes):
@@ -251,32 +246,32 @@ class Ltree(Unicode(LTREE_OPTIMAL_SIZE, unicode_pattern=LTREE_PATTERN)):
     """A special kind of String type designed to hold the Ltree type from
     Postgresql."""
 
-    __namespace__ = 'http://spyne.io/schema'
-    __type_name__ = 'ltreeString'
+    __namespace__ = "http://spyne.io/schema"
+    __type_name__ = "ltreeString"
 
 
 class LtreeLarge(Unicode(LTREE_MAXIMUM_SIZE, unicode_pattern=LTREE_PATTERN)):
     """A special kind of String type designed to hold the Ltree type from
     Postgresql."""
 
-    __namespace__ = 'http://spyne.io/schema'
-    __type_name__ = 'largeLtreeString'
+    __namespace__ = "http://spyne.io/schema"
+    __type_name__ = "largeLtreeString"
 
 
 class MimeTypeStrict(Unicode(unicode_pattern=MIME_TYPE_PATTERN_STRICT)):
     """A special kind of String type designed to hold a mime type as defined
     by IANA."""
 
-    __namespace__ = 'http://spyne.io/schema'
-    __type_name__ = 'strictMimeTypeString'
+    __namespace__ = "http://spyne.io/schema"
+    __type_name__ = "strictMimeTypeString"
 
 
 class MimeType(Unicode(unicode_pattern=MIME_TYPE_PATTERN_PERMISSIVE)):
     """A special kind of String type designed to hold a forward-compatible
     mime type that can have any string as main type."""
 
-    __namespace__ = 'http://spyne.io/schema'
-    __type_name__ = 'mimeTypeString'
+    __namespace__ = "http://spyne.io/schema"
+    __type_name__ = "mimeTypeString"
 
 
 class MediaTypeStrict(Unicode(unicode_pattern=MEDIA_TYPE_PATTERN_STRICT)):
@@ -285,8 +280,8 @@ class MediaTypeStrict(Unicode(unicode_pattern=MEDIA_TYPE_PATTERN_STRICT)):
 
     See: https://tools.ietf.org/html/rfc7231#section-3.1.1.1"""
 
-    __namespace__ = 'http://spyne.io/schema'
-    __type_name__ = 'strictMediaTypeString'
+    __namespace__ = "http://spyne.io/schema"
+    __type_name__ = "strictMediaTypeString"
 
 
 class MediaType(Unicode(unicode_pattern=MEDIA_TYPE_PATTERN_PERMISSIVE)):
@@ -296,17 +291,21 @@ class MediaType(Unicode(unicode_pattern=MEDIA_TYPE_PATTERN_PERMISSIVE)):
 
     See: https://tools.ietf.org/html/rfc7231#section-3.1.1.1"""
 
-    __namespace__ = 'http://spyne.io/schema'
-    __type_name__ = 'mediaTypeString'
+    __namespace__ = "http://spyne.io/schema"
+    __type_name__ = "mediaTypeString"
 
 
 if not six.PY2:
-    NATIVE_MAP.update({
-        str: Unicode,
-    })
+    NATIVE_MAP.update(
+        {
+            str: Unicode,
+        }
+    )
 
 else:
-    NATIVE_MAP.update({
-        str: String,
-        unicode: Unicode,
-    })
+    NATIVE_MAP.update(
+        {
+            str: String,
+            unicode: Unicode,
+        }
+    )

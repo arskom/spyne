@@ -1,4 +1,3 @@
-
 #
 # invRegex.py
 #
@@ -58,46 +57,46 @@ from pyparsing import printables
 from pyparsing import srange
 
 
-class CharacterRangeEmitter(object):
+class CharacterRangeEmitter:
     def __init__(self, chars):
         # remove duplicate chars in character range, but preserve original order
         seen = set()
         self.charset = "".join(seen.add(c) or c for c in chars if c not in seen)
 
     def __str__(self):
-        return '[' + self.charset + ']'
+        return "[" + self.charset + "]"
 
     def __repr__(self):
-        return '[' + self.charset + ']'
+        return "[" + self.charset + "]"
 
     def make_generator(self):
         def gen_chars():
-            for s in self.charset:
-                yield s
+            yield from self.charset
+
         return gen_chars
 
 
-class OptionalEmitter(object):
+class OptionalEmitter:
     def __init__(self, expr):
         self.expr = expr
 
     def make_generator(self):
         def optional_gen():
             yield ""
-            for s in self.expr.make_generator()():
-                yield s
+            yield from self.expr.make_generator()()
+
         return optional_gen
 
 
-class DotEmitter(object):
+class DotEmitter:
     def make_generator(self):
         def dot_gen():
-            for c in printables:
-                yield c
+            yield from printables
+
         return dot_gen
 
 
-class GroupEmitter(object):
+class GroupEmitter:
     def __init__(self, exprs):
         self.exprs = ParseResults(exprs)
 
@@ -111,27 +110,26 @@ class GroupEmitter(object):
                     for s in elist[0].make_generator()():
                         for s2 in recurse_list(elist[1:]):
                             yield s + s2
+
             if self.exprs:
-                for s in recurse_list(self.exprs):
-                    yield s
+                yield from recurse_list(self.exprs)
 
         return group_gen
 
 
-class AlternativeEmitter(object):
+class AlternativeEmitter:
     def __init__(self, exprs):
         self.exprs = exprs
 
     def make_generator(self):
         def alt_gen():
             for e in self.exprs:
-                for s in e.make_generator()():
-                    yield s
+                yield from e.make_generator()()
 
         return alt_gen
 
 
-class LiteralEmitter(object):
+class LiteralEmitter:
     def __init__(self, lit):
         self.lit = lit
 
@@ -178,7 +176,7 @@ def handle_literal(toks):
     for t in toks:
         if t[0] == "\\":
             if t[1] == "t":
-                lit += '\t'
+                lit += "\t"
             else:
                 lit += t[1]
         else:
@@ -211,6 +209,8 @@ def handle_alternative(toks):
 
 
 _parser = None
+
+
 def parser():
     global _parser
     if _parser is None:
@@ -218,29 +218,38 @@ def parser():
         lbrack, rbrack, lbrace, rbrace, lparen, rparen = map(Literal, "[]{}()")
 
         reMacro = Combine("\\" + oneOf(list("dws")))
-        escapedChar = ~ reMacro + Combine("\\" + oneOf(list(printables)))
+        escapedChar = ~reMacro + Combine("\\" + oneOf(list(printables)))
         reLiteralChar = "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
 
         reRange = Combine(lbrack + SkipTo(rbrack, ignore=escapedChar) + rbrack)
-        reLiteral = (escapedChar | oneOf(list(reLiteralChar)))
+        reLiteral = escapedChar | oneOf(list(reLiteralChar))
         reDot = Literal(".")
         repetition = (
-                      (lbrace + Word(nums).setResultsName("count") + rbrace) |
-                      (lbrace + Word(nums).setResultsName("minCount") + "," + Word(nums).setResultsName("maxCount") + rbrace) |
-                      oneOf(list("*+?"))
-                      )
+            (lbrace + Word(nums).setResultsName("count") + rbrace)
+            | (
+                lbrace
+                + Word(nums).setResultsName("minCount")
+                + ","
+                + Word(nums).setResultsName("maxCount")
+                + rbrace
+            )
+            | oneOf(list("*+?"))
+        )
 
         reRange.setParseAction(handle_range)
         reLiteral.setParseAction(handle_literal)
         reMacro.setParseAction(handle_macro)
         reDot.setParseAction(handle_dot)
 
-        reTerm = (reLiteral | reRange | reMacro | reDot)
-        reExpr = operatorPrecedence(reTerm, [
+        reTerm = reLiteral | reRange | reMacro | reDot
+        reExpr = operatorPrecedence(
+            reTerm,
+            [
                 (repetition, 1, opAssoc.LEFT, handle_repetition),
                 (None, 2, opAssoc.LEFT, handle_sequence),
-                (Suppress('|'), 2, opAssoc.LEFT, handle_alternative),
-            ])
+                (Suppress("|"), 2, opAssoc.LEFT, handle_alternative),
+            ],
+        )
 
         _parser = reExpr
 
@@ -257,9 +266,9 @@ def count(gen):
 
 def invregexp(regex):
     """Call this routine as a generator to return all the strings that
-       match the input regular expression.
-           for s in invregexp("[A-Z]{3}\d{3}"):
-               print s
+    match the input regular expression.
+        for s in invregexp("[A-Z]{3}\d{3}"):
+            print s
     """
     invReGenerator = GroupEmitter(parser().parseString(regex)).make_generator()
     return invReGenerator()
@@ -296,14 +305,14 @@ def main():
     A[cglmrstu]|B[aehikr]?|C[adeflmorsu]?|D[bsy]|E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|M[dgnot]|N[abdeiop]?|Os?|P[abdmortu]?|R[abefghnu]|S[bcegimnr]?|T[abcehilm]|Uu[bhopqst]|U|V|W|Xe|Yb?|Z[nr]
     (a|b)|(x|y)
     (a|b) (x|y)
-    """.split('\n')
+    """.split("\n")
 
     for t in tests:
         t = t.strip()
         if not t:
             continue
 
-        print('-' * 50)
+        print("-" * 50)
         print(t)
         try:
             print(count(invregexp(t)))
