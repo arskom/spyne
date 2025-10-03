@@ -30,7 +30,7 @@ class TestSpyneZmqClient(SpyneClientTestBase, unittest.TestCase):
     def setUp(self):
         SpyneClientTestBase.setUp(self, 'zeromq')
 
-        port, = server_started.keys()
+        port = next(iter(server_started.keys()))
 
         self.client = ZeroMQClient('tcp://localhost:%d' % port,
                                                              soap11_application)

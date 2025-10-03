@@ -27,7 +27,7 @@ class TestSpyneHttpClient(unittest.TestCase):
     def setUp(self):
         run_server('http')
 
-        port, = server_started.keys()
+        port = next(iter(server_started.keys()))
 
         self.ns = b"spyne.test.interop.server._service"
         self.client = TwistedHttpClient(b'http://localhost:%d/' % port,

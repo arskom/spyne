@@ -47,7 +47,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def setUp(self):
         SpyneClientTestBase.setUp(self, 'http')
 
-        port, = server_started.keys()
+        port = next(iter(server_started.keys()))
 
         self.client = Client("http://localhost:%d/?wsdl" % port, cache=None,
                                                  plugins=[LastReceivedPlugin()])

@@ -40,7 +40,7 @@ class TestZeep(unittest.TestCase):
         from spyne.test.interop._test_soap_client_base import run_server
         run_server('http')
 
-        port, = server_started.keys()
+        port = next(iter(server_started.keys()))
 
         transport = Transport(cache=False)
         self.client = Client("http://localhost:%d/?wsdl" % port,

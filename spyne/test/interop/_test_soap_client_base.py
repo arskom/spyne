@@ -276,7 +276,7 @@ class SpyneClientTestBase(object):
         self.assertEqual(ret.resultCode, 1)
         self.assertEqual(ret.resultDescription, "Test")
         self.assertEqual(ret.transactionId, 123)
-        self.assertEqual(ret.roles[0], roles.MEMBER)
+        self.assertEqual(ret.roles[0], str(roles.MEMBER))
 
 
 if __name__ == '__main__':
