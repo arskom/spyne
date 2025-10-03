@@ -980,3 +980,28 @@ if sys.meta_path:
     del i, importer
 # Finally, add the importer to the meta path import hook.
 sys.meta_path.append(_importer)
+
+
+import sys as _sys
+
+_sys.modules.setdefault(__name__ + ".moves", moves)
+
+for _name in (
+    "urllib",
+    "urllib.parse",
+    "urllib.error",
+    "urllib.request",
+    "urllib.response",
+    "urllib.robotparser",
+    "http_cookies",
+    "collections_abc",
+):
+    try:
+        _sys.modules.setdefault(
+            f"{__name__}.moves.{_name}", _importer._get_module(f"moves.{_name}")
+        )
+    except Exception:
+        pass
+
+del _sys, _name
+# ------------------------------------------------------------------------

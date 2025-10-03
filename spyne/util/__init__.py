@@ -16,56 +16,22 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import sys
-from spyne.util import six as _six
-
-sys.modules.setdefault("spyne.util.six", _six)
-
-try:
-    moves = _six.moves
-    sys.modules.setdefault("spyne.util.six.moves", moves)
-
-    sys.modules.setdefault("spyne.util.six.moves.collections_abc", moves.collections_abc)
-    sys.modules.setdefault("spyne.util.six.moves.urllib", moves.urllib)
-    sys.modules.setdefault("spyne.util.six.moves.urllib.parse", moves.urllib.parse)
-    sys.modules.setdefault("spyne.util.six.moves.urllib.error", moves.urllib.error)
-    sys.modules.setdefault("spyne.util.six.moves.urllib.request", moves.urllib.request)
-    sys.modules.setdefault("spyne.util.six.moves.http_cookies", moves.http_cookies)
-except AttributeError:
-    pass
-
 import logging
+from spyne.util import six
 
 logger = logging.getLogger(__name__)
 
-from spyne.util import six
-
-from spyne.util.coopmt import keepfirst
-from spyne.util.coopmt import coroutine
-from spyne.util.coopmt import Break
-
-from spyne.util.memo import memoize
-from spyne.util.memo import memoize_first
-from spyne.util.memo import memoize_ignore
-from spyne.util.memo import memoize_ignore_none
-from spyne.util.memo import memoize_id
-
-from spyne.util.attrdict import AttrDict
-from spyne.util.attrdict import AttrDictColl
-from spyne.util.attrdict import DefaultAttrDict
-
-from spyne.util._base import utctime
-from spyne.util._base import get_version
+from spyne.util.coopmt import keepfirst, coroutine, Break
+from spyne.util.memo import memoize, memoize_first, memoize_ignore, memoize_ignore_none, memoize_id
+from spyne.util.attrdict import AttrDict, AttrDictColl, DefaultAttrDict
+from spyne.util._base import utctime, get_version
 
 try:
     import thread
-
     from urllib import splittype, splithost, quote, urlencode
     from urllib2 import urlopen, Request, HTTPError
-
 except ImportError:  # Python 3
     import _thread as thread
-
     from urllib.parse import splittype, splithost, quote, urlencode
     from urllib.request import urlopen, Request
     from urllib.error import HTTPError
