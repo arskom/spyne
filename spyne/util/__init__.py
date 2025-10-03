@@ -16,6 +16,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import sys
+from spyne.util import six as _six
+
+sys.modules.setdefault("spyne.util.six", _six)
+
+try:
+    moves = _six.moves
+    sys.modules.setdefault("spyne.util.six.moves", moves)
+
+    sys.modules.setdefault("spyne.util.six.moves.collections_abc", moves.collections_abc)
+    sys.modules.setdefault("spyne.util.six.moves.urllib", moves.urllib)
+    sys.modules.setdefault("spyne.util.six.moves.urllib.parse", moves.urllib.parse)
+    sys.modules.setdefault("spyne.util.six.moves.urllib.error", moves.urllib.error)
+    sys.modules.setdefault("spyne.util.six.moves.urllib.request", moves.urllib.request)
+    sys.modules.setdefault("spyne.util.six.moves.http_cookies", moves.http_cookies)
+except AttributeError:
+    pass
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -38,7 +56,6 @@ from spyne.util.attrdict import DefaultAttrDict
 
 from spyne.util._base import utctime
 from spyne.util._base import get_version
-
 
 try:
     import thread

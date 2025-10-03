@@ -456,9 +456,14 @@ class InProtocolBase(ProtocolMixin):
             raise ValidationError(string)
 
     def enum_base_from_bytes(self, cls, value):
-        if self.validator is self.SOFT_VALIDATION and not (cls.validate_string(cls, value)):
+        if isinstance(value, (bytes, bytearray)):
+            try:
+                value = value.decode("utf-8")
+            except Exception:
+                raise ValidationError(value)
+        if self.validator is self.SOFT_VALIDATION and not cls.validate_string(cls, value):
             raise ValidationError(value)
-        return getattr(cls, value)
+        return value
 
     def model_base_from_bytes(self, cls, value):
         return cls.from_bytes(value)

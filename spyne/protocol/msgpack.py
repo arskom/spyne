@@ -71,13 +71,11 @@ class MessagePackDocument(HierDictDocument):
         validator=None,
         mime_type=None,
         ignore_uncap=False,
-        # DictDocument specific
         ignore_wrappers=True,
         complex_as=dict,
         ordered=False,
         polymorphic=False,
         key_encoding="utf8",
-        # MessagePackDocument specific
         mw_packer=msgpack.Packer,
         mw_unpacker=msgpack.Unpacker,
         use_list=False,
@@ -96,35 +94,24 @@ class MessagePackDocument(HierDictDocument):
             polymorphic,
             key_encoding,
         )
-
         self.mw_packer = mw_packer
         self.mw_unpacker = mw_unpacker
-
-        # unpacker
-        if not raw:
-            self.from_serstr = self.from_unicode
-
-        if use_bin_type:
-            self.from_serstr = self.from_unicode
-
+        self.from_serstr = self.from_unicode if not raw else self.from_bytes
         self.kwargs_packer = dict(kwargs)
         self.kwargs_unpacker = dict(kwargs)
-        self.kwargs_packer["raw"] = self.kwargs_unpacker["raw"] = raw
-        self.kwargs_packer["use_list"] = self.kwargs_unpacker["use_list"] = use_list
+        self.kwargs_unpacker["raw"] = raw
+        self.kwargs_unpacker.setdefault("use_list", use_list)
+        self.kwargs_unpacker.setdefault("strict_map_key", False)
         self.kwargs_packer["use_bin_type"] = use_bin_type
-
         self._from_bytes_handlers[Double] = self._ret_number
         self._from_bytes_handlers[Boolean] = self._ret_bool
         self._from_bytes_handlers[Integer] = self.integer_from_bytes
-
         self._from_unicode_handlers[Double] = self._ret_number
         self._from_unicode_handlers[Boolean] = self._ret_bool
         self._from_unicode_handlers[Integer] = self.integer_from_bytes
-
         self._to_bytes_handlers[Double] = self._ret_number
         self._to_bytes_handlers[Boolean] = self._ret_bool
         self._to_bytes_handlers[Integer] = self.integer_to_bytes
-
         self._to_unicode_handlers[Double] = self._ret_number
         self._to_unicode_handlers[Boolean] = self._ret_bool
         self._to_unicode_handlers[Integer] = self.integer_to_bytes
@@ -153,15 +140,6 @@ class MessagePackDocument(HierDictDocument):
         return class_name
 
     def create_in_document(self, ctx, in_string_encoding=None):
-        """Sets ``ctx.in_document``,  using ``ctx.in_string``.
-
-        :param ctx: The MethodContext object
-        :param in_string_encoding: MessagePack is a binary protocol. So this
-            argument is ignored.
-        """
-
-        # handle mmap objects from in ctx.in_string as returned by
-        # TwistedWebResource.handle_rpc.
         if (
             isinstance(ctx.in_string, (list, tuple))
             and len(ctx.in_string) == 1
@@ -170,10 +148,9 @@ class MessagePackDocument(HierDictDocument):
             unpacker = self.mw_unpacker(**self.kwargs_unpacker)
             unpacker.feed(ctx.in_string[0])
             ctx.in_document = next(x for x in unpacker)
-
         else:
             try:
-                ctx.in_document = msgpack.unpackb(b"".join(ctx.in_string))
+                ctx.in_document = msgpack.unpackb(b"".join(ctx.in_string), **self.kwargs_unpacker)
             except ValueError as e:
                 raise MessagePackDecodeError(" ".join(e.args))
 
@@ -190,7 +167,7 @@ class MessagePackDocument(HierDictDocument):
         return "{%s}%s" % (self.app.interface.get_tns(), mrs)
 
     def create_out_string(self, ctx, out_string_encoding="utf8"):
-        ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
+        ctx.out_string = (msgpack.packb(o, **self.kwargs_packer) for o in ctx.out_document)
 
     def integer_from_bytes(self, cls, value):
         if isinstance(value, (six.text_type, six.binary_type)):
@@ -219,25 +196,14 @@ class MessagePackRpc(MessagePackDocument):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
     def create_in_document(self, ctx, in_string_encoding=None):
-        """Sets ``ctx.in_document``,  using ``ctx.in_string``.
-
-        :param ctx: The MethodContext object
-        :param in_string_encoding: MessagePack is a binary protocol. So this
-            argument is ignored.
-        """
-
-        # TODO: Use feed api
         try:
             ctx.in_document = msgpack.unpackb(b"".join(ctx.in_string), **self.kwargs_unpacker)
-
         except ValueError as e:
-            raise MessagePackDecodeError("".join(e.args))
-
+            raise MessagePackDecodeError(" ".join(str(arg) for arg in e.args))
         try:
             len(ctx.in_document)
         except TypeError:
             raise MessagePackDecodeError("Input must be a sequence.")
-
         if not (3 <= len(ctx.in_document) <= 4):
             raise MessagePackDecodeError("Length of input iterable must be either 3 or 4")
 
@@ -266,6 +232,8 @@ class MessagePackRpc(MessagePackDocument):
         elif msgtype == MessagePackRpc.MSGPACK_NOTIFY:
             raise NotImplementedError()
 
+        elif getattr(MessagePackRpc, "MSGPACK_ERROR", 3) == msgtype or msgtype == 3:
+            assert message == MessagePackRpc.RESPONSE
         else:
             raise MessagePackDecodeError("Unknown message type %r" % msgtype)
 

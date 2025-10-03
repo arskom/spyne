@@ -35,7 +35,8 @@ EXAMPLES_DIR = join(dirname(OWN_PATH), "examples")
 PYVER = "".join([str(i) for i in sys.version_info[:2]])
 
 with open(os.path.join(os.path.dirname(__file__), "spyne", "__init__.py")) as v:
-    VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
+    match = re.match(r".*__version__ = ['\"]([^'\"]+)['\"]", v.read(), re.S)
+    VERSION = match.group(1) if match else "0.0.0"
 
 SHORT_DESC = (
     "A transport and architecture agnostic rpc library that focuses on"

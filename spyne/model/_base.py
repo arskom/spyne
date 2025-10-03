@@ -639,10 +639,15 @@ class ModelBase:
 
     @classmethod
     def to_bytes(cls, value):
-        """
-        Returns str(value). This should be overridden if this is not enough.
-        """
-        return six.binary_type(value)
+        if hasattr(value, "value"):
+            value = value.value
+        elif hasattr(value, "name"):
+            value = value.name
+        if isinstance(value, (bytes, bytearray)):
+            return bytes(value)
+        if isinstance(value, str):
+            return value.encode("utf-8")
+        return six.text_type(value).encode("utf-8")
 
     @classmethod
     def to_unicode(cls, value):
