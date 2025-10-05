@@ -29,7 +29,10 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from django.conf.urls import url
+try:
+     from django.conf.urls import url
+except ImportError:
+     from django.urls import re_path as url
 
 from spyne.protocol.soap import Soap11
 from spyne.server.django import DjangoView

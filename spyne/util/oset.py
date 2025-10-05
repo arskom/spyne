@@ -1,19 +1,23 @@
 # http://code.activestate.com/recipes/576694/
 
-from spyne.util.six.moves.collections_abc import MutableSet
+try:
+    from spyne.util.six.moves.collections_abc import MutableSet
+except ImportError:
+    from collections.abc import MutableSet
 
 KEY, PREV, NEXT = list(range(3))
 
 """This module contains an ordered set implementation from
 http://code.activestate.com/recipes/576694/ """
 
+
 class oset(MutableSet):
     """An ordered set implementation."""
 
     def __init__(self, iterable=None):
         self.end = end = []
-        end += [None, end, end]         # sentinel node for doubly linked list
-        self.map = {}                   # key --> [key, prev, next]
+        end += [None, end, end]  # sentinel node for doubly linked list
+        self.map = {}  # key --> [key, prev, next]
         if iterable is not None:
             self |= iterable
 
@@ -58,15 +62,15 @@ class oset(MutableSet):
 
     def pop(self, last=True):
         if not self:
-            raise KeyError('set is empty')
+            raise KeyError("set is empty")
         key = next(reversed(self)) if last else next(iter(self))
         self.discard(key)
         return key
 
     def __repr__(self):
         if not self:
-            return '%s()' % (self.__class__.__name__,)
-        return '%s(%r)' % (self.__class__.__name__, list(self))
+            return "%s()" % (self.__class__.__name__,)
+        return "%s(%r)" % (self.__class__.__name__, list(self))
 
     def __eq__(self, other):
         if isinstance(other, oset):
@@ -77,15 +81,16 @@ class oset(MutableSet):
     def back(self):
         return self.end[1][0]
 
-if __name__ == '__main__':
-    print((oset('abracadabra')))
+
+if __name__ == "__main__":
+    print(oset("abracadabra"))
     stuff = oset()
     stuff.add(1)
     print(stuff)
     stuff.add(1)
     print(stuff)
-    print((oset('simsalabim')))
-    o = oset('abcde')
+    print(oset("simsalabim"))
+    o = oset("abcde")
     print(o)
     print(o.end)
 
