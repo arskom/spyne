@@ -240,7 +240,8 @@ class AttributesMeta(type(object)):
 
 class ModelBaseMeta(type(object)):
     def __getitem__(self, item):
-        return self.customize(**item)
+        if isinstance(item, dict):
+            return self.customize(**item)
 
     def customize(self, **kwargs):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with

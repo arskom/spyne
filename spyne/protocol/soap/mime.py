@@ -72,7 +72,8 @@ def _join_attachment(ns_soap_env, href_id, envelope, payload, prefix=True):
     """
 
     # grab the XML element of the message in the SOAP body
-    soaptree = etree.fromstring(envelope)
+    xml_str_without_declaration = "\n".join(envelope.split("\n")[1:])
+    soaptree = etree.fromstring(xml_str_without_declaration)
     soapbody = soaptree.find("{%s}Body" % ns_soap_env)
 
     if soapbody is None:
@@ -215,9 +216,15 @@ def apply_mtom(headers, envelope, params, paramvals):
     """
 
     # grab the XML element of the message in the SOAP body
-    envelope = ''.join(envelope)
+    envelope = ''.join([b.decode("utf-8") for b in envelope])
+    xml_str_without_declaration = "\n".join(envelope.split("\n")[1:])
 
-    soaptree = etree.fromstring(envelope)
+    soaptree = etree.fromstring(xml_str_without_declaration)
+    for ns in soaptree.nsmap.items():
+        if 'soap' in ns[1]:
+            _ns_soap_env = ns[1]
+            break
+
     soapbody = soaptree.find("{%s}Body" % _ns_soap_env)
 
     message = None
@@ -266,7 +273,7 @@ def apply_mtom(headers, envelope, params, paramvals):
 
     # Extract attachments from SOAP envelope.
     for i in range(len(params)):
-        name, typ = params[i]
+        typ = params[i]
 
         if issubclass(typ, (ByteArray, File)):
             id = "SpyneAttachment_%s" % (len(mtompkg.get_payload()), )
