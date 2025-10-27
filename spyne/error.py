@@ -50,7 +50,7 @@ class RequestNotAllowed(Fault):
 
     CODE = 'Client.RequestNotAllowed'
 
-    def __init__(self, faultstring=""):
+    def __init__(self, faultstring="Request not allowed"):
         super(RequestNotAllowed, self).__init__(self.CODE, faultstring)
 
 
@@ -93,9 +93,12 @@ class ValidationError(Fault):
 
     CODE = 'Client.ValidationError'
 
-    def __init__(self, obj, custom_msg='The value %r could not be validated.'):
+    def __init__(self, value,
+                             custom_msg='The value %r could not be validated.'):
+        self.value = value
+
         try:
-            msg = custom_msg % (obj,)
+            msg = custom_msg % (value,)
         except TypeError:
             msg = custom_msg
 
@@ -107,9 +110,8 @@ class InternalError(Fault):
 
     CODE = 'Server'
 
-    def __init__(self, error):
-        super(InternalError, self) \
-            .__init__(self.CODE, "InternalError: An unknown error has occured.")
+    def __init__(self, error="InternalError: An unknown error has occured."):
+        super(InternalError, self).__init__(self.CODE, error)
 
 
 class ResourceNotFoundError(Fault):
@@ -117,10 +119,10 @@ class ResourceNotFoundError(Fault):
 
     CODE = 'Client.ResourceNotFound'
 
-    def __init__(self, fault_object,
-                                fault_string="Requested resource %r not found"):
-        super(ResourceNotFoundError, self) \
-                            .__init__(self.CODE, fault_string % (fault_object,))
+    def __init__(self, value, error="Requested resource %r not found"):
+        self.value = value
+
+        super(ResourceNotFoundError, self).__init__(self.CODE, error % (value,))
 
 
 class RespawnError(ResourceNotFoundError):
@@ -132,9 +134,15 @@ class ResourceAlreadyExistsError(Fault):
 
     CODE = 'Client.ResourceAlreadyExists'
 
-    def __init__(self, fault_object, fault_string="Resource %r already exists"):
-        super(ResourceAlreadyExistsError, self) \
-                               .__init__(self.CODE, fault_string % fault_object)
+    def __init__(self, value, error="Resource %r already exists"):
+        self.value = value
+
+        try:
+            error = error % (value,)
+        except TypeError:
+            pass
+
+        super(ResourceAlreadyExistsError, self).__init__(self.CODE, error)
 
 
 class Redirect(Fault):

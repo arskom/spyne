@@ -111,15 +111,16 @@ def email_text(addresses, sender=None, subject="", message="", bcc=None,
         newmsg.attach(msg)
         for k, v in att.items():
             mime_type, encoding = mimetypes.guess_type(k)
-            if mime_type == "message/rfc822":
-                part = MIMEMessage(message_from_string(v))
-            elif mime_type.startswith("image/"):
-                part = MIMEImage(v, mime_type.rsplit('/', 1)[-1])
-            elif mime_type is not None:
-                mime_type_main, mime_type_sub = mime_type.split('/', 1)
-                part = MIMENonMultipart(mime_type_main, mime_type_sub)
-                part.set_payload(v)
-                encode_base64(part)
+            if mime_type is not None:
+                if mime_type == "message/rfc822":
+                    part = MIMEMessage(message_from_string(v))
+                elif mime_type.startswith("image/"):
+                    part = MIMEImage(v, mime_type.rsplit('/', 1)[-1])
+                else:
+                    mime_type_main, mime_type_sub = mime_type.split('/', 1)
+                    part = MIMENonMultipart(mime_type_main, mime_type_sub)
+                    part.set_payload(v)
+                    encode_base64(part)
             else:
                 part = MIMEApplication(v)
 

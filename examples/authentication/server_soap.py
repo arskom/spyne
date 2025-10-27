@@ -132,8 +132,8 @@ class AuthenticationService(Service):
             raise AuthenticationError(user_name)
 
         if bcrypt.hashpw(password, password_hash) == password_hash:
-            session_id = (user_name,
-                                '%x' % random.randint(1 << 124, (1 << 128) - 1))
+            session_id = \
+                    (user_name, '%x' % random.randint(1 << 124, (1 << 128) - 1))
             session_db.add(session_id)
 
         else:

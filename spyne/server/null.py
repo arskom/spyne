@@ -66,7 +66,7 @@ class NullServer(ServerBase):
         super(NullServer, self).__init__(app)
 
         self.service = _FunctionProxy(self, self.app, is_async=False)
-        self.is_async = _FunctionProxy(self, self.app, is_async=True)
+        self.async_ = _FunctionProxy(self, self.app, is_async=True)
         self.factory = Factory(self.app)
         self.ostr = ostr
         self.locale = locale

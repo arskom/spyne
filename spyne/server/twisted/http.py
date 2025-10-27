@@ -95,18 +95,19 @@ if not six.PY2:
     from urllib.request import unquote_to_bytes
 
 
-def _render_file(file, request):
+def _render_file(file, request, file_value):
     """
     Begin sending the contents of this L{File} (or a subset of the
     contents, based on the 'range' header) to the given request.
     """
-    file.restat(False)
 
+    file.restat(False)
     if file.type is None:
-        file.type, file.encoding = getTypeAndEncoding(file.basename(),
-                                                      file.contentTypes,
-                                                      file.contentEncodings,
-                                                      file.defaultType)
+        file.type, file.encoding = getTypeAndEncoding(
+                file.basename(), file.contentTypes, file.contentEncodings,
+                                                               file.defaultType)
+    if str(getattr(file_value, 'type', '')) != '':
+        file.type = file_value.type
 
     if not file.exists():
         return file.childNotFound.render(request)
@@ -126,15 +127,26 @@ def _render_file(file, request):
         else:
             raise
 
-    #if request.setLastModified(file.getmtime()) is CACHED:
-    #    return ''
+    if request.method == 'HEAD':
+        fileForReading.close()
+        file._setContentHeaders(request)
+        return b''
 
     producer = file.makeProducer(request, fileForReading)
+    producer.start()
+
+    # and make sure the connection doesn't get closed
+    return NOT_DONE_YET
+
+
+def _render_file_like_object(fileForReading, request):
+    producer = _gen_producer(fileForReading, request)
 
     if request.method == 'HEAD':
         return ''
 
     producer.start()
+
     # and make sure the connection doesn't get closed
     return NOT_DONE_YET
 
@@ -215,6 +227,12 @@ class TwistedHttpTransportContext(HttpTransportContext):
             what = what.encode('ascii', errors='replace')
         super(TwistedHttpTransportContext, self).set_mime_type(what)
         self.req.setHeader('Content-Type', what)
+
+    def set_content_encoding(self, what):
+        if isinstance(what, text_type):
+            what = what.encode('ascii', errors='replace')
+        super(TwistedHttpTransportContext, self).set_content_encoding(what)
+        self.req.setHeader('Content-Encoding', what)
 
     def get_cookie(self, key):
         return self.req.getCookie(key)
@@ -747,21 +765,22 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     ### start response
     retval = NOT_DONE_YET
 
+    is_file = ((isclass(om) and issubclass(om, File)) or
+               (isclass(single_class) and issubclass(single_class, File)))
+    is_an_actual_file = is_file and getattr(ret, 'abspath', None) is not None
+    is_http = isinstance(p_ctx.out_protocol, HttpRpc)
+
     if isinstance(ret, PushBase):
         resource.http_transport.init_root_push(ret, p_ctx, others)
 
-    elif ((isclass(om) and issubclass(om, File)) or
-          (isclass(single_class) and issubclass(single_class, File))) and \
-         isinstance(p_ctx.out_protocol, HttpRpc) and \
-                                      getattr(ret, 'abspath', None) is not None:
-
-        file = static.File(ret.abspath,
-                        defaultType=str(ret.type) or 'application/octet-stream')
-        retval = _render_file(file, request)
+    elif is_http and is_an_actual_file:
+        file = static.File(ret.abspath)
+        retval = _render_file(file, request, ret)
         if retval != NOT_DONE_YET and cb:
             request.write(retval)
             request.finish()
             p_ctx.close()
+
         else:
             def _close_only_context(ret):
                 p_ctx.close()
@@ -782,7 +801,9 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
                 .addErrback(log_and_let_go, logger)
 
             try:
-                request.registerProducer(producer, False)
+                if not (request.channel is None):
+                    request.registerProducer(producer, False)
+
             except Exception as e:
                 logger_server.exception(e)
                 try:
@@ -827,7 +848,8 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
 
         except Exception as e:
             logger_server.exception(e)
-            p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
+            p_ctx.out_error = Fault('Server',
+                                             get_fault_string_from_exception(e))
 
             p_ctx.fire_event('method_redirect_exception')
 
@@ -841,7 +863,7 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
         request.write(ret)
 
     else:
-        p_ctx.out_error = InternalError(ret.value)
+        p_ctx.out_error = InternalError()
         logger.error(ret.getTraceback())
 
         ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)

@@ -71,11 +71,11 @@ class MyApplication(Application):
         except NoResultFound:
             raise ResourceNotFoundError(ctx.in_object)
 
-        except Fault, e:
+        except Fault as e:
             logger.error(e)
             raise
 
-        except Exception, e:
+        except Exception as e:
             logger.exception(e)
             # This should not happen! Let the team know via email
             email_exception(EXCEPTION_ADDRESS)

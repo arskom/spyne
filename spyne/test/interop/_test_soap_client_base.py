@@ -183,7 +183,7 @@ class SpyneClientTestBase(object):
         assert ret.s == val.s
 
     def test_echo_nested_class(self):
-        val = self.get_inst("{punk.tunk}NestedClass");
+        val = self.get_inst("{punk.tunk}NestedClass")
 
         val.i = 45
         val.s = "asd"
@@ -200,7 +200,7 @@ class SpyneClientTestBase(object):
         val.simple[1].i = 12
         val.simple[1].s = "qwe"
 
-        val.other = self.get_inst("{spyne.test.interop.server}OtherClass");
+        val.other = self.get_inst("{spyne.test.interop.server}OtherClass")
         val.other.dt = datetime.now(pytz.utc)
         val.other.d = 123.456
         val.other.b = True
@@ -213,7 +213,7 @@ class SpyneClientTestBase(object):
         self.assertEqual(ret.other.dt, val.other.dt)
 
     def test_echo_extension_class(self):
-        val = self.get_inst("{bar}ExtensionClass");
+        val = self.get_inst("{bar}ExtensionClass")
 
         val.i = 45
         val.s = "asd"
@@ -229,12 +229,12 @@ class SpyneClientTestBase(object):
         val.simple[1].i = 12
         val.simple[1].s = "qwe"
 
-        val.other = self.get_inst("{spyne.test.interop.server}OtherClass");
+        val.other = self.get_inst("{spyne.test.interop.server}OtherClass")
         val.other.dt = datetime.now(pytz.utc)
         val.other.d = 123.456
         val.other.b = True
 
-        val.p = self.get_inst("{hunk.sunk}NonNillableClass");
+        val.p = self.get_inst("{hunk.sunk}NonNillableClass")
         val.p.dt = datetime(2010, 6, 2)
         val.p.i = 123
         val.p.s = "punk"

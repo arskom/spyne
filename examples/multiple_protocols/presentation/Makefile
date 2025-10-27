@@ -7,4 +7,4 @@ pres.pdf: pres.tex get_utc_time.pdf
 	pdflatex pres.tex
 
 get_utc_time.pdf: get_utc_time.svg
-	inkscape --file=get_utc_time.svg --export-pdf get_utc_time.pdf
+	inkscape get_utc_time.svg -o get_utc_time.pdf
