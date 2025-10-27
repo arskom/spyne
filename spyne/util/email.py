@@ -44,7 +44,7 @@ from email.encoders import encode_base64
 from spyne.util import six
 
 
-def email_exception(exception_address, message="", bcc=None):
+def email_exception(exception_address, message="", bcc=None, hostname=None, username=None, password=None, secure=False):
     # http://stackoverflow.com/questions/1095601/find-module-name-of-the-originating-exception-in-python
     frm = inspect.trace()[-1]
     mod = inspect.getmodule(frm[0])
@@ -63,7 +63,11 @@ def email_exception(exception_address, message="", bcc=None):
     msg['Subject'] = "(%s@%s) %s" % (getpass.getuser(), gethostname(), module_name)
 
     try:
-        smtp_object = smtplib.SMTP('localhost')
+        if secure:
+            smtp_object = smtplib.SMTP_SSL(hostname, smtplib.SMTP_SSL_PORT)
+            smtp_object.login(username, password)
+        else:
+            smtp_object = smtplib.SMTP('localhost')
         smtp_object.sendmail(sender, recipients, msg.as_string())
         logger.error("Error email sent")
 
@@ -73,7 +77,7 @@ def email_exception(exception_address, message="", bcc=None):
 
 
 def email_text_smtp(addresses, sender=None, subject='', message="",
-                                                     host='localhost', port=25):
+                                                     host='localhost', port=25, username=None, password=None, secure=False):
     if sender is None:
         sender = 'Spyne <robot@spyne.io>'
 
@@ -86,7 +90,11 @@ def email_text_smtp(addresses, sender=None, subject='', message="",
     msg['Date'] = formatdate()
     msg['Subject'] = subject
 
-    smtp_object = smtplib.SMTP(host, port)
+    if secure:
+        smtp_object = smtplib.SMTP_SSL(host, smtplib.SMTP_SSL_PORT)
+        smtp_object.login(username, password)
+    else:
+        smtp_object = smtplib.SMTP(host, port)
     if six.PY2:
         smtp_object.sendmail(sender, addresses, msg.as_string())
     else:
