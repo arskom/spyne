@@ -1,6 +1,6 @@
 # http://code.activestate.com/recipes/576694/
 
-from spyne.util.six.moves.collections_abc import MutableSet
+from collections.abc import MutableSet
 
 KEY, PREV, NEXT = list(range(3))
 
