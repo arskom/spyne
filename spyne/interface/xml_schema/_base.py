@@ -223,8 +223,7 @@ class XmlSchema(InterfaceDocumentBase):
 
             with open(os.path.join(tmp_dir_name, "%s.xsd" % pref_tns), 'r') as f:
                 try:
-                    self.validation_schema = etree.XMLSchema(etree.parse(f))
-
+                    parsed_etree = etree.parse(f)
                 except Exception:
                     f.seek(0)
                     logger.error("This could be a Spyne error. Unless you're "
@@ -232,6 +231,7 @@ class XmlSchema(InterfaceDocumentBase):
                                  "Spyne, please open a new issue with a "
                                  "minimal test case that reproduces it.")
                     raise
+                self.validation_schema = etree.XMLSchema(parsed_etree)
 
             shutil.rmtree(tmp_dir_name)
             logger.debug("Schema built. Removed %r" % tmp_dir_name)
