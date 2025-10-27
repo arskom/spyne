@@ -505,6 +505,72 @@ class TestBodyStyle(unittest.TestCase):
             raise Exception("Must fail with: "
                         "'SelfReference can't be used inside @rpc and its ilk'")
 
+    def test_annotated_rpc_works_with_no_kwargs(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        class SomeService(Service):
+            @rpc
+            def someCall(ctx, x: someCallResponse) -> Array(String):
+                return ['abc', 'def']
+        
+    def test_annotated_rpc_works_with_kwargs(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        class SomeService(Service):
+            @rpc(_is_async=True)
+            def someCall(ctx, x: someCallResponse) -> Array(String):
+                return ['abc', 'def']
+
+        
+    def test_annotated_rpc_works_with_no_response_works(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        class SomeService(Service):
+            @rpc(_is_async=True)
+            def someCall(ctx, x: someCallResponse):
+                return ['abc', 'def']
+        
+    def test_annotated_rpc_works_with__returns_kwarg_raises(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+        
+        expected_message = "_returns must be omitted when type annotations " \
+            "are used. Please annotate the return type"
+        try:
+            class SomeService(Service):
+                @rpc(_returns=Array(String))
+                def someCall(ctx, x: someCallResponse) -> Array(String):
+                    return ['abc', 'def']
+        except ValueError as e:
+            assert str(e) == expected_message
+        else:
+            raise Exception(f"Must fail with: ValueError('{expected_message}'")
+    
+    def test_annotated_rpc_works_with_missing_type_annotation_raises(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        
+        e_sub_message = "Missing type annotation for the parameters: ['y']"
+        try:
+            class SomeService(Service):
+                @rpc(_is_async=True)
+                def someCall(ctx, x: someCallResponse, y) -> Array(String):
+                    return ['abc', 'def']
+        except ValueError as e:
+            assert e_sub_message in str(e)
+        else:
+            raise Exception(f"Must fail with: ValueError('{e_sub_message}'")
+        
+    
 
 if __name__ == '__main__':
     unittest.main()
