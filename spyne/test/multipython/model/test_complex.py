@@ -140,7 +140,7 @@ class TestComplexModel(unittest.TestCase):
 
         Base2 = Base.customize(prop1=4)
 
-        self.assertNotEquals(Base.Attributes.prop1, Base2.Attributes.prop1)
+        self.assertNotEqual(Base.Attributes.prop1, Base2.Attributes.prop1)
         self.assertEqual(Base.Attributes.prop2, Base2.Attributes.prop2)
 
         class Derived(Base):
@@ -156,7 +156,7 @@ class TestComplexModel(unittest.TestCase):
         self.assertEqual(Derived.Attributes.prop1, 3)
         self.assertEqual(Derived2.Attributes.prop1, 5)
 
-        self.assertNotEquals(Derived.Attributes.prop3, Derived2.Attributes.prop3)
+        self.assertNotEqual(Derived.Attributes.prop3, Derived2.Attributes.prop3)
         self.assertEqual(Derived.Attributes.prop4, Derived2.Attributes.prop4)
 
         Derived3 = Derived.customize(prop3=12)
@@ -164,7 +164,7 @@ class TestComplexModel(unittest.TestCase):
 
         # changes made to bases propagate, unless overridden
         self.assertEqual(Derived.Attributes.prop1, Base.Attributes.prop1)
-        self.assertNotEquals(Derived2.Attributes.prop1, Base.Attributes.prop1)
+        self.assertNotEqual(Derived2.Attributes.prop1, Base.Attributes.prop1)
         self.assertEqual(Derived3.Attributes.prop1, Base.Attributes.prop1)
 
     def test_declare_order(self):

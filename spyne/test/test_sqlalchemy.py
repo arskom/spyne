@@ -30,9 +30,9 @@ from sqlalchemy import create_engine
 from sqlalchemy import MetaData
 from sqlalchemy import Column
 from sqlalchemy import Table
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
-from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 
 from spyne import M, Any, Double
@@ -142,7 +142,6 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.engine = create_engine('sqlite:///:memory:')
         self.session = sessionmaker(bind=self.engine)()
         self.metadata = TableModel.Attributes.sqla_metadata = MetaData()
-        self.metadata.bind = self.engine
         logging.info('Testing against sqlalchemy-%s', sqlalchemy.__version__)
 
     def test_obj_json_dirty(self):
@@ -159,7 +158,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
                 ('a', SomeClass.store_as('jsonb')),
             ]
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         sc1 = SomeClass1(i=5, a=SomeClass(s="s", d=42.0))
         self.session.add(sc1)
@@ -191,7 +190,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             i = Integer32(64, index=True)
 
         t = SomeClass.__table__
-        self.metadata.create_all()  # not needed, just nice to see.
+        self.metadata.create_all(self.engine)  # not needed, just nice to see.
 
         assert t.c.id.primary_key == True
         assert t.c.id.autoincrement == False
@@ -211,7 +210,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             s = Unicode(64, sqla_column_args=dict(name='ss'))
 
         t = SomeClass.__table__
-        self.metadata.create_all()  # not needed, just nice to see.
+        self.metadata.create_all(self.engine)  # not needed, just nice to see.
 
         assert 'ss' in t.c
 
@@ -234,7 +233,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
                                                sqla_column_args=dict(name='oo'))
 
         t = SomeClass.__table__
-        self.metadata.create_all()  # not needed, just nice to see.
+        self.metadata.create_all(self.engine)  # not needed, just nice to see.
 
         assert 'oo_id' in t.c
 
@@ -257,7 +256,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
                                                sqla_column_args=dict(name='oo'))
 
         t = SomeClass.__table__
-        self.metadata.create_all()  # not needed, just nice to see.
+        self.metadata.create_all(self.engine)  # not needed, just nice to see.
 
         assert 'oo' in t.c
 
@@ -278,7 +277,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             o = SomeOtherClass.customize(store_as='table')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         soc = SomeOtherClass(s='ehe')
         sc = SomeClass(o=soc)
@@ -315,7 +314,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='table')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         soc1 = SomeOtherClass(s='ehe1')
         soc2 = SomeOtherClass(s='ehe2')
@@ -347,7 +346,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as=table(multi=True))
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         soc1 = SomeOtherClass(s='ehe1')
         soc2 = SomeOtherClass(s='ehe2')
@@ -380,7 +379,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             others = Array(SomeOtherClass,
                              store_as=table(multi=True, backref='some_classes'))
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         soc1 = SomeOtherClass(s='ehe1')
         soc2 = SomeOtherClass(s='ehe2')
@@ -409,7 +408,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='xml')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         soc1 = SomeOtherClass(s='ehe1')
         soc2 = SomeOtherClass(s='ehe2')
@@ -438,7 +437,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as=xml(no_ns=True))
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         soc1 = SomeOtherClass(s='ehe1')
         soc2 = SomeOtherClass(s='ehe2')
@@ -449,7 +448,8 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.close()
 
         sc_xml = self.session.connection() \
-                     .execute("select others from some_class") .fetchall()[0][0]
+                     .execute(text("select others from some_class")) \
+                     .fetchall()[0][0]
 
         from lxml import etree
         assert etree.fromstring(sc_xml).tag == 'SomeOtherClassArray'
@@ -467,7 +467,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         class SomeClass(SomeOtherClass):
             numbers = Array(Integer32).store_as(xml(no_ns=True, root_tag='a'))
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         sc = SomeClass(id=5, s='s', numbers=[1, 2, 3, 4])
 
@@ -614,26 +614,34 @@ class TestSqlAlchemySchema(unittest.TestCase):
             Column('type', sqlalchemy.String(20), nullable=False),
         )
 
-        employee_mapper = mapper(Employee, employees_table,
-                                        polymorphic_on=employees_table.c.type,
-                                                polymorphic_identity='employee')
+        if int(sqlalchemy.__version__.split('.')[0]) < 2:
+            from sqlalchemy.orm import mapper
+        else:
+            from sqlalchemy.orm import registry
+            mapper = registry().map_imperatively
 
-        manager_mapper = mapper(Manager, inherits=employee_mapper,
-                                                polymorphic_identity='manager')
+        employee_mapper = mapper(Employee,
+                                 employees_table,
+                                 polymorphic_on=employees_table.c.type,
+                                 polymorphic_identity='employee')
 
-        engineer_mapper = mapper(Engineer, inherits=employee_mapper,
-                                                polymorphic_identity='engineer')
+        manager_mapper = mapper(Manager,
+                                inherits=employee_mapper,
+                                polymorphic_identity='manager')
 
-        self.metadata.create_all()
+        engineer_mapper = mapper(Engineer,
+                                 inherits=employee_mapper,
+                                 polymorphic_identity='engineer')
+
+        self.metadata.create_all(self.engine)
 
         manager = Manager('name', 'data')
         self.session.add(manager)
         self.session.commit()
         self.session.close()
 
-        assert self.session.query(Employee).with_polymorphic('*') \
-                   .filter_by(employee_id=1) \
-                   .one().type == 'manager'
+        assert self.session.query(Employee).filter_by(employee_id=1) \
+                .one().type == 'manager'
 
     def test_inheritance_polymorphic_with_non_nullables_in_subclasses(self):
         class SomeOtherClass(TableModel):
@@ -653,7 +661,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
             i = Integer(nillable=False)
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         assert SomeOtherClass.__table__.c.s.nullable == False
 
@@ -683,8 +691,8 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         self.session.expunge_all()
 
-        assert self.session.query(SomeOtherClass).with_polymorphic('*') \
-                   .filter_by(id=soc_id).one().t == 1
+        assert self.session.query(SomeOtherClass).filter_by(id=soc_id) \
+                .one().t == 1
 
         self.session.close()
 
@@ -702,7 +710,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             __mapper_args__ = {'polymorphic_identity': 2}
             numbers = Array(Integer32).store_as(xml(no_ns=True, root_tag='a'))
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         sc = SomeClass(id=5, s='s', numbers=[1, 2, 3, 4])
 
@@ -710,8 +718,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.commit()
         self.session.close()
 
-        assert self.session.query(SomeOtherClass).with_polymorphic('*') \
-            .filter_by(id=5).one().t == 2
+        assert self.session.query(SomeOtherClass).filter_by(id=5).one().t == 2
         self.session.close()
 
     def test_nested_sql_array_as_json(self):
@@ -726,7 +733,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='json')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         soc1 = SomeOtherClass(s='ehe1')
         soc2 = SomeOtherClass(s='ehe2')
@@ -751,7 +758,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             i = XmlAttribute(Integer32(pk=True))
             s = XmlData(Unicode(64))
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
         self.session.add(SomeClass(s='s'))
         self.session.commit()
         self.session.expunge_all()
@@ -773,7 +780,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             others = Array(SomeOtherClass, store_as='json')
             f = Unicode(32, default='uuu')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
         self.session.add(SomeClass())
         self.session.commit()
         self.session.expunge_all()
@@ -788,7 +795,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             f = Unicode(32, db_default=u'uuu')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
         val = SomeClass()
         assert val.f is None
 
@@ -814,7 +821,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             o = SomeOtherClass.customize(store_as='table')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
         self.session.add(SomeClass())
         self.session.commit()
 
@@ -833,7 +840,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             o = SomeOtherClass.customize(store_as='table', index='btree')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
         idx, = SomeClass.__table__.indexes
         assert 'o_id' in idx.columns
 
@@ -844,7 +851,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             values = Array(Unicode).store_as('table')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         self.session.add(SomeClass(id=1, values=['a', 'b', 'c']))
         self.session.commit()
@@ -881,7 +888,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             children = Array(SomeChildClass).store_as('table')
             mirror = SomeChildClass.store_as('table')
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         children = [
             SomeChildClass(s='p', i=600),
@@ -973,14 +980,13 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(primary_key=True)
             s = Unicode(32)
 
-        TableModel.Attributes.sqla_metadata.create_all()
+        TableModel.Attributes.sqla_metadata.create_all(self.engine)
 
         # create a new table model with empty metadata
         TM2 = TTableModel()
-        TM2.Attributes.sqla_metadata.bind = self.engine
 
         # fill it with information from the db
-        TM2.Attributes.sqla_metadata.reflect()
+        TM2.Attributes.sqla_metadata.reflect(self.engine)
 
         # convert sqla info to spyne info
         class Reflected(TM2):
@@ -1037,7 +1043,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(pk=True)
             f = File(store_as=HybridFileStore('test_file_storage', 'json'))
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
         c = C(f=File.Value(name=u"name", type=u"type", data=[b"data"]))
         self.session.add(c)
         self.session.flush()
@@ -1100,7 +1106,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             c = Array(C).customize(store_as=table(right='dd_id'))
 
         C.append_field('d', D.customize(store_as=table(left='dd_id')))
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         c1, c2 = C(id=1), C(id=2)
         d = D(id=1, c=[c1, c2])
@@ -1179,7 +1185,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         C()
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         assert "s" in C2._type_info
         assert "s" in C2.Attributes.sqla_mapper.columns
@@ -1233,7 +1239,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         B.append_field('i', Integer32)
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         self.session.add(C(s="foo", i=42))
         self.session.commit()
@@ -1268,7 +1274,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         B.append_field('d', D.store_as('table'))
 
-        self.metadata.create_all()
+        self.metadata.create_all(self.engine)
 
         self.session.add(C(d=D(i=42)))
         self.session.commit()
