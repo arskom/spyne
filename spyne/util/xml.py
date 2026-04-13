@@ -22,23 +22,24 @@
 utility functions.
 """
 from inspect import isgenerator
+from io import BytesIO
+from os.path import abspath, dirname
 
 from lxml import etree
 
-from os.path import dirname
-from os.path import abspath
-
-from spyne import ServiceBase, Application, srpc
+from spyne import Application, ServiceBase, srpc
 from spyne.context import FakeContext
 from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
-from spyne.interface.xml_schema.parser import XmlSchemaParser, Thier_repr, PARSER
+from spyne.interface.xml_schema.parser import (
+    PARSER,
+    Thier_repr,
+    XmlSchemaParser
+)
 from spyne.protocol import ProtocolMixin
 from spyne.protocol.cloth import XmlCloth
-
 from spyne.protocol.xml import XmlDocument
 from spyne.util.appreg import unregister_application
-from spyne.util.six import BytesIO
 from spyne.util.tlist import tlist
 
 

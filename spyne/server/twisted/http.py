@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -40,59 +39,47 @@ which can make testing a bit difficult. Use in moderation.
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-import re
 import cgi
 import gzip
+import re
 import shutil
 import threading
-
-from os import fstat
-from mmap import mmap
-from inspect import isclass
 from collections import namedtuple
+from inspect import isclass
+from mmap import mmap
+from os import fstat
 from tempfile import TemporaryFile
+from urllib.parse import unquote
 
-from twisted.web import static
-from twisted.web.server import NOT_DONE_YET, Request
-from twisted.web.resource import Resource, NoResource, ForbiddenResource
-from twisted.web.static import getTypeAndEncoding
-from twisted.python.log import err
-from twisted.python.failure import Failure
 from twisted.internet import reactor
-from twisted.internet.task import deferLater
 from twisted.internet.defer import Deferred
+from twisted.internet.task import deferLater
 from twisted.internet.threads import deferToThread
+from twisted.python.failure import Failure
+from twisted.python.log import err
+from twisted.web import static
+from twisted.web.resource import ForbiddenResource, NoResource, Resource
+from twisted.web.server import NOT_DONE_YET, Request
+from twisted.web.static import getTypeAndEncoding
 
-from spyne import Redirect, Address
-from spyne.application import logger_server
-from spyne.application import get_fault_string_from_exception
-
-from spyne.util import six
-from spyne.error import InternalError, ValidationError
+from spyne import Address, Redirect
+from spyne.application import get_fault_string_from_exception, logger_server
 from spyne.auxproc import process_contexts
-from spyne.const.ansi_color import LIGHT_GREEN
-from spyne.const.ansi_color import END_COLOR
-from spyne.const.http import HTTP_404, HTTP_200
-
-from spyne.model import PushBase, File, ComplexModelBase
+from spyne.const.ansi_color import END_COLOR, LIGHT_GREEN
+from spyne.const.http import HTTP_200, HTTP_404
+from spyne.error import InternalError, ValidationError
+from spyne.model import ComplexModelBase, File, PushBase
 from spyne.model.fault import Fault
-
 from spyne.protocol.http import HttpRpc
-
-from spyne.server.http import HttpBase
-from spyne.server.http import HttpMethodContext
-from spyne.server.http import HttpTransportContext
-from spyne.server.twisted._base import Producer
+from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
 from spyne.server.twisted import log_and_let_go
-
+from spyne.server.twisted._base import Producer
 from spyne.util.address import address_parser
-from spyne.util.six import text_type, string_types
-from spyne.util.six.moves.urllib.parse import unquote
 
-if not six.PY2:
-    from urllib.request import unquote_to_bytes
+from urllib.request import unquote_to_bytes
 
 
 def _render_file(file, request):
@@ -103,10 +90,9 @@ def _render_file(file, request):
     file.restat(False)
 
     if file.type is None:
-        file.type, file.encoding = getTypeAndEncoding(file.basename(),
-                                                      file.contentTypes,
-                                                      file.contentEncodings,
-                                                      file.defaultType)
+        file.type, file.encoding = getTypeAndEncoding(
+            file.basename(), file.contentTypes, file.contentEncodings, file.defaultType
+        )
 
     if not file.exists():
         return file.childNotFound.render(request)
@@ -114,7 +100,7 @@ def _render_file(file, request):
     if file.isdir():
         return file.redirect(request)
 
-    request.setHeader('accept-ranges', 'bytes')
+    request.setHeader("accept-ranges", "bytes")
 
     try:
         fileForReading = file.openForReading()
@@ -126,13 +112,13 @@ def _render_file(file, request):
         else:
             raise
 
-    #if request.setLastModified(file.getmtime()) is CACHED:
+    # if request.setLastModified(file.getmtime()) is CACHED:
     #    return ''
 
     producer = file.makeProducer(request, fileForReading)
 
-    if request.method == 'HEAD':
-        return ''
+    if request.method == "HEAD":
+        return ""
 
     producer.start()
     # and make sure the connection doesn't get closed
@@ -165,25 +151,25 @@ def _reconstruct_url(request):
 
     is_secure = request.getHeader(b"x-forwarded-proto")
     if is_secure is not None:
-        is_secure = is_secure == 'https'
+        is_secure = is_secure == "https"
 
     if server_name is None:
-        server_name = request.getRequestHostname().decode('ascii')
+        server_name = request.getRequestHostname().decode("ascii")
     if server_port is None:
         server_port = request.getHost().port
     if is_secure is None:
         is_secure = bool(request.isSecure())
 
     if (is_secure, server_port) not in ((True, 443), (False, 80)):
-        server_name = '%s:%d' % (server_name, server_port)
+        server_name = "%s:%d" % (server_name, server_port)
 
     if is_secure:
-        url_scheme = 'https'
+        url_scheme = "https"
     else:
-        url_scheme = 'http'
+        url_scheme = "http"
 
     uri = _decode_path(request.uri)
-    return ''.join([url_scheme, "://", server_name, uri])
+    return "".join([url_scheme, "://", server_name, uri])
 
 
 class _Transformer(object):
@@ -192,16 +178,12 @@ class _Transformer(object):
 
     def get(self, key, default):
         key = key.lower()
-        if six.PY2:
-            if key.startswith((b'http_', b'http-')):
+        if isinstance(key, bytes):
+            if key.startswith((b"http_", b"http-")):
                 key = key[5:]
         else:
-            if isinstance(key, bytes):
-                if key.startswith((b'http_', b'http-')):
-                    key = key[5:]
-            else:
-                if key.startswith(('http_', 'http-')):
-                    key = key[5:]
+            if key.startswith(("http_", "http-")):
+                key = key[5:]
 
         retval = self.req.getHeader(key)
         if retval is None:
@@ -211,10 +193,10 @@ class _Transformer(object):
 
 class TwistedHttpTransportContext(HttpTransportContext):
     def set_mime_type(self, what):
-        if isinstance(what, text_type):
-            what = what.encode('ascii', errors='replace')
+        if isinstance(what, str):
+            what = what.encode("ascii", errors="replace")
         super(TwistedHttpTransportContext, self).set_mime_type(what)
-        self.req.setHeader('Content-Type', what)
+        self.req.setHeader("Content-Type", what)
 
     def get_cookie(self, key):
         return self.req.getCookie(key)
@@ -250,17 +232,14 @@ class TwistedHttpMethodContext(HttpMethodContext):
 
 
 def _decode_path(fragment):
-    if six.PY2:
-        return unquote(fragment)
-
     return unquote_to_bytes(fragment)
 
 
 class TwistedHttpTransport(HttpBase):
-    SLASH = b'/'
-    SLASHPER = b'/%s'
+    SLASH = b"/"
+    SLASHPER = b"/%s"
 
-    KEY_ENCODING = 'utf8'
+    KEY_ENCODING = "utf8"
 
     @classmethod
     def get_patt_verb(cls, patt):
@@ -274,12 +253,22 @@ class TwistedHttpTransport(HttpBase):
     def get_patt_address(cls, patt):
         return patt.address_b_re
 
-    def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
-                                                         block_length=8 * 1024):
-        super(TwistedHttpTransport, self).__init__(app, chunked=chunked,
-               max_content_length=max_content_length, block_length=block_length)
+    def __init__(
+        self,
+        app,
+        chunked=False,
+        max_content_length=2 * 1024 * 1024,
+        block_length=8 * 1024,
+    ):
+        super(TwistedHttpTransport, self).__init__(
+            app,
+            chunked=chunked,
+            max_content_length=max_content_length,
+            block_length=block_length,
+        )
 
         self.reactor_thread = None
+
         def _cb():
             self.reactor_thread = threading.current_thread()
 
@@ -287,17 +276,25 @@ class TwistedHttpTransport(HttpBase):
 
     def pusher_init(self, p_ctx, gen, _cb_push_finish, pusher, interim):
         if pusher.orig_thread != self.reactor_thread:
-            return deferToThread(super(TwistedHttpTransport, self).pusher_init,
-                                   p_ctx, gen, _cb_push_finish, pusher, interim)
+            return deferToThread(
+                super(TwistedHttpTransport, self).pusher_init,
+                p_ctx,
+                gen,
+                _cb_push_finish,
+                pusher,
+                interim,
+            )
 
         return super(TwistedHttpTransport, self).pusher_init(
-                                   p_ctx, gen, _cb_push_finish, pusher, interim)
+            p_ctx, gen, _cb_push_finish, pusher, interim
+        )
 
     @staticmethod
     def set_out_document_push(ctx):
         class _ISwearImAGenerator(object):
             def send(self, data):
-                if not data: return
+                if not data:
+                    return
                 ctx.out_stream.write(data)
 
         ctx.out_document = _ISwearImAGenerator()
@@ -307,13 +304,15 @@ class TwistedHttpTransport(HttpBase):
         # when a *root* pusher has no more data to send. interim pushers don't
         # have to close anything.
         if isinstance(retval, Deferred):
+
             def _eb_push_close(f):
                 assert isinstance(f, Failure)
 
                 logger.error(f.getTraceback())
 
-                subretval = super(TwistedHttpTransport, self) \
-                                          .pusher_try_close(ctx, pusher, retval)
+                subretval = super(TwistedHttpTransport, self).pusher_try_close(
+                    ctx, pusher, retval
+                )
 
                 if not pusher.interim:
                     ctx.out_stream.finish()
@@ -328,22 +327,25 @@ class TwistedHttpTransport(HttpBase):
                     return f
 
                 if not isinstance(r, Deferred):
-                    retval = super(TwistedHttpTransport, self) \
-                                               .pusher_try_close(ctx, pusher, r)
+                    retval = super(TwistedHttpTransport, self).pusher_try_close(
+                        ctx, pusher, r
+                    )
                     if not pusher.interim:
                         ctx.out_stream.finish()
 
                     return retval
 
-                return r \
-                    .addCallback(_cb_push_close) \
-                    .addErrback(_eb_inner) \
+                return (
+                    r.addCallback(_cb_push_close)
+                    .addErrback(_eb_inner)
                     .addErrback(log_and_let_go, logger)
+                )
 
-            return retval \
-                .addCallback(_cb_push_close) \
-                .addErrback(_eb_push_close)  \
+            return (
+                retval.addCallback(_cb_push_close)
+                .addErrback(_eb_push_close)
                 .addErrback(log_and_let_go, logger)
+            )
 
         super(TwistedHttpTransport, self).pusher_try_close(ctx, pusher, retval)
 
@@ -358,7 +360,7 @@ class TwistedHttpTransport(HttpBase):
         for k, v in d.items():
             l = []
             for v2 in v:
-                if isinstance(v2, string_types):
+                if isinstance(v2, str):
                     l.append(unquote(v2))
                 else:
                     l.append(v2)
@@ -409,30 +411,30 @@ class TwistedHttpTransport(HttpBase):
             if l is None:
                 l = ctx.in_body_doc[fi.field_name] = []
 
-            l.append(
-                File.Value(name=fi.file_name, type=fi.file_type, data=fi.data)
-            )
+            l.append(File.Value(name=fi.file_name, type=fi.file_type, data=fi.data))
 
         # this is a huge hack because twisted seems to take the slashes in urls
         # too seriously.
-        postpath = getattr(request, 'realpostpath', None)
+        postpath = getattr(request, "realpostpath", None)
         if postpath is None:
             postpath = request.path
 
         if postpath is not None:
             postpath = _decode_path(postpath)
 
-        params = self.match_pattern(ctx, request.method, postpath,
-                                                     request.getHeader(b'Host'))
+        params = self.match_pattern(
+            ctx, request.method, postpath, request.getHeader(b"Host")
+        )
 
-        if ctx.method_request_string is None: # no pattern match
-            ctx.method_request_string = u'{%s}%s' % (
+        if ctx.method_request_string is None:  # no pattern match
+            ctx.method_request_string = "{%s}%s" % (
                 self.app.interface.get_tns(),
-                _decode_path(request.path.rsplit(b'/', 1)[-1]).decode("utf8"),
+                _decode_path(request.path.rsplit(b"/", 1)[-1]).decode("utf8"),
             )
 
-        logger.debug(u"%sMethod name: %r%s" % (LIGHT_GREEN,
-                                          ctx.method_request_string, END_COLOR))
+        logger.debug(
+            "%sMethod name: %r%s" % (LIGHT_GREEN, ctx.method_request_string, END_COLOR)
+        )
 
         for k, v in params.items():
             val = ctx.in_body_doc.get(k, [])
@@ -440,18 +442,13 @@ class TwistedHttpTransport(HttpBase):
             ctx.in_body_doc[k] = val
 
         r = {}
-        if six.PY2:
-            ctx.in_header_doc = self._decode_dict_py2(ctx.in_header_doc)
-            ctx.in_body_doc = self._decode_dict_py2(ctx.in_body_doc)
-
-        else:
-            ctx.in_header_doc = self._decode_dict(ctx.in_header_doc)
-            ctx.in_body_doc = self._decode_dict(ctx.in_body_doc)
+        ctx.in_header_doc = self._decode_dict(ctx.in_header_doc)
+        ctx.in_body_doc = self._decode_dict(ctx.in_body_doc)
 
         # This is consistent with what server.wsgi does.
-        if request.method in ('POST', 'PUT', 'PATCH'):
+        if request.method in ("POST", "PUT", "PATCH"):
             for k, v in ctx.in_body_doc.items():
-                if v == ['']:
+                if v == [""]:
                     ctx.in_body_doc[k] = [None]
 
         logger.debug("%r", ctx.in_body_doc)
@@ -471,14 +468,14 @@ def _get_file_info(ctx):
 
     request = ctx.transport.req
     headers = request.getAllHeaders()
-    content_type = headers.get('content-type', None)
+    content_type = headers.get("content-type", None)
     if content_type is None:
         return retval
 
     content = request.content
 
-    content_encoding = headers.get('content-encoding', None)
-    if content_encoding == b'gzip':
+    content_encoding = headers.get("content-encoding", None)
+    if content_encoding == b"gzip":
         request.content.seek(0)
         content = TemporaryFile()
         with gzip.GzipFile(fileobj=request.content) as ifstr:
@@ -489,9 +486,9 @@ def _get_file_info(ctx):
         fp=content,
         headers=ctx.in_header_doc,
         environ={
-            'REQUEST_METHOD': request.method,
-            'CONTENT_TYPE': content_type,
-        }
+            "REQUEST_METHOD": request.method,
+            "CONTENT_TYPE": content_type,
+        },
     )
 
     try:
@@ -507,16 +504,17 @@ def _get_file_info(ctx):
 
         for field in fields:
             file_type = field.type
-            file_name = field.disposition_options.get('filename', None)
+            file_name = field.disposition_options.get("filename", None)
             if file_name is not None:
-                retval.append(_FileInfo(k, file_name, file_type,
-                                                [mmap(field.file.fileno(), 0)]))
+                retval.append(
+                    _FileInfo(k, file_name, file_type, [mmap(field.file.fileno(), 0)])
+                )
 
     return retval
 
 
 def _has_fd(istr):
-    if not hasattr(istr, 'fileno'):
+    if not hasattr(istr, "fileno"):
         return False
     try:
         istr.fileno()
@@ -531,10 +529,10 @@ def get_twisted_child_with_default(res, path, request):
     # http requests too seriously. i.e. it insists that a leaf node can only
     # handle the last path fragment.
     if res.prepath is None:
-        request.realprepath = b'/' + b'/'.join(request.prepath)
+        request.realprepath = b"/" + b"/".join(request.prepath)
     else:
-        if not res.prepath.startswith(b'/'):
-            request.realprepath = b'/' + res.prepath
+        if not res.prepath.startswith(b"/"):
+            request.realprepath = b"/" + res.prepath
         else:
             request.realprepath = res.prepath
 
@@ -547,7 +545,8 @@ def get_twisted_child_with_default(res, path, request):
         retval = res
     else:
         request.realpostpath = request.path[
-                               len(path) + (0 if path.startswith(b'/') else 1):]
+            len(path) + (0 if path.startswith(b"/") else 1) :
+        ]
 
     return retval
 
@@ -557,13 +556,20 @@ class TwistedWebResource(Resource):
     Resource.
     """
 
-    def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
-                                           block_length=8 * 1024, prepath=None):
+    def __init__(
+        self,
+        app,
+        chunked=False,
+        max_content_length=2 * 1024 * 1024,
+        block_length=8 * 1024,
+        prepath=None,
+    ):
         Resource.__init__(self)
         self.app = app
 
-        self.http_transport = TwistedHttpTransport(app, chunked,
-                                            max_content_length, block_length)
+        self.http_transport = TwistedHttpTransport(
+            app, chunked, max_content_length, block_length
+        )
         self._wsdl = None
         self.prepath = prepath
 
@@ -571,8 +577,9 @@ class TwistedWebResource(Resource):
         return get_twisted_child_with_default(self, path, request)
 
     def render(self, request):
-        if request.method == b'GET' and (
-              request.uri.endswith(b'.wsdl') or request.uri.endswith(b'?wsdl')):
+        if request.method == b"GET" and (
+            request.uri.endswith(b".wsdl") or request.uri.endswith(b"?wsdl")
+        ):
             return self.__handle_wsdl_request(request)
         return self.handle_rpc(request)
 
@@ -594,7 +601,7 @@ class TwistedWebResource(Resource):
         p_ctx.out_object = error
         self.http_transport.get_out_string(p_ctx)
 
-        retval = b''.join(p_ctx.out_string)
+        retval = b"".join(p_ctx.out_string)
 
         p_ctx.close()
 
@@ -603,15 +610,16 @@ class TwistedWebResource(Resource):
         return retval
 
     def handle_rpc(self, request):
-        initial_ctx = TwistedHttpMethodContext(self.http_transport, request,
-                                 self.http_transport.app.out_protocol.mime_type)
+        initial_ctx = TwistedHttpMethodContext(
+            self.http_transport, request, self.http_transport.app.out_protocol.mime_type
+        )
 
         if _has_fd(request.content):
             f = request.content
 
             # it's best to avoid empty mappings.
             if fstat(f.fileno()).st_size == 0:
-                initial_ctx.in_string = ['']
+                initial_ctx.in_string = [""]
             else:
                 initial_ctx.in_string = [mmap(f.fileno(), 0)]
         else:
@@ -635,13 +643,11 @@ class TwistedWebResource(Resource):
             self.http_transport.get_in_object(p_ctx)
 
             if p_ctx.in_error:
-                return self.handle_rpc_error(p_ctx, others, p_ctx.in_error,
-                                                                        request)
+                return self.handle_rpc_error(p_ctx, others, p_ctx.in_error, request)
 
             self.http_transport.get_out_object(p_ctx)
             if p_ctx.out_error:
-                return self.handle_rpc_error(p_ctx, others, p_ctx.out_error,
-                                                                        request)
+                return self.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
 
         ret = p_ctx.out_object[0]
         retval = NOT_DONE_YET
@@ -655,13 +661,13 @@ class TwistedWebResource(Resource):
 
         else:
             try:
-                retval = _cb_deferred(p_ctx.out_object, request, p_ctx, others,
-                                                                 self, cb=False)
+                retval = _cb_deferred(
+                    p_ctx.out_object, request, p_ctx, others, self, cb=False
+                )
             except Exception as e:
                 logger_server.exception(e)
                 try:
-                    _eb_deferred(Failure(), request, p_ctx, others,
-                                                                  resource=self)
+                    _eb_deferred(Failure(), request, p_ctx, others, resource=self)
                 except Exception as e:
                     logger_server.exception(e)
 
@@ -672,8 +678,9 @@ class TwistedWebResource(Resource):
         # logger.debug("WSDL request headers: %r",
         #                       list(request.requestHeaders.getAllRawHeaders()))
 
-        ctx = TwistedHttpMethodContext(self.http_transport, request,
-                                                      "text/xml; charset=utf-8")
+        ctx = TwistedHttpMethodContext(
+            self.http_transport, request, "text/xml; charset=utf-8"
+        )
         url = _reconstruct_url(request)
 
         if self.http_transport.doc.wsdl11 is None:
@@ -688,18 +695,19 @@ class TwistedWebResource(Resource):
         try:
             if self._wsdl is None:
                 self.http_transport.doc.wsdl11.build_interface_document(url)
-                ctx.transport.wsdl = self._wsdl = \
-                         self.http_transport.doc.wsdl11.get_interface_document()
+                ctx.transport.wsdl = self._wsdl = (
+                    self.http_transport.doc.wsdl11.get_interface_document()
+                )
 
             assert ctx.transport.wsdl is not None
 
-            self.http_transport.event_manager.fire_event('wsdl', ctx)
+            self.http_transport.event_manager.fire_event("wsdl", ctx)
 
             return ctx.transport.wsdl
 
         except Exception as e:
             ctx.transport.wsdl_error = e
-            self.http_transport.event_manager.fire_event('wsdl_exception', ctx)
+            self.http_transport.event_manager.fire_event("wsdl_exception", ctx)
             raise
 
         finally:
@@ -738,7 +746,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
         elif (not issubclass(om, ComplexModelBase)) or len(om._type_info) <= 1:
             p_ctx.out_object = [ret]
             if len(om._type_info) == 1:
-                single_class, = om._type_info.values()
+                (single_class,) = om._type_info.values()
         else:
             p_ctx.out_object = ret
     else:
@@ -750,36 +758,42 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     if isinstance(ret, PushBase):
         resource.http_transport.init_root_push(ret, p_ctx, others)
 
-    elif ((isclass(om) and issubclass(om, File)) or
-          (isclass(single_class) and issubclass(single_class, File))) and \
-         isinstance(p_ctx.out_protocol, HttpRpc) and \
-                                      getattr(ret, 'abspath', None) is not None:
+    elif (
+        (
+            (isclass(om) and issubclass(om, File))
+            or (isclass(single_class) and issubclass(single_class, File))
+        )
+        and isinstance(p_ctx.out_protocol, HttpRpc)
+        and getattr(ret, "abspath", None) is not None
+    ):
 
-        file = static.File(ret.abspath,
-                        defaultType=str(ret.type) or 'application/octet-stream')
+        file = static.File(
+            ret.abspath, defaultType=str(ret.type) or "application/octet-stream"
+        )
         retval = _render_file(file, request)
         if retval != NOT_DONE_YET and cb:
             request.write(retval)
             request.finish()
             p_ctx.close()
         else:
+
             def _close_only_context(ret):
                 p_ctx.close()
 
-            request.notifyFinish() \
-                .addCallback(_close_only_context) \
-                .addErrback(_eb_request_finished, request, p_ctx) \
-                .addErrback(log_and_let_go, logger)
+            request.notifyFinish().addCallback(_close_only_context).addErrback(
+                _eb_request_finished, request, p_ctx
+            ).addErrback(log_and_let_go, logger)
 
     else:
         ret = resource.http_transport.get_out_string(p_ctx)
 
         if not isinstance(ret, Deferred):
             producer = Producer(p_ctx.out_string, request)
-            producer.deferred \
-                .addCallback(_cb_request_finished, request, p_ctx) \
-                .addErrback(_eb_request_finished, request, p_ctx) \
-                .addErrback(log_and_let_go, logger)
+            producer.deferred.addCallback(
+                _cb_request_finished, request, p_ctx
+            ).addErrback(_eb_request_finished, request, p_ctx).addErrback(
+                log_and_let_go, logger
+            )
 
             try:
                 request.registerProducer(producer, False)
@@ -792,19 +806,20 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
                     raise
 
         else:
+
             def _cb(ret):
                 if isinstance(ret, Deferred):
-                    return ret \
-                        .addCallback(_cb) \
-                        .addErrback(_eb_request_finished, request, p_ctx) \
+                    return (
+                        ret.addCallback(_cb)
+                        .addErrback(_eb_request_finished, request, p_ctx)
                         .addErrback(log_and_let_go, logger)
+                    )
                 else:
                     return _cb_request_finished(ret, request, p_ctx)
 
-            ret \
-                .addCallback(_cb) \
-                .addErrback(_eb_request_finished, request, p_ctx) \
-                .addErrback(log_and_let_go, logger)
+            ret.addCallback(_cb).addErrback(
+                _eb_request_finished, request, p_ctx
+            ).addErrback(log_and_let_go, logger)
 
     process_contexts(resource.http_transport, others, p_ctx)
 
@@ -823,20 +838,20 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
 
             _cb_deferred(None, request, p_ctx, others, resource, cb=False)
 
-            p_ctx.fire_event('method_redirect')
+            p_ctx.fire_event("method_redirect")
 
         except Exception as e:
             logger_server.exception(e)
-            p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
+            p_ctx.out_error = Fault("Server", get_fault_string_from_exception(e))
 
-            p_ctx.fire_event('method_redirect_exception')
+            p_ctx.fire_event("method_redirect_exception")
 
     elif ret.check(Fault):
         p_ctx.out_error = ret.value
 
         ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
 
-        p_ctx.fire_event('method_exception_object')
+        p_ctx.fire_event("method_exception_object")
 
         request.write(ret)
 
@@ -846,7 +861,7 @@ def _eb_deferred(ret, request, p_ctx, others, resource):
 
         ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
 
-        p_ctx.fire_event('method_exception_object')
+        p_ctx.fire_event("method_exception_object")
 
         request.write(ret)
 

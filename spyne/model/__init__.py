@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -22,11 +21,13 @@ distinguish. These are just type markers, they are not of much use without
 protocols.
 """
 
-from spyne.model._base import Ignored
-from spyne.model._base import ModelBase
-from spyne.model._base import PushBase
-from spyne.model._base import Null
-from spyne.model._base import SimpleModel
+from spyne.model._base import (
+    Ignored,
+    ModelBase,
+    Null,
+    PushBase,
+    SimpleModel,
+)
 
 # Primitives
 from spyne.model.primitive import *
@@ -34,38 +35,29 @@ from spyne.model.primitive import *
 # store_as values
 # it's sad that xml the pssm and xml the module conflict. that's why we need
 # this after import of primitive package
-from spyne.model._base import xml
-from spyne.model._base import json
-from spyne.model._base import jsonb
-from spyne.model._base import table
-from spyne.model._base import msgpack
+from spyne.model._base import json, jsonb, msgpack, table, xml
 
 # Classes
-from spyne.model.complex import ComplexModelMeta
-from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import TTableModelBase
-from spyne.model.complex import TTableModel
-
-# Iterables
-from spyne.model.complex import Array
-from spyne.model.complex import Iterable
-from spyne.model.complex import PushBase
-
-# Modifiers
-from spyne.model.complex import Mandatory
-from spyne.model.complex import XmlAttribute
-from spyne.model.complex import XmlData
-
-# Markers
-from spyne.model.complex import SelfReference
-
-# Binary
-from spyne.model.binary import File
-from spyne.model.binary import ByteArray
+from spyne.model.complex import (
+    Array,
+    ComplexModel,
+    ComplexModelBase,
+    ComplexModelMeta,
+    Iterable,
+    Mandatory,
+    PushBase,
+    SelfReference,
+    TTableModel,
+    TTableModelBase,
+    XmlAttribute,
+    XmlData,
+)
 
 # Enum
 from spyne.model.enum import Enum
 
 # Fault
-from spyne.model.fault import Fault
+from spyne.model.fault import Fault, ValidationError
+
+# Binary
+from spyne.model.binary import ByteArray, File

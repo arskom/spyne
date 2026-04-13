@@ -18,8 +18,16 @@
 #
 
 import re
-from spyne import M, Boolean, DateTime, Date, Time, ComplexModel, \
+
+from spyne import (
+    Boolean,
+    ComplexModel,
+    Date,
+    DateTime,
+    M,
+    Time,
     ValidationError
+)
 from spyne.protocol import InProtocolBase
 
 

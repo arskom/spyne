@@ -20,7 +20,6 @@
 from twisted.internet.defer import Deferred
 from twisted.internet.interfaces import IPullProducer
 from twisted.web.iweb import UNKNOWN_LENGTH
-
 from zope.interface import implementer
 
 
@@ -69,6 +68,7 @@ class Producer(object):
 
 
 from spyne import Address
+
 _TYPE_MAP = {'TCP': Address.TCP4, 'TCP6': Address.TCP6,
              'UDP': Address.UDP4, 'UDP6': Address.UDP6}
 

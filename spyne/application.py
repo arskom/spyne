@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,24 +17,23 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
-logger_client = logging.getLogger('.'.join([__name__, 'client']))
-logger_server = logging.getLogger('.'.join([__name__, 'server']))
+logger_client = logging.getLogger(".".join([__name__, "client"]))
+logger_server = logging.getLogger(".".join([__name__, "server"]))
 
-from pprint import pformat
-
-from spyne import BODY_STYLE_EMPTY, BODY_STYLE_BARE, BODY_STYLE_WRAPPED, \
-    EventManager
-from spyne.error import Fault, Redirect, RespawnError, InvalidRequestError
+from spyne.descriptor import BODY_STYLE_BARE, BODY_STYLE_EMPTY, BODY_STYLE_WRAPPED
+from spyne.evmgr import EventManager
+from spyne.error import Fault, InvalidRequestError, Redirect, RespawnError
 from spyne.interface import Interface, InterfaceDocuments
-from spyne.util import six
 from spyne.util.appreg import register_application
 
 
 class MethodAlreadyExistsError(Exception):
     def __init__(self, what):
-        super(MethodAlreadyExistsError, self) \
-                                 .__init__("Method key %r already exists", what)
+        super(MethodAlreadyExistsError, self).__init__(
+            "Method key %r already exists", what
+        )
 
 
 def get_fault_string_from_exception(e):
@@ -51,8 +49,10 @@ def return_traceback_in_unhandled_exceptions():
     global get_fault_string_from_exception
 
     import traceback
+
     def _get_fault_string_from_exception(e):
         return traceback.format_exc()
+
     get_fault_string_from_exception = _get_fault_string_from_exception
 
 
@@ -102,10 +102,17 @@ class Application(object):
 
     transport = None
 
-    def __init__(self, services, tns, name=None,
-                 in_protocol=None, out_protocol=None,
-                 config=None, classes=(),
-                 documents_container=InterfaceDocuments):
+    def __init__(
+        self,
+        services,
+        tns,
+        name=None,
+        in_protocol=None,
+        out_protocol=None,
+        config=None,
+        classes=(),
+        documents_container=InterfaceDocuments,
+    ):
         self.services = tuple(services)
         self.tns = tns
         self.name = name
@@ -113,7 +120,7 @@ class Application(object):
         self.classes = classes
 
         if self.name is None:
-            self.name = self.__class__.__name__.split('.')[-1]
+            self.name = self.__class__.__name__.split(".")[-1]
 
         logger.info("Initializing application {%s}%s...", self.tns, self.name)
 
@@ -125,10 +132,12 @@ class Application(object):
 
         if self.in_protocol is None:
             from spyne.protocol import ProtocolBase
+
             self.in_protocol = ProtocolBase()
 
         if self.out_protocol is None:
             from spyne.protocol import ProtocolBase
+
             self.out_protocol = ProtocolBase()
 
         self.check_unique_method_keys()  # is this really necessary nowadays?
@@ -160,7 +169,7 @@ class Application(object):
         """
 
         try:
-            ctx.fire_event('method_call')
+            ctx.fire_event("method_call")
 
             # in object is always a sequence of incoming values. We need to fix
             # that for bare mode.
@@ -174,8 +183,10 @@ class Application(object):
 
             # out object is always a sequence of return values. see
             # MethodContext docstrings for more info
-            if ctx.descriptor.body_style is not BODY_STYLE_WRAPPED or \
-                                len(ctx.descriptor.out_message._type_info) <= 1:
+            if (
+                ctx.descriptor.body_style is not BODY_STYLE_WRAPPED
+                or len(ctx.descriptor.out_message._type_info) <= 1
+            ):
                 # if it's not a wrapped method, OR there's just one return type
                 # we wrap it ourselves
                 ctx.out_object = [ctx.out_object]
@@ -184,7 +195,7 @@ class Application(object):
             # point ctx.protocol to ctx.out_protocol
             ctx.protocol = ctx.outprot_ctx
 
-            ctx.fire_event('method_return_object')
+            ctx.fire_event("method_return_object")
 
         except Redirect as e:
             try:
@@ -196,34 +207,33 @@ class Application(object):
                 # point ctx.protocol to ctx.out_protocol
                 ctx.protocol = ctx.outprot_ctx
 
-                ctx.fire_event('method_redirect')
+                ctx.fire_event("method_redirect")
 
             except Exception as e:
                 logger_server.exception(e)
-                ctx.out_error = Fault('Server',
-                                             get_fault_string_from_exception(e))
+                ctx.out_error = Fault("Server", get_fault_string_from_exception(e))
 
-                ctx.fire_event('method_redirect_exception')
+                ctx.fire_event("method_redirect_exception")
 
         except Fault as e:
-            if e.faultcode == 'Client' or e.faultcode.startswith('Client.'):
+            if e.faultcode == "Client" or e.faultcode.startswith("Client."):
                 logger_client.exception(e)
             else:
                 logger.exception(e)
 
             ctx.out_error = e
 
-            ctx.fire_event('method_exception_object')
+            ctx.fire_event("method_exception_object")
 
         # we don't catch BaseException because we actually don't want to catch
         # "system-exiting" exceptions. See:
         # https://docs.python.org/2/library/exceptions.html#exceptions.Exception
         except Exception as e:
-            logger_server.critical(e, **{'exc_info': 1})
+            logger_server.critical(e, **{"exc_info": 1})
 
-            ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
+            ctx.out_error = Fault("Server", get_fault_string_from_exception(e))
 
-            ctx.fire_event('method_exception_object')
+            ctx.fire_event("method_exception_object")
 
     def call_wrapper(self, ctx):
         """This method calls the call_wrapper method in the service definition.
@@ -249,8 +259,10 @@ class Application(object):
         filters = {}
         inst = cls.__respawn__(ctx, filters)
         if inst is None:
-            raise RespawnError('{%s}%s with params %r' %
-                            (cls.get_namespace(), cls.get_type_name(), filters))
+            raise RespawnError(
+                "{%s}%s with params %r"
+                % (cls.get_namespace(), cls.get_type_name(), filters)
+            )
 
         in_cls = ctx.descriptor.in_message
 
@@ -258,8 +270,10 @@ class Application(object):
         if args is None:
             args = ()
 
-        elif ctx.descriptor.body_style is BODY_STYLE_WRAPPED and \
-                                len(in_cls.get_flat_type_info(in_cls)) <= 1:
+        elif (
+            ctx.descriptor.body_style is BODY_STYLE_WRAPPED
+            and len(in_cls.get_flat_type_info(in_cls)) <= 1
+        ):
             args = ()
 
         else:
@@ -274,7 +288,10 @@ class Application(object):
         if ctx.descriptor.no_ctx:
             args = (inst,) + args
         else:
-            args = (inst, ctx,) + args
+            args = (
+                inst,
+                ctx,
+            ) + args
 
         if ctx.descriptor.service_class is None:
             retval = ctx.function(*args)
@@ -293,6 +310,7 @@ class Application(object):
         seen = set()
 
         from spyne import MethodDescriptor
+
         for d in self.interface.method_id_map.values():
             assert isinstance(d, MethodDescriptor)
 
@@ -315,10 +333,11 @@ class Application(object):
                 if other_mdesc is not None:
                     logger.error(
                         'Methods keys for "%s.%s" and "%s.%s" conflict',
-                                   mdesc.function.__module__,
-                                   six.get_function_name(mdesc.function),
-                                   other_mdesc.function.__module__,
-                                   six.get_function_name(other_mdesc.function))
+                        mdesc.function.__module__,
+                        mdesc.function.__name__,
+                        other_mdesc.function.__module__,
+                        other_mdesc.function.__name__,
+                    )
                     raise MethodAlreadyExistsError(mdesc.internal_key)
 
                 keys[mdesc.internal_key] = mdesc

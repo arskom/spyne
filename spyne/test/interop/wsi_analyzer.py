@@ -12,6 +12,7 @@
 
 import os
 import string
+
 from lxml import etree
 
 CONFIG_FILE = 'config.xml'

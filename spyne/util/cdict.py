@@ -55,6 +55,7 @@ base
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 class cdict(dict):

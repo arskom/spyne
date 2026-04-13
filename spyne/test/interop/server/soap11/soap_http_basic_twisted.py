@@ -18,23 +18,23 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('spyne.wsgi')
 logger.setLevel(logging.DEBUG)
 
+from spyne.server.twisted import TwistedWebResource
 from spyne.test.interop.server import get_open_port
 from spyne.test.interop.server.soap_http_basic import soap11_application
-from spyne.server.twisted import TwistedWebResource
-
 
 host = '127.0.0.1'
 port = [0]
 
 
 def main(argv):
-    from twisted.web.server import Site
     from twisted.internet import reactor
     from twisted.python import log
+    from twisted.web.server import Site
 
     observer = log.PythonLoggingObserver('twisted')
     log.startLoggingWithObserver(observer.emit, setStdout=False)

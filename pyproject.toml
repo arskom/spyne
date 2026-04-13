@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spyne"
+dynamic = ["version"]
+description = "A transport and architecture agnostic rpc library that focuses on exposing public services with a well-defined API."
+readme = "README.rst"
+license = {text = "LGPL-2.1-or-later"}
+authors = [
+    {name = "Burak Arslan", email = "burak+package@spyne.io"},
+]
+maintainers = [
+    {name = "Burak Arslan", email = "burak+package@spyne.io"},
+]
+keywords = [
+    "soap", "wsdl", "wsgi", "zeromq", "rest", "rpc", "json", "http",
+    "msgpack", "xml", "django", "pyramid", "postgresql", "sqlalchemy",
+    "twisted", "yaml",
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Operating System :: OS Independent",
+    "Natural Language :: English",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pytz",
+]
+
+[project.urls]
+Homepage = "http://spyne.io"
+
+[project.scripts]
+sort_wsdl = "spyne.test.sort_wsdl:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "spyne.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]

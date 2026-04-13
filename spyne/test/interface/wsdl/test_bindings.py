@@ -19,18 +19,17 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
 import spyne.const.xml as ns
-
-
 from spyne.interface.wsdl.wsdl11 import Wsdl11
+
 from . import build_app
-from .port_service_services import TS1
-from .port_service_services import TSinglePortService
-from .port_service_services import TDoublePortService
+from .port_service_services import TS1, TDoublePortService, TSinglePortService
+
 
 class TestWSDLBindingBehavior(unittest.TestCase):
     def setUp(self):

@@ -19,11 +19,9 @@
 
 import logging
 
+from spyne.server.zeromq import ZeroMQServer
 from spyne.test.interop.server import get_open_port
 from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
-
-from spyne.server.zeromq import ZeroMQServer
-
 
 host = '127.0.0.1'
 port = [0]

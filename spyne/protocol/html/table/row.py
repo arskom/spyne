@@ -20,17 +20,24 @@
 from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
 from lxml.html.builder import E
 
-from spyne import ModelBase, ByteArray, ComplexModelBase, Array, AnyUri, \
-    ImageUri
-from spyne.util import coroutine, Break
-from spyne.util.cdict import cdict
+from spyne import (
+    AnyUri,
+    Array,
+    ByteArray,
+    ComplexModelBase,
+    ImageUri,
+    ModelBase
+)
 from spyne.protocol.html.table import HtmlTableBase
+from spyne.util import Break, coroutine
+from spyne.util.cdict import cdict
 
 
 class HtmlRowTable(HtmlTableBase):

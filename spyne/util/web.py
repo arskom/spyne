@@ -26,34 +26,50 @@ If you're using this for anything serious, you're insane.
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from inspect import isclass
 
-from spyne import rpc, Any, AnyDict, NATIVE_MAP, M, Array, ComplexModelBase, \
-    UnsignedInteger32, PushBase, Iterable, ModelBase, File, Service, \
-    ResourceNotFoundError, Unicode
-
-from spyne.const import MAX_ARRAY_ELEMENT_NUM, MAX_DICT_ELEMENT_NUM, \
-    MAX_STRING_FIELD_LENGTH, MAX_FIELD_NUM
+from spyne import (
+    NATIVE_MAP,
+    Any,
+    AnyDict,
+    Array,
+    ComplexModelBase,
+    File,
+    Iterable,
+    M,
+    ModelBase,
+    PushBase,
+    ResourceNotFoundError,
+    Service,
+    Unicode,
+    UnsignedInteger32,
+    rpc
+)
+from spyne.const import (
+    MAX_ARRAY_ELEMENT_NUM,
+    MAX_DICT_ELEMENT_NUM,
+    MAX_FIELD_NUM,
+    MAX_STRING_FIELD_LENGTH
+)
 
 try:
-    from spyne.store.relational.document import FileData
     from sqlalchemy.orm.exc import DetachedInstanceError
+
+    from spyne.store.relational.document import FileData
 except ImportError:
     # these are used just for isinstance checks. so we just set it to an
     # anonymous value
     FileData = type('__hidden', (object, ), {})
     DetachedInstanceError = type('__hidden', (Exception, ), {})
 
-from spyne.util import memoize, six
-
 EXCEPTION_ADDRESS = None
 
 
 try:
-    from colorama.ansi import Fore
-    from colorama.ansi import Style
+    from colorama.ansi import Fore, Style
     RED = Fore.RED + Style.BRIGHT
     GREEN = Fore.GREEN + Style.BRIGHT
     RESET = Style.RESET_ALL
@@ -277,7 +293,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
 
         return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
-    if issubclass(cls, Unicode) and isinstance(obj, six.string_types):
+    if issubclass(cls, Unicode) and isinstance(obj, str):
         if len(obj) > MAX_STRING_FIELD_LENGTH:
             return '%r(...)' % obj[:MAX_STRING_FIELD_LENGTH]
 

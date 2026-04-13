@@ -17,15 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import gc, logging
+import gc
+import logging
+
 logger = logging.getLogger('spyne')
 
-from time import time
+from collections import defaultdict, deque
 from copy import copy
-from collections import deque, defaultdict
+from time import time
 
 from spyne import const
-
 
 _LAST_GC_RUN = 0.0
 

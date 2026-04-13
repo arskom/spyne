@@ -18,6 +18,7 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
@@ -26,16 +27,13 @@ from lxml import etree, html
 
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.model.primitive import Integer, Unicode
-from spyne.model.primitive import String
-from spyne.model.primitive import AnyUri
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.protocol.http import HttpRpc
+from spyne.model.complex import Array, ComplexModel
+from spyne.model.primitive import AnyUri, Integer, String, Unicode
 from spyne.protocol.html.table import HtmlColumnTable, HtmlRowTable
-from spyne.service import Service
+from spyne.protocol.http import HttpRpc
 from spyne.server.wsgi import WsgiApplication
-from spyne.util.test import show, call_wsgi_app_kwargs, call_wsgi_app
+from spyne.service import Service
+from spyne.util.test import call_wsgi_app, call_wsgi_app_kwargs, show
 
 
 class CM(ComplexModel):
@@ -174,10 +172,11 @@ class TestHtmlColumnTable(unittest.TestCase):
         assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
 
     def test_row_subprot(self):
+        from urllib.parse import urlencode
+
         from lxml.html.builder import E
-        from spyne.protocol.html import HtmlBase
-        from spyne.util.six.moves.urllib.parse import urlencode
-        from spyne.protocol.html import HtmlMicroFormat
+
+        from spyne.protocol.html import HtmlBase, HtmlMicroFormat
 
         class SearchProtocol(HtmlBase):
             def to_parent(self, ctx, cls, inst, parent, name, **kwargs):

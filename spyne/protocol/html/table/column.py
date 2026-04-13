@@ -20,16 +20,17 @@
 from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
 from lxml.html.builder import E
 
-from spyne import ModelBase, ComplexModelBase, Array
-from spyne.util import coroutine, Break, urlencode
-from spyne.util.oset import oset
+from spyne import Array, ComplexModelBase, ModelBase
 from spyne.protocol.html.table import HtmlTableBase
+from spyne.util import Break, coroutine, urlencode
+from spyne.util.oset import oset
 
 
 class HtmlColumnTableRowProtocol(object):

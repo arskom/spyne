@@ -21,7 +21,7 @@
 
 import zmq
 
-from spyne import RemoteService, ClientBase, RemoteProcedureBase
+from spyne import ClientBase, RemoteProcedureBase, RemoteService
 
 context = zmq.Context()
 

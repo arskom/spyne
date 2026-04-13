@@ -18,16 +18,25 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import re
+
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
 from spyne.error import ValidationError
-
-from spyne.model import Fault, Array, AnyXml, AnyHtml, Uuid, DateTime, Date, \
-    Time, Duration
-
+from spyne.model import (
+    AnyHtml,
+    AnyXml,
+    Array,
+    Date,
+    DateTime,
+    Duration,
+    Fault,
+    Time,
+    Uuid
+)
 from spyne.protocol import ProtocolBase
 
 

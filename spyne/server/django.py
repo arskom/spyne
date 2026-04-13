@@ -25,23 +25,24 @@ transport. It's a thin wrapper around
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from functools import update_wrapper
 
+from django.http import Http404, HttpResponse, HttpResponseNotAllowed
+from django.views.decorators.csrf import csrf_exempt
+
 from spyne import Address
-from spyne.application import get_fault_string_from_exception, Application
+from spyne.application import Application, get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.model.fault import Fault
-from spyne.protocol.soap import Soap11
 from spyne.protocol.http import HttpRpc
+from spyne.protocol.soap import Soap11
 from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
 from spyne.server.wsgi import WsgiApplication
 from spyne.util import _bytes_join
 from spyne.util.address import address_parser
-
-from django.http import HttpResponse, HttpResponseNotAllowed, Http404
-from django.views.decorators.csrf import csrf_exempt
 
 try:
     from django.http import StreamingHttpResponse

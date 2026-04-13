@@ -1,22 +1,19 @@
 
-from spyne.util.six import add_metaclass
-
 from spyne.const import xml
-
-from spyne.model.primitive import Unicode
-from spyne.model.complex import XmlAttribute
-from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import ComplexModelMeta
-
 from spyne.interface.xml_schema.defn import XmlSchema10
+from spyne.model.complex import (
+    ComplexModelBase,
+    ComplexModelMeta,
+    XmlAttribute
+)
+from spyne.model.primitive import Unicode
 
-@add_metaclass(ComplexModelMeta)
-class Wsdl11Base(ComplexModelBase):
+
+class Wsdl11Base(ComplexModelBase, metaclass=ComplexModelMeta):
     __namespace__ = xml.NS_WSDL11
 
 
-@add_metaclass(ComplexModelMeta)
-class Soap11Base(ComplexModelBase):
+class Soap11Base(ComplexModelBase, metaclass=ComplexModelMeta):
     __namespace__ = xml.NS_WSDL11_SOAP
 
 

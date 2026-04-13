@@ -25,6 +25,7 @@ transport. It's a thin wrapper around
 from __future__ import absolute_import
 
 from pyramid.response import Response
+
 from spyne.server.wsgi import WsgiApplication
 
 

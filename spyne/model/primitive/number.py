@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,14 +16,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import math
 import decimal
+import math
 import platform
+
 from _warnings import warn
 
 from spyne.model import SimpleModel
 from spyne.model.primitive import NATIVE_MAP
-from spyne.util import six
 
 
 class NumberLimitsWarning(Warning):
@@ -42,7 +41,7 @@ class Decimal(SimpleModel):
     documentation for more information.
     """
 
-    __type_name__ = 'decimal'
+    __type_name__ = "decimal"
 
     Value = decimal.Decimal
     # contrary to popular belief, Decimal hates float.
@@ -51,16 +50,16 @@ class Decimal(SimpleModel):
         """Customizable attributes of the :class:`spyne.model.primitive.Decimal`
         type."""
 
-        gt = decimal.Decimal('-inf') # minExclusive
+        gt = decimal.Decimal("-inf")  # minExclusive
         """The value should be greater than this number."""
 
-        ge = decimal.Decimal('-inf') # minInclusive
+        ge = decimal.Decimal("-inf")  # minInclusive
         """The value should be greater than or equal to this number."""
 
-        lt = decimal.Decimal('inf') # maxExclusive
+        lt = decimal.Decimal("inf")  # maxExclusive
         """The value should be lower than this number."""
 
-        le = decimal.Decimal('inf') # maxInclusive
+        le = decimal.Decimal("inf")  # maxInclusive
         """The value should be lower than or equal to this number."""
 
         max_str_len = 1024
@@ -79,10 +78,10 @@ class Decimal(SimpleModel):
         """A regular expression that matches the whole field. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
-        total_digits = decimal.Decimal('inf')
+        total_digits = decimal.Decimal("inf")
         """Maximum number of digits."""
 
-        fraction_digits = decimal.Decimal('inf')
+        fraction_digits = decimal.Decimal("inf")
         """Maximum number of digits after the decimal separator."""
 
         min_bound = None
@@ -97,10 +96,10 @@ class Decimal(SimpleModel):
         assert len(args) <= 2
 
         if len(args) >= 1 and args[0] is not None:
-            kwargs['total_digits'] = args[0]
-            kwargs['fraction_digits'] = 0
+            kwargs["total_digits"] = args[0]
+            kwargs["fraction_digits"] = 0
             if len(args) == 2 and args[1] is not None:
-                kwargs['fraction_digits'] = args[1]
+                kwargs["fraction_digits"] = args[1]
 
         retval = SimpleModel.__new__(cls, **kwargs)
 
@@ -108,23 +107,24 @@ class Decimal(SimpleModel):
 
     @classmethod
     def _s_customize(cls, **kwargs):
-        td = kwargs.get('total_digits', None)
-        fd = kwargs.get('fraction_digits', None)
+        td = kwargs.get("total_digits", None)
+        fd = kwargs.get("fraction_digits", None)
         if td is not None and fd is not None:
             assert td > 0, "'total_digits' must be positive."
-            assert fd <= td, \
-                "'total_digits' must be greater than" \
-                                       " or equal to 'fraction_digits'." \
-                                                        " %r ! <= %r" % (fd, td)
+            assert fd <= td, (
+                "'total_digits' must be greater than"
+                " or equal to 'fraction_digits'."
+                " %r ! <= %r" % (fd, td)
+            )
 
-        msl = kwargs.get('max_str_len', None)
+        msl = kwargs.get("max_str_len", None)
         if msl is None:
-            kwargs['max_str_len'] = cls.Attributes.total_digits + 2
+            kwargs["max_str_len"] = cls.Attributes.total_digits + 2
             # + 1 for decimal separator
             # + 1 for negative sign
 
         else:
-            kwargs['max_str_len'] = msl
+            kwargs["max_str_len"] = msl
 
         minb = cls.Attributes.min_bound
         maxb = cls.Attributes.max_bound
@@ -135,56 +135,67 @@ class Decimal(SimpleModel):
 
         if minb is not None:
             if ge is not None and ge < minb:
-                warn("'Greater than or equal value' %d smaller than min_bound %d"
-                                              % (ge, minb), NumberLimitsWarning)
+                warn(
+                    "'Greater than or equal value' %d smaller than min_bound %d"
+                    % (ge, minb),
+                    NumberLimitsWarning,
+                )
 
             if gt is not None and gt < minb:
-                warn("'Greater than' value %d smaller than min_bound %d"
-                                              % (gt, minb), NumberLimitsWarning)
+                warn(
+                    "'Greater than' value %d smaller than min_bound %d" % (gt, minb),
+                    NumberLimitsWarning,
+                )
 
             if le is not None and le < minb:
                 raise ValueError(
                     "'Little than or equal' value %d smaller than min_bound %d"
-                                                                   % (le, minb))
+                    % (le, minb)
+                )
 
             if lt is not None and lt <= minb:
                 raise ValueError(
-                    "'Little than' value %d smaller than min_bound %d"
-                                                                   % (lt, minb))
+                    "'Little than' value %d smaller than min_bound %d" % (lt, minb)
+                )
 
         if maxb is not None:
             if le is not None and le > maxb:
-                warn("'Little than or equal' value %d greater than max_bound %d"
-                                              % (le, maxb), NumberLimitsWarning)
+                warn(
+                    "'Little than or equal' value %d greater than max_bound %d"
+                    % (le, maxb),
+                    NumberLimitsWarning,
+                )
 
             if lt is not None and lt > maxb:
-                warn("'Little than' value %d greater than max_bound %d"
-                                              % (lt, maxb), NumberLimitsWarning)
+                warn(
+                    "'Little than' value %d greater than max_bound %d" % (lt, maxb),
+                    NumberLimitsWarning,
+                )
 
             if ge is not None and ge > maxb:
                 raise ValueError(
                     "'Greater than or equal' value %d greater than max_bound %d"
-                                                                   % (ge, maxb))
+                    % (ge, maxb)
+                )
 
             if gt is not None and gt >= maxb:
                 raise ValueError(
-                    "'Greater than' value %d greater than max_bound %d"
-                                                                   % (gt, maxb))
+                    "'Greater than' value %d greater than max_bound %d" % (gt, maxb)
+                )
 
         return super(Decimal, cls)._s_customize(**kwargs)
 
     @staticmethod
     def is_default(cls):
-        return (    SimpleModel.is_default(cls)
-                and cls.Attributes.gt == Decimal.Attributes.gt
-                and cls.Attributes.ge == Decimal.Attributes.ge
-                and cls.Attributes.lt == Decimal.Attributes.lt
-                and cls.Attributes.le == Decimal.Attributes.le
-                and cls.Attributes.total_digits ==
-                                             Decimal.Attributes.total_digits
-                and cls.Attributes.fraction_digits ==
-                                             Decimal.Attributes.fraction_digits
-            )
+        return (
+            SimpleModel.is_default(cls)
+            and cls.Attributes.gt == Decimal.Attributes.gt
+            and cls.Attributes.ge == Decimal.Attributes.ge
+            and cls.Attributes.lt == Decimal.Attributes.lt
+            and cls.Attributes.le == Decimal.Attributes.le
+            and cls.Attributes.total_digits == Decimal.Attributes.total_digits
+            and cls.Attributes.fraction_digits == Decimal.Attributes.fraction_digits
+        )
 
     @staticmethod
     def validate_string(cls, value):
@@ -195,12 +206,14 @@ class Decimal(SimpleModel):
     @staticmethod
     def validate_native(cls, value):
         return SimpleModel.validate_native(cls, value) and (
-            value is None or (
-                value >  cls.Attributes.gt and
-                value >= cls.Attributes.ge and
-                value <  cls.Attributes.lt and
-                value <= cls.Attributes.le
-            ))
+            value is None
+            or (
+                value > cls.Attributes.gt
+                and value >= cls.Attributes.ge
+                and value < cls.Attributes.lt
+                and value <= cls.Attributes.le
+            )
+        )
 
 
 class Double(Decimal):
@@ -217,68 +230,68 @@ class Double(Decimal):
         return instances of types compatible with designated types.
     """
 
-    __type_name__ = 'double'
+    __type_name__ = "double"
     Value = float
 
-    if platform.python_version_tuple()[:2] == ('2','6'):
+    if platform.python_version_tuple()[:2] == ("2", "6"):
+
         class Attributes(Decimal.Attributes):
             """Customizable attributes of the :class:`spyne.model.primitive.Double`
             type. This class is only here for Python 2.6: See this bug report
             for more info: http://bugs.python.org/issue2531
             """
 
-            gt = float('-inf') # minExclusive
+            gt = float("-inf")  # minExclusive
             """The value should be greater than this number."""
 
-            ge = float('-inf') # minInclusive
+            ge = float("-inf")  # minInclusive
             """The value should be greater than or equal to this number."""
 
-            lt = float('inf') # maxExclusive
+            lt = float("inf")  # maxExclusive
             """The value should be lower than this number."""
 
-            le = float('inf') # maxInclusive
+            le = float("inf")  # maxInclusive
             """The value should be lower than or equal to this number."""
 
         @staticmethod
         def is_default(cls):
-            return (    SimpleModel.is_default(cls)
-                    and cls.Attributes.gt == Double.Attributes.gt
-                    and cls.Attributes.ge == Double.Attributes.ge
-                    and cls.Attributes.lt == Double.Attributes.lt
-                    and cls.Attributes.le == Double.Attributes.le
-                )
+            return (
+                SimpleModel.is_default(cls)
+                and cls.Attributes.gt == Double.Attributes.gt
+                and cls.Attributes.ge == Double.Attributes.ge
+                and cls.Attributes.lt == Double.Attributes.lt
+                and cls.Attributes.le == Double.Attributes.le
+            )
 
 
 class Float(Double):
     """Synonym for Double (as far as python side of things are concerned).
     It's here for compatibility reasons."""
 
-    __type_name__ = 'float'
+    __type_name__ = "float"
 
 
 class Integer(Decimal):
     """The arbitrary-size signed integer."""
 
-    __type_name__ = 'integer'
+    __type_name__ = "integer"
     Value = int
 
     @staticmethod
     def validate_native(cls, value):
-        return (    Decimal.validate_native(cls, value)
-                and (value is None or int(value) == value)
-            )
+        return Decimal.validate_native(cls, value) and (
+            value is None or int(value) == value
+        )
 
 
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer, also known as nonNegativeInteger."""
 
-    __type_name__ = 'nonNegativeInteger'
+    __type_name__ = "nonNegativeInteger"
 
     @staticmethod
     def validate_native(cls, value):
-        return (    Integer.validate_native(cls, value)
-                and (value is None or value >= 0)
-            )
+        return Integer.validate_native(cls, value) and (value is None or value >= 0)
 
 
 NonNegativeInteger = UnsignedInteger
@@ -286,20 +299,18 @@ NonNegativeInteger = UnsignedInteger
 
 
 class PositiveInteger(NonNegativeInteger):
-
     """The arbitrary-size positive integer (natural number)."""
 
-    __type_name__ = 'positiveInteger'
+    __type_name__ = "positiveInteger"
 
     @staticmethod
     def validate_native(cls, value):
-        return (Integer.validate_native(cls, value)
-                and (value is None or value > 0))
+        return Integer.validate_native(cls, value) and (value is None or value > 0)
 
 
 def TBoundedInteger(num_bits, type_name):
-    _min_b = -(0x8<<(num_bits-4))     # 0x8 is 4 bits.
-    _max_b =  (0x8<<(num_bits-4)) - 1 # -1? c'est la vie
+    _min_b = -(0x8 << (num_bits - 4))  # 0x8 is 4 bits.
+    _max_b = (0x8 << (num_bits - 4)) - 1  # -1? c'est la vie
 
     class _BoundedInteger(Integer):
         __type_name__ = type_name
@@ -311,9 +322,8 @@ def TBoundedInteger(num_bits, type_name):
 
         @staticmethod
         def validate_native(cls, value):
-            return (
-                    Integer.validate_native(cls, value)
-                and (value is None or (_min_b <= value <= _max_b))
+            return Integer.validate_native(cls, value) and (
+                value is None or (_min_b <= value <= _max_b)
             )
 
     return _BoundedInteger
@@ -321,7 +331,7 @@ def TBoundedInteger(num_bits, type_name):
 
 def TBoundedUnsignedInteger(num_bits, type_name):
     _min_b = 0
-    _max_b = 2 ** num_bits - 1 # -1? c'est la vie ;)
+    _max_b = 2**num_bits - 1  # -1? c'est la vie ;)
 
     class _BoundedUnsignedInteger(UnsignedInteger):
         __type_name__ = type_name
@@ -333,87 +343,79 @@ def TBoundedUnsignedInteger(num_bits, type_name):
 
         @staticmethod
         def validate_native(cls, value):
-            return (
-                    UnsignedInteger.validate_native(cls, value)
-                and (value is None or (_min_b <= value < _max_b))
+            return UnsignedInteger.validate_native(cls, value) and (
+                value is None or (_min_b <= value < _max_b)
             )
 
     return _BoundedUnsignedInteger
 
 
-Integer64 = TBoundedInteger(64, 'long')
+Integer64 = TBoundedInteger(64, "long")
 """The 64-bit signed integer, also known as ``long``."""
 
 Long = Integer64
 """The 64-bit signed integer, alias for :class:`Integer64`."""
 
 
-Integer32 = TBoundedInteger(32, 'int')
+Integer32 = TBoundedInteger(32, "int")
 """The 64-bit signed integer, also known as ``int``."""
 
 Int = Integer32
 """The 32-bit signed integer, alias for :class:`Integer32`."""
 
 
-Integer16 = TBoundedInteger(16, 'short')
+Integer16 = TBoundedInteger(16, "short")
 """The 16-bit signed integer, also known as ``short``."""
 
 Short = Integer16
 """The 16-bit signed integer, alias for :class:`Integer16`."""
 
 
-Integer8 = TBoundedInteger(8, 'byte')
+Integer8 = TBoundedInteger(8, "byte")
 """The 8-bit signed integer, also known as ``byte``."""
 
 Byte = Integer8
 """The 8-bit signed integer, alias for :class:`Integer8`."""
 
 
-UnsignedInteger64 = TBoundedUnsignedInteger(64, 'unsignedLong')
+UnsignedInteger64 = TBoundedUnsignedInteger(64, "unsignedLong")
 """The 64-bit unsigned integer, also known as ``unsignedLong``."""
 
 UnsignedLong = UnsignedInteger64
 """The 64-bit unsigned integer, alias for :class:`UnsignedInteger64`."""
 
 
-UnsignedInteger32 = TBoundedUnsignedInteger(32, 'unsignedInt')
+UnsignedInteger32 = TBoundedUnsignedInteger(32, "unsignedInt")
 """The 64-bit unsigned integer, also known as ``unsignedInt``."""
 
 UnsignedInt = UnsignedInteger32
 """The 32-bit unsigned integer, alias for :class:`UnsignedInteger32`."""
 
 
-UnsignedInteger16 = TBoundedUnsignedInteger(16, 'unsignedShort')
+UnsignedInteger16 = TBoundedUnsignedInteger(16, "unsignedShort")
 """The 16-bit unsigned integer, also known as ``unsignedShort``."""
 
 UnsignedShort = UnsignedInteger16
 """The 16-bit unsigned integer, alias for :class:`UnsignedInteger16`."""
 
 
-UnsignedInteger8 = TBoundedUnsignedInteger(8, 'unsignedByte')
+UnsignedInteger8 = TBoundedUnsignedInteger(8, "unsignedByte")
 """The 8-bit unsigned integer, also known as ``unsignedByte``."""
 
 UnsignedByte = UnsignedInteger8
 """The 8-bit unsigned integer, alias for :class:`UnsignedInteger8`."""
 
 
-NATIVE_MAP.update({
-    float: Double,
-    decimal.Decimal: Decimal,
-})
+NATIVE_MAP.update(
+    {
+        float: Double,
+        decimal.Decimal: Decimal,
+    }
+)
 
 
-if not six.PY2:
-    NATIVE_MAP.update({
+NATIVE_MAP.update(
+    {
         int: Integer,
-    })
-
-else:
-    NATIVE_MAP.update({
-        long: Integer,
-    })
-
-    if isinstance(0x80000000, long):  # 32-bit architecture
-        NATIVE_MAP[int] = Integer32
-    else:  # not 32-bit (so most probably 64-bit) architecture
-        NATIVE_MAP[int] = Integer64
+    }
+)

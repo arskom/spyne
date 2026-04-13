@@ -19,16 +19,14 @@
 
 import unittest
 
-from spyne.test.protocol._test_dictdoc import TDictDocumentTest
-from spyne.protocol.yaml import YamlDocument
-
 from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.service import Service
+from spyne.protocol.yaml import YamlDocument, yaml
 from spyne.server import ServerBase
+from spyne.service import Service
+from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 
-from spyne.protocol.yaml import yaml
 yaml.dumps = yaml.dump
 yaml.loads = yaml.load
 

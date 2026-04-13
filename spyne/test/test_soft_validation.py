@@ -23,19 +23,16 @@
 
 import unittest
 
+from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.error import ValidationError
-from spyne.service import Service
+from spyne.model.primitive import Integer, String
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
-from spyne.model.primitive import Integer
-from spyne.model.primitive import String
 from spyne.server import ServerBase
-from spyne.server.wsgi import WsgiApplication
-
-from spyne import MethodContext
-from spyne.server.wsgi import WsgiMethodContext
+from spyne.server.wsgi import WsgiApplication, WsgiMethodContext
+from spyne.service import Service
 
 Application.transport = 'test'
 

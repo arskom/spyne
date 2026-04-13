@@ -18,6 +18,7 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
@@ -26,16 +27,13 @@ from lxml import html
 
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.model.primitive import Integer
-from spyne.model.primitive import String
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.protocol.http import HttpRpc
+from spyne.model.complex import Array, ComplexModel
+from spyne.model.primitive import Integer, String
 from spyne.protocol.html import HtmlMicroFormat
+from spyne.protocol.http import HttpRpc
+from spyne.server.wsgi import WsgiApplication, WsgiMethodContext
 from spyne.service import Service
-from spyne.server.wsgi import WsgiMethodContext
-from spyne.server.wsgi import WsgiApplication
-from spyne.util.test import show, call_wsgi_app_kwargs
+from spyne.util.test import call_wsgi_app_kwargs, show
 
 
 class TestHtmlMicroFormat(unittest.TestCase):

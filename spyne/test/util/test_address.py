@@ -42,7 +42,6 @@
 
 from unittest import TestCase
 
-
 from spyne.util.address import set_address_parser_settings
 
 set_address_parser_settings(trusted_proxies=['177.139.233.100'])

@@ -3,15 +3,16 @@
 from __future__ import unicode_literals
 
 import unittest
+from io import BytesIO
 
 from lxml import etree
-from lxml.doctestcompare import LXMLOutputChecker, PARSE_XML
+from lxml.doctestcompare import PARSE_XML, LXMLOutputChecker
 
-from spyne import Fault, Unicode, ByteArray
+from spyne import ByteArray, Fault, Unicode
 from spyne.application import Application
 from spyne.const import xml as ns
 from spyne.const.xml import NS_SOAP11_ENV
-from spyne.decorator import srpc, rpc
+from spyne.decorator import rpc, srpc
 from spyne.interface import Wsdl11
 from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Integer, String
@@ -20,9 +21,12 @@ from spyne.protocol.soap.soap12 import Soap12
 from spyne.protocol.xml import XmlDocument
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import Service
-from spyne.test.protocol.test_soap11 import TestService, TestSingle, \
-    TestReturn, MultipleReturnService
-from spyne.util.six import BytesIO
+from spyne.test.protocol.test_soap11 import (
+    MultipleReturnService,
+    TestReturn,
+    TestService,
+    TestSingle
+)
 
 
 def start_response(code, headers):

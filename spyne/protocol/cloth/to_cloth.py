@@ -21,22 +21,32 @@
 from __future__ import print_function
 
 import logging
+
 logger_c = logging.getLogger("%s.cloth" % __name__)
 logger_s = logging.getLogger("%s.serializer" % __name__)
 
-from lxml import html, etree
 from copy import deepcopy
 from inspect import isgenerator
 
-from spyne.util import Break, coroutine
-from spyne.util.oset import oset
-from spyne.util.six import string_types
-from spyne.util.color import R, B
-from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
-    PushBase, XmlAttribute, AnyUri, XmlData, Any
+from lxml import etree, html
 
+from spyne.model import (
+    Any,
+    AnyHtml,
+    AnyUri,
+    AnyXml,
+    Array,
+    ComplexModelBase,
+    ModelBase,
+    PushBase,
+    XmlAttribute,
+    XmlData
+)
 from spyne.protocol import OutProtocolBase
+from spyne.util import Break, coroutine
 from spyne.util.cdict import cdict
+from spyne.util.color import B, R
+from spyne.util.oset import oset
 
 _revancestors = lambda elt: list(reversed(tuple(elt.iterancestors())))
 
@@ -148,7 +158,7 @@ class ClothParserMixin(object):
         if cloth is None:
             return
 
-        if isinstance(cloth, string_types):
+        if isinstance(cloth, str):
             cloth = self._parse_file(cloth, cloth_parser)
 
         if strip_comments:
@@ -688,7 +698,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
     def xml_to_cloth(self, ctx, cls, inst, cloth, parent, name, **_):
         cls_attrs = self.get_cls_attrs(cls)
         self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
-        if isinstance(inst, string_types):
+        if isinstance(inst, str):
             inst = etree.fromstring(inst)
         parent.write(inst)
 
@@ -700,7 +710,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
     def html_to_cloth(self, ctx, cls, inst, cloth, parent, name, **_):
         cls_attrs = self.get_cls_attrs(cls)
         self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
-        if isinstance(inst, string_types):
+        if isinstance(inst, str):
             inst = html.fromstring(inst)
         parent.write(inst)
 

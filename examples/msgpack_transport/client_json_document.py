@@ -50,8 +50,6 @@ import socket
 import json
 import msgpack
 
-from spyne.util.six import BytesIO
-
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect(("localhost", 5551))
 

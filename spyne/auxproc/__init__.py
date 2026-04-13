@@ -38,5 +38,4 @@ Classes from this package will have the ``AuxProc`` suffix, short for
 This package is DEPRECATED. Get rid of this ASAP.
 """
 
-from spyne.auxproc._base import process_contexts
-from spyne.auxproc._base import AuxProcBase
+from spyne.auxproc._base import AuxProcBase, process_contexts

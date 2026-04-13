@@ -21,7 +21,6 @@ from spyne.model._base import SimpleModel
 from spyne.model.primitive._base import re_match_with_span
 from spyne.model.primitive.string import Unicode
 
-
 _PATT_MAC = "([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
 
 

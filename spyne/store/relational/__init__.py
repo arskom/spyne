@@ -22,14 +22,21 @@
 Uses SQLAlchemy for mapping objects to relations.
 """
 
-from spyne.store.relational._base import add_column
-from spyne.store.relational._base import gen_sqla_info
-from spyne.store.relational._base import gen_spyne_info
-from spyne.store.relational._base import get_pk_columns
-
-from spyne.store.relational.document import PGXml, PGObjectXml, PGHtml, \
-    PGJson, PGJsonB, PGObjectJson, PGFileJson
-from spyne.store.relational.simple import PGLTree, PGLQuery, PGLTxtQuery
-from spyne.store.relational.spatial import PGGeometry
-
 from spyne.store.relational import override
+from spyne.store.relational._base import (
+    add_column,
+    gen_spyne_info,
+    gen_sqla_info,
+    get_pk_columns
+)
+from spyne.store.relational.document import (
+    PGFileJson,
+    PGHtml,
+    PGJson,
+    PGJsonB,
+    PGObjectJson,
+    PGObjectXml,
+    PGXml
+)
+from spyne.store.relational.simple import PGLQuery, PGLTree, PGLTxtQuery
+from spyne.store.relational.spatial import PGGeometry

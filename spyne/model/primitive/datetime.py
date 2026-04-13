@@ -19,10 +19,10 @@
 
 from __future__ import absolute_import
 
-import re
-import spyne
 import datetime
+import re
 
+import spyne
 from spyne.model import SimpleModel
 from spyne.model.primitive import NATIVE_MAP
 

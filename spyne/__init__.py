@@ -23,60 +23,57 @@ class LogicError(Exception):
 
 __version__ = '2.15.0-alpha'
 
-from pytz import utc as LOCAL_TZ
 from decimal import Decimal as D
+
+from pytz import utc as LOCAL_TZ
 
 DEFAULT_LANGUAGE = 'en'
 
 from spyne._base import Address
-
-from spyne.context import AuxMethodContext
-from spyne.context import TransportContext
-from spyne.context import ProtocolContext
-from spyne.context import EventContext
-from spyne.context import MethodContext
-
-from spyne.evmgr import EventManager
-
-from spyne.descriptor import MethodDescriptor
-from spyne.descriptor import BODY_STYLE_WRAPPED
-from spyne.descriptor import BODY_STYLE_BARE
-from spyne.descriptor import BODY_STYLE_OUT_BARE
-from spyne.descriptor import BODY_STYLE_EMPTY
-from spyne.descriptor import BODY_STYLE_EMPTY_OUT_BARE
-
-# decorator imports descriptor, so this needs to come after
-from spyne.decorator import rpc
-from spyne.decorator import srpc
-from spyne.decorator import mrpc
-
-from spyne.service import ServiceBase as Service
-from spyne.service import ServiceBase  # DEPRECATED
-
-from spyne.interface import Interface
-from spyne.interface import InterfaceDocuments
-from spyne.interface import InterfaceDocumentsBase
-
 from spyne.application import Application
-
-from spyne.model import *
-from spyne.model import Mandatory as M
-
-from spyne.error import InvalidCredentialsError
-from spyne.error import RequestTooLongError
-from spyne.error import RequestNotAllowed
-from spyne.error import ArgumentError
-from spyne.error import InvalidInputError
-from spyne.error import MissingFieldError
-from spyne.error import ValidationError
-from spyne.error import InternalError
-from spyne.error import ResourceNotFoundError
-from spyne.error import RespawnError
-from spyne.error import ResourceAlreadyExistsError
-from spyne.error import Redirect
-
 from spyne.client import ClientBase, RemoteProcedureBase, RemoteService
-from spyne.server import ServerBase, NullServer
+from spyne.context import (
+    AuxMethodContext,
+    EventContext,
+    MethodContext,
+    ProtocolContext,
+    TransportContext
+)
+# decorator imports descriptor, so this needs to come after
+from spyne.decorator import mrpc, rpc, srpc
+from spyne.descriptor import (
+    BODY_STYLE_BARE,
+    BODY_STYLE_EMPTY,
+    BODY_STYLE_EMPTY_OUT_BARE,
+    BODY_STYLE_OUT_BARE,
+    BODY_STYLE_WRAPPED,
+    MethodDescriptor
+)
+from spyne.error import (
+    ArgumentError,
+    InternalError,
+    InvalidCredentialsError,
+    InvalidInputError,
+    MissingFieldError,
+    Redirect,
+    RequestNotAllowed,
+    RequestTooLongError,
+    ResourceAlreadyExistsError,
+    ResourceNotFoundError,
+    RespawnError,
+    ValidationError
+)
+from spyne.evmgr import EventManager
+from spyne.interface import (
+    Interface,
+    InterfaceDocuments,
+    InterfaceDocumentsBase
+)
+from spyne.model import Mandatory as M
+from spyne.model import *
+from spyne.server import NullServer, ServerBase
+from spyne.service import ServiceBase  # DEPRECATED
+from spyne.service import ServiceBase as Service
 
 
 def _vercheck():

@@ -27,30 +27,32 @@
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import re
-
 from itertools import chain
 
-from django.core.exceptions import (ImproperlyConfigured, ObjectDoesNotExist,
-                                    ValidationError as DjValidationError)
-from django.core.validators import (slug_re,
-                                    MinLengthValidator, MaxLengthValidator)
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.core.exceptions import ValidationError as DjValidationError
+from django.core.validators import (
+    MaxLengthValidator,
+    MinLengthValidator,
+    slug_re
+)
+
 try:
     from django.core.validators import comma_separated_int_list_re
 except ImportError:
     comma_separated_int_list_re = re.compile(r'^[\d,]+$')
 
-from spyne.error import (ResourceNotFoundError, ValidationError as
-                         BaseValidationError, Fault)
+from spyne.error import Fault, ResourceNotFoundError
+from spyne.error import ValidationError as BaseValidationError
 from spyne.model import primitive
-from spyne.model.complex import ComplexModelMeta, ComplexModelBase
+from spyne.model.complex import ComplexModelBase, ComplexModelMeta
 from spyne.service import Service
 from spyne.util.cdict import cdict
 from spyne.util.odict import odict
-from spyne.util.six import add_metaclass
-
 
 # regex is based on http://www.w3.org/TR/xforms20/#xforms:email
 email_re = re.compile(
@@ -444,8 +446,7 @@ class DjangoComplexModelMeta(ComplexModelMeta):
         return super_new(mcs, name, bases, spyne_attrs)
 
 
-@add_metaclass(DjangoComplexModelMeta)
-class DjangoComplexModel(ComplexModelBase):
+class DjangoComplexModel(ComplexModelBase, metaclass=DjangoComplexModelMeta):
 
     """Base class with Django model mapping support.
 

@@ -21,8 +21,12 @@ import unittest
 
 from spyne.client.http import HttpClient
 from spyne.test.interop._test_soap_client_base import SpyneClientTestBase
-from spyne.test.interop.server.msgpackrpc_http_basic import msgpackrpc_application, port
+from spyne.test.interop.server.msgpackrpc_http_basic import (
+    msgpackrpc_application,
+    port
+)
 from spyne.util.etreeconv import root_dict_to_etree
+
 
 class TestSpyneHttpClient(SpyneClientTestBase, unittest.TestCase):
     def setUp(self):

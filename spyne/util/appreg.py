@@ -22,6 +22,7 @@ Module that contains the Spyne Application Registry.
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 applications = {}

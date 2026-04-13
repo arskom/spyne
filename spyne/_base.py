@@ -18,6 +18,7 @@
 #
 
 import logging
+
 logger = logging.getLogger('spyne')
 
 from collections import namedtuple

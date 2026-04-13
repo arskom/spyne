@@ -97,8 +97,8 @@ HTTP_599 = '599 Network connect timeout error' # (Unknown)
 
 
 def gen_body_redirect(code, location):
-    from lxml.html.builder import E
     from lxml.html import tostring
+    from lxml.html.builder import E
     return tostring(E.HTML(
         E.HEAD(
             E.meta(**{

@@ -17,19 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.util.six import add_metaclass
-
 from spyne.const import xml
-from spyne.model.primitive import Boolean, AnyHtml
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import UnsignedInteger
-from spyne.model.complex import XmlAttribute
-from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import ComplexModelMeta
+from spyne.model.complex import (
+    ComplexModelBase,
+    ComplexModelMeta,
+    XmlAttribute
+)
+from spyne.model.primitive import AnyHtml, Boolean, Unicode, UnsignedInteger
 
 
-@add_metaclass(ComplexModelMeta)
-class SchemaBase(ComplexModelBase):
+class SchemaBase(ComplexModelBase, metaclass=ComplexModelMeta):
     __namespace__ = xml.NS_XSD
 
 
@@ -148,14 +145,11 @@ class XmlSchema10(SchemaBase):
     ]
 
 
-from itertools import chain
 from inspect import isclass
+from itertools import chain
 
-from spyne.model import ModelBase
-from spyne.model import primitive
-from spyne.model import binary
+from spyne.model import ModelBase, binary, primitive
 from spyne.model.fault import Fault
-
 
 TYPE_MAP = dict([
     ("{%s}%s" % (cls.get_namespace(), cls.get_type_name()), cls) for cls in

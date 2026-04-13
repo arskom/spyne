@@ -18,26 +18,23 @@
 #
 
 import unittest
+
 try:
     import simplejson as json
 except ImportError:
     import json
 
-
-from spyne import MethodContext
-from spyne import Application
-from spyne import rpc,srpc
-from spyne import Service
-from spyne.model import Integer, Unicode, ComplexModel
-from spyne.protocol.json import JsonP
-from spyne.protocol.json import JsonDocument
-from spyne.protocol.json import JsonEncoder
-from spyne.protocol.json import _SpyneJsonRpc1
+from spyne import Application, MethodContext, Service, rpc, srpc
+from spyne.model import ComplexModel, Integer, Unicode
+from spyne.protocol.json import (
+    JsonDocument,
+    JsonEncoder,
+    JsonP,
+    _SpyneJsonRpc1
+)
 from spyne.server import ServerBase
 from spyne.server.null import NullServer
-
-from spyne.test.protocol._test_dictdoc import TDictDocumentTest
-from spyne.test.protocol._test_dictdoc import TDry
+from spyne.test.protocol._test_dictdoc import TDictDocumentTest, TDry
 
 
 class TestDictDocument(TDictDocumentTest(json, JsonDocument,
@@ -179,7 +176,7 @@ class TestJsonP(unittest.TestCase):
 
 
     def test_wrapped_array_in_wrapped_response(self):
-        from spyne.model.complex import ComplexModel, Array
+        from spyne.model.complex import Array, ComplexModel
         from spyne.model.primitive import Unicode
 
         class Permission(ComplexModel):

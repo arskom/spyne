@@ -24,12 +24,11 @@ logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 logger = logging.getLogger('spyne.test.interop.server.soap_http_basic')
 
 
-from spyne.test.interop.server import get_open_port
-from spyne.server.wsgi import WsgiApplication
-from spyne.test.interop.server._service import services
 from spyne.application import Application
 from spyne.protocol.soap import Soap11
-
+from spyne.server.wsgi import WsgiApplication
+from spyne.test.interop.server import get_open_port
+from spyne.test.interop.server._service import services
 
 soap11_application = Application(services, 'spyne.test.interop.server',
                  in_protocol=Soap11(validator='lxml', cleanup_namespaces=True),

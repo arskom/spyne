@@ -18,15 +18,16 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.protocol.msgpack').setLevel(logging.DEBUG)
 logger = logging.getLogger('spyne.test.interop.server.msgpackrpc_http_basic')
 
-from spyne.test.interop.server import get_open_port
-from spyne.server.wsgi import WsgiApplication
-from spyne.test.interop.server._service import services
 from spyne.application import Application
 from spyne.protocol.msgpack import MessagePackRpc
+from spyne.server.wsgi import WsgiApplication
+from spyne.test.interop.server import get_open_port
+from spyne.test.interop.server._service import services
 
 msgpackrpc_application = Application(services, 'spyne.test.interop.server',
                  in_protocol=MessagePackRpc(validator='soft'),

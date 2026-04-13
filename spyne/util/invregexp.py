@@ -42,20 +42,22 @@
 
 __all__ = ["count", "invregexp"]
 
-from pyparsing import Combine
-from pyparsing import Literal
-from pyparsing import ParseFatalException
-from pyparsing import ParseResults
-from pyparsing import ParserElement
-from pyparsing import SkipTo
-from pyparsing import Suppress
-from pyparsing import Word
-from pyparsing import nums
-from pyparsing import oneOf
-from pyparsing import opAssoc
-from pyparsing import operatorPrecedence
-from pyparsing import printables
-from pyparsing import srange
+from pyparsing import (
+    Combine,
+    Literal,
+    ParseFatalException,
+    ParserElement,
+    ParseResults,
+    SkipTo,
+    Suppress,
+    Word,
+    nums,
+    oneOf,
+    opAssoc,
+    operatorPrecedence,
+    printables,
+    srange
+)
 
 
 class CharacterRangeEmitter(object):

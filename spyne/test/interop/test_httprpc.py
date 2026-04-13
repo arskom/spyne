@@ -17,17 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
-
 import time
+import unittest
+from datetime import datetime
 
 import pytz
 
-from datetime import datetime
-
 from spyne.test.interop._test_soap_client_base import server_started
-from spyne.util import thread, urlencode, urlopen, Request, HTTPError
-
+from spyne.util import HTTPError, Request, thread, urlencode, urlopen
 
 _server_started = False
 

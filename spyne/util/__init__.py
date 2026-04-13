@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,40 +17,31 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-from spyne.util import six
-
-from spyne.util.coopmt import keepfirst
-from spyne.util.coopmt import coroutine
-from spyne.util.coopmt import Break
-
-from spyne.util.memo import memoize
-from spyne.util.memo import memoize_first
-from spyne.util.memo import memoize_ignore
-from spyne.util.memo import memoize_ignore_none
-from spyne.util.memo import memoize_id
-
-from spyne.util.attrdict import AttrDict
-from spyne.util.attrdict import AttrDictColl
-from spyne.util.attrdict import DefaultAttrDict
-
-from spyne.util._base import utctime
-from spyne.util._base import get_version
-
+from spyne.util._base import get_version, utctime
+from spyne.util.attrdict import AttrDict, AttrDictColl, DefaultAttrDict
+from spyne.util.coopmt import Break, coroutine, keepfirst
+from spyne.util.memo import (
+    memoize,
+    memoize_first,
+    memoize_id,
+    memoize_ignore,
+    memoize_ignore_none,
+)
 
 try:
+    from urllib import quote, splithost, splittype, urlencode
+
     import thread
+    from urllib2 import HTTPError, Request, urlopen
 
-    from urllib import splittype, splithost, quote, urlencode
-    from urllib2 import urlopen, Request, HTTPError
-
-except ImportError: # Python 3
+except ImportError:  # Python 3
     import _thread as thread
-
-    from urllib.parse import splittype, splithost, quote, urlencode
-    from urllib.request import urlopen, Request
     from urllib.error import HTTPError
+    from urllib.parse import quote, splithost, splittype, urlencode
+    from urllib.request import Request, urlopen
 
 
 def split_url(url):
@@ -85,19 +75,15 @@ def sanitize_args(a):
     return args, kwargs
 
 
-if six.PY2:
-    def _bytes_join(val, joiner=''):
-        return joiner.join(val)
-else:
-    def _bytes_join(val, joiner=b''):
-        if isinstance(val, six.binary_type):
-            return val
-        return joiner.join(val)
+def _bytes_join(val, joiner=b""):
+    if isinstance(val, bytes):
+        return val
+    return joiner.join(val)
 
 
 def utf8(s):
     if isinstance(s, bytes):
-        return s.decode('utf8')
+        return s.decode("utf8")
 
     if isinstance(s, list):
         return [utf8(ss) for ss in s]

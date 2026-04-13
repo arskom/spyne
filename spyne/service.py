@@ -22,12 +22,12 @@ This module contains the :class:`Service` class and its helper objects.
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-from spyne.util.six.moves.collections_abc import Sequence
+from collections.abc import Sequence
 
 from spyne.evmgr import EventManager
-from spyne.util import six
 from spyne.util.oset import oset
 
 
@@ -100,8 +100,7 @@ class ServiceMeta(ServiceBaseMeta):
 
 
 # FIXME: To be renamed to ServiceBase in Spyne 3
-@six.add_metaclass(ServiceBaseMeta)
-class ServiceBaseBase(object):
+class ServiceBaseBase(metaclass=ServiceBaseMeta):
     __in_header__ = None
     """The incoming header object that the methods under this service definition
     accept."""
@@ -182,7 +181,7 @@ class ServiceBaseBase(object):
             if args is None:
                 args = ctx.in_object
 
-                assert not isinstance(args, six.string_types)
+                assert not isinstance(args, str)
 
                 # python3 wants a proper sequence as *args
                 if not isinstance(args, Sequence):
@@ -198,8 +197,7 @@ class ServiceBaseBase(object):
         pass
 
 
-@six.add_metaclass(ServiceMeta)
-class Service(ServiceBaseBase):
+class Service(ServiceBaseBase, metaclass=ServiceMeta):
     """The ``Service`` class is the base class for all service definitions.
 
     The convention is to have public methods defined under a subclass of this

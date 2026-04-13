@@ -44,27 +44,31 @@ This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Factory
+
+from spyne import Address, MethodContext, TransportContext
+from spyne.auxproc import process_contexts
+from spyne.model import PushBase
+from spyne.model.complex import ComplexModel
+from spyne.model.fault import Fault
+from spyne.server import ServerBase
+from spyne.util._twisted_ws import (
+    CONTROLS,
+    WebSocketsProtocol,
+    WebSocketsResource
+)
 
 # FIXME: Switch to:
 #    from twisted.web.websockets import WebSocketsProtocol
 #    from twisted.web.websockets import WebSocketsResource
 #    from twisted.web.websockets import CONTROLS
 
-from spyne.util._twisted_ws import WebSocketsProtocol
-from spyne.util._twisted_ws import WebSocketsResource
-from spyne.util._twisted_ws import CONTROLS
 
 
-from spyne import MethodContext, TransportContext, Address
-from spyne.auxproc import process_contexts
-from spyne.model import PushBase
-from spyne.model.complex import ComplexModel
-from spyne.model.fault import Fault
-from spyne.server import ServerBase
 
 
 class WebSocketTransportContext(TransportContext):

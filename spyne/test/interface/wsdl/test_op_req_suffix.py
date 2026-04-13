@@ -21,16 +21,16 @@ import unittest
 from webtest import TestApp as _TestApp  # avoid confusing py.test
 
 from spyne.application import Application
+from spyne.const.xml import NS_WSDL11_SOAP, PREFMAP
 from spyne.decorator import srpc
-from spyne.service import Service
-from spyne.model.primitive import Integer, Unicode
 from spyne.model.complex import Iterable
-from spyne.protocol.soap import Soap11
+from spyne.model.primitive import Integer, Unicode
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.json import JsonDocument
+from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
+from spyne.service import Service
 
-from spyne.const.xml import PREFMAP, NS_WSDL11_SOAP
 
 def strip_whitespace(string):
     return ''.join(string.split())

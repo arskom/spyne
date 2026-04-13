@@ -25,10 +25,11 @@ decorator.
 
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-from itertools import chain
 from inspect import isgeneratorfunction
+from itertools import chain
 
 
 class Break(Exception):

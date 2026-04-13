@@ -17,10 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import spyne.const.xml as ns
 from spyne.application import Application
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
-import spyne.const.xml as ns
+
 
 def build_app(service_list, tns, name):
     app = Application(service_list, tns, name=name,

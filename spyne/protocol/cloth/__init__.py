@@ -21,6 +21,6 @@
 for clothing otherwise boring data.
 """
 
-from spyne.protocol.cloth._base import XmlCloth
 # huge hack to have the last line of microformat.py execute
 import spyne.protocol.html
+from spyne.protocol.cloth._base import XmlCloth

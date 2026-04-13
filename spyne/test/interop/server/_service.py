@@ -18,13 +18,32 @@
 #
 
 
-from spyne import Array, ByteArray, ComplexModel, SelfReference, Enum, Fault, \
-    AnyXml, AnyDict, Boolean, Time, Date, DateTime, Float, Integer, Duration, \
-    String, Double, Service, rpc, srpc
-
+import logging
 from datetime import datetime
 
-import logging
+from spyne import (
+    AnyDict,
+    AnyXml,
+    Array,
+    Boolean,
+    ByteArray,
+    ComplexModel,
+    Date,
+    DateTime,
+    Double,
+    Duration,
+    Enum,
+    Fault,
+    Float,
+    Integer,
+    SelfReference,
+    Service,
+    String,
+    Time,
+    rpc,
+    srpc
+)
+
 logger = logging.getLogger(__name__)
 
 

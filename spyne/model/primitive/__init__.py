@@ -20,78 +20,74 @@
 NATIVE_MAP = {}
 string_encoding = 'UTF-8'  # ???
 
-from spyne.model.primitive._base import Any
-from spyne.model.primitive._base import AnyDict
-from spyne.model.primitive._base import AnyHtml
-from spyne.model.primitive._base import AnyXml
-from spyne.model.primitive._base import Boolean
-
-from spyne.model.primitive.string import Unicode
-from spyne.model.primitive.string import String
-from spyne.model.primitive.string import AnyUri
-from spyne.model.primitive.string import Uuid
-from spyne.model.primitive.string import ImageUri
-from spyne.model.primitive.string import Ltree
-from spyne.model.primitive.string import MimeType
-from spyne.model.primitive.string import MimeTypeStrict
-from spyne.model.primitive.string import MediaType
-from spyne.model.primitive.string import MediaTypeStrict
-
-from spyne.model.primitive.xml import ID
-from spyne.model.primitive.xml import Token
-from spyne.model.primitive.xml import NMToken
-from spyne.model.primitive.xml import Name
-from spyne.model.primitive.xml import NCName
-from spyne.model.primitive.xml import QName
-from spyne.model.primitive.xml import Language
-from spyne.model.primitive.xml import NormalizedString
-
-from spyne.model.primitive.spatial import Point
-from spyne.model.primitive.spatial import Line
-from spyne.model.primitive.spatial import LineString
-from spyne.model.primitive.spatial import Polygon
-from spyne.model.primitive.spatial import MultiPoint
-from spyne.model.primitive.spatial import MultiLine
-from spyne.model.primitive.spatial import MultiLineString
-from spyne.model.primitive.spatial import MultiPolygon
-
+from spyne.model.primitive._base import Any, AnyDict, AnyHtml, AnyXml, Boolean
 # Date/Time types
-from spyne.model.primitive.datetime import Date
-from spyne.model.primitive.datetime import DateTime
-from spyne.model.primitive.datetime import Duration
-from spyne.model.primitive.datetime import Time
-
+from spyne.model.primitive.datetime import Date, DateTime, Duration, Time
+from spyne.model.primitive.network import (
+    IpAddress,
+    Ipv4Address,
+    Ipv6Address,
+    MacAddress
+)
 # Numbers
-from spyne.model.primitive.number import Decimal
-from spyne.model.primitive.number import Double
-from spyne.model.primitive.number import Float
-
-from spyne.model.primitive.number import Integer8
-from spyne.model.primitive.number import Byte
-from spyne.model.primitive.number import Integer16
-from spyne.model.primitive.number import Short
-from spyne.model.primitive.number import Integer32
-from spyne.model.primitive.number import Int
-from spyne.model.primitive.number import Integer64
-from spyne.model.primitive.number import Long
-from spyne.model.primitive.number import Integer
-from spyne.model.primitive.number import NumberLimitsWarning
-
-from spyne.model.primitive.number import UnsignedInteger8
-from spyne.model.primitive.number import UnsignedByte
-from spyne.model.primitive.number import UnsignedInteger16
-from spyne.model.primitive.number import UnsignedShort
-from spyne.model.primitive.number import UnsignedInteger32
-from spyne.model.primitive.number import UnsignedInt
-from spyne.model.primitive.number import UnsignedInteger64
-from spyne.model.primitive.number import UnsignedLong
-from spyne.model.primitive.number import NonNegativeInteger # Xml Schema calls it so
-from spyne.model.primitive.number import UnsignedInteger
-
-from spyne.model.primitive.network import MacAddress
-from spyne.model.primitive.network import IpAddress
-from spyne.model.primitive.network import Ipv4Address
-from spyne.model.primitive.network import Ipv6Address
+from spyne.model.primitive.number import \
+    NonNegativeInteger  # Xml Schema calls it so
+from spyne.model.primitive.number import (
+    Byte,
+    Decimal,
+    Double,
+    Float,
+    Int,
+    Integer,
+    Integer8,
+    Integer16,
+    Integer32,
+    Integer64,
+    Long,
+    NumberLimitsWarning,
+    Short,
+    UnsignedByte,
+    UnsignedInt,
+    UnsignedInteger,
+    UnsignedInteger8,
+    UnsignedInteger16,
+    UnsignedInteger32,
+    UnsignedInteger64,
+    UnsignedLong,
+    UnsignedShort
+)
+from spyne.model.primitive.spatial import (
+    Line,
+    LineString,
+    MultiLine,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon
+)
+from spyne.model.primitive.string import (
+    AnyUri,
+    ImageUri,
+    Ltree,
+    MediaType,
+    MediaTypeStrict,
+    MimeType,
+    MimeTypeStrict,
+    String,
+    Unicode,
+    Uuid
+)
+from spyne.model.primitive.xml import (
+    ID,
+    Language,
+    Name,
+    NCName,
+    NMToken,
+    NormalizedString,
+    QName,
+    Token
+)
 
 
 # This class is DEPRECATED. Use the spyne.model.Mandatory like this:

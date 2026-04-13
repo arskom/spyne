@@ -1,0 +1,17 @@
+variables:
+  KUBERNETES_UNIT_TESTS_MEMORY: "1024Mi"
+  CODE_QUALITY: "false"
+
+include:
+  - component: $CI_SERVER_FQDN/gitlab-ci/ci-toolbox/python-library@1.0.94
+
+
+unit-tests:
+  script:
+    # Install packages
+    - pip install pipenv
+    - pipenv install --dev
+    - pipenv run pip install .
+
+    # Run tests
+    - pipenv run make test-isolated

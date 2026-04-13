@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -45,30 +44,23 @@ is always "from outside to inside" whereas ``object_pairs_hook`` is passed
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from itertools import chain
-from spyne.util import six
-
 
 try:
     import simplejson as json
     from simplejson.decoder import JSONDecodeError
 except ImportError:
     import json
+
     JSONDecodeError = ValueError
 
-from spyne.error import ValidationError
-from spyne.error import ResourceNotFoundError
-
+from spyne.error import ResourceNotFoundError, ValidationError
 from spyne.model.binary import BINARY_ENCODING_BASE64
-from spyne.model.primitive import Date
-from spyne.model.primitive import Time
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Double
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Boolean
 from spyne.model.fault import Fault
+from spyne.model.primitive import Boolean, Date, DateTime, Double, Integer, Time
 from spyne.protocol.dictdoc import HierDictDocument
 
 
@@ -86,7 +78,7 @@ class JsonEncoder(json.JSONEncoder):
             return list(o)
 
 
-NON_NUMBER_TYPES = tuple({list, dict, six.text_type, six.binary_type})
+NON_NUMBER_TYPES = tuple({list, dict, str, bytes})
 
 
 class JsonDocument(HierDictDocument):
@@ -98,30 +90,46 @@ class JsonDocument(HierDictDocument):
         serialized to a list of values instead of a dict of key/value pairs.
     """
 
-    mime_type = 'application/json'
+    mime_type = "application/json"
     text_based = True
 
     type = set(HierDictDocument.type)
-    type.add('json')
+    type.add("json")
 
     default_binary_encoding = BINARY_ENCODING_BASE64
 
     # flags used just for tests
     _decimal_as_string = True
 
-    def __init__(self, app=None, validator=None, mime_type=None,
-                        ignore_uncap=False,
-                        # DictDocument specific
-                        ignore_wrappers=True, complex_as=dict, ordered=False,
-                        default_string_encoding=None, polymorphic=False,
-                        **kwargs):
+    def __init__(
+        self,
+        app=None,
+        validator=None,
+        mime_type=None,
+        ignore_uncap=False,
+        # DictDocument specific
+        ignore_wrappers=True,
+        complex_as=dict,
+        ordered=False,
+        default_string_encoding=None,
+        polymorphic=False,
+        **kwargs
+    ):
 
-        super(JsonDocument, self).__init__(app, validator, mime_type, ignore_uncap,
-                               ignore_wrappers, complex_as, ordered, polymorphic)
+        super(JsonDocument, self).__init__(
+            app,
+            validator,
+            mime_type,
+            ignore_uncap,
+            ignore_wrappers,
+            complex_as,
+            ordered,
+            polymorphic,
+        )
 
         # this is needed when we're overriding a regular instance attribute
         # with a property.
-        self.__message = HierDictDocument.__getattribute__(self, 'message')
+        self.__message = HierDictDocument.__getattribute__(self, "message")
 
         self._from_unicode_handlers[Double] = self._ret_number
         self._from_unicode_handlers[Boolean] = self._ret_bool
@@ -153,8 +161,8 @@ class JsonDocument(HierDictDocument):
         super(JsonDocument, self).validate(key, cls, val)
 
         if issubclass(cls, (DateTime, Date, Time)) and not (
-                                    isinstance(val, six.string_types) and
-                                                 cls.validate_string(cls, val)):
+            isinstance(val, str) and cls.validate_string(cls, val)
+        ):
             raise ValidationError(key, val)
 
     @property
@@ -163,16 +171,16 @@ class JsonDocument(HierDictDocument):
 
     @message.setter
     def message(self, val):
-        if val is self.RESPONSE and not ('cls' in self.kwargs):
-            self.kwargs['cls'] = JsonEncoder
+        if val is self.RESPONSE and not ("cls" in self.kwargs):
+            self.kwargs["cls"] = JsonEncoder
         self.__message = val
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
 
         try:
-            in_string = b''.join(ctx.in_string)
-            if not isinstance(in_string, six.text_type):
+            in_string = b"".join(ctx.in_string)
+            if not isinstance(in_string, str):
                 if in_string_encoding is None:
                     in_string_encoding = self.default_string_encoding
                 if in_string_encoding is not None:
@@ -180,17 +188,17 @@ class JsonDocument(HierDictDocument):
             ctx.in_document = json.loads(in_string, **self.kwargs)
 
         except JSONDecodeError as e:
-            raise Fault('Client.JsonDecodeError', repr(e))
+            raise Fault("Client.JsonDecodeError", repr(e))
 
-    def create_out_string(self, ctx, out_string_encoding='utf8'):
+    def create_out_string(self, ctx, out_string_encoding="utf8"):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
         if out_string_encoding is None:
-            ctx.out_string = (json.dumps(o, **self.kwargs)
-                                                      for o in ctx.out_document)
+            ctx.out_string = (json.dumps(o, **self.kwargs) for o in ctx.out_document)
         else:
             ctx.out_string = (
                 json.dumps(o, **self.kwargs).encode(out_string_encoding)
-                                                      for o in ctx.out_document)
+                for o in ctx.out_document
+            )
 
 
 # Continuation of http://stackoverflow.com/a/24184379/1520211
@@ -227,10 +235,9 @@ class HybridHttpJsonDocument(JsonDocument):
     def create_in_document(self, ctx, in_string_encoding=None):
         super(HybridHttpJsonDocument, self).create_in_document(ctx)
 
-        url_fragment = ctx.transport.get_path().split('/')[-1]
+        url_fragment = ctx.transport.get_path().split("/")[-1]
 
         ctx.in_document = {url_fragment: ctx.in_document}
-
 
 
 class JsonP(JsonDocument):
@@ -245,36 +252,37 @@ class JsonP(JsonDocument):
     """
 
     type = set(HierDictDocument.type)
-    type.add('jsonp')
+    type.add("jsonp")
 
     def __init__(self, callback_name, *args, **kwargs):
         super(JsonP, self).__init__(*args, **kwargs)
         self.callback_name = callback_name
 
-    def create_out_string(self, ctx, out_string_encoding='utf8'):
-        super(JsonP, self).create_out_string(ctx,
-                                        out_string_encoding=out_string_encoding)
+    def create_out_string(self, ctx, out_string_encoding="utf8"):
+        super(JsonP, self).create_out_string(
+            ctx, out_string_encoding=out_string_encoding
+        )
 
         if out_string_encoding is None:
             ctx.out_string = chain(
-                    (self.callback_name, '('),
-                        ctx.out_string,
-                    (');',),
-                )
+                (self.callback_name, "("),
+                ctx.out_string,
+                (");",),
+            )
         else:
             ctx.out_string = chain(
-                    [self.callback_name.encode(out_string_encoding), b'('],
-                        ctx.out_string,
-                    [b');'],
-                )
+                [self.callback_name.encode(out_string_encoding), b"("],
+                ctx.out_string,
+                [b");"],
+            )
 
 
 class _SpyneJsonRpc1(JsonDocument):
     version = 1
-    VERSION = 'ver'
-    BODY = 'body'
-    HEAD = 'head'
-    FAULT = 'fault'
+    VERSION = "ver"
+    BODY = "body"
+    HEAD = "head"
+    FAULT = "fault"
 
     def decompose_incoming_envelope(self, ctx, message=JsonDocument.REQUEST):
         indoc = ctx.in_document
@@ -304,12 +312,12 @@ class _SpyneJsonRpc1(JsonDocument):
             if not isinstance(ctx.in_header_doc, list):
                 ctx.in_header_doc = [ctx.in_header_doc]
 
-            (ctx.method_request_string,ctx.in_body_doc), = body.items()
+            ((ctx.method_request_string, ctx.in_body_doc),) = body.items()
 
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
-        self.event_manager.fire_event('before_deserialize', ctx)
+        self.event_manager.fire_event("before_deserialize", ctx)
 
         if ctx.descriptor is None:
             raise ResourceNotFoundError(ctx.method_request_string)
@@ -328,13 +336,13 @@ class _SpyneJsonRpc1(JsonDocument):
                 body_class = ctx.descriptor.out_message
 
             # decode header objects
-            if (ctx.in_header_doc is not None and header_class is not None):
+            if ctx.in_header_doc is not None and header_class is not None:
                 headers = [None] * len(header_class)
                 for i, (header_doc, head_class) in enumerate(
-                                          zip(ctx.in_header_doc, header_class)):
+                    zip(ctx.in_header_doc, header_class)
+                ):
                     if header_doc is not None and i < len(header_doc):
-                        headers[i] = self._doc_to_object(ctx, head_class,
-                                                                     header_doc)
+                        headers[i] = self._doc_to_object(ctx, head_class, header_doc)
 
                 if len(headers) == 1:
                     ctx.in_header = headers[0]
@@ -344,22 +352,20 @@ class _SpyneJsonRpc1(JsonDocument):
             if ctx.in_body_doc is None:
                 ctx.in_object = [None] * len(body_class._type_info)
             else:
-                ctx.in_object = self._doc_to_object(ctx, body_class,
-                                                                ctx.in_body_doc)
+                ctx.in_object = self._doc_to_object(ctx, body_class, ctx.in_body_doc)
 
-        self.event_manager.fire_event('after_deserialize', ctx)
+        self.event_manager.fire_event("after_deserialize", ctx)
 
     def serialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
-        self.event_manager.fire_event('before_serialize', ctx)
+        self.event_manager.fire_event("before_serialize", ctx)
 
         ctx.out_document = {
             "ver": self.version,
         }
         if ctx.out_error is not None:
-            ctx.out_document[self.FAULT] = Fault.to_dict(Fault,
-                                                            ctx.out_error, self)
+            ctx.out_document[self.FAULT] = Fault.to_dict(Fault, ctx.out_error, self)
 
         else:
             if message is self.REQUEST:
@@ -389,8 +395,9 @@ class _SpyneJsonRpc1(JsonDocument):
 
                 out_object._safe_set(k, v, body_message_class, bm_attrs)
 
-            ctx.out_document[self.BODY] = ctx.out_body_doc = \
-                             self._object_to_doc(body_message_class, out_object)
+            ctx.out_document[self.BODY] = ctx.out_body_doc = self._object_to_doc(
+                body_message_class, out_object
+            )
 
             # header
             if ctx.out_header is not None and header_message_class is not None:
@@ -401,25 +408,23 @@ class _SpyneJsonRpc1(JsonDocument):
 
                 ctx.out_header_doc = out_header_doc = []
 
-                for header_class, out_header in zip(header_message_class,
-                                                                   out_headers):
-                    out_header_doc.append(self._object_to_doc(header_class,
-                                                                    out_header))
+                for header_class, out_header in zip(header_message_class, out_headers):
+                    out_header_doc.append(self._object_to_doc(header_class, out_header))
 
                 if len(out_header_doc) > 1:
                     ctx.out_document[self.HEAD] = out_header_doc
                 else:
                     ctx.out_document[self.HEAD] = out_header_doc[0]
 
-        self.event_manager.fire_event('after_serialize', ctx)
+        self.event_manager.fire_event("after_serialize", ctx)
 
 
-_json_rpc_flavors = {
-    'spyne': _SpyneJsonRpc1
-}
+_json_rpc_flavors = {"spyne": _SpyneJsonRpc1}
+
 
 def JsonRpc(flavour, *args, **kwargs):
-    assert flavour in _json_rpc_flavors, "Unknown JsonRpc flavor. " \
-                              "Accepted ones are: %r" % tuple(_json_rpc_flavors)
+    assert (
+        flavour in _json_rpc_flavors
+    ), "Unknown JsonRpc flavor. " "Accepted ones are: %r" % tuple(_json_rpc_flavors)
 
     return _json_rpc_flavors[flavour](*args, **kwargs)

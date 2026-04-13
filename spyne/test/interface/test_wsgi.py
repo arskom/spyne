@@ -18,16 +18,14 @@
 #
 
 import unittest
+from io import StringIO
 
-from spyne.util import six
-from spyne.util.six import StringIO
-
+from spyne.application import Application
+from spyne.const.xml import WSDL11
+from spyne.decorator import rpc
+from spyne.model.primitive import Unicode
 from spyne.protocol.soap.soap11 import Soap11
 from spyne.server.wsgi import WsgiApplication
-from spyne.application import Application
-from spyne.model.primitive import Unicode
-from spyne.decorator import rpc
-from spyne.const.xml import WSDL11
 from spyne.service import Service
 
 

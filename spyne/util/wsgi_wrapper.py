@@ -20,6 +20,7 @@
 """A Convenience module for wsgi wrapper routines."""
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import os
@@ -102,10 +103,9 @@ def run_twisted(apps, port, static_dir='.', interface='0.0.0.0'):
 
     import twisted.web.server
     import twisted.web.static
-
+    from twisted.internet import reactor
     from twisted.web.resource import Resource
     from twisted.web.wsgi import WSGIResource
-    from twisted.internet import reactor
 
     if static_dir != None:
         static_dir = os.path.abspath(static_dir)

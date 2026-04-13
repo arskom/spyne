@@ -18,24 +18,20 @@
 #
 
 import unittest
-
 from pprint import pprint
+
+from lxml import etree
 
 from spyne.application import Application
 from spyne.const.xml import XSD
+from spyne.decorator import rpc
 from spyne.interface.wsdl.wsdl11 import Wsdl11
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.protocol.xml import XmlDocument
+from spyne.model.complex import Array, ComplexModel
+from spyne.model.enum import Enum
 from spyne.protocol.soap.soap11 import Soap11
-
+from spyne.protocol.xml import XmlDocument
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import Service
-from spyne.decorator import rpc
-
-from spyne.model.enum import Enum
-
-from lxml import etree
 
 vals = [
     'Monday',

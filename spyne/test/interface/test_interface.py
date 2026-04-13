@@ -21,8 +21,16 @@
 import unittest
 
 from spyne import Application, Service, rpc
-from spyne.model import Array, ComplexModel, AnyXml, UnsignedLong, \
-    UnsignedInteger16, Integer, DateTime, Unicode
+from spyne.model import (
+    AnyXml,
+    Array,
+    ComplexModel,
+    DateTime,
+    Integer,
+    Unicode,
+    UnsignedInteger16,
+    UnsignedLong
+)
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 

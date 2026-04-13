@@ -20,18 +20,26 @@
 from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import unittest
+from io import BytesIO
 
 from lxml import etree, html
 from lxml.builder import E
 
-from spyne import ComplexModel, XmlAttribute, Unicode, Array, Integer, \
-    SelfReference, XmlData
+from spyne import (
+    Array,
+    ComplexModel,
+    Integer,
+    SelfReference,
+    Unicode,
+    XmlAttribute,
+    XmlData
+)
 from spyne.protocol.cloth import XmlCloth
 from spyne.test import FakeContext
-from spyne.util.six import BytesIO
 
 
 class TestModelCloth(unittest.TestCase):

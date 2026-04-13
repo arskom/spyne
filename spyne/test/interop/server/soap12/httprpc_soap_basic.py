@@ -18,15 +18,16 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('spyne.protocol.xml')
 logger.setLevel(logging.DEBUG)
 
 from spyne.application import Application
-from spyne.test.interop.server._service import services
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap12
 from spyne.server.wsgi import WsgiApplication
+from spyne.test.interop.server._service import services
 
 httprpc_soap_application = Application(services,
     'spyne.test.interop.server.httprpc.soap', in_protocol=HttpRpc(), out_protocol=Soap12())

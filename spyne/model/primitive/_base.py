@@ -29,8 +29,8 @@ See :mod:`spyne.protocol._model` for {to,from}_string implementations.
 from __future__ import absolute_import
 
 from spyne.model import SimpleModel
+from spyne.model._base import apply_pssm, json, msgpack, xml
 from spyne.model.primitive import NATIVE_MAP
-from spyne.model._base import apply_pssm, msgpack, xml, json
 
 
 def re_match_with_span(attr, value):

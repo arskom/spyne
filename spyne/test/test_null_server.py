@@ -22,18 +22,16 @@ import unittest
 
 from lxml import etree
 
-from spyne import Ignored
-from spyne import const
-from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.xml import XmlDocument
-
-from spyne.model.complex import Array
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import String
+from spyne import Ignored, const
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.service import Service
+from spyne.interface.wsdl import Wsdl11
+from spyne.model.complex import Array
+from spyne.model.primitive import Boolean, String
+from spyne.protocol.xml import XmlDocument
 from spyne.server.null import NullServer
+from spyne.service import Service
+
 
 class TestNullServer(unittest.TestCase):
     def test_empty_return_type(self):

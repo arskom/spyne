@@ -7,11 +7,8 @@ import sys
 from lxml import etree
 from spyne.interface.xml_schema.parser import hier_repr
 
-from spyne.util import six
 from spyne import ComplexModel, Unicode
-from spyne.util.xml import get_object_as_xml_polymorphic, \
-    get_xml_as_object_polymorphic
-
+from spyne.util.xml import get_object_as_xml_polymorphic, get_xml_as_object_polymorphic
 
 # uncomment to see what's going on under the hood
 # import logging
@@ -20,9 +17,9 @@ from spyne.util.xml import get_object_as_xml_polymorphic, \
 
 
 class B(ComplexModel):
-    __namespace__ = 'some_ns'
+    __namespace__ = "some_ns"
     _type_info = {
-        '_b': Unicode,
+        "_b": Unicode,
     }
 
     def __init__(self):
@@ -31,9 +28,9 @@ class B(ComplexModel):
 
 
 class C(B):
-    __namespace__ = 'some_ns'
+    __namespace__ = "some_ns"
     _type_info = {
-        '_c': Unicode,
+        "_c": Unicode,
     }
 
     def __init__(self):
@@ -42,25 +39,22 @@ class C(B):
 
 
 class A(ComplexModel):
-    __namespace__ = 'some_ns'
+    __namespace__ = "some_ns"
     _type_info = {
-        '_a': Unicode,
-        '_b': B,
+        "_a": Unicode,
+        "_b": B,
     }
 
     def __init__(self, b=None):
         super(A, self).__init__()
-        self._a = 'a'
+        self._a = "a"
         self._b = b
 
 
 a = A(b=C())
 elt = get_object_as_xml_polymorphic(a, A)
 xml_string = etree.tostring(elt, pretty_print=True)
-if six.PY2:
-    print(xml_string, end="")
-else:
-    sys.stdout.buffer.write(xml_string)
+sys.stdout.buffer.write(xml_string)
 
 element_tree = etree.fromstring(xml_string)
 new_a = get_xml_as_object_polymorphic(elt, A)

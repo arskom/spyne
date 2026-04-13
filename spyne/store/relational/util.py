@@ -31,9 +31,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import os
 import cProfile
-
+import os
 from copy import copy
 
 from sqlalchemy.engine import Dialect, create_engine

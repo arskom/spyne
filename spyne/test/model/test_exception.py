@@ -18,11 +18,13 @@
 #
 
 import unittest
-from spyne.test import FakeApp
+
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.xml import XmlDocument
 from spyne.model.fault import Fault
+from spyne.protocol.xml import XmlDocument
+from spyne.test import FakeApp
+
 
 class FaultTests(unittest.TestCase):
     def test_ctor_defaults(self):
@@ -45,6 +47,7 @@ class FaultTests(unittest.TestCase):
 
     def test_to_parent_wo_detail(self):
         from lxml.etree import Element
+
         import spyne.const.xml
         ns_soap_env = spyne.const.xml.NS_SOAP11_ENV
         soap_env = spyne.const.xml.PREFMAP[spyne.const.xml.NS_SOAP11_ENV]
@@ -75,9 +78,9 @@ class FaultTests(unittest.TestCase):
         self.assertTrue(child.find('detail').find('something') is detail)
 
     def test_from_xml_wo_detail(self):
-        from lxml.etree import Element
-        from lxml.etree import SubElement
-        from spyne.const.xml import PREFMAP, SOAP11_ENV, NS_SOAP11_ENV
+        from lxml.etree import Element, SubElement
+
+        from spyne.const.xml import NS_SOAP11_ENV, PREFMAP, SOAP11_ENV
 
         soap_env = PREFMAP[NS_SOAP11_ENV]
         element = Element(SOAP11_ENV('Fault'))
@@ -97,8 +100,8 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(fault.detail, None)
 
     def test_from_xml_w_detail(self):
-        from lxml.etree import Element
-        from lxml.etree import SubElement
+        from lxml.etree import Element, SubElement
+
         from spyne.const.xml import SOAP11_ENV
 
         element = Element(SOAP11_ENV('Fault'))

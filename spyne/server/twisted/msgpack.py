@@ -20,25 +20,28 @@
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import io
+from collections import OrderedDict, deque
+from hashlib import md5
+from itertools import chain
+from time import time
 
 import msgpack
-
-from time import time
-from hashlib import md5
-from collections import deque, OrderedDict
-from itertools import chain
-
 from twisted.internet import reactor
+from twisted.internet.defer import CancelledError, Deferred
+from twisted.internet.protocol import (
+    ClientFactory,
+    Factory,
+    Protocol,
+    connectionDone
+)
 from twisted.internet.task import deferLater
-from twisted.internet.defer import Deferred, CancelledError
-from twisted.internet.protocol import Protocol, Factory, connectionDone, \
-    ClientFactory
 from twisted.python.failure import Failure
 
-from spyne import EventManager, Address, ServerBase, Fault
+from spyne import Address, EventManager, Fault, ServerBase
 from spyne.auxproc import process_contexts
 from spyne.error import InternalError
 from spyne.server.twisted import log_and_let_go

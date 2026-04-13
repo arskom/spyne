@@ -22,21 +22,29 @@ for schema generation."""
 
 
 import logging
+
 logger = logging.getLogger(__name__)
 
+from collections import defaultdict, deque
 from decimal import Decimal as D
-from collections import deque, defaultdict
 
 from lxml import etree
 
-from spyne.model import ModelBase, XmlAttribute, AnyXml, Unicode, XmlData, \
-    Decimal, Integer
 from spyne.const.xml import NS_XSD, XSD
+from spyne.model import (
+    AnyXml,
+    Decimal,
+    Integer,
+    ModelBase,
+    Unicode,
+    XmlAttribute,
+    XmlData
+)
+from spyne.protocol.xml import XmlDocument
 from spyne.util import memoize
 from spyne.util.cdict import cdict
 from spyne.util.etreeconv import dict_to_etree
-from spyne.util.six import string_types
-from spyne.protocol.xml import XmlDocument
+
 _prot = XmlDocument()
 
 # In Xml Schema, some customizations do not need a class to be extended -- they
@@ -139,7 +147,7 @@ def complex_add(document, cls, tags):
             if isinstance(_ai, dict):
                 dict_to_etree(_ai, appinfo)
 
-            elif isinstance(_ai, string_types):
+            elif isinstance(_ai, str):
                 appinfo.text = _ai
 
             elif isinstance(_ai, etree._Element):
@@ -185,7 +193,7 @@ def complex_add(document, cls, tags):
     choice_tags = defaultdict(lambda: etree.Element(XSD('choice')))
 
     for k, v in type_info.items():
-        assert isinstance(k, string_types)
+        assert isinstance(k, str)
         assert issubclass(v, ModelBase)
 
         a = v.Attributes
@@ -336,8 +344,7 @@ def Tget_range_restriction_tag(T):
     a function that generates range restriction tags.
     """
 
-    from spyne.model.primitive import Decimal
-    from spyne.model.primitive import Integer
+    from spyne.model.primitive import Decimal, Integer
 
     if issubclass(T, Decimal):
         def _get_float_restrictions(prot, restriction, cls):

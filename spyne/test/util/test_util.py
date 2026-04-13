@@ -2,50 +2,53 @@
 
 from __future__ import print_function
 
-import json
 import decimal
+import json
 import unittest
+from datetime import datetime
+from decimal import Decimal as D
+from pprint import pprint
 
 import pytz
 import sqlalchemy
-
-from pprint import pprint
-from decimal import Decimal as D
-from datetime import datetime
-
 from lxml import etree
 
-from spyne.const import MAX_STRING_FIELD_LENGTH
-
-from spyne.decorator import srpc
 from spyne.application import Application
-
-from spyne.model.complex import XmlAttribute, TypeInfo
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import Iterable
-from spyne.model.complex import Array
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Unicode
-
+from spyne.const import MAX_STRING_FIELD_LENGTH
+from spyne.decorator import srpc
+from spyne.model.complex import (
+    Array,
+    ComplexModel,
+    Iterable,
+    TypeInfo,
+    XmlAttribute
+)
+from spyne.model.primitive import DateTime, Decimal, Integer, Unicode
 from spyne.service import Service
-
-from spyne.util import AttrDict, AttrDictColl, get_version
-from spyne.util import memoize, memoize_ignore_none, memoize_ignore, memoize_id
-
+from spyne.util import (
+    AttrDict,
+    AttrDictColl,
+    get_version,
+    memoize,
+    memoize_id,
+    memoize_ignore,
+    memoize_ignore_none
+)
+from spyne.util.dictdoc import (
+    get_dict_as_object,
+    get_object_as_dict,
+    get_object_as_json,
+    get_object_as_yaml
+)
 from spyne.util.protocol import deserialize_request_string
-
-from spyne.util.dictdoc import get_dict_as_object, get_object_as_yaml, \
-    get_object_as_json
-from spyne.util.dictdoc import get_object_as_dict
 from spyne.util.tdict import tdict
 from spyne.util.tlist import tlist
-
-from spyne.util.xml import get_object_as_xml
-from spyne.util.xml import get_xml_as_object
-from spyne.util.xml import get_schema_documents
-from spyne.util.xml import get_validation_schema
+from spyne.util.xml import (
+    get_object_as_xml,
+    get_schema_documents,
+    get_validation_schema,
+    get_xml_as_object
+)
 
 
 class TestUtil(unittest.TestCase):
@@ -260,8 +263,7 @@ class TestLogRepr(unittest.TestCase):
         assert log_repr(['a','b','c'], Array(String)) ==  "['a', 'b', (...)]"
 
     def test_log_repr_complex(self):
-        from spyne.model import ByteArray
-        from spyne.model import File
+        from spyne.model import ByteArray, File
         from spyne.model.complex import ComplexModel
         from spyne.model.primitive import String
         from spyne.util.web import log_repr
@@ -375,11 +377,13 @@ class TestEtreeDict(unittest.TestCase):
 
     def test_simple(self):
         from lxml.etree import tostring
+
         from spyne.util.etreeconv import root_dict_to_etree
         assert tostring(root_dict_to_etree({'a':{'b':'c'}})) == b'<a><b>c</b></a>'
 
     def test_not_sized(self):
         from lxml.etree import tostring
+
         from spyne.util.etreeconv import root_dict_to_etree
 
         complex_value = root_dict_to_etree({'a':{'b':1}})

@@ -25,32 +25,32 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import os
-
-from copy import copy
-from pprint import pformat
-from itertools import chain
 from collections import defaultdict
-from os.path import dirname, abspath, join
+from copy import copy
+from itertools import chain
+from os.path import abspath, dirname, join
+from pprint import pformat
 
 from lxml import etree
 
-from spyne.util import memoize
-from spyne.util.odict import odict
-
-from spyne.model import Null, XmlData, XmlAttribute, Array, ComplexModelBase, \
-    ComplexModelMeta
+from spyne.interface.xml_schema.defn import TYPE_MAP, SchemaBase, XmlSchema10
+from spyne.model import (
+    Array,
+    ComplexModelBase,
+    ComplexModelMeta,
+    Null,
+    XmlAttribute,
+    XmlData
+)
 from spyne.model.complex import XmlModifier
-
 from spyne.protocol.xml import XmlDocument
-
-from spyne.interface.xml_schema.defn import TYPE_MAP
-from spyne.interface.xml_schema.defn import SchemaBase
-from spyne.interface.xml_schema.defn import XmlSchema10
-
-from spyne.util.color import R, G, B, MAG, YEL
+from spyne.util import memoize
+from spyne.util.color import MAG, YEL, B, G, R
+from spyne.util.odict import odict
 
 PARSER = etree.XMLParser(remove_comments=True)
 

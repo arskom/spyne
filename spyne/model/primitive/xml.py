@@ -22,7 +22,6 @@ import re
 from spyne.const.xml import PATT_NMTOKEN
 from spyne.model.primitive.string import Unicode
 
-
 RE_BaseChar = re.compile(
     u"[\u0041-\u005A]|[\u0061-\u007A]|[\u00C0-\u00D6]|[\u00D8-\u00F6]|"
     u"[\u00F8-\u00FF]|[\u0100-\u0131]|[\u0134-\u013E]|[\u0141-\u0148]|"

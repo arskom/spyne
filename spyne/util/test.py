@@ -61,8 +61,8 @@ def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
 
     return out_string
 
-from os import mkdir, getcwd
-from os.path import join, basename
+from os import getcwd, mkdir
+from os.path import basename, join
 
 
 def show(elt, tn=None, stdout=True):
@@ -78,7 +78,7 @@ def show(elt, tn=None, stdout=True):
         else:
             raise Exception("don't be lazy and pass test name.")
 
-    from lxml import html, etree
+    from lxml import etree, html
     out_string = etree.tostring(elt, pretty_print=True)
     if stdout:
         print(out_string)

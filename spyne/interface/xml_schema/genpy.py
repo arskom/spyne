@@ -26,17 +26,16 @@ TODO:
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-import spyne
-
+from collections import defaultdict
 from datetime import datetime
 from itertools import chain
-from collections import defaultdict
 
+import spyne
 from spyne.model import SimpleModel
-from spyne.model.complex import XmlModifier
-from spyne.model.complex import ComplexModelBase
+from spyne.model.complex import ComplexModelBase, XmlModifier
 
 
 def gen_fn_from_tns(tns):

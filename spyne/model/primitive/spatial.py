@@ -27,7 +27,6 @@
 from spyne.model import SimpleModel
 from spyne.model.primitive.string import Unicode
 
-
 FLOAT_PATTERN = r'-?[0-9]+\.?[0-9]*(e-?[0-9]+)?'
 
 

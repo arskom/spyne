@@ -17,21 +17,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.interface.wsdl.wsdl11 import Wsdl11
 import logging
+
+from spyne.interface.wsdl.wsdl11 import Wsdl11
+
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
 import spyne.const.xml as ns
+from spyne.test.interface.wsdl import AppTestWrapper, build_app
+from spyne.test.interface.wsdl.port_service_services import (
+    TBadRPCPortService,
+    TDoublePortService,
+    TMissingRPCPortService,
+    TMissingServicePortService,
+    TSinglePortService
+)
 
-from spyne.test.interface.wsdl import AppTestWrapper
-from spyne.test.interface.wsdl import build_app
-from spyne.test.interface.wsdl.port_service_services import TBadRPCPortService
-from spyne.test.interface.wsdl.port_service_services import TDoublePortService
-from spyne.test.interface.wsdl.port_service_services import TMissingRPCPortService
-from spyne.test.interface.wsdl.port_service_services import TMissingServicePortService
-from spyne.test.interface.wsdl.port_service_services import TSinglePortService
 
 class TestWSDLPortServiceBehavior(unittest.TestCase):
     def setUp(self):

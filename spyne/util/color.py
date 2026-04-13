@@ -19,7 +19,6 @@
 
 from __future__ import absolute_import
 
-
 try:
     import colorama
     R = lambda s: ''.join((colorama.Fore.RED, colorama.Style.BRIGHT, s,

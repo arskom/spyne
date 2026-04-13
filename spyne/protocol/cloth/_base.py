@@ -20,21 +20,24 @@
 from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
+from io import BytesIO
 
 from lxml import etree
 from lxml.etree import LxmlSyntaxError
 
-from spyne import ProtocolContext, BODY_STYLE_WRAPPED, ByteArray, File, Array
-from spyne.util import Break, coroutine
+from spyne.descriptor import BODY_STYLE_WRAPPED
+from spyne.model.complex import Array
+from spyne.model.binary import ByteArray, File
+from spyne.context import ProtocolContext
 from spyne.protocol import ProtocolMixin
-
-from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
-from spyne.util.six import BytesIO
-from spyne.util.color import R, B
+from spyne.protocol.cloth.to_parent import ToParentMixin
+from spyne.util import Break, coroutine
+from spyne.util.color import B, R
 from spyne.util.tlist import tlist
 
 
@@ -48,22 +51,37 @@ class XmlClothProtocolContext(ProtocolContext):
 
 
 class XmlCloth(ToParentMixin, ToClothMixin):
-    mime_type = 'text/xml'
+    mime_type = "text/xml"
     HtmlMicroFormat = None
 
-    def __init__(self, app=None, encoding='utf8', doctype=None,
-                      mime_type=None, ignore_uncap=False, ignore_wrappers=False,
-                                cloth=None, cloth_parser=None, polymorphic=True,
-                         strip_comments=True, use_ns=None, skip_root_tag=False):
+    def __init__(
+        self,
+        app=None,
+        encoding="utf8",
+        doctype=None,
+        mime_type=None,
+        ignore_uncap=False,
+        ignore_wrappers=False,
+        cloth=None,
+        cloth_parser=None,
+        polymorphic=True,
+        strip_comments=True,
+        use_ns=None,
+        skip_root_tag=False,
+    ):
 
-        super(XmlCloth, self).__init__(app=app, mime_type=mime_type,
-                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
-                                                        polymorphic=polymorphic)
+        super(XmlCloth, self).__init__(
+            app=app,
+            mime_type=mime_type,
+            ignore_uncap=ignore_uncap,
+            ignore_wrappers=ignore_wrappers,
+            polymorphic=polymorphic,
+        )
 
         self._init_cloth(cloth, cloth_parser, strip_comments)
         self.developer_mode = False
         self.encoding = encoding
-        self.default_method = 'xml'
+        self.default_method = "xml"
         self.doctype = doctype
         self.use_ns = use_ns
         self.skip_root_tag = skip_root_tag
@@ -81,7 +99,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         assert message in (self.REQUEST, self.RESPONSE)
 
-        self.event_manager.fire_event('before_serialize', ctx)
+        self.event_manager.fire_event("before_serialize", ctx)
 
         if ctx.out_stream is None:
             ctx.out_stream = BytesIO()
@@ -110,23 +128,24 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             if ctx.descriptor.body_style == BODY_STYLE_WRAPPED:
                 if self.ignore_wrappers:
                     result_inst = ctx.out_object[0]
-                    while result_class.Attributes._wrapper and \
-                                              len(result_class._type_info) == 1:
-                        result_class, = result_class._type_info.values()
+                    while (
+                        result_class.Attributes._wrapper
+                        and len(result_class._type_info) == 1
+                    ):
+                        (result_class,) = result_class._type_info.values()
 
                 else:
                     result_inst = result_class()
 
-                    for i, attr_name in enumerate(
-                                        result_class._type_info.keys()):
+                    for i, attr_name in enumerate(result_class._type_info.keys()):
                         setattr(result_inst, attr_name, ctx.out_object[i])
 
             else:
-                result_inst, = ctx.out_object
+                (result_inst,) = ctx.out_object
 
             retval = self._incgen(ctx, result_class, result_inst, name)
 
-        self.event_manager.fire_event('after_serialize', ctx)
+        self.event_manager.fire_event("after_serialize", ctx)
 
         return retval
 
@@ -159,7 +178,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                 if isgenerator(ret):  # Poor man's yield from
                     try:
                         while True:
-                            sv2 = (yield)
+                            sv2 = yield
                             ret.send(sv2)
 
                     except Break as b:
@@ -169,7 +188,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
                             pass
 
         except LxmlSyntaxError as e:
-            if e.msg == 'no content written':
+            if e.msg == "no content written":
                 pass
             else:
                 raise
@@ -210,26 +229,24 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
     def check_class_cloths(self, ctx, cls, inst, parent, name, **kwargs):
         c = self.get_class_root_cloth(cls)
-        eltstack = getattr(ctx.protocol, 'eltstack', [])
+        eltstack = getattr(ctx.protocol, "eltstack", [])
         if c is not None and len(eltstack) == 0 and not (eltstack[-1] is c):
             if not ctx.outprot_ctx.doctype_written:
                 self.write_doctype(ctx, parent, c)
 
             logger.debug("to object root cloth")
-            return True, self.to_root_cloth(ctx, cls, inst, c, parent, name,
-                                                                       **kwargs)
+            return True, self.to_root_cloth(ctx, cls, inst, c, parent, name, **kwargs)
         c = self.get_class_cloth(cls)
         if c is not None:
             if not ctx.outprot_ctx.doctype_written:
                 self.write_doctype(ctx, parent, c)
 
             logger.debug("to object cloth")
-            return True, self.to_parent_cloth(ctx, cls, inst, c, parent, name,
-                                                                       **kwargs)
+            return True, self.to_parent_cloth(ctx, cls, inst, c, parent, name, **kwargs)
         return False, None
 
     @coroutine
-    def subserialize(self, ctx, cls, inst, parent, name='', **kwargs):
+    def subserialize(self, ctx, cls, inst, parent, name="", **kwargs):
         """Bridge between multiple XmlCloth-based protocols.
 
         Not supposed to be overridden.
@@ -248,14 +265,12 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         elif self._root_cloth is not None:
             logger.debug("to root cloth for %s", cls.get_type_name())
-            ret = self.to_root_cloth(ctx, cls, inst, self._root_cloth,
-                                                                   parent, name)
+            ret = self.to_root_cloth(ctx, cls, inst, self._root_cloth, parent, name)
             have_cloth = True
 
         elif self._cloth is not None:
             logger.debug("to parent protocol cloth for %s", cls.get_type_name())
-            ret = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent,
-                                                                           name)
+            ret = self.to_parent_cloth(ctx, cls, inst, self._cloth, parent, name)
             have_cloth = True
 
         else:
@@ -265,7 +280,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         if isgenerator(ret):  # Poor man's yield from
             try:
                 while True:
-                    sv2 = (yield)
+                    sv2 = yield
                     ret.send(sv2)
 
             except Break as b:
@@ -312,8 +327,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             sub_name = self._gen_tagname(ns, sub_name)
 
             if issubclass(field_type.type, (ByteArray, File)):
-                valstr = self.to_unicode(field_type.type, val,
-                                                       self.binary_encoding)
+                valstr = self.to_unicode(field_type.type, val, self.binary_encoding)
             else:
                 valstr = self.to_unicode(field_type.type, val)
 

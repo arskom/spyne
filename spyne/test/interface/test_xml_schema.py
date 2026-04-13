@@ -19,32 +19,25 @@
 
 import logging
 import unittest
-
 from pprint import pprint
+
 from lxml import etree
 
-from spyne import Application
-from spyne import rpc
+from spyne import Application, rpc
 from spyne.const import xml as ns
 from spyne.const.xml import NS_XSD
-from spyne.model import ByteArray
-from spyne.model import ComplexModel
-from spyne.model import XmlAttribute
-from spyne.model import XmlData
-from spyne.model import AnyXml
-from spyne.model import Integer
-from spyne.model import Mandatory as M
-from spyne.model import Unicode
-from spyne.model import Uuid
-from spyne.model import Boolean
-from spyne.protocol.soap import Soap11, Soap12
-from spyne.service import Service
-from spyne.util.xml import get_schema_documents
-from spyne.util.xml import parse_schema_element
-from spyne.util.xml import parse_schema_string
-
 from spyne.interface.xml_schema import XmlSchema
 from spyne.interface.xml_schema.genpy import CodeGenerator
+from spyne.model import AnyXml, Boolean, ByteArray, ComplexModel, Integer
+from spyne.model import Mandatory as M
+from spyne.model import Unicode, Uuid, XmlAttribute, XmlData
+from spyne.protocol.soap import Soap11, Soap12
+from spyne.service import Service
+from spyne.util.xml import (
+    get_schema_documents,
+    parse_schema_element,
+    parse_schema_string
+)
 
 
 class TestXmlSchema(unittest.TestCase):
@@ -293,6 +286,7 @@ class TestXmlSchema(unittest.TestCase):
 
     def test_subs(self):
         from lxml import etree
+
         from spyne.util.xml import get_schema_documents
         xpath = lambda o, x: o.xpath(x, namespaces={"xs": NS_XSD})
 

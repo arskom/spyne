@@ -18,22 +18,22 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-import os
 import json
+import os
 import shutil
+from contextlib import closing
+from mmap import ACCESS_READ, mmap
+from os.path import abspath, basename, dirname, isfile, join
+from uuid import uuid1
 
 import sqlalchemy.dialects
 
-from uuid import uuid1
-from mmap import mmap, ACCESS_READ
-from contextlib import closing
-from os.path import join, abspath, dirname, basename, isfile
-
 try:
-    from lxml import etree
-    from lxml import html
+    from lxml import etree, html
+
     from spyne.util.xml import get_object_as_xml, get_xml_as_object
 
 except ImportError as _import_error:
@@ -46,13 +46,12 @@ except ImportError as _import_error:
     def get_xml_as_object(*_, **__):
         raise _local_import_error
 
+from io import BytesIO, StringIO
+
 from sqlalchemy.sql.type_api import UserDefinedType
 
 from spyne import ValidationError
 from spyne.model.relational import FileData
-
-from spyne.util import six
-from spyne.util.six import binary_type, text_type, BytesIO, StringIO
 from spyne.util.fileproxy import SeekableFileProxy
 
 
@@ -70,12 +69,8 @@ class PGXml(UserDefinedType):
     def bind_processor(self, dialect):
         def process(value):
             if value is None or \
-                            isinstance(value, (six.text_type, six.binary_type)):
+                            isinstance(value, (str, bytes)):
                 return value
-
-            if six.PY2:
-                return etree.tostring(value, pretty_print=self.pretty_print,
-                                  encoding=self.encoding, xml_declaration=False)
 
             return etree.tostring(value, pretty_print=self.pretty_print,
                                       encoding="unicode", xml_declaration=False)
@@ -105,7 +100,7 @@ class PGHtml(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, (six.text_type, six.binary_type)) \
+            if isinstance(value, (str, bytes)) \
                                                                or value is None:
                 return value
             else:
@@ -131,18 +126,15 @@ class PGJson(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, (text_type, binary_type)) or value is None:
+            if isinstance(value, (str, bytes)) or value is None:
                 return value
             else:
-                if six.PY2:
-                    return json.dumps(value, encoding=self.encoding)
-                else:
-                    return json.dumps(value)
+                return json.dumps(value)
         return process
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            if isinstance(value, (text_type, binary_type)):
+            if isinstance(value, (str, bytes)):
                 return json.loads(value)
             else:
                 return value
@@ -194,8 +186,7 @@ class PGObjectJson(UserDefinedType):
         self.dbt = dbt
         self.encoding = encoding
 
-        from spyne.util.dictdoc import get_dict_as_object
-        from spyne.util.dictdoc import get_object_as_json
+        from spyne.util.dictdoc import get_dict_as_object, get_object_as_json
         self.get_object_as_json = get_object_as_json
         self.get_dict_as_object = get_dict_as_object
 
@@ -224,10 +215,10 @@ class PGObjectJson(UserDefinedType):
             if value is None:
                 return None
 
-            if isinstance(value, six.binary_type):
+            if isinstance(value, bytes):
                 value = value.decode(self.encoding)
 
-            if isinstance(value, six.text_type):
+            if isinstance(value, str):
                 return self.get_dict_as_object(json.loads(value), self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
@@ -323,10 +314,10 @@ class PGFileJson(PGObjectJson):
             if value is None:
                 return None
 
-            if isinstance(value, six.text_type):
+            if isinstance(value, str):
                 value = json.loads(value)
 
-            elif isinstance(value, six.binary_type):
+            elif isinstance(value, bytes):
                 value = json.loads(value.decode('utf8'))
 
             retval = self.get_dict_as_object(value, self.cls,

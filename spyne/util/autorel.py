@@ -47,9 +47,12 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-import os, re, sys
+import os
+import re
+import sys
 
 from spyne.util.color import YEL
 

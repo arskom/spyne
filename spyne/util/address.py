@@ -42,10 +42,11 @@
 
 from __future__ import print_function
 
+import socket
+
 # Direct plagiarization of https://github.com/un33k/django-ipware/
 # at 57897c03026913892e61a164bc8b022778802ab9
 
-import socket
 
 # List of known proxy server(s)
 TRUSTED_PROXIES = []

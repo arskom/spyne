@@ -18,9 +18,7 @@
 #
 
 from spyne.context import FakeContext
-
-from spyne.protocol.dictdoc import HierDictDocument
-from spyne.protocol.dictdoc import SimpleDictDocument
+from spyne.protocol.dictdoc import HierDictDocument, SimpleDictDocument
 
 try:
     from spyne.protocol.json import JsonDocument
@@ -46,10 +44,7 @@ except ImportError as _import_error:
         raise _local_import_error
 
 
-from spyne.model.primitive import Double
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import Integer
+from spyne.model.primitive import Boolean, Decimal, Double, Integer
 
 
 class _UtilProtocol(HierDictDocument):

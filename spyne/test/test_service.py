@@ -22,29 +22,34 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
-
-from spyne.util.six import BytesIO
+from io import BytesIO
 
 from lxml import etree
 
 from spyne import LogicError
-from spyne.const import RESPONSE_SUFFIX
-from spyne.model.primitive import NATIVE_MAP
-
-from spyne.service import Service
-from spyne.decorator import rpc, srpc
 from spyne.application import Application
 from spyne.auxproc.sync import SyncAuxProc
 from spyne.auxproc.thread import ThreadAuxProc
+from spyne.const import RESPONSE_SUFFIX
+from spyne.decorator import rpc, srpc
+from spyne.model import (
+    Array,
+    ComplexModel,
+    Iterable,
+    SelfReference,
+    String,
+    Unicode
+)
+from spyne.model.primitive import NATIVE_MAP
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.null import NullServer
 from spyne.server.wsgi import WsgiApplication
-from spyne.model import Array, SelfReference, Iterable, ComplexModel, String, \
-    Unicode
+from spyne.service import Service
 
 Application.transport = 'test'
 

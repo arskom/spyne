@@ -17,9 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from spyne.decorator import rpc
 from spyne.model.primitive import String
 from spyne.service import Service
-from spyne.decorator import rpc
+
 
 def TS1():
     class S1(Service):

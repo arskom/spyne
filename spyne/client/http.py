@@ -19,10 +19,10 @@
 
 """The HTTP (urllib2) client transport."""
 
-from spyne import RemoteService, ClientBase, RemoteProcedureBase
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
-from spyne.util.six.moves.urllib.request import Request, urlopen
-from spyne.util.six.moves.urllib.error import HTTPError
+from spyne import ClientBase, RemoteProcedureBase, RemoteService
 
 
 class _RemoteProcedure(RemoteProcedureBase):

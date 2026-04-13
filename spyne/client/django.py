@@ -24,9 +24,9 @@ apps."""
 
 from __future__ import absolute_import
 
-from spyne import RemoteService, ClientBase, RemoteProcedureBase
-
 from django.test.client import Client
+
+from spyne import ClientBase, RemoteProcedureBase, RemoteService
 
 
 class _RemoteProcedure(RemoteProcedureBase):

@@ -24,27 +24,26 @@
 import datetime
 import unittest
 
-from lxml import etree
 import pytz
+from lxml import etree
 
 from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.interface.wsdl import Wsdl11
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import DateTime, Date
-from spyne.model.primitive import Float
-from spyne.model.primitive import Integer
-from spyne.model.primitive import String
+from spyne.model.complex import Array, ComplexModel
 from spyne.model.fault import Fault
-from spyne.protocol.soap import Soap11
-from spyne.service import Service
+from spyne.model.primitive import (
+    Date,
+    DateTime,
+    Float,
+    Integer,
+    String,
+    Unicode
+)
+from spyne.protocol.soap import Soap11, _from_soap, _parse_xml_string
 from spyne.server import ServerBase
-
-from spyne.protocol.soap import _from_soap
-from spyne.protocol.soap import _parse_xml_string
+from spyne.service import Service
 
 Application.transport = 'test'
 

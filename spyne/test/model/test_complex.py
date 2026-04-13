@@ -19,32 +19,42 @@
 
 from __future__ import print_function
 
-import pytz
 import datetime
 import unittest
-
-from pprint import pprint
-
-from lxml import etree
-
 from base64 import b64encode
 from decimal import Decimal as D
+from pprint import pprint
 
-from spyne import Application, rpc, mrpc, Service, ByteArray, Array, \
-    ComplexModel, SelfReference, XmlData, XmlAttribute, Unicode, DateTime, \
-    Float, Integer, String
+import pytz
+from lxml import etree
+
+from spyne import (
+    Application,
+    Array,
+    ByteArray,
+    ComplexModel,
+    DateTime,
+    Float,
+    Integer,
+    SelfReference,
+    Service,
+    String,
+    Unicode,
+    XmlAttribute,
+    XmlData,
+    mrpc,
+    rpc
+)
 from spyne.const import xml
 from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
-from spyne.model.addtl import TimeSegment, DateSegment, DateTimeSegment
+from spyne.model.addtl import DateSegment, DateTimeSegment, TimeSegment
 from spyne.protocol import ProtocolBase
-from spyne.protocol.soap import Soap11
-from spyne.server.null import NullServer
-
 from spyne.protocol.dictdoc import SimpleDictDocument
+from spyne.protocol.soap import Soap11
 from spyne.protocol.xml import XmlDocument
-
+from spyne.server.null import NullServer
 from spyne.test import FakeApp
 
 ns_test = 'test_namespace'

@@ -18,10 +18,14 @@
 #
 
 from twisted.trial import unittest
-from spyne.test.interop._test_soap_client_base import run_server, server_started
 
 from spyne.client.twisted import TwistedHttpClient
+from spyne.test.interop._test_soap_client_base import (
+    run_server,
+    server_started
+)
 from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
+
 
 class TestSpyneHttpClient(unittest.TestCase):
     def setUp(self):

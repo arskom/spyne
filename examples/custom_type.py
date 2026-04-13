@@ -31,7 +31,6 @@
 
 
 from spyne import ComplexModel, AnyDict, ValidationError, Array, Any
-from spyne.util import six
 from spyne.util.dictdoc import json_loads
 from spyne.util.web import log_repr
 
@@ -41,7 +40,7 @@ class DictOfUniformArray(AnyDict):
     @staticmethod
     def validate_native(cls, inst):
         for k, v in inst.items():
-            if not isinstance(k, six.string_types):
+            if not isinstance(k, str):
                 raise ValidationError(type(k), "Invalid key type %r")
             if not isinstance(v, list):
                 raise ValidationError(type(v), "Invalid value type %r")

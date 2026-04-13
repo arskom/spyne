@@ -28,10 +28,10 @@ behavior in a multithreaded environment, roll your own stuff.
 
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import threading
-
 
 MEMOIZATION_STATS_LOG_INTERVAL = 60.0
 

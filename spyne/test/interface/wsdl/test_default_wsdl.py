@@ -19,6 +19,7 @@
 
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
@@ -26,22 +27,17 @@ import unittest
 from lxml import etree
 
 from spyne.application import Application
-
-from spyne.test.interface.wsdl import AppTestWrapper
-from spyne.test.interface.wsdl import build_app
-from spyne.test.interface.wsdl.defult_services import TDefaultPortService
-from spyne.test.interface.wsdl.defult_services import \
-                                              TDefaultPortServiceMultipleMethods
-
-from spyne.const import REQUEST_SUFFIX
-from spyne.const import RESPONSE_SUFFIX
-from spyne.const import ARRAY_SUFFIX
-
+from spyne.const import ARRAY_SUFFIX, REQUEST_SUFFIX, RESPONSE_SUFFIX
 from spyne.decorator import srpc
-from spyne.service import Service
 from spyne.interface.wsdl import Wsdl11
 from spyne.model.complex import Array
 from spyne.model.primitive import String
+from spyne.service import Service
+from spyne.test.interface.wsdl import AppTestWrapper, build_app
+from spyne.test.interface.wsdl.defult_services import (
+    TDefaultPortService,
+    TDefaultPortServiceMultipleMethods
+)
 
 ns = {
     'wsdl': 'http://schemas.xmlsoap.org/wsdl/',

@@ -18,16 +18,17 @@
 #
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('spyne.protocol.xml')
 logger.setLevel(logging.DEBUG)
 
-from spyne.test.interop.server import get_open_port
 from spyne.application import Application
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.csv import OutCsv
 from spyne.protocol.http import HttpRpc
 from spyne.server.wsgi import WsgiApplication
+from spyne.test.interop.server import get_open_port
 from spyne.test.interop.server._service import services
 
 httprpc_csv_application = Application(services,
