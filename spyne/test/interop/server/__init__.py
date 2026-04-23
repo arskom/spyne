@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -23,7 +22,7 @@ import socket
 
 def get_open_port():
     s = socket.socket()
-    s.bind(('', 0))            # Bind to a free port provided by the host.
+    s.bind(("", 0))  # Bind to a free port provided by the host.
     retval = s.getsockname()[1]
     s.close()
     return retval

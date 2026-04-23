@@ -26,17 +26,17 @@ Missing Types
 
 The JSON standard does not define every type that Spyne supports. These include
 Date/Time types as well as arbitrary-length integers and arbitrary-precision
-decimals. Integers are parsed to ``int``\s or ``long``\s seamlessly but
-``Decimal``\s are only parsed correctly when they come off as strings.
+decimals. Integers are parsed to ``int``\\s or ``long``\\s seamlessly but
+``Decimal``\\s are only parsed correctly when they come off as strings.
 
-While it's possible to e.g. (de)serialize floats to ``Decimal``\s by adding
+While it's possible to e.g. (de)serialize floats to ``Decimal``\\s by adding
 hooks to ``parse_float`` [#]_ (and convert later as necessary), such
 customizations apply to the whole incoming document which pretty much messes up
 ``AnyDict`` serialization and deserialization.
 
 It also wasn't possible to work with ``object_pairs_hook`` as Spyne's parsing
 is always "from outside to inside" whereas ``object_pairs_hook`` is passed
-``dict``\s basically in any order "from inside to outside".
+``dict``\\s basically in any order "from inside to outside".
 
 .. [#] http://docs.python.org/2/library/json.html#json.loads
 """
@@ -113,7 +113,7 @@ class JsonDocument(HierDictDocument):
         ordered=False,
         default_string_encoding=None,
         polymorphic=False,
-        **kwargs
+        **kwargs,
     ):
 
         super(JsonDocument, self).__init__(

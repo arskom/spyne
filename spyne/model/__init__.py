@@ -15,6 +15,8 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
+# fmt: off
+# isort: skip_file
 
 """The ``spyne.model`` package contains data types that Spyne is able to
 distinguish. These are just type markers, they are not of much use without
@@ -59,5 +61,5 @@ from spyne.model.enum import Enum
 # Fault
 from spyne.model.fault import Fault, ValidationError
 
-# Binary
+# Binary (must come last — depends on primitive, complex and fault being initialized)
 from spyne.model.binary import ByteArray, File

@@ -1,4 +1,3 @@
-
 #
 # invRegex.py
 #
@@ -56,7 +55,7 @@ from pyparsing import (
     opAssoc,
     operatorPrecedence,
     printables,
-    srange
+    srange,
 )
 
 
@@ -67,15 +66,16 @@ class CharacterRangeEmitter(object):
         self.charset = "".join(seen.add(c) or c for c in chars if c not in seen)
 
     def __str__(self):
-        return '[' + self.charset + ']'
+        return "[" + self.charset + "]"
 
     def __repr__(self):
-        return '[' + self.charset + ']'
+        return "[" + self.charset + "]"
 
     def make_generator(self):
         def gen_chars():
             for s in self.charset:
                 yield s
+
         return gen_chars
 
 
@@ -88,6 +88,7 @@ class OptionalEmitter(object):
             yield ""
             for s in self.expr.make_generator()():
                 yield s
+
         return optional_gen
 
 
@@ -96,6 +97,7 @@ class DotEmitter(object):
         def dot_gen():
             for c in printables:
                 yield c
+
         return dot_gen
 
 
@@ -113,6 +115,7 @@ class GroupEmitter(object):
                     for s in elist[0].make_generator()():
                         for s2 in recurse_list(elist[1:]):
                             yield s + s2
+
             if self.exprs:
                 for s in recurse_list(self.exprs):
                     yield s
@@ -180,7 +183,7 @@ def handle_literal(toks):
     for t in toks:
         if t[0] == "\\":
             if t[1] == "t":
-                lit += '\t'
+                lit += "\t"
             else:
                 lit += t[1]
         else:
@@ -197,7 +200,9 @@ def handle_macro(toks):
     elif macroChar == "s":
         return LiteralEmitter(" ")
     else:
-        raise ParseFatalException("", 0, "unsupported macro character (" + macroChar + ")")
+        raise ParseFatalException(
+            "", 0, "unsupported macro character (" + macroChar + ")"
+        )
 
 
 def handle_sequence(toks):
@@ -213,6 +218,8 @@ def handle_alternative(toks):
 
 
 _parser = None
+
+
 def parser():
     global _parser
     if _parser is None:
@@ -220,29 +227,40 @@ def parser():
         lbrack, rbrack, lbrace, rbrace, lparen, rparen = map(Literal, "[]{}()")
 
         reMacro = Combine("\\" + oneOf(list("dws")))
-        escapedChar = ~ reMacro + Combine("\\" + oneOf(list(printables)))
-        reLiteralChar = "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
+        escapedChar = ~reMacro + Combine("\\" + oneOf(list(printables)))
+        reLiteralChar = (
+            "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
+        )
 
         reRange = Combine(lbrack + SkipTo(rbrack, ignore=escapedChar) + rbrack)
-        reLiteral = (escapedChar | oneOf(list(reLiteralChar)))
+        reLiteral = escapedChar | oneOf(list(reLiteralChar))
         reDot = Literal(".")
         repetition = (
-                      (lbrace + Word(nums).setResultsName("count") + rbrace) |
-                      (lbrace + Word(nums).setResultsName("minCount") + "," + Word(nums).setResultsName("maxCount") + rbrace) |
-                      oneOf(list("*+?"))
-                      )
+            (lbrace + Word(nums).setResultsName("count") + rbrace)
+            | (
+                lbrace
+                + Word(nums).setResultsName("minCount")
+                + ","
+                + Word(nums).setResultsName("maxCount")
+                + rbrace
+            )
+            | oneOf(list("*+?"))
+        )
 
         reRange.setParseAction(handle_range)
         reLiteral.setParseAction(handle_literal)
         reMacro.setParseAction(handle_macro)
         reDot.setParseAction(handle_dot)
 
-        reTerm = (reLiteral | reRange | reMacro | reDot)
-        reExpr = operatorPrecedence(reTerm, [
+        reTerm = reLiteral | reRange | reMacro | reDot
+        reExpr = operatorPrecedence(
+            reTerm,
+            [
                 (repetition, 1, opAssoc.LEFT, handle_repetition),
                 (None, 2, opAssoc.LEFT, handle_sequence),
-                (Suppress('|'), 2, opAssoc.LEFT, handle_alternative),
-            ])
+                (Suppress("|"), 2, opAssoc.LEFT, handle_alternative),
+            ],
+        )
 
         _parser = reExpr
 
@@ -259,9 +277,9 @@ def count(gen):
 
 def invregexp(regex):
     """Call this routine as a generator to return all the strings that
-       match the input regular expression.
-           for s in invregexp("[A-Z]{3}\d{3}"):
-               print s
+    match the input regular expression.
+        for s in invregexp("[A-Z]{3}\d{3}"):
+            print s
     """
     invReGenerator = GroupEmitter(parser().parseString(regex)).make_generator()
     return invReGenerator()
@@ -298,14 +316,14 @@ def main():
     A[cglmrstu]|B[aehikr]?|C[adeflmorsu]?|D[bsy]|E[rsu]|F[emr]?|G[ade]|H[efgos]?|I[nr]?|Kr?|L[airu]|M[dgnot]|N[abdeiop]?|Os?|P[abdmortu]?|R[abefghnu]|S[bcegimnr]?|T[abcehilm]|Uu[bhopqst]|U|V|W|Xe|Yb?|Z[nr]
     (a|b)|(x|y)
     (a|b) (x|y)
-    """.split('\n')
+    """.split("\n")
 
     for t in tests:
         t = t.strip()
         if not t:
             continue
 
-        print('-' * 50)
+        print("-" * 50)
         print(t)
         try:
             print(count(invregexp(t)))

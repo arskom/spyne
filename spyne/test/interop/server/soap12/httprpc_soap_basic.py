@@ -20,7 +20,7 @@
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('spyne.protocol.xml')
+logger = logging.getLogger("spyne.protocol.xml")
 logger.setLevel(logging.DEBUG)
 
 from spyne.application import Application
@@ -29,13 +29,17 @@ from spyne.protocol.soap import Soap12
 from spyne.server.wsgi import WsgiApplication
 from spyne.test.interop.server._service import services
 
-httprpc_soap_application = Application(services,
-    'spyne.test.interop.server.httprpc.soap', in_protocol=HttpRpc(), out_protocol=Soap12())
+httprpc_soap_application = Application(
+    services,
+    "spyne.test.interop.server.httprpc.soap",
+    in_protocol=HttpRpc(),
+    out_protocol=Soap12(),
+)
 
-host = '127.0.0.1'
+host = "127.0.0.1"
 port = 9753
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
@@ -43,8 +47,8 @@ if __name__ == '__main__':
         wsgi_application = WsgiApplication(httprpc_soap_application)
         server = make_server(host, port, validator(wsgi_application))
 
-        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9753))
-        logger.info('WSDL is at: /?wsdl')
+        logger.info("Starting interop server at %s:%s." % ("0.0.0.0", 9753))
+        logger.info("WSDL is at: /?wsdl")
         server.serve_forever()
 
     except ImportError:

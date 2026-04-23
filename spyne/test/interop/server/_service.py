@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -41,7 +40,7 @@ from spyne import (
     String,
     Time,
     rpc,
-    srpc
+    srpc,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,10 +54,10 @@ class SimpleClass(ComplexModel):
 class DocumentedFault(Fault):
     def __init__(self):
         super(DocumentedFault, self).__init__(
-                faultcode="Client.Documented",
-                faultstring="A documented fault",
-                faultactor='http://faultactor.example.com',
-            )
+            faultcode="Client.Documented",
+            faultstring="A documented fault",
+            faultactor="http://faultactor.example.com",
+        )
 
 
 class OtherClass(ComplexModel):
@@ -103,13 +102,13 @@ class ExtensionClass(NestedClass):
 
 
 DaysOfWeekEnum = Enum(
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-    type_name = 'DaysOfWeekEnum'
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+    type_name="DaysOfWeekEnum",
 )
 
 
@@ -130,8 +129,8 @@ class OutHeader(ComplexModel):
 class InTraceHeader(ComplexModel):
     __namespace__ = "spyne.test.interop.server"
 
-    client=String
-    callDate=DateTime
+    client = String
+    callDate = DateTime
 
 
 class OutTraceHeader(ComplexModel):
@@ -172,10 +171,12 @@ class InteropServiceWithComplexHeader(Service):
         out_header.dt = datetime(year=2000, month=1, day=1)
         out_header.f = 3.141592653
         out_trace_header = OutTraceHeader()
-        out_trace_header.receiptDate = datetime(year=2000, month=1, day=1,
-                                  hour=1, minute=1, second=1, microsecond=1)
-        out_trace_header.returnDate = datetime(year=2000, month=1, day=1,
-                                 hour=1, minute=1, second=1, microsecond=100)
+        out_trace_header.receiptDate = datetime(
+            year=2000, month=1, day=1, hour=1, minute=1, second=1, microsecond=1
+        )
+        out_trace_header.returnDate = datetime(
+            year=2000, month=1, day=1, hour=1, minute=1, second=1, microsecond=100
+        )
         ctx.out_header = (out_header, out_trace_header)
 
         return ctx.out_header
@@ -202,7 +203,7 @@ class InteropPrimitive(Service):
     def echo_datetime(dt):
         return dt
 
-    @srpc(DateTime(format='ignored'), _returns=DateTime)
+    @srpc(DateTime(format="ignored"), _returns=DateTime)
     def echo_datetime_with_invalid_format(dt):
         return dt
 
@@ -210,7 +211,7 @@ class InteropPrimitive(Service):
     def echo_date(d):
         return d
 
-    @srpc(Date(format='ignored'), _returns=Date)
+    @srpc(Date(format="ignored"), _returns=Date)
     def echo_date_with_invalid_format(d):
         return d
 
@@ -218,7 +219,7 @@ class InteropPrimitive(Service):
     def echo_time(t):
         return t
 
-    @srpc(Time(format='ignored'), _returns=Time)
+    @srpc(Time(format="ignored"), _returns=Time)
     def echo_time_with_invalid_format(t):
         return t
 
@@ -308,19 +309,19 @@ class InteropClass(Service):
 
 
 class InteropBare(Service):
-    @srpc(String, _returns=String, _body_style='bare')
+    @srpc(String, _returns=String, _body_style="bare")
     def echo_simple_bare(ss):
         return ss
 
-    @srpc(Array(String), _returns=Array(String), _body_style='bare')
+    @srpc(Array(String), _returns=Array(String), _body_style="bare")
     def echo_complex_bare(ss):
         return ss
 
-    @srpc(_returns=String, _body_style='bare')
+    @srpc(_returns=String, _body_style="bare")
     def empty_input_bare():
         return "empty"
 
-    @srpc(String, _body_style='bare')
+    @srpc(String, _body_style="bare")
     def empty_output_bare(ss):
         assert ss is not None
 
@@ -332,7 +333,7 @@ class InteropException(Service):
 
     @srpc()
     def soap_exception():
-        raise Fault("Plausible", "A plausible fault", 'http://faultactor.example.com')
+        raise Fault("Plausible", "A plausible fault", "http://faultactor.example.com")
 
     @srpc(_throws=DocumentedFault)
     def documented_exception():
@@ -345,25 +346,25 @@ class InteropMisc(Service):
             Integer,
             String,
             Integer,
-            Array(Enum("MEMBER", type_name="RoleEnum"))
+            Array(Enum("MEMBER", type_name="RoleEnum")),
         ],
         _out_variable_names=[
-            'resultCode',
-            'resultDescription',
-            'transactionId',
-            'roles'
-        ]
+            "resultCode",
+            "resultDescription",
+            "transactionId",
+            "roles",
+        ],
     )
     def complex_return():
         return [1, "Test", 123, ["MEMBER"]]
 
     @srpc(_returns=Integer)
     def huge_number():
-        return 2**int(1e4)
+        return 2 ** int(1e4)
 
     @srpc(_returns=String)
     def long_string():
-        return ('0123456789abcdef' * 16384)
+        return "0123456789abcdef" * 16384
 
     @srpc()
     def test_empty():
@@ -388,15 +389,17 @@ class InteropMisc(Service):
 
     @srpc(_returns=Integer)
     def return_invalid_data():
-        return 'a'
+        return "a"
 
-    @srpc(String,
-          # FIXME: find out why this could be needed
-          # _public_name="urn:#getCustomMessages",
-          _in_message_name="getCustomMessagesMsgIn",
-          _out_message_name="getCustomMessagesMsgOut",
-          _out_variable_name="CustomMessages",
-          _returns=String)
+    @srpc(
+        String,
+        # FIXME: find out why this could be needed
+        # _public_name="urn:#getCustomMessages",
+        _in_message_name="getCustomMessagesMsgIn",
+        _out_message_name="getCustomMessagesMsgOut",
+        _out_variable_name="CustomMessages",
+        _returns=String,
+    )
     def custom_messages(s):
         return s
 

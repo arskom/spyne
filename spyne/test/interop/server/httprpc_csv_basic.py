@@ -20,7 +20,7 @@
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('spyne.protocol.xml')
+logger = logging.getLogger("spyne.protocol.xml")
 logger.setLevel(logging.DEBUG)
 
 from spyne.application import Application
@@ -31,15 +31,19 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.test.interop.server import get_open_port
 from spyne.test.interop.server._service import services
 
-httprpc_csv_application = Application(services,
-        'spyne.test.interop.server.httprpc.csv', in_protocol=HttpRpc(), out_protocol=OutCsv())
+httprpc_csv_application = Application(
+    services,
+    "spyne.test.interop.server.httprpc.csv",
+    in_protocol=HttpRpc(),
+    out_protocol=OutCsv(),
+)
 
 
-host = '127.0.0.1'
+host = "127.0.0.1"
 port = [0]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
@@ -50,8 +54,8 @@ if __name__ == '__main__':
         wsgi_application = WsgiApplication(httprpc_csv_application)
         server = make_server(host, port[0], validator(wsgi_application))
 
-        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', port[0]))
-        logger.info('WSDL is at: /?wsdl')
+        logger.info("Starting interop server at %s:%s." % ("0.0.0.0", port[0]))
+        logger.info("WSDL is at: /?wsdl")
         server.serve_forever()
 
     except ImportError:

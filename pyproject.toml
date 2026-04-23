@@ -1,10 +1,6 @@
-[build-system]
-requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "spyne"
-dynamic = ["version"]
+version = "2.15.0"
 description = "A transport and architecture agnostic rpc library that focuses on exposing public services with a well-defined API."
 readme = "README.rst"
 license = {text = "LGPL-2.1-or-later"}
@@ -44,8 +40,11 @@ Homepage = "http://spyne.io"
 [project.scripts]
 sort_wsdl = "spyne.test.sort_wsdl:main"
 
-[tool.setuptools.dynamic]
-version = {attr = "spyne.__version__"}
-
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 88

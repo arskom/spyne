@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -38,14 +37,15 @@ class ServiceBaseMeta(type):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
         self.public_methods = {}
-        self.event_manager = EventManager(self,
-                                      self.__get_base_event_handlers(cls_bases))
+        self.event_manager = EventManager(
+            self, self.__get_base_event_handlers(cls_bases)
+        )
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
 
         for base in cls_bases:
-            evmgr = getattr(base, 'event_manager', None)
+            evmgr = getattr(base, "event_manager", None)
             if evmgr is None:
                 continue
 
@@ -56,6 +56,7 @@ class ServiceBaseMeta(type):
                 handlers[k] = handler
 
         return handlers
+
 
 class ServiceMeta(ServiceBaseMeta):
     """Creates the :class:`spyne.MethodDescriptor` objects by iterating over
@@ -69,7 +70,7 @@ class ServiceMeta(ServiceBaseMeta):
         has_nonaux_methods = None
 
         for k, v in cls_dict.items():
-            if not hasattr(v, '_is_rpc'):
+            if not hasattr(v, "_is_rpc"):
                 continue
 
             descriptor = v(_default_function_name=k, _service_class=self)
@@ -92,8 +93,10 @@ class ServiceMeta(ServiceBaseMeta):
                 self.__has_aux_methods = True
 
             if self.__has_aux_methods and has_nonaux_methods:
-                raise Exception("You can't mix primary and "
-                                "auxiliary methods in a single service definition.")
+                raise Exception(
+                    "You can't mix primary and "
+                    "auxiliary methods in a single service definition."
+                )
 
     def is_auxiliary(self):
         return self.__has_aux_methods

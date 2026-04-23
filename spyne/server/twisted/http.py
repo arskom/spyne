@@ -53,6 +53,7 @@ from mmap import mmap
 from os import fstat
 from tempfile import TemporaryFile
 from urllib.parse import unquote
+from urllib.request import unquote_to_bytes
 
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
@@ -78,8 +79,6 @@ from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
 from spyne.server.twisted import log_and_let_go
 from spyne.server.twisted._base import Producer
 from spyne.util.address import address_parser
-
-from urllib.request import unquote_to_bytes
 
 
 def _render_file(file, request):

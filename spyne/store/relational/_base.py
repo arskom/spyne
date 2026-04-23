@@ -37,13 +37,13 @@ from sqlalchemy import event
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, FLOAT
 from sqlalchemy.dialects.postgresql.base import PGInet, PGUuid
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import registry as _registry, relationship
+from sqlalchemy.orm import registry as _registry
+from sqlalchemy.orm import relationship
 
 _mapper_registry = _registry()
-from sqlalchemy.schema import Column, ForeignKey, Index, Table
-
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.exc import NoInspectionAvailable
+from sqlalchemy.schema import Column, ForeignKey, Index, Table
 
 # public types
 # Config types

@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -26,11 +25,11 @@ import spyne
 from spyne.model import SimpleModel
 from spyne.model.primitive import NATIVE_MAP
 
-FLOAT_PATTERN = r'-?[0-9]+\.?[0-9]*(e-?[0-9]+)?'
-DATE_PATTERN = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
-TIME_PATTERN = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
-OFFSET_PATTERN = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
-DATETIME_PATTERN = DATE_PATTERN + '[T ]' + TIME_PATTERN
+FLOAT_PATTERN = r"-?[0-9]+\.?[0-9]*(e-?[0-9]+)?"
+DATE_PATTERN = r"(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})"
+TIME_PATTERN = r"(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?"
+OFFSET_PATTERN = r"(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})"
+DATETIME_PATTERN = DATE_PATTERN + "[T ]" + TIME_PATTERN
 
 
 class Time(SimpleModel):
@@ -39,7 +38,7 @@ class Time(SimpleModel):
     Native type is :class:`datetime.time`.
     """
 
-    __type_name__ = 'time'
+    __type_name__ = "time"
     Value = datetime.time
 
     class Attributes(SimpleModel.Attributes):
@@ -70,23 +69,27 @@ class Time(SimpleModel):
 
     @staticmethod
     def is_default(cls):
-        return (    SimpleModel.is_default(cls)
-                and cls.Attributes.gt == Time.Attributes.gt
-                and cls.Attributes.ge == Time.Attributes.ge
-                and cls.Attributes.lt == Time.Attributes.lt
-                and cls.Attributes.le == Time.Attributes.le
-                and cls.Attributes.pattern == Time.Attributes.pattern
+        return (
+            SimpleModel.is_default(cls)
+            and cls.Attributes.gt == Time.Attributes.gt
+            and cls.Attributes.ge == Time.Attributes.ge
+            and cls.Attributes.lt == Time.Attributes.lt
+            and cls.Attributes.le == Time.Attributes.le
+            and cls.Attributes.pattern == Time.Attributes.pattern
         )
 
     @staticmethod
     def validate_native(cls, value):
         return SimpleModel.validate_native(cls, value) and (
-            value is None or (
-                (cls.Attributes.gt is None or value >  cls.Attributes.gt)
+            value is None
+            or (
+                (cls.Attributes.gt is None or value > cls.Attributes.gt)
                 and value >= cls.Attributes.ge
-                and (cls.Attributes.lt is None or value <  cls.Attributes.lt)
+                and (cls.Attributes.lt is None or value < cls.Attributes.lt)
                 and value <= cls.Attributes.le
-            ))
+            )
+        )
+
 
 _min_dt = datetime.datetime.min.replace(tzinfo=spyne.LOCAL_TZ)
 _max_dt = datetime.datetime.max.replace(tzinfo=spyne.LOCAL_TZ)
@@ -102,11 +105,11 @@ class DateTime(SimpleModel):
     Native type is :class:`datetime.datetime`.
     """
 
-    __type_name__ = 'dateTime'
+    __type_name__ = "dateTime"
     Value = datetime.datetime
 
     _local_re = re.compile(DATETIME_PATTERN)
-    _utc_re = re.compile(DATETIME_PATTERN + 'Z')
+    _utc_re = re.compile(DATETIME_PATTERN + "Z")
     _offset_re = re.compile(DATETIME_PATTERN + OFFSET_PATTERN)
 
     class Attributes(SimpleModel.Attributes):
@@ -185,12 +188,13 @@ class DateTime(SimpleModel):
 
     @staticmethod
     def is_default(cls):
-        return (    SimpleModel.is_default(cls)
-                and cls.Attributes.gt == DateTime.Attributes.gt
-                and cls.Attributes.ge == DateTime.Attributes.ge
-                and cls.Attributes.lt == DateTime.Attributes.lt
-                and cls.Attributes.le == DateTime.Attributes.le
-                and cls.Attributes.pattern == DateTime.Attributes.pattern
+        return (
+            SimpleModel.is_default(cls)
+            and cls.Attributes.gt == DateTime.Attributes.gt
+            and cls.Attributes.ge == DateTime.Attributes.ge
+            and cls.Attributes.lt == DateTime.Attributes.lt
+            and cls.Attributes.le == DateTime.Attributes.le
+            and cls.Attributes.pattern == DateTime.Attributes.pattern
         )
 
     @staticmethod
@@ -198,14 +202,16 @@ class DateTime(SimpleModel):
         if isinstance(value, datetime.datetime) and value.tzinfo is None:
             value = value.replace(tzinfo=spyne.LOCAL_TZ)
         return SimpleModel.validate_native(cls, value) and (
-            value is None or (
+            value is None
+            or (
                 # min_dt is also a valid value if gt is intact.
-                    (cls.Attributes.gt is None or value > cls.Attributes.gt)
+                (cls.Attributes.gt is None or value > cls.Attributes.gt)
                 and value >= cls.Attributes.ge
                 # max_dt is also a valid value if lt is intact.
                 and (cls.Attributes.lt is None or value < cls.Attributes.lt)
                 and value <= cls.Attributes.le
-            ))
+            )
+        )
 
 
 class Date(DateTime):
@@ -214,9 +220,9 @@ class Date(DateTime):
     Native type is :class:`datetime.date`.
     """
 
-    __type_name__ = 'date'
+    __type_name__ = "date"
 
-    _offset_re = re.compile(DATE_PATTERN + '(' + OFFSET_PATTERN + '|Z)')
+    _offset_re = re.compile(DATE_PATTERN + "(" + OFFSET_PATTERN + "|Z)")
     Value = datetime.date
 
     class Attributes(DateTime.Attributes):
@@ -245,15 +251,15 @@ class Date(DateTime):
         """A regular expression that matches the whole date. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
-
     @staticmethod
     def is_default(cls):
-        return (    SimpleModel.is_default(cls)
-                and cls.Attributes.gt == Date.Attributes.gt
-                and cls.Attributes.ge == Date.Attributes.ge
-                and cls.Attributes.lt == Date.Attributes.lt
-                and cls.Attributes.le == Date.Attributes.le
-                and cls.Attributes.pattern == Date.Attributes.pattern
+        return (
+            SimpleModel.is_default(cls)
+            and cls.Attributes.gt == Date.Attributes.gt
+            and cls.Attributes.ge == Date.Attributes.ge
+            and cls.Attributes.lt == Date.Attributes.lt
+            and cls.Attributes.le == Date.Attributes.le
+            and cls.Attributes.pattern == Date.Attributes.pattern
         )
 
 
@@ -261,13 +267,15 @@ class Date(DateTime):
 class Duration(SimpleModel):
     """Native type is :class:`datetime.timedelta`."""
 
-    __type_name__ = 'duration'
+    __type_name__ = "duration"
     Value = datetime.timedelta
 
 
-NATIVE_MAP.update({
-    datetime.datetime: DateTime,
-    datetime.time: Time,
-    datetime.date: Date,
-    datetime.timedelta: Duration,
-})
+NATIVE_MAP.update(
+    {
+        datetime.datetime: DateTime,
+        datetime.time: Time,
+        datetime.date: Date,
+        datetime.timedelta: Duration,
+    }
+)

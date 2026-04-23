@@ -40,9 +40,9 @@ from lxml import etree, html
 from lxml.builder import E
 from lxml.etree import XMLParser, XMLSyntaxError
 
-from spyne.descriptor import BODY_STYLE_WRAPPED
 from spyne.const.ansi_color import END_COLOR, LIGHT_GREEN, LIGHT_RED
 from spyne.const.xml import DEFAULT_NS, NS_SOAP11_ENC, NS_SOAP11_ENV, PREFMAP, XSI
+from spyne.descriptor import BODY_STYLE_WRAPPED
 from spyne.error import Fault, ValidationError
 from spyne.model import (
     Any,

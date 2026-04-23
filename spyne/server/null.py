@@ -28,12 +28,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from spyne.descriptor import BODY_STYLE_BARE, BODY_STYLE_EMPTY
-from spyne.model.complex import ComplexModelBase
-from spyne.model._base import Ignored
-from spyne.context import MethodContext
 from spyne.client import Factory
 from spyne.const.ansi_color import END_COLOR, LIGHT_BLUE, LIGHT_RED
+from spyne.context import MethodContext
+from spyne.descriptor import BODY_STYLE_BARE, BODY_STYLE_EMPTY
+from spyne.model._base import Ignored
+from spyne.model.complex import ComplexModelBase
 from spyne.server import ServerBase
 
 _big_header = ("=" * 40) + LIGHT_RED

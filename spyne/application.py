@@ -23,8 +23,8 @@ logger_client = logging.getLogger(".".join([__name__, "client"]))
 logger_server = logging.getLogger(".".join([__name__, "server"]))
 
 from spyne.descriptor import BODY_STYLE_BARE, BODY_STYLE_EMPTY, BODY_STYLE_WRAPPED
-from spyne.evmgr import EventManager
 from spyne.error import Fault, InvalidRequestError, Redirect, RespawnError
+from spyne.evmgr import EventManager
 from spyne.interface import Interface, InterfaceDocuments
 from spyne.util.appreg import register_application
 

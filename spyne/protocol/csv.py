@@ -30,11 +30,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 import csv
+from io import StringIO
 
 from spyne import ComplexModelBase
 from spyne.protocol.dictdoc import HierDictDocument
-
-from io import StringIO
 
 
 def _complex_to_csv(prot, ctx):

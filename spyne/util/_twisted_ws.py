@@ -19,13 +19,13 @@ __all__ = [
 ]
 
 
+from enum import IntEnum
 from hashlib import sha1
 from struct import pack, unpack
 
 from twisted.internet.interfaces import IProtocol
 from twisted.internet.protocol import Protocol
 from twisted.python import log
-from enum import IntEnum
 from twisted.web.resource import IResource
 from twisted.web.server import NOT_DONE_YET
 from zope.interface import Interface, directlyProvides, implementer, providedBy

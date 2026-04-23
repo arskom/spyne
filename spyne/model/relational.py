@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -23,9 +22,9 @@ from spyne.model.primitive import Unicode
 
 class FileData(ComplexModel):
     _type_info = [
-        ('name', Unicode),
-        ('type', Unicode),
-        ('path', Unicode),
+        ("name", Unicode),
+        ("type", Unicode),
+        ("path", Unicode),
     ]
 
     @property
@@ -43,4 +42,3 @@ class FileData(ComplexModel):
     @handle.setter
     def handle(self, handle):
         self._handle = handle
-

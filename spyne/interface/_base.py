@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 from collections import defaultdict, deque
 
 import spyne.interface
-from spyne.evmgr import EventManager
-from spyne.descriptor import MethodDescriptor
 from spyne.const import xml as namespace
+from spyne.descriptor import MethodDescriptor
+from spyne.evmgr import EventManager
 from spyne.model import Array, ComplexModelBase, Iterable, ModelBase
 from spyne.model.complex import XmlModifier
 

@@ -33,13 +33,13 @@ from itertools import chain
 from urllib.parse import quote, unquote
 
 from spyne._base import Address
-from spyne.model.fault import Fault
-from spyne.model.binary import File
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import END_COLOR, LIGHT_GREEN
 from spyne.const.http import HTTP_200, HTTP_404, HTTP_500
 from spyne.error import RequestTooLongError
+from spyne.model.binary import File
+from spyne.model.fault import Fault
 from spyne.protocol.http import HttpRpc
 from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
 from spyne.util.address import address_parser

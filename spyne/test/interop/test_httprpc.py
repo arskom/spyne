@@ -35,6 +35,7 @@ class TestHttpRpc(unittest.TestCase):
         from spyne.test.interop.server.httprpc_pod_basic import main, port
 
         if not _server_started:
+
             def run_server():
                 main()
 
@@ -45,10 +46,10 @@ class TestHttpRpc(unittest.TestCase):
 
             _server_started = True
 
-        self.base_url = 'http://localhost:%d' % port[0]
+        self.base_url = "http://localhost:%d" % port[0]
 
     def test_404(self):
-        url = '%s/404' % self.base_url
+        url = "%s/404" % self.base_url
         try:
             data = urlopen(url).read()
         except HTTPError as e:
@@ -57,60 +58,64 @@ class TestHttpRpc(unittest.TestCase):
     def test_413(self):
         url = self.base_url
         try:
-            data = Request(url,("foo"*3*1024*1024))
+            data = Request(url, ("foo" * 3 * 1024 * 1024))
         except HTTPError as e:
             assert e.code == 413
 
     def test_500(self):
-        url = '%s/python_exception' % self.base_url
+        url = "%s/python_exception" % self.base_url
         try:
             data = urlopen(url).read()
         except HTTPError as e:
             assert e.code == 500
 
     def test_500_2(self):
-        url = '%s/soap_exception' % self.base_url
+        url = "%s/soap_exception" % self.base_url
         try:
             data = urlopen(url).read()
         except HTTPError as e:
             assert e.code == 500
 
     def test_echo_string(self):
-        url = '%s/echo_string?s=punk' % self.base_url
+        url = "%s/echo_string?s=punk" % self.base_url
         data = urlopen(url).read()
 
-        assert data == b'punk'
+        assert data == b"punk"
 
     def test_echo_integer(self):
-        url = '%s/echo_integer?i=444' % self.base_url
+        url = "%s/echo_integer?i=444" % self.base_url
         data = urlopen(url).read()
 
-        assert data == b'444'
+        assert data == b"444"
 
     def test_echo_datetime(self):
-        dt = datetime.now(pytz.utc).isoformat().encode('ascii')
-        params = urlencode({
-            'dt': dt,
-        })
+        dt = datetime.now(pytz.utc).isoformat().encode("ascii")
+        params = urlencode(
+            {
+                "dt": dt,
+            }
+        )
 
         print(params)
-        url = '%s/echo_datetime?%s' % (self.base_url, str(params))
+        url = "%s/echo_datetime?%s" % (self.base_url, str(params))
         data = urlopen(url).read()
 
         assert dt == data
 
     def test_echo_datetime_tz(self):
-        dt = datetime.now(pytz.utc).isoformat().encode('ascii')
-        params = urlencode({
-            'dt': dt,
-        })
+        dt = datetime.now(pytz.utc).isoformat().encode("ascii")
+        params = urlencode(
+            {
+                "dt": dt,
+            }
+        )
 
         print(params)
-        url = '%s/echo_datetime?%s' % (self.base_url, str(params))
+        url = "%s/echo_datetime?%s" % (self.base_url, str(params))
         data = urlopen(url).read()
 
         assert dt == data
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

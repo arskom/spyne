@@ -33,7 +33,7 @@ from spyne.service import Service
 
 
 def strip_whitespace(string):
-    return ''.join(string.split())
+    return "".join(string.split())
 
 
 class TestOperationRequestSuffix(unittest.TestCase):
@@ -42,10 +42,10 @@ class TestOperationRequestSuffix(unittest.TestCase):
     _in_message_name is a concern, will test that as well
     """
 
-    default_function_name = 'echo'
+    default_function_name = "echo"
 
     # output is not affected, will use soap output for all tests
-    result_body = '''
+    result_body = """
         <soap11env:Body>
             <tns:echoResponse>
                 <tns:echoResult>
@@ -53,10 +53,9 @@ class TestOperationRequestSuffix(unittest.TestCase):
                     <tns:string>Echo, test</tns:string>
                 </tns:echoResult>
             </tns:echoResponse>
-        </soap11env:Body>'''
+        </soap11env:Body>"""
 
-    def get_function_names(self, suffix, _operation_name=None,
-                           _in_message_name=None):
+    def get_function_names(self, suffix, _operation_name=None, _in_message_name=None):
         """This tests the logic of how names are produced.
         Its logic should match expected behavior of the decorator.
         returns operation name, in message name, service name depending on
@@ -75,37 +74,38 @@ class TestOperationRequestSuffix(unittest.TestCase):
 
         return function_name, operation_name, request_name
 
-    def get_app(self, in_protocol, suffix, _operation_name=None,
-                _in_message_name=None):
+    def get_app(self, in_protocol, suffix, _operation_name=None, _in_message_name=None):
         """setup testapp dependent on suffix and _in_message_name"""
 
         import spyne.const
+
         spyne.const.REQUEST_SUFFIX = suffix
 
         class EchoService(Service):
 
-            srpc_kparams = {'_returns': Iterable(Unicode)}
+            srpc_kparams = {"_returns": Iterable(Unicode)}
             if _in_message_name:
-                srpc_kparams['_in_message_name'] = _in_message_name
+                srpc_kparams["_in_message_name"] = _in_message_name
             if _operation_name:
-                srpc_kparams['_operation_name'] = _operation_name
+                srpc_kparams["_operation_name"] = _operation_name
 
             @srpc(Unicode, Integer, **srpc_kparams)
             def echo(string, times):
                 for i in range(times):
-                    yield 'Echo, %s' % string
+                    yield "Echo, %s" % string
 
-        application = Application([EchoService],
-            tns='spyne.examples.echo',
+        application = Application(
+            [EchoService],
+            tns="spyne.examples.echo",
             in_protocol=in_protocol,
-            out_protocol=Soap11()
+            out_protocol=Soap11(),
         )
         app = WsgiApplication(application)
 
         testapp = _TestApp(app)
 
         # so that it doesn't interfere with other tests.
-        spyne.const.REQUEST_SUFFIX = ''
+        spyne.const.REQUEST_SUFFIX = ""
 
         return testapp
 
@@ -114,32 +114,42 @@ class TestOperationRequestSuffix(unittest.TestCase):
         self.assertEqual(resp.status_int, 200, resp)
         self.assertTrue(
             strip_whitespace(self.result_body) in strip_whitespace(str(resp)),
-            '{0} not in {1}'.format(self.result_body, resp))
+            "{0} not in {1}".format(self.result_body, resp),
+        )
 
     ### application error tests ###
-    def assert_application_error(self, suffix, _operation_name=None,
-                                                         _in_message_name=None):
-        self.assertRaises(ValueError,
-                          self.get_app, Soap11(validator='lxml'), suffix,
-                          _operation_name, _in_message_name)
+    def assert_application_error(
+        self, suffix, _operation_name=None, _in_message_name=None
+    ):
+        self.assertRaises(
+            ValueError,
+            self.get_app,
+            Soap11(validator="lxml"),
+            suffix,
+            _operation_name,
+            _in_message_name,
+        )
 
     def test_assert_application_error(self):
         """check error when op namd and in name are both used"""
-        self.assert_application_error(suffix='',
-                                      _operation_name='TestOperationName',
-                                      _in_message_name='TestMessageName')
+        self.assert_application_error(
+            suffix="",
+            _operation_name="TestOperationName",
+            _in_message_name="TestMessageName",
+        )
 
     ### soap tests ###
-    def assert_soap_ok(self, suffix, _operation_name=None,
-                                                         _in_message_name=None):
+    def assert_soap_ok(self, suffix, _operation_name=None, _in_message_name=None):
         """helper to test soap requests"""
 
         # setup
-        app = self.get_app(Soap11(validator='lxml'), suffix, _operation_name,
-                           _in_message_name)
+        app = self.get_app(
+            Soap11(validator="lxml"), suffix, _operation_name, _in_message_name
+        )
 
         function_name, operation_name, request_name = self.get_function_names(
-            suffix, _operation_name, _in_message_name)
+            suffix, _operation_name, _in_message_name
+        )
 
         soap_input_body = """
         <SOAP-ENV:Envelope xmlns:ns0="spyne.examples.echo"
@@ -156,109 +166,115 @@ class TestOperationRequestSuffix(unittest.TestCase):
         </SOAP-ENV:Envelope>""".format(request_name)
 
         # check wsdl
-        wsdl = app.get('/?wsdl')
+        wsdl = app.get("/?wsdl")
         self.assertEqual(wsdl.status_int, 200, wsdl)
-        self.assertTrue(request_name in wsdl,
-                        '{0} not found in wsdl'.format(request_name))
+        self.assertTrue(
+            request_name in wsdl, "{0} not found in wsdl".format(request_name)
+        )
 
         soap_strings = [
             '<wsdl:operation name="{0}"'.format(operation_name),
-            '<{0}:operation soapAction="{1}"'.format(PREFMAP[NS_WSDL11_SOAP], operation_name),
+            '<{0}:operation soapAction="{1}"'.format(
+                PREFMAP[NS_WSDL11_SOAP], operation_name
+            ),
             '<wsdl:input name="{0}">'.format(request_name),
             '<xs:element name="{0}"'.format(request_name),
             '<xs:complexType name="{0}">'.format(request_name),
         ]
         for soap_string in soap_strings:
-            self.assertTrue(soap_string in wsdl,
-                            '{0} not in {1}'.format(soap_string, wsdl))
+            self.assertTrue(
+                soap_string in wsdl, "{0} not in {1}".format(soap_string, wsdl)
+            )
         if request_name != operation_name:
             wrong_string = '<wsdl:operation name="{0}"'.format(request_name)
-            self.assertFalse(wrong_string in wsdl,
-                             '{0} in {1}'.format(wrong_string, wsdl))
+            self.assertFalse(
+                wrong_string in wsdl, "{0} in {1}".format(wrong_string, wsdl)
+            )
 
         output_name = '<wsdl:output name="{0}Response"'.format(
-            self.default_function_name)
-        self.assertTrue(output_name in wsdl,
-                        'REQUEST_SUFFIX or _in_message_name changed the '
-                        'output name, it should be: {0}'.format(
-                            output_name))
+            self.default_function_name
+        )
+        self.assertTrue(
+            output_name in wsdl,
+            "REQUEST_SUFFIX or _in_message_name changed the "
+            "output name, it should be: {0}".format(output_name),
+        )
 
         # check soap operation succeeded
-        resp = app.post('/', soap_input_body,
-                                    content_type='applicaion/xml; charset=utf8')
+        resp = app.post(
+            "/", soap_input_body, content_type="applicaion/xml; charset=utf8"
+        )
         self.assert_response_ok(resp)
 
     def test_soap_with_suffix(self):
-        self.assert_soap_ok(suffix='Request')
+        self.assert_soap_ok(suffix="Request")
 
     def test_soap_no_suffix(self):
-        self.assert_soap_ok(suffix='')
+        self.assert_soap_ok(suffix="")
 
     def test_soap_with_suffix_with_message_name(self):
-        self.assert_soap_ok(suffix='Request',
-                            _in_message_name='TestInMessageName')
+        self.assert_soap_ok(suffix="Request", _in_message_name="TestInMessageName")
 
     def test_soap_no_suffix_with_message_name(self):
-        self.assert_soap_ok(suffix='', _in_message_name='TestInMessageName')
+        self.assert_soap_ok(suffix="", _in_message_name="TestInMessageName")
 
     def test_soap_with_suffix_with_operation_name(self):
-        self.assert_soap_ok(suffix='Request',
-                            _operation_name='TestOperationName')
+        self.assert_soap_ok(suffix="Request", _operation_name="TestOperationName")
 
     def test_soap_no_suffix_with_operation_name(self):
-        self.assert_soap_ok(suffix='', _operation_name='TestOperationName')
+        self.assert_soap_ok(suffix="", _operation_name="TestOperationName")
 
     ### json tests ###
-    def assert_json_ok(self, suffix, _operation_name=None,
-                       _in_message_name=None):
+    def assert_json_ok(self, suffix, _operation_name=None, _in_message_name=None):
         """helper to test json requests"""
 
         # setup
-        app = self.get_app(JsonDocument(validator='soft'), suffix,
-                           _operation_name, _in_message_name)
+        app = self.get_app(
+            JsonDocument(validator="soft"), suffix, _operation_name, _in_message_name
+        )
 
         function_name, operation_name, request_name = self.get_function_names(
-            suffix, _operation_name, _in_message_name)
+            suffix, _operation_name, _in_message_name
+        )
 
-        json_input_body = '{"' + request_name + '": {"string": "test", ' \
-                                                '"times": 2}}'
+        json_input_body = '{"' + request_name + '": {"string": "test", ' '"times": 2}}'
 
         # check json operation succeeded
-        resp = app.post('/', json_input_body,
-                                  content_type='application/json; charset=utf8')
+        resp = app.post(
+            "/", json_input_body, content_type="application/json; charset=utf8"
+        )
         self.assert_response_ok(resp)
 
     def test_json_with_suffix(self):
-        self.assert_json_ok(suffix='Request')
+        self.assert_json_ok(suffix="Request")
 
     def test_json_no_suffix(self):
-        self.assert_json_ok(suffix='')
+        self.assert_json_ok(suffix="")
 
     def test_json_with_suffix_with_message_name(self):
-        self.assert_json_ok(suffix='Request',
-                            _in_message_name='TestInMessageName')
+        self.assert_json_ok(suffix="Request", _in_message_name="TestInMessageName")
 
     def test_json_no_suffix_with_message_name(self):
-        self.assert_json_ok(suffix='', _in_message_name='TestInMessageName')
+        self.assert_json_ok(suffix="", _in_message_name="TestInMessageName")
 
     def test_json_with_suffix_with_operation_name(self):
-        self.assert_soap_ok(suffix='Request',
-                            _operation_name='TestOperationName')
+        self.assert_soap_ok(suffix="Request", _operation_name="TestOperationName")
 
     def test_json_no_suffix_with_operation_name(self):
-        self.assert_soap_ok(suffix='', _operation_name='TestOperationName')
+        self.assert_soap_ok(suffix="", _operation_name="TestOperationName")
 
     ### HttpRpc tests ###
-    def assert_httprpc_ok(self, suffix, _operation_name=None,
-                          _in_message_name=None):
+    def assert_httprpc_ok(self, suffix, _operation_name=None, _in_message_name=None):
         """Helper to test HttpRpc requests"""
 
         # setup
-        app = self.get_app(HttpRpc(validator='soft'),
-                           suffix, _operation_name, _in_message_name)
+        app = self.get_app(
+            HttpRpc(validator="soft"), suffix, _operation_name, _in_message_name
+        )
 
-        function_name, operation_name, request_name = \
-            self.get_function_names(suffix, _operation_name, _in_message_name)
+        function_name, operation_name, request_name = self.get_function_names(
+            suffix, _operation_name, _in_message_name
+        )
 
         url = "/{0}?string=test&times=2".format(request_name)
 
@@ -267,21 +283,19 @@ class TestOperationRequestSuffix(unittest.TestCase):
         self.assert_response_ok(resp)
 
     def test_httprpc_with_suffix(self):
-        self.assert_httprpc_ok(suffix='Request')
+        self.assert_httprpc_ok(suffix="Request")
 
     def test_httprpc_no_suffix(self):
-        self.assert_httprpc_ok(suffix='')
+        self.assert_httprpc_ok(suffix="")
 
     def test_httprpc_with_suffix_with_message_name(self):
-        self.assert_httprpc_ok(suffix='Request',
-                               _in_message_name='TestInMessageName')
+        self.assert_httprpc_ok(suffix="Request", _in_message_name="TestInMessageName")
 
     def test_httprpc_no_suffix_with_message_name(self):
-        self.assert_httprpc_ok(suffix='', _in_message_name='TestInMessageName')
+        self.assert_httprpc_ok(suffix="", _in_message_name="TestInMessageName")
 
     def test_httprpc_with_suffix_with_operation_name(self):
-        self.assert_soap_ok(suffix='Request',
-                            _operation_name='TestOperationName')
+        self.assert_soap_ok(suffix="Request", _operation_name="TestOperationName")
 
     def test_httprpc_no_suffix_with_operation_name(self):
-        self.assert_soap_ok(suffix='', _operation_name='TestOperationName')
+        self.assert_soap_ok(suffix="", _operation_name="TestOperationName")

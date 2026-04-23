@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,20 +17,21 @@
 #
 
 NATIVE_MAP = {}
-string_encoding = 'UTF-8'  # ???
+string_encoding = "UTF-8"  # ???
 
 from spyne.model.primitive._base import Any, AnyDict, AnyHtml, AnyXml, Boolean
+
 # Date/Time types
 from spyne.model.primitive.datetime import Date, DateTime, Duration, Time
 from spyne.model.primitive.network import (
     IpAddress,
     Ipv4Address,
     Ipv6Address,
-    MacAddress
+    MacAddress,
 )
+
 # Numbers
-from spyne.model.primitive.number import \
-    NonNegativeInteger  # Xml Schema calls it so
+from spyne.model.primitive.number import NonNegativeInteger  # Xml Schema calls it so
 from spyne.model.primitive.number import (
     Byte,
     Decimal,
@@ -54,7 +54,7 @@ from spyne.model.primitive.number import (
     UnsignedInteger32,
     UnsignedInteger64,
     UnsignedLong,
-    UnsignedShort
+    UnsignedShort,
 )
 from spyne.model.primitive.spatial import (
     Line,
@@ -64,7 +64,7 @@ from spyne.model.primitive.spatial import (
     MultiPoint,
     MultiPolygon,
     Point,
-    Polygon
+    Polygon,
 )
 from spyne.model.primitive.string import (
     AnyUri,
@@ -76,7 +76,7 @@ from spyne.model.primitive.string import (
     MimeTypeStrict,
     String,
     Unicode,
-    Uuid
+    Uuid,
 )
 from spyne.model.primitive.xml import (
     ID,
@@ -86,7 +86,7 @@ from spyne.model.primitive.xml import (
     NMToken,
     NormalizedString,
     QName,
-    Token
+    Token,
 )
 
 
@@ -94,13 +94,19 @@ from spyne.model.primitive.xml import (
 # >>> from spyne.model import Mandatory as M, Unicode
 # >>> MandatoryEmail = M(Unicode(pattern='[^@]+@[^@]+'))
 class Mandatory:
-    Unicode = Unicode(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
-    String = String(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
+    Unicode = Unicode(
+        type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1
+    )
+    String = String(
+        type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1
+    )
 
     AnyXml = AnyXml(type_name="MandatoryXml", min_occurs=1, nillable=False)
     AnyDict = AnyDict(type_name="MandatoryDict", min_occurs=1, nillable=False)
     AnyUri = AnyUri(type_name="MandatoryUri", min_occurs=1, nillable=False, min_len=1)
-    ImageUri = ImageUri(type_name="MandatoryImageUri", min_occurs=1, nillable=False, min_len=1)
+    ImageUri = ImageUri(
+        type_name="MandatoryImageUri", min_occurs=1, nillable=False, min_len=1
+    )
 
     Boolean = Boolean(type_name="MandatoryBoolean", min_occurs=1, nillable=False)
 
@@ -124,11 +130,21 @@ class Mandatory:
     Short = Integer16
     Byte = Integer8
 
-    UnsignedInteger = UnsignedInteger(type_name="MandatoryUnsignedInteger", min_occurs=1, nillable=False)
-    UnsignedInteger64 = UnsignedInteger64(type_name="MandatoryUnsignedLong", min_occurs=1, nillable=False)
-    UnsignedInteger32 = UnsignedInteger32(type_name="MandatoryUnsignedInt", min_occurs=1, nillable=False)
-    UnsignedInteger16 = UnsignedInteger16(type_name="MandatoryUnsignedShort", min_occurs=1, nillable=False)
-    UnsignedInteger8 = UnsignedInteger8(type_name="MandatoryUnsignedByte", min_occurs=1, nillable=False)
+    UnsignedInteger = UnsignedInteger(
+        type_name="MandatoryUnsignedInteger", min_occurs=1, nillable=False
+    )
+    UnsignedInteger64 = UnsignedInteger64(
+        type_name="MandatoryUnsignedLong", min_occurs=1, nillable=False
+    )
+    UnsignedInteger32 = UnsignedInteger32(
+        type_name="MandatoryUnsignedInt", min_occurs=1, nillable=False
+    )
+    UnsignedInteger16 = UnsignedInteger16(
+        type_name="MandatoryUnsignedShort", min_occurs=1, nillable=False
+    )
+    UnsignedInteger8 = UnsignedInteger8(
+        type_name="MandatoryUnsignedByte", min_occurs=1, nillable=False
+    )
 
     UnsignedLong = UnsignedInteger64
     UnsignedInt = UnsignedInteger32
@@ -142,10 +158,16 @@ class Mandatory:
     LineString = Line
     Polygon = Polygon(type_name="Polygon", min_len=1, min_occurs=1, nillable=False)
 
-    MultiPoint = MultiPoint(type_name="MandatoryMultiPoint", min_len=1, min_occurs=1, nillable=False)
-    MultiLine = MultiLine(type_name="MandatoryMultiLineString", min_len=1, min_occurs=1, nillable=False)
+    MultiPoint = MultiPoint(
+        type_name="MandatoryMultiPoint", min_len=1, min_occurs=1, nillable=False
+    )
+    MultiLine = MultiLine(
+        type_name="MandatoryMultiLineString", min_len=1, min_occurs=1, nillable=False
+    )
     MultiLineString = MultiLine
-    MultiPolygon = MultiPolygon(type_name="MandatoryMultiPolygon", min_len=1, min_occurs=1, nillable=False)
+    MultiPolygon = MultiPolygon(
+        type_name="MandatoryMultiPolygon", min_len=1, min_occurs=1, nillable=False
+    )
 
 
 assert Mandatory.Long == Mandatory.Integer64

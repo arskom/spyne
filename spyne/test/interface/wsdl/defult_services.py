@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) spyne contributors.
 #

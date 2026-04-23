@@ -31,9 +31,8 @@ logger = logging.getLogger(__name__)
 import yaml
 from yaml.parser import ParserError
 
-from spyne.model.fault import ValidationError
 from spyne.model.binary import BINARY_ENCODING_BASE64
-from spyne.model.fault import Fault
+from spyne.model.fault import Fault, ValidationError
 from spyne.model.primitive import Boolean, Double, Integer
 from spyne.protocol.dictdoc import HierDictDocument
 
@@ -93,7 +92,7 @@ class YamlDocument(HierDictDocument):
         safe=True,
         encoding="UTF-8",
         allow_unicode=True,
-        **kwargs
+        **kwargs,
     ):
 
         super(YamlDocument, self).__init__(

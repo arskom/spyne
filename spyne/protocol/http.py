@@ -36,8 +36,8 @@ from io import BytesIO
 import pytz
 
 from spyne.descriptor import BODY_STYLE_WRAPPED, MethodDescriptor
-from spyne.model._base import PushBase
 from spyne.error import ResourceNotFoundError
+from spyne.model._base import PushBase
 from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64, File
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import SimpleDictDocument
@@ -482,7 +482,7 @@ class HttpPattern(object):
         pattern = _full_pattern_re.sub(r"(?P<\1>.*)", pattern)
 
         pattern_b = pattern.encode(cls.HOST_ENCODING)
-        pattern_b = _fragment_pattern_b_re.sub(b"(?P<\\1>[^\.]*)", pattern_b)
+        pattern_b = _fragment_pattern_b_re.sub(rb"(?P<\1>[^.]*)", pattern_b)
         pattern_b = _full_pattern_b_re.sub(b"(?P<\\1>.*)", pattern_b)
 
         return re.compile(pattern), re.compile(pattern_b)

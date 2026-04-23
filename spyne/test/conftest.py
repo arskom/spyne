@@ -1,4 +1,5 @@
 import pytest
+
 import spyne.util.appreg as appreg
 
 

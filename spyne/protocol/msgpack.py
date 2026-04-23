@@ -31,9 +31,8 @@ logger = logging.getLogger(__name__)
 
 import msgpack
 
-from spyne.model.fault import ValidationError
-from spyne.model.fault import Fault
 from spyne.model.enum import EnumBase
+from spyne.model.fault import Fault, ValidationError
 from spyne.model.primitive import (
     Boolean,
     Date,

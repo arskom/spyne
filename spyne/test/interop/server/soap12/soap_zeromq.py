@@ -22,24 +22,28 @@ import logging
 from spyne.server.zeromq import ZeroMQServer
 from spyne.test.interop.server.soap12.soap_http_basic import soap12_application
 
-host = '127.0.0.1'
+host = "127.0.0.1"
 port = 55555
 
+
 def main():
-    url = "tcp://%s:%d" % (host,port)
+    url = "tcp://%s:%d" % (host, port)
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+    logging.getLogger("spyne.protocol.xml").setLevel(logging.DEBUG)
 
     server = ZeroMQServer(soap12_application, url)
     logging.info("************************")
     logging.info("Use Ctrl+\\ to exit if Ctrl-C does not work.")
-    logging.info("See the 'I can't Ctrl-C my Python/Ruby application. Help!' "
-                 "question in http://www.zeromq.org/area:faq for more info.")
+    logging.info(
+        "See the 'I can't Ctrl-C my Python/Ruby application. Help!' "
+        "question in http://www.zeromq.org/area:faq for more info."
+    )
     logging.info("listening on %r" % url)
     logging.info("************************")
 
     server.serve_forever()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

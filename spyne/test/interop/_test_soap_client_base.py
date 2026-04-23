@@ -16,15 +16,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import _thread as thread
 import socket
 import time
 import unittest
+from datetime import datetime
 
 import pytz
-
-import _thread as thread
-
-from datetime import datetime
 
 from spyne.model.fault import Fault
 

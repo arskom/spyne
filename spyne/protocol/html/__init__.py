@@ -21,11 +21,7 @@
 This package contains some basic html output protocols.
 """
 
-from spyne.protocol.html._base import (
-    HtmlBase,
-    HtmlCloth,
-    parse_html_fragment_file
-)
+from spyne.protocol.html._base import HtmlBase, HtmlCloth, parse_html_fragment_file
 from spyne.protocol.html.addtl import BooleanListProtocol, PrettyFormat
 from spyne.protocol.html.microformat import HtmlMicroFormat
 from spyne.protocol.html.table import HtmlColumnTable, HtmlRowTable

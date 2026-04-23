@@ -22,10 +22,10 @@ from email import utils
 from email.message import tspecials
 from email.utils import encode_rfc2231
 
+from spyne.const.http import HTTP_301, HTTP_302, HTTP_303, HTTP_307, gen_body_redirect
 from spyne.context import MethodContext, TransportContext
 from spyne.descriptor import MethodDescriptor
 from spyne.error import Redirect
-from spyne.const.http import HTTP_301, HTTP_302, HTTP_303, HTTP_307, gen_body_redirect
 from spyne.protocol.http import HttpPattern
 from spyne.server import ServerBase
 

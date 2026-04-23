@@ -48,6 +48,7 @@ try:
     from django.http import StreamingHttpResponse
 except ImportError as _import_error:
     _local_import_error = _import_error
+
     def StreamingHttpResponse(*args, **kwargs):
         raise _local_import_error
 
@@ -65,7 +66,7 @@ class DjangoApplication(WsgiApplication):
 
         def start_response(status, headers):
             # Status is one of spyne.const.http
-            status, reason = status.split(' ', 1)
+            status, reason = status.split(" ", 1)
 
             retval.status_code = int(status)
             for header, value in headers:
@@ -83,8 +84,8 @@ class DjangoApplication(WsgiApplication):
         # would hang waiting for extra request data. Use DjangoServer instead
         # of monkeypatching wsgi.inpu.
 
-        #environ['wsgi.input'] = request
-        #environ['wsgi.multithread'] = False
+        # environ['wsgi.input'] = request
+        # environ['wsgi.multithread'] = False
 
         response = WsgiApplication.__call__(self, environ, start_response)
         self.set_response(retval, response)
@@ -115,7 +116,7 @@ class DjangoHttpTransportContext(HttpTransportContext):
         return self.req.method
 
     def get_request_content_type(self):
-        return self.req.META['CONTENT_TYPE']
+        return self.req.META["CONTENT_TYPE"]
 
     def get_path_and_qs(self):
         return self.req.get_full_path()
@@ -124,8 +125,9 @@ class DjangoHttpTransportContext(HttpTransportContext):
         return self.req.COOKIES[key]
 
     def get_peer(self):
-        addr, port = address_parser.get_ip(self.req.META),\
-                                          address_parser.get_port(self.req.META)
+        addr, port = address_parser.get_ip(self.req.META), address_parser.get_port(
+            self.req.META
+        )
 
         if address_parser.is_valid_ipv4(addr, port):
             return Address(type=Address.TCP4, host=addr, port=port)
@@ -176,12 +178,12 @@ class DjangoServer(HttpBase):
 
         except Exception as e:
             logger.exception(e)
-            p_ctx.out_error = Fault('Server',
-                                    get_fault_string_from_exception(e))
+            p_ctx.out_error = Fault("Server", get_fault_string_from_exception(e))
             return self.handle_error(p_ctx, others, p_ctx.out_error)
 
-        have_protocol_headers = (isinstance(p_ctx.out_protocol, HttpRpc) and
-                                 p_ctx.out_header_doc is not None)
+        have_protocol_headers = (
+            isinstance(p_ctx.out_protocol, HttpRpc) and p_ctx.out_header_doc is not None
+        )
 
         if have_protocol_headers:
             p_ctx.transport.resp_headers.update(p_ctx.out_header_doc)
@@ -192,17 +194,16 @@ class DjangoServer(HttpBase):
         if self.chunked:
             response = StreamingHttpResponse(p_ctx.out_string)
         else:
-            response = HttpResponse(b''.join(p_ctx.out_string))
+            response = HttpResponse(b"".join(p_ctx.out_string))
 
         return self.response(response, p_ctx, others)
 
     def handle_wsdl(self, request, *args, **kwargs):
         """Return services WSDL."""
-        ctx = HttpMethodContext(self, request,
-                                'text/xml; charset=utf-8')
+        ctx = HttpMethodContext(self, request, "text/xml; charset=utf-8")
 
         if self.doc.wsdl11 is None:
-            raise Http404('WSDL is not available')
+            raise Http404("WSDL is not available")
 
         if self._wsdl is None:
             # Interface document building is not thread safe so we don't use
@@ -232,11 +233,12 @@ class DjangoServer(HttpBase):
         """
 
         if p_ctx.transport.resp_code is None:
-            p_ctx.transport.resp_code = \
-                           p_ctx.out_protocol.fault_to_http_response_code(error)
+            p_ctx.transport.resp_code = p_ctx.out_protocol.fault_to_http_response_code(
+                error
+            )
 
         self.get_out_string(p_ctx)
-        resp = HttpResponse(b''.join(p_ctx.out_string))
+        resp = HttpResponse(b"".join(p_ctx.out_string))
         return self.response(resp, p_ctx, others, error)
 
     def get_contexts(self, request):
@@ -246,8 +248,9 @@ class DjangoServer(HttpBase):
         :returns: generated contexts
         """
 
-        initial_ctx = DjangoHttpMethodContext(self, request,
-                                                self.app.out_protocol.mime_type)
+        initial_ctx = DjangoHttpMethodContext(
+            self, request, self.app.out_protocol.mime_type
+        )
 
         initial_ctx.in_string = [request.body]
         return self.generate_contexts(initial_ctx)
@@ -286,16 +289,24 @@ class DjangoView(object):
     application = None
     server = None
     services = ()
-    tns = 'spyne.application'
-    name = 'Application'
-    in_protocol = Soap11(validator='lxml')
+    tns = "spyne.application"
+    name = "Application"
+    in_protocol = Soap11(validator="lxml")
     out_protocol = Soap11()
     interface = None
     chunked = False
     cache_wsdl = True
 
-    http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head',
-                         'options', 'trace']
+    http_method_names = [
+        "get",
+        "post",
+        "put",
+        "patch",
+        "delete",
+        "head",
+        "options",
+        "trace",
+    ]
 
     def __init__(self, server, **kwargs):
         self.server = server
@@ -313,14 +324,16 @@ class DjangoView(object):
         # sanitize keyword arguments
         for key in initkwargs:
             if key in cls.http_method_names:
-                raise TypeError("You tried to pass in the %s method name as a "
-                                "keyword argument to %s(). Don't do that."
-                                % (key, cls.__name__))
+                raise TypeError(
+                    "You tried to pass in the %s method name as a "
+                    "keyword argument to %s(). Don't do that." % (key, cls.__name__)
+                )
             if not hasattr(cls, key):
-                raise TypeError("%s() received an invalid keyword %r. as_view "
-                                "only accepts arguments that are already "
-                                "attributes of the class." % (cls.__name__,
-                                                              key))
+                raise TypeError(
+                    "%s() received an invalid keyword %r. as_view "
+                    "only accepts arguments that are already "
+                    "attributes of the class." % (cls.__name__, key)
+                )
 
         def get(key):
             value = initkwargs.get(key)
@@ -330,20 +343,20 @@ class DjangoView(object):
             value = initkwargs.pop(key, None)
             return value if value is not None else getattr(cls, key)
 
-        application = get('application') or Application(
-            services=get('services'),
-            tns=get('tns'),
-            name=get('name'),
-            in_protocol=get('in_protocol'),
-            out_protocol=get('out_protocol'),
+        application = get("application") or Application(
+            services=get("services"),
+            tns=get("tns"),
+            name=get("name"),
+            in_protocol=get("in_protocol"),
+            out_protocol=get("out_protocol"),
         )
-        server = pop('server') or DjangoServer(application,
-                                               chunked=get('chunked'),
-                                               cache_wsdl=get('cache_wsdl'))
+        server = pop("server") or DjangoServer(
+            application, chunked=get("chunked"), cache_wsdl=get("cache_wsdl")
+        )
 
         def view(request, *args, **kwargs):
             self = cls(server=server, **initkwargs)
-            if hasattr(self, 'get') and not hasattr(self, 'head'):
+            if hasattr(self, "get") and not hasattr(self, "head"):
                 self.head = self.get
             self.request = request
             self.args = args
@@ -364,8 +377,9 @@ class DjangoView(object):
         # defer to the error handler. Also defer to the error handler if the
         # request method isn't on the approved list.
         if request.method.lower() in self.http_method_names:
-            handler = getattr(self, request.method.lower(),
-                              self.http_method_not_allowed)
+            handler = getattr(
+                self, request.method.lower(), self.http_method_not_allowed
+            )
         else:
             handler = self.http_method_not_allowed
         return handler(request, *args, **kwargs)
@@ -377,17 +391,20 @@ class DjangoView(object):
         return self.server.handle_rpc(request, *args, **kwargs)
 
     def http_method_not_allowed(self, request, *args, **kwargs):
-        logger.warning('Method Not Allowed (%s): %s', request.method,
-                       request.path, extra={'status_code': 405, 'request':
-                                                                  self.request})
+        logger.warning(
+            "Method Not Allowed (%s): %s",
+            request.method,
+            request.path,
+            extra={"status_code": 405, "request": self.request},
+        )
         return HttpResponseNotAllowed(self._allowed_methods())
 
     def options(self, request, *args, **kwargs):
         """Handle responding to requests for the OPTIONS HTTP verb."""
 
         response = HttpResponse()
-        response['Allow'] = ', '.join(self._allowed_methods())
-        response['Content-Length'] = '0'
+        response["Allow"] = ", ".join(self._allowed_methods())
+        response["Content-Length"] = "0"
         return response
 
     def _allowed_methods(self):

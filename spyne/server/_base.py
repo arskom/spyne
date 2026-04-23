@@ -22,10 +22,10 @@ logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
-from spyne.evmgr import EventManager
-from spyne.model._base import Ignored
 from spyne.auxproc import process_contexts
+from spyne.evmgr import EventManager
 from spyne.model import Fault, PushBase
+from spyne.model._base import Ignored
 from spyne.protocol import ProtocolBase
 from spyne.util import Break, coroutine
 

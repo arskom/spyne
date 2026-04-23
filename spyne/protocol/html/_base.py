@@ -26,8 +26,7 @@ from collections import defaultdict
 from lxml import etree, html
 from lxml.html.builder import E
 
-from spyne.protocol.cloth._base import XmlCloth
-from spyne.protocol.cloth._base import XmlClothProtocolContext
+from spyne.protocol.cloth._base import XmlCloth, XmlClothProtocolContext
 from spyne.util import Break, coroutine
 from spyne.util.etreeconv import dict_to_etree
 from spyne.util.oset import oset

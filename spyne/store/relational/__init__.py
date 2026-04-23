@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -27,7 +26,7 @@ from spyne.store.relational._base import (
     add_column,
     gen_spyne_info,
     gen_sqla_info,
-    get_pk_columns
+    get_pk_columns,
 )
 from spyne.store.relational.document import (
     PGFileJson,
@@ -36,7 +35,7 @@ from spyne.store.relational.document import (
     PGJsonB,
     PGObjectJson,
     PGObjectXml,
-    PGXml
+    PGXml,
 )
 from spyne.store.relational.simple import PGLQuery, PGLTree, PGLTxtQuery
 from spyne.store.relational.spatial import PGGeometry

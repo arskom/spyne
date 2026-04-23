@@ -34,25 +34,26 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.service import Service
 
 vals = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
 ]
 
 DaysOfWeekEnum = Enum(
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-    type_name = 'DaysOfWeekEnum',
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+    type_name="DaysOfWeekEnum",
 )
+
 
 class SomeService(Service):
     @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
@@ -66,33 +67,36 @@ class SomeClass(ComplexModel):
 
 class TestEnum(unittest.TestCase):
     def setUp(self):
-        self.app = Application([SomeService], 'tns',
-                                    in_protocol=Soap11(), out_protocol=Soap11())
-        self.app.transport = 'test'
+        self.app = Application(
+            [SomeService], "tns", in_protocol=Soap11(), out_protocol=Soap11()
+        )
+        self.app.transport = "test"
 
         self.server = WsgiApplication(self.app)
         self.wsdl = Wsdl11(self.app.interface)
-        self.wsdl.build_interface_document('prot://url')
+        self.wsdl.build_interface_document("prot://url")
 
     def test_wsdl(self):
         wsdl = self.wsdl.get_interface_document()
 
         elt = etree.fromstring(wsdl)
-        simple_type = elt.xpath('//xs:simpleType', namespaces=self.app.interface.nsmap)[0]
+        simple_type = elt.xpath("//xs:simpleType", namespaces=self.app.interface.nsmap)[
+            0
+        ]
 
         print((etree.tostring(elt, pretty_print=True)))
         print(simple_type)
 
-        self.assertEqual(simple_type.attrib['name'], 'DaysOfWeekEnum')
+        self.assertEqual(simple_type.attrib["name"], "DaysOfWeekEnum")
         self.assertEqual(simple_type[0].tag, XSD("restriction"))
-        self.assertEqual([e.attrib['value'] for e in simple_type[0]], vals)
+        self.assertEqual([e.attrib["value"] for e in simple_type[0]], vals)
 
     def test_serialize(self):
         mo = DaysOfWeekEnum.Monday
         print((repr(mo)))
 
-        elt = etree.Element('test')
-        XmlDocument().to_parent(None, DaysOfWeekEnum, mo, elt, 'test_namespace')
+        elt = etree.Element("test")
+        XmlDocument().to_parent(None, DaysOfWeekEnum, mo, elt, "test_namespace")
         elt = elt[0]
         ret = XmlDocument().from_element(None, DaysOfWeekEnum, elt)
 
@@ -100,31 +104,30 @@ class TestEnum(unittest.TestCase):
 
     def test_serialize_complex_array(self):
         days = [
-                DaysOfWeekEnum.Monday,
-                DaysOfWeekEnum.Tuesday,
-                DaysOfWeekEnum.Wednesday,
-                DaysOfWeekEnum.Thursday,
-                DaysOfWeekEnum.Friday,
-                DaysOfWeekEnum.Saturday,
-                DaysOfWeekEnum.Sunday,
-            ]
+            DaysOfWeekEnum.Monday,
+            DaysOfWeekEnum.Tuesday,
+            DaysOfWeekEnum.Wednesday,
+            DaysOfWeekEnum.Thursday,
+            DaysOfWeekEnum.Friday,
+            DaysOfWeekEnum.Saturday,
+            DaysOfWeekEnum.Sunday,
+        ]
 
         days_xml = [
-            ('{tns}DaysOfWeekEnum', 'Monday'),
-            ('{tns}DaysOfWeekEnum', 'Tuesday'),
-            ('{tns}DaysOfWeekEnum', 'Wednesday'),
-            ('{tns}DaysOfWeekEnum', 'Thursday'),
-            ('{tns}DaysOfWeekEnum', 'Friday'),
-            ('{tns}DaysOfWeekEnum', 'Saturday'),
-            ('{tns}DaysOfWeekEnum', 'Sunday'),
+            ("{tns}DaysOfWeekEnum", "Monday"),
+            ("{tns}DaysOfWeekEnum", "Tuesday"),
+            ("{tns}DaysOfWeekEnum", "Wednesday"),
+            ("{tns}DaysOfWeekEnum", "Thursday"),
+            ("{tns}DaysOfWeekEnum", "Friday"),
+            ("{tns}DaysOfWeekEnum", "Saturday"),
+            ("{tns}DaysOfWeekEnum", "Sunday"),
         ]
 
         DaysOfWeekEnumArray = Array(DaysOfWeekEnum)
-        DaysOfWeekEnumArray.__namespace__ = 'tns'
+        DaysOfWeekEnumArray.__namespace__ = "tns"
 
-        elt = etree.Element('test')
-        XmlDocument().to_parent(None, DaysOfWeekEnumArray, days,
-                                                          elt, 'test_namespace')
+        elt = etree.Element("test")
+        XmlDocument().to_parent(None, DaysOfWeekEnumArray, days, elt, "test_namespace")
 
         elt = elt[0]
         ret = XmlDocument().from_element(None, Array(DaysOfWeekEnum), elt)
@@ -133,11 +136,16 @@ class TestEnum(unittest.TestCase):
         print((etree.tostring(elt, pretty_print=True)))
 
         pprint(self.app.interface.nsmap)
-        assert days_xml == [ (e.tag, e.text) for e in
-            elt.xpath('//tns:DaysOfWeekEnum', namespaces=self.app.interface.nsmap)]
+        assert days_xml == [
+            (e.tag, e.text)
+            for e in elt.xpath(
+                "//tns:DaysOfWeekEnum", namespaces=self.app.interface.nsmap
+            )
+        ]
 
     def test_serialize_simple_array(self):
-        t = SomeClass(days=[
+        t = SomeClass(
+            days=[
                 DaysOfWeekEnum.Monday,
                 DaysOfWeekEnum.Tuesday,
                 DaysOfWeekEnum.Wednesday,
@@ -145,12 +153,13 @@ class TestEnum(unittest.TestCase):
                 DaysOfWeekEnum.Friday,
                 DaysOfWeekEnum.Saturday,
                 DaysOfWeekEnum.Sunday,
-            ])
+            ]
+        )
 
-        SomeClass.resolve_namespace(SomeClass, 'tns')
+        SomeClass.resolve_namespace(SomeClass, "tns")
 
-        elt = etree.Element('test')
-        XmlDocument().to_parent(None, SomeClass, t, elt, 'test_namespace')
+        elt = etree.Element("test")
+        XmlDocument().to_parent(None, SomeClass, t, elt, "test_namespace")
         elt = elt[0]
 
         print((etree.tostring(elt, pretty_print=True)))
@@ -158,5 +167,6 @@ class TestEnum(unittest.TestCase):
         ret = XmlDocument().from_element(None, SomeClass, elt)
         self.assertEqual(t.days, ret.days)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

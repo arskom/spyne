@@ -1,11 +1,6 @@
-
 from spyne.const import xml
 from spyne.interface.xml_schema.defn import XmlSchema10
-from spyne.model.complex import (
-    ComplexModelBase,
-    ComplexModelMeta,
-    XmlAttribute
-)
+from spyne.model.complex import ComplexModelBase, ComplexModelMeta, XmlAttribute
 from spyne.model.primitive import Unicode
 
 
@@ -44,10 +39,10 @@ class SoapHeaderDefinition(Wsdl11Base):
 class OperationMode(Wsdl11Base):
     name = XmlAttribute(Unicode)
     message = XmlAttribute(Unicode)
-    soap_body = SoapBodyDefinition.customize(sub_ns=xml.NS_WSDL11_SOAP,
-                                                              sub_name="body")
-    soap_header = SoapHeaderDefinition.customize(sub_ns=xml.NS_WSDL11_SOAP,
-                                                              sub_name="header")
+    soap_body = SoapBodyDefinition.customize(sub_ns=xml.NS_WSDL11_SOAP, sub_name="body")
+    soap_header = SoapHeaderDefinition.customize(
+        sub_ns=xml.NS_WSDL11_SOAP, sub_name="header"
+    )
 
 
 class SoapOperation(Wsdl11Base):
@@ -58,9 +53,11 @@ class SoapOperation(Wsdl11Base):
 class Operation(Wsdl11Base):
     input = OperationMode
     output = OperationMode
-    soap_operation = SoapOperation.customize(sub_ns=xml.NS_WSDL11_SOAP,
-                                             sub_name="operation")
+    soap_operation = SoapOperation.customize(
+        sub_ns=xml.NS_WSDL11_SOAP, sub_name="operation"
+    )
     parameterOrder = XmlAttribute(Unicode)
+
 
 class PortType(Wsdl11Base):
     name = XmlAttribute(Unicode)
@@ -76,8 +73,7 @@ class Binding(Wsdl11Base):
     name = XmlAttribute(Unicode)
     type = XmlAttribute(Unicode)
     location = XmlAttribute(Unicode)
-    soap_binding = SoapBinding.customize(sub_ns=xml.NS_WSDL11_SOAP,
-                                                           sub_name="binding")
+    soap_binding = SoapBinding.customize(sub_ns=xml.NS_WSDL11_SOAP, sub_name="binding")
 
 
 class PortAddress(Soap11Base):
@@ -97,9 +93,9 @@ class Service(Wsdl11Base):
 
 class Wsdl11(Wsdl11Base):
     _type_info = [
-        ('types', Types),
-        ('message', Message.customize(max_occurs="unbounded")),
-        ('service', Service),
-        ('portType', PortType),
-        ('binding', Binding),
+        ("types", Types),
+        ("message", Message.customize(max_occurs="unbounded")),
+        ("service", Service),
+        ("portType", PortType),
+        ("binding", Binding),
     ]

@@ -26,9 +26,11 @@ import unittest
 from pprint import pprint
 
 import sqlalchemy
-from sqlalchemy import Column, MetaData, Table, create_engine, text as sa_text
+from sqlalchemy import Column, MetaData, Table, create_engine
+from sqlalchemy import text as sa_text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import registry as _sa_registry, sessionmaker, with_polymorphic
+from sqlalchemy.orm import registry as _sa_registry
+from sqlalchemy.orm import sessionmaker, with_polymorphic
 
 from spyne import Any, Double, M
 from spyne.model import (

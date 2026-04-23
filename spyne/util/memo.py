@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -25,7 +24,6 @@ reckless usage of the tools here.
 These are NOT thread-safe. If you are relying on exactly-one-execution-per-key
 behavior in a multithreaded environment, roll your own stuff.
 """
-
 
 import logging
 
@@ -56,16 +54,19 @@ def _log_func(func):
 
 
 def start_memoization_stats_logger(func=None):
-    logger.info("Enabling @memoize statistics every %d second(s).",
-                                                 MEMOIZATION_STATS_LOG_INTERVAL)
+    logger.info(
+        "Enabling @memoize statistics every %d second(s).",
+        MEMOIZATION_STATS_LOG_INTERVAL,
+    )
 
     if func is None:
         _log_all()
     else:
         _log_func(func)
 
-    t = threading.Timer(MEMOIZATION_STATS_LOG_INTERVAL,
-                                        start_memoization_stats_logger, (func,))
+    t = threading.Timer(
+        MEMOIZATION_STATS_LOG_INTERVAL, start_memoization_stats_logger, (func,)
+    )
 
     t.daemon = True
     t.start()
@@ -113,7 +114,7 @@ class memoize_first(object):
         memoize.registry.append(self)
 
     def __call__(self, *args, **kwargs):
-        if not hasattr(self, 'memo'):
+        if not hasattr(self, "memo"):
             value = self.func(*args, **kwargs)
             self.memo = value
             return value
@@ -130,8 +131,7 @@ def memoize_ignore(values):
     but the result of `add(5, 5)` (=10) is.
     """
 
-    assert iter(values), \
-                       "memoize_ignore requires an iterable of values to ignore"
+    assert iter(values), "memoize_ignore requires an iterable of values to ignore"
 
     class _memoize_ignored(memoize):
         def __call__(self, *args, **kwargs):
@@ -176,5 +176,6 @@ class memoize_id(memoize):
     types. It works on id()'s of objects instead."""
 
     def get_key(self, args, kwargs):
-        return tuple([id(a) for a in args]), \
-                                  tuple([(k, id(v)) for k, v in kwargs.items()])
+        return tuple([id(a) for a in args]), tuple(
+            [(k, id(v)) for k, v in kwargs.items()]
+        )

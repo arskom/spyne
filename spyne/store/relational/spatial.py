@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -31,21 +30,20 @@ class PGGeometry(UserDefinedType):
     class PlainWkb:
         pass
 
-    def __init__(self, geometry_type='GEOMETRY', srid=4326, dimension=2,
-                                                                  format='wkt'):
+    def __init__(self, geometry_type="GEOMETRY", srid=4326, dimension=2, format="wkt"):
         self.geometry_type = geometry_type.upper()
-        self.name = 'geometry'
+        self.name = "geometry"
         self.srid = int(srid)
         self.dimension = dimension
         self.format = format
 
-        if self.format == 'wkt':
+        if self.format == "wkt":
             self.format = PGGeometry.PlainWkt
-        elif self.format == 'wkb':
+        elif self.format == "wkb":
             self.format = PGGeometry.PlainWkb
 
     def get_col_spec(self):
-        return '%s(%s,%d)' % (self.name, self.geometry_type, self.srid)
+        return "%s(%s,%d)" % (self.name, self.geometry_type, self.srid)
 
     def column_expression(self, col):
         if self.format is PGGeometry.PlainWkb:
@@ -55,11 +53,13 @@ class PGGeometry(UserDefinedType):
 
     def result_processor(self, dialect, coltype):
         if self.format is PGGeometry.PlainWkt:
+
             def process(value):
                 if value is not None:
                     return value
 
         if self.format is PGGeometry.PlainWkb:
+
             def process(value):
                 if value is not None:
                     return sql.func.ST_AsBinary(value, self.srid)
@@ -76,7 +76,7 @@ Geometry = PGGeometry
 
 @compiles(PGGeometry)
 def compile_geometry(type_, compiler, **kw):
-    return '%s(%s,%d)' % (type_.name, type_.geometry_type, type_.srid)
+    return "%s(%s,%d)" % (type_.name, type_.geometry_type, type_.srid)
 
 
 @compiles(PGGeometry, "sqlite")

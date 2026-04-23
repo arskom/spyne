@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,16 +16,18 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 class FakeApp(object):
-    transport = 'transport'
-    tns = 'tns'
-    name = 'name'
+    transport = "transport"
+    tns = "tns"
+    name = "name"
     services = []
     classes = ()
+
 
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('spyne.util.appreg').setLevel(logging.INFO)
+logging.getLogger("spyne.util.appreg").setLevel(logging.INFO)
 
 from spyne.context import FakeContext

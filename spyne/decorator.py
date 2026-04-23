@@ -33,6 +33,7 @@ import spyne.const.xml
 # Empty means empty input, bare output. Doesn't say anything about response
 # being empty
 from spyne import LogicError
+from spyne.const import add_request_suffix
 from spyne.descriptor import (
     BODY_STYLE_BARE,
     BODY_STYLE_EMPTY,
@@ -41,7 +42,6 @@ from spyne.descriptor import (
     BODY_STYLE_WRAPPED,
     MethodDescriptor,
 )
-from spyne.const import add_request_suffix
 from spyne.model import ComplexModel, ComplexModelBase, ModelBase
 from spyne.model.complex import SelfReference, TypeInfo, recust_selfref
 

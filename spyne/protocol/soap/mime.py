@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 import re
 from base64 import b64encode
-from email import generator
+from email import generator, message_from_bytes
 from email.encoders import encode_7or8bit
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -41,11 +41,9 @@ from itertools import chain
 
 from lxml import etree
 
-from spyne.model.fault import ValidationError
 from spyne.const.xml import NS_XOP
 from spyne.model.binary import ByteArray, File
-
-from email import message_from_bytes
+from spyne.model.fault import ValidationError
 
 XPATH_NSDICT = dict(xop=NS_XOP)
 

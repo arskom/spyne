@@ -40,7 +40,7 @@ from spyne.model import (
     ModelBase,
     PushBase,
     XmlAttribute,
-    XmlData
+    XmlData,
 )
 from spyne.protocol import OutProtocolBase
 from spyne.util import Break, coroutine
@@ -66,7 +66,7 @@ def _prevsibls_since(elt, strip_comments, since):
             break
 
         if strip_comments and isinstance(elt, etree.CommentBase):
-            if elt.text.startswith('[if ') and elt.text.endswith('[endif]'):
+            if elt.text.startswith("[if ") and elt.text.endswith("[endif]"):
                 pass
             else:
                 continue
@@ -74,20 +74,28 @@ def _prevsibls_since(elt, strip_comments, since):
         yield prevsibl
 
 
-def _set_identifier_prefix(obj, prefix, mrpc_id='mrpc', id_attr='id',
-                            data_tag='data', data_attr='data', attr_attr='attr',
-                                        root_attr='root', tagbag_attr='tagbag'):
+def _set_identifier_prefix(
+    obj,
+    prefix,
+    mrpc_id="mrpc",
+    id_attr="id",
+    data_tag="data",
+    data_attr="data",
+    attr_attr="attr",
+    root_attr="root",
+    tagbag_attr="tagbag",
+):
     obj.ID_PREFIX = prefix
 
-    obj.MRPC_ID = '{}{}'.format(prefix, mrpc_id)
-    obj.ID_ATTR_NAME = '{}{}'.format(prefix, id_attr)
-    obj.DATA_TAG_NAME = '{}{}'.format(prefix, data_tag)
-    obj.DATA_ATTR_NAME = '{}{}'.format(prefix, data_attr)
-    obj.ATTR_ATTR_NAME = '{}{}'.format(prefix, attr_attr)
-    obj.ROOT_ATTR_NAME = '{}{}'.format(prefix, root_attr)
-    obj.TAGBAG_ATTR_NAME = '{}{}'.format(prefix, tagbag_attr)
+    obj.MRPC_ID = "{}{}".format(prefix, mrpc_id)
+    obj.ID_ATTR_NAME = "{}{}".format(prefix, id_attr)
+    obj.DATA_TAG_NAME = "{}{}".format(prefix, data_tag)
+    obj.DATA_ATTR_NAME = "{}{}".format(prefix, data_attr)
+    obj.ATTR_ATTR_NAME = "{}{}".format(prefix, attr_attr)
+    obj.ROOT_ATTR_NAME = "{}{}".format(prefix, root_attr)
+    obj.TAGBAG_ATTR_NAME = "{}{}".format(prefix, tagbag_attr)
     # FIXME: get rid of this. We don't want logic creep inside cloths
-    obj.WRITE_CONTENTS_WHEN_NOT_NONE = '{}write-contents'.format(prefix)
+    obj.WRITE_CONTENTS_WHEN_NOT_NONE = "{}write-contents".format(prefix)
 
     obj.SPYNE_ATTRS = {
         obj.ID_ATTR_NAME,
@@ -100,17 +108,17 @@ def _set_identifier_prefix(obj, prefix, mrpc_id='mrpc', id_attr='id',
 
 
 class ClothParserMixin(object):
-    ID_PREFIX = 'spyne-'
+    ID_PREFIX = "spyne-"
 
     # these are here for documentation purposes. The are all reinitialized with
     # the call ta _set_identifier_prefix below the class definition
-    ID_ATTR_NAME = 'spyne-id'
-    DATA_TAG_NAME = 'spyne-data'
-    DATA_ATTR_NAME = 'spyne-data'
-    ATTR_ATTR_NAME = 'spyne-attr'
-    ROOT_ATTR_NAME = 'spyne-root'
-    TAGBAG_ATTR_NAME = 'spyne-tagbag'
-    WRITE_CONTENTS_WHEN_NOT_NONE = 'spyne-write-contents'
+    ID_ATTR_NAME = "spyne-id"
+    DATA_TAG_NAME = "spyne-data"
+    DATA_ATTR_NAME = "spyne-data"
+    ATTR_ATTR_NAME = "spyne-attr"
+    ROOT_ATTR_NAME = "spyne-root"
+    TAGBAG_ATTR_NAME = "spyne-tagbag"
+    WRITE_CONTENTS_WHEN_NOT_NONE = "spyne-write-contents"
 
     def set_identifier_prefix(self, what):
         _set_identifier_prefix(self, what)
@@ -119,15 +127,17 @@ class ClothParserMixin(object):
     @classmethod
     def from_xml_cloth(cls, cloth, strip_comments=True):
         retval = cls()
-        retval._init_cloth(cloth, cloth_parser=etree.XMLParser(),
-                                                  strip_comments=strip_comments)
+        retval._init_cloth(
+            cloth, cloth_parser=etree.XMLParser(), strip_comments=strip_comments
+        )
         return retval
 
     @classmethod
     def from_html_cloth(cls, cloth, strip_comments=True):
         retval = cls()
-        retval._init_cloth(cloth, cloth_parser=html.HTMLParser(),
-                                                  strip_comments=strip_comments)
+        retval._init_cloth(
+            cloth, cloth_parser=html.HTMLParser(), strip_comments=strip_comments
+        )
         return retval
 
     @staticmethod
@@ -135,8 +145,7 @@ class ClothParserMixin(object):
         for elt in root.iter():
             if isinstance(elt, etree.CommentBase):
                 if elt.getparent() is not None:
-                    if elt.text.startswith('[if ') \
-                                               and elt.text.endswith('[endif]'):
+                    if elt.text.startswith("[if ") and elt.text.endswith("[endif]"):
                         pass
                     else:
                         elt.getparent().remove(elt)
@@ -173,7 +182,7 @@ class ClothParserMixin(object):
             logger_c.debug("Using %r as plain cloth.", cloth)
             self._cloth = cloth
 
-        self._mrpc_cloth = self._pop_elt(cloth, 'mrpc_entry')
+        self._mrpc_cloth = self._pop_elt(cloth, "mrpc_entry")
 
     def _pop_elt(self, elt, what):
         query = '//*[@%s="%s"]' % (self.ID_ATTR_NAME, what)
@@ -191,27 +200,39 @@ _set_identifier_prefix(ClothParserMixin, ClothParserMixin.ID_PREFIX)
 
 
 class ToClothMixin(OutProtocolBase, ClothParserMixin):
-    def __init__(self, app=None, mime_type=None, ignore_uncap=False,
-                                        ignore_wrappers=False, polymorphic=True):
-        super(ToClothMixin, self).__init__(app=app, mime_type=mime_type,
-                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers)
+    def __init__(
+        self,
+        app=None,
+        mime_type=None,
+        ignore_uncap=False,
+        ignore_wrappers=False,
+        polymorphic=True,
+    ):
+        super(ToClothMixin, self).__init__(
+            app=app,
+            mime_type=mime_type,
+            ignore_uncap=ignore_uncap,
+            ignore_wrappers=ignore_wrappers,
+        )
 
         self.polymorphic = polymorphic
-        self.rendering_handlers = cdict({
-            ModelBase: self.model_base_to_cloth,
-            AnyXml: self.xml_to_cloth,
-            Any: self.any_to_cloth,
-            AnyHtml: self.html_to_cloth,
-            AnyUri: self.any_uri_to_cloth,
-            ComplexModelBase: self.complex_to_cloth,
-        })
+        self.rendering_handlers = cdict(
+            {
+                ModelBase: self.model_base_to_cloth,
+                AnyXml: self.xml_to_cloth,
+                Any: self.any_to_cloth,
+                AnyHtml: self.html_to_cloth,
+                AnyUri: self.any_uri_to_cloth,
+                ComplexModelBase: self.complex_to_cloth,
+            }
+        )
 
     def _get_elts(self, elt, tag_id=None):
         if tag_id is None:
-            return elt.xpath('.//*[@*[starts-with(name(), "%s")]]' %
-                                                                 self.ID_PREFIX)
-        return elt.xpath('.//*[@*[starts-with(name(), "%s")]="%s"]' % (
-                                                        self.ID_PREFIX, tag_id))
+            return elt.xpath('.//*[@*[starts-with(name(), "%s")]]' % self.ID_PREFIX)
+        return elt.xpath(
+            './/*[@*[starts-with(name(), "%s")]="%s"]' % (self.ID_PREFIX, tag_id)
+        )
 
     def _get_outmost_elts(self, tmpl, tag_id=None):
         ids = set()
@@ -260,7 +281,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
     @staticmethod
     def _methods(ctx, cls, inst):
         while cls.Attributes._wrapper and len(cls._type_info) > 0:
-            cls, = cls._type_info.values()
+            (cls,) = cls._type_info.values()
 
         if cls.Attributes.methods is not None:
             for k, v in cls.Attributes.methods.items():
@@ -282,19 +303,21 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 text = v.translate(ctx.locale, v.in_message.get_type_name())
 
                 mrpc_template = deepcopy(self._mrpc_cloth)
-                anchor = self._get_clean_elt(mrpc_template, 'mrpc_link')
-                anchor.attrib['href'] = href
+                anchor = self._get_clean_elt(mrpc_template, "mrpc_link")
+                anchor.attrib["href"] = href
 
-                text_elt = self._get_clean_elt(mrpc_template, 'mrpc_text')
+                text_elt = self._get_clean_elt(mrpc_template, "mrpc_text")
                 if text_elt is not None:
                     text_elt.text = text
                 else:
                     anchor.text = text
 
                 elt.append(mrpc_template)
-                                           # mutable default ok because readonly
-    def _enter_cloth(self, ctx, cloth, parent, attrib={}, skip=False,
-                                                  method=None, skip_dupe=False):
+                # mutable default ok because readonly
+
+    def _enter_cloth(
+        self, ctx, cloth, parent, attrib={}, skip=False, method=None, skip_dupe=False
+    ):
         """Enters the given tag in the document by using the shortest path from
         current tag.
 
@@ -324,8 +347,15 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             (eg. arrays).
         """
 
-        logger_c.debug("entering %s %r nsmap=%r attrib=%r skip=%s method=%s",
-                     cloth.tag, cloth.attrib, cloth.nsmap, attrib, skip, method)
+        logger_c.debug(
+            "entering %s %r nsmap=%r attrib=%r skip=%s method=%s",
+            cloth.tag,
+            cloth.attrib,
+            cloth.nsmap,
+            attrib,
+            skip,
+            method,
+        )
 
         if not ctx.outprot_ctx.doctype_written:
             self.write_doctype(ctx, parent, cloth)
@@ -362,7 +392,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         # move up in tag stack until the ancestors of both
         # source and target tags match
-        while ancestors[:len(cureltstack)] != cureltstack:
+        while ancestors[: len(cureltstack)] != cureltstack:
             elt = cureltstack.pop()
             elt_ctx = curctxstack.pop()
 
@@ -376,37 +406,43 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
             # unless we're at the same level as the relevant ancestor of the
             # target node
-            if ancestors[:len(cureltstack)] != cureltstack:
+            if ancestors[: len(cureltstack)] != cureltstack:
                 # write following siblings before closing parent node
                 for sibl in elt.itersiblings(preceding=False):
-                    logger_c.debug("\twrite exit sibl %s %r %d",
-                                                sibl.tag, sibl.attrib, id(sibl))
+                    logger_c.debug(
+                        "\twrite exit sibl %s %r %d", sibl.tag, sibl.attrib, id(sibl)
+                    )
                     parent.write(sibl)
 
         # write remaining ancestors of the target node.
-        for anc in ancestors[len(cureltstack):]:
+        for anc in ancestors[len(cureltstack) :]:
             # write previous siblings of ancestors (if any)
             prevsibls = _prevsibls(anc, self.strip_comments, since=last_elt)
             for elt in prevsibls:
                 if id(elt) in tags:
-                    logger_c.debug("\tskip  anc prevsibl %s %r",
-                                                            elt.tag, elt.attrib)
+                    logger_c.debug("\tskip  anc prevsibl %s %r", elt.tag, elt.attrib)
                     continue
 
-                logger_c.debug("\twrite anc prevsibl %s %r 0x%x",
-                                                   elt.tag, elt.attrib, id(elt))
+                logger_c.debug(
+                    "\twrite anc prevsibl %s %r 0x%x", elt.tag, elt.attrib, id(elt)
+                )
                 parent.write(elt)
 
             # enter the ancestor node
             kwargs = {}
             if len(cureltstack) == 0:
                 # if this is the first node ever, initialize namespaces as well
-                kwargs['nsmap'] = anc.nsmap
+                kwargs["nsmap"] = anc.nsmap
 
             anc_ctx = parent.element(anc.tag, anc.attrib, **kwargs)
             anc_ctx.__enter__()
-            logger_c.debug("\tenter norm %s %r 0x%x method: %r", anc.tag,
-                                                    anc.attrib, id(anc), method)
+            logger_c.debug(
+                "\tenter norm %s %r 0x%x method: %r",
+                anc.tag,
+                anc.attrib,
+                id(anc),
+                method,
+            )
             if anc.text is not None:
                 parent.write(anc.text)
 
@@ -424,8 +460,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 continue
 
             if id(elt) in tags:
-                logger_c.debug("\tskip  cloth prevsibl %s %r",
-                                                            elt.tag, elt.attrib)
+                logger_c.debug("\tskip  cloth prevsibl %s %r", elt.tag, elt.attrib)
                 continue
 
             logger_c.debug("\twrite cloth prevsibl %s %r", elt.tag, elt.attrib)
@@ -443,20 +478,22 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         else:
             # finally, enter the target node.
-            cloth_attrib = dict([(k, v) for k, v in cloth.attrib.items()
-                                                  if not k in self.SPYNE_ATTRS])
+            cloth_attrib = dict(
+                [(k, v) for k, v in cloth.attrib.items() if not k in self.SPYNE_ATTRS]
+            )
 
             cloth_attrib.update(attrib)
 
-            self.event_manager.fire_event(("before_entry", cloth), ctx,
-                                                           parent, cloth_attrib)
+            self.event_manager.fire_event(
+                ("before_entry", cloth), ctx, parent, cloth_attrib
+            )
 
             kwargs = {}
             if len(cureltstack) == 0:
                 # if this is the first node ever, initialize namespaces as well
-                kwargs['nsmap'] = cloth.nsmap
+                kwargs["nsmap"] = cloth.nsmap
             if method is not None:
-                kwargs['method'] = method
+                kwargs["method"] = method
             curtag = parent.element(cloth.tag, cloth_attrib, **kwargs)
             curtag.__enter__()
             if cloth.text is not None:
@@ -502,19 +539,20 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             rootstack.pop()
 
     @coroutine
-    def to_parent_cloth(self, ctx, cls, inst, cloth, parent, name,
-                                                      from_arr=False, **kwargs):
+    def to_parent_cloth(
+        self, ctx, cls, inst, cloth, parent, name, from_arr=False, **kwargs
+    ):
         cls_cloth = self.get_class_cloth(cls)
         if cls_cloth is not None:
             logger_c.debug("%r to object cloth", cls)
             cloth = cls_cloth
             ctx.protocol[self].rootstack.add(cloth)
 
-        ret = self.to_cloth(ctx, cls, inst, cloth, parent, '')
+        ret = self.to_cloth(ctx, cls, inst, cloth, parent, "")
         if isgenerator(ret):
             try:
                 while True:
-                    sv2 = (yield)
+                    sv2 = yield
                     ret.send(sv2)
             except Break as e:
                 try:
@@ -534,7 +572,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         if isgenerator(ret):
             try:
                 while True:
-                    sv2 = (yield)
+                    sv2 = yield
                     ret.send(sv2)
             except Break as e:
                 try:
@@ -544,8 +582,19 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
     # TODO: Maybe DRY this with to_parent?
     @coroutine
-    def to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
-                        from_arr=False, as_attr=False, as_data=False, **kwargs):
+    def to_cloth(
+        self,
+        ctx,
+        cls,
+        inst,
+        cloth,
+        parent,
+        name=None,
+        from_arr=False,
+        as_attr=False,
+        as_data=False,
+        **kwargs,
+    ):
 
         prot_name = self.__class__.__name__
 
@@ -583,15 +632,26 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 # we can't do this because subprotocols don't accept cloths.
                 # so we need to enter the cloth, which make it too late to
                 # set attributes.
-                assert not as_attr, "No subprot supported for fields " \
-                    "to be serialized as attributes, use type casting with "  \
+                assert not as_attr, (
+                    "No subprot supported for fields "
+                    "to be serialized as attributes, use type casting with "
                     "customized serializers in the current protocol instead."
+                )
 
-                self._enter_cloth(ctx, cloth, parent,
-                                          method=cls_attrs.method, skip=as_data)
+                self._enter_cloth(
+                    ctx, cloth, parent, method=cls_attrs.method, skip=as_data
+                )
 
-                ret = subprot.subserialize(ctx, cls, inst, parent, name,
-                                     as_attr=as_attr, as_data=as_data, **kwargs)
+                ret = subprot.subserialize(
+                    ctx,
+                    cls,
+                    inst,
+                    parent,
+                    name,
+                    as_attr=as_attr,
+                    as_data=as_data,
+                    **kwargs,
+                )
 
             # if there is no subprotocol, try rendering the value
             else:
@@ -603,20 +663,29 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         attrs = {}
                         if as_attr:
                             # FIXME: test needed
-                            attrs[name] = ''
+                            attrs[name] = ""
 
-                        self._enter_cloth(ctx, cloth, parent, attrib=attrs,
-                                                        method=cls_attrs.method)
+                        self._enter_cloth(
+                            ctx, cloth, parent, attrib=attrs, method=cls_attrs.method
+                        )
                         identifier = "%s.%s" % (prot_name, "null_to_cloth")
-                        logger_s.debug("Writing '%s' using %s type: %s.", name,
-                                                identifier, cls.get_type_name())
+                        logger_s.debug(
+                            "Writing '%s' using %s type: %s.",
+                            name,
+                            identifier,
+                            cls.get_type_name(),
+                        )
                         parent.write(cloth)
 
                     else:
-                        logger_s.debug("Skipping '%s' type: %s because empty.",
-                                                      name, cls.get_type_name())
-                        self._enter_cloth(ctx, cloth, parent, skip=True,
-                                                        method=cls_attrs.method)
+                        logger_s.debug(
+                            "Skipping '%s' type: %s because empty.",
+                            name,
+                            cls.get_type_name(),
+                        )
+                        self._enter_cloth(
+                            ctx, cloth, parent, skip=True, method=cls_attrs.method
+                        )
 
                 elif as_data:
                     # we only support XmlData of a primitive.,. is this a
@@ -631,8 +700,9 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         sub_name = name
                     attrs = {sub_name: self.to_unicode(cls, inst)}
 
-                    self._enter_cloth(ctx, cloth, parent, attrib=attrs,
-                                                        method=cls_attrs.method)
+                    self._enter_cloth(
+                        ctx, cloth, parent, attrib=attrs, method=cls_attrs.method
+                    )
 
                 else:
                     # push the instance at hand to instance stack. this makes it
@@ -644,8 +714,9 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
                     # try rendering the array value
                     if not from_arr and cls.Attributes.max_occurs > 1:
-                        ret = self.array_to_cloth(ctx, cls, inst, cloth, parent,
-                                                     as_attr=as_attr, name=name)
+                        ret = self.array_to_cloth(
+                            ctx, cls, inst, cloth, parent, as_attr=as_attr, name=name
+                        )
                     else:
                         # try rendering anything else
                         handler = self.rendering_handlers[cls]
@@ -657,13 +728,14 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         #              name, identifier, cls.get_type_name(),
                         #              log_repr(inst, cls, from_array=from_arr))
 
-                        ret = handler(ctx, cls, inst, cloth, parent, name=name,
-                                                                as_attr=as_attr)
+                        ret = handler(
+                            ctx, cls, inst, cloth, parent, name=name, as_attr=as_attr
+                        )
 
         if isgenerator(ret):
             try:
                 while True:
-                    sv2 = (yield)
+                    sv2 = yield
                     ret.send(sv2)
             except Break as e:
                 try:
@@ -672,8 +744,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                     pass
                 finally:
                     if pushed:
-                        logger_c.debug("%s %r popped %r %r", B("#"),
-                                                                self, cls, inst)
+                        logger_c.debug("%s %r popped %r %r", B("#"), self, cls, inst)
                         ctx.outprot_ctx.inst_stack.pop()
 
         else:
@@ -681,8 +752,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 logger_c.debug("%s %r popped %r %r", B("#"), self, cls, inst)
                 ctx.outprot_ctx.inst_stack.pop()
 
-    def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name,
-                                                                      **kwargs):
+    def model_base_to_cloth(self, ctx, cls, inst, cloth, parent, name, **kwargs):
         cls_attrs = self.get_cls_attrs(cls)
         self._enter_cloth(ctx, cloth, parent, method=cls_attrs.method)
 
@@ -720,8 +790,9 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         self.any_uri_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     @coroutine
-    def complex_to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
-                                                       as_attr=False, **kwargs):
+    def complex_to_cloth(
+        self, ctx, cls, inst, cloth, parent, name=None, as_attr=False, **kwargs
+    ):
         fti = cls.get_flat_type_info(cls)
         cls_attrs = self.get_cls_attrs(cls)
 
@@ -730,8 +801,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         elt_check = set()
 
         attrib = self._gen_attrib_dict(inst, fti)
-        self._enter_cloth(ctx, cloth, parent, attrib=attrib,
-                                                        method=cls_attrs.method)
+        self._enter_cloth(ctx, cloth, parent, attrib=attrib, method=cls_attrs.method)
 
         for elt in self._get_elts(cloth, self.MRPC_ID):
             self._actions_to_cloth(ctx, cls, inst, elt)
@@ -746,13 +816,27 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
         # Check for xmldata after entering the cloth.
         as_data_field = cloth.attrib.get(self.DATA_ATTR_NAME, None)
         if as_data_field is not None:
-            self._process_field(ctx, cls, inst, parent, cloth, fti,
-                   as_data_field, as_attr, True, fti_check, elt_check, **kwargs)
+            self._process_field(
+                ctx,
+                cls,
+                inst,
+                parent,
+                cloth,
+                fti,
+                as_data_field,
+                as_attr,
+                True,
+                fti_check,
+                elt_check,
+                **kwargs,
+            )
 
         for elt in elts:
-            for k_attr, as_attr, as_data in ((self.ID_ATTR_NAME, False, False),
-                                            (self.ATTR_ATTR_NAME, True, False),
-                                            (self.DATA_ATTR_NAME, False, True)):
+            for k_attr, as_attr, as_data in (
+                (self.ID_ATTR_NAME, False, False),
+                (self.ATTR_ATTR_NAME, True, False),
+                (self.DATA_ATTR_NAME, False, True),
+            ):
                 field_name = elt.attrib.get(k_attr, None)
                 if field_name is None:
                     continue
@@ -760,14 +844,25 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                 if elt.tag == self.DATA_TAG_NAME:
                     as_data = True
 
-                ret = self._process_field(ctx, cls, inst, parent, elt, fti,
-                     field_name, as_attr=as_attr, as_data=as_data,
-                             fti_check=fti_check, elt_check=elt_check, **kwargs)
+                ret = self._process_field(
+                    ctx,
+                    cls,
+                    inst,
+                    parent,
+                    elt,
+                    fti,
+                    field_name,
+                    as_attr=as_attr,
+                    as_data=as_data,
+                    fti_check=fti_check,
+                    elt_check=elt_check,
+                    **kwargs,
+                )
 
                 if isgenerator(ret):
                     try:
                         while True:
-                            sv2 = (yield)
+                            sv2 = yield
                             ret.send(sv2)
                     except Break as e:
                         try:
@@ -787,15 +882,30 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                         break
 
         if len(fti_check) > 0:
-            logger_s.debug("No element found for the following fields: %r",
-                                                         list(fti_check.keys()))
+            logger_s.debug(
+                "No element found for the following fields: %r", list(fti_check.keys())
+            )
         if len(elt_check) > 0:
-            logger_s.debug("No field found for element the following "
-                                              "elements: %r", list(elt_check))
+            logger_s.debug(
+                "No field found for element the following " "elements: %r",
+                list(elt_check),
+            )
 
-    def _process_field(self, ctx, cls, inst, parent,
-                   elt, fti, field_name, as_attr, as_data, fti_check, elt_check,
-                                                                      **kwargs):
+    def _process_field(
+        self,
+        ctx,
+        cls,
+        inst,
+        parent,
+        elt,
+        fti,
+        field_name,
+        as_attr,
+        as_data,
+        fti_check,
+        elt_check,
+        **kwargs,
+    ):
         field_type = fti.get(field_name, None)
         fti_check.pop(field_name, None)
 
@@ -807,8 +917,7 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
 
         cls_attrs = self.get_cls_attrs(field_type)
         if cls_attrs.exc:
-            logger_c.debug("Skipping elt id %r because "
-                           "it was excluded", field_name)
+            logger_c.debug("Skipping elt id %r because " "it was excluded", field_name)
             return
 
         sub_name = cls_attrs.sub_name
@@ -824,24 +933,34 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             val = getattr(inst, field_name, None)
 
         if as_data:
-            self._enter_cloth(ctx, elt, parent, skip=True, skip_dupe=True,
-                                                        method=cls_attrs.method)
+            self._enter_cloth(
+                ctx, elt, parent, skip=True, skip_dupe=True, method=cls_attrs.method
+            )
 
-        return self.to_cloth(ctx, field_type, val, elt, parent,
-                      name=sub_name, as_attr=as_attr, as_data=as_data, **kwargs)
+        return self.to_cloth(
+            ctx,
+            field_type,
+            val,
+            elt,
+            parent,
+            name=sub_name,
+            as_attr=as_attr,
+            as_data=as_data,
+            **kwargs,
+        )
 
     @coroutine
-    def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None,
-                                                                      **kwargs):
+    def array_to_cloth(self, ctx, cls, inst, cloth, parent, name=None, **kwargs):
         if isinstance(inst, PushBase):
             while True:
-                sv = (yield)
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent,
-                                             name=name, from_arr=True, **kwargs)
+                sv = yield
+                ret = self.to_cloth(
+                    ctx, cls, sv, cloth, parent, name=name, from_arr=True, **kwargs
+                )
                 if isgenerator(ret):
                     try:
                         while True:
-                            sv2 = (yield)
+                            sv2 = yield
                             ret.send(sv2)
                     except Break as e:
                         try:
@@ -855,12 +974,13 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
             for sv in inst:
                 was_empty = False
 
-                ret = self.to_cloth(ctx, cls, sv, cloth, parent,
-                                             from_arr=True, name=name, **kwargs)
+                ret = self.to_cloth(
+                    ctx, cls, sv, cloth, parent, from_arr=True, name=name, **kwargs
+                )
                 if isgenerator(ret):
                     try:
                         while True:
-                            sv2 = (yield)
+                            sv2 = yield
                             ret.send(sv2)
                     except Break as e:
                         try:

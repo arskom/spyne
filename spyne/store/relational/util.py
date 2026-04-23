@@ -52,7 +52,7 @@ def get_bind(obj):
         get_bind(session)  # Connection object
         get_bind(user)
     """
-    if hasattr(obj, 'bind'):
+    if hasattr(obj, "bind"):
         conn = obj.bind
     else:
         try:
@@ -60,10 +60,10 @@ def get_bind(obj):
         except UnmappedInstanceError:
             conn = obj
 
-    if not hasattr(conn, 'execute'):
+    if not hasattr(conn, "execute"):
         raise TypeError(
-            'This method accepts only Session, Engine, Connection and '
-            'declarative model objects.'
+            "This method accepts only Session, Engine, Connection and "
+            "declarative model objects."
         )
     return conn
 
@@ -111,27 +111,29 @@ def database_exists(url):
 
     url = copy(make_url(url))
     database = url.database
-    if url.drivername.startswith('postgres'):
-        url.database = 'postgres'
-    elif not url.drivername.startswith('sqlite'):
+    if url.drivername.startswith("postgres"):
+        url.database = "postgres"
+    elif not url.drivername.startswith("sqlite"):
         url.database = None
 
     engine = create_engine(url)
 
-    if engine.dialect.name == 'postgresql':
+    if engine.dialect.name == "postgresql":
         text = "SELECT 1 FROM pg_database WHERE datname='%s'" % database
         return bool(engine.execute(text).scalar())
 
-    elif engine.dialect.name == 'mysql':
-        text = ("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA "
-                "WHERE SCHEMA_NAME = '%s'" % database)
+    elif engine.dialect.name == "mysql":
+        text = (
+            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA "
+            "WHERE SCHEMA_NAME = '%s'" % database
+        )
         return bool(engine.execute(text).scalar())
 
-    elif engine.dialect.name == 'sqlite':
-        return database == ':memory:' or os.path.exists(database)
+    elif engine.dialect.name == "sqlite":
+        return database == ":memory:" or os.path.exists(database)
 
     else:
-        text = 'SELECT 1'
+        text = "SELECT 1"
         try:
             url.database = database
             engine = create_engine(url)
@@ -142,7 +144,7 @@ def database_exists(url):
             return False
 
 
-def create_database(url, encoding='utf8', psql_template='template1'):
+def create_database(url, encoding="utf8", psql_template="template1"):
     """Issue the appropriate CREATE DATABASE statement.
 
     :param url: A SQLAlchemy engine URL.
@@ -169,39 +171,35 @@ def create_database(url, encoding='utf8', psql_template='template1'):
 
     database = url.database
 
-    if url.drivername.startswith('postgres'):
-        url.database = 'postgres'
-    elif not url.drivername.startswith('sqlite'):
+    if url.drivername.startswith("postgres"):
+        url.database = "postgres"
+    elif not url.drivername.startswith("sqlite"):
         url.database = None
 
     engine = create_engine(url)
 
-    if engine.dialect.name == 'postgresql':
-        if engine.driver == 'psycopg2':
+    if engine.dialect.name == "postgresql":
+        if engine.driver == "psycopg2":
             from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-            engine.raw_connection().set_isolation_level(
-                ISOLATION_LEVEL_AUTOCOMMIT
-            )
+
+            engine.raw_connection().set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
         text = "CREATE DATABASE {0} ENCODING '{1}' TEMPLATE {2}".format(
-            quote(engine, database),
-            encoding,
-            quote(engine, psql_template)
+            quote(engine, database), encoding, quote(engine, psql_template)
         )
         engine.execute(text)
 
-    elif engine.dialect.name == 'mysql':
+    elif engine.dialect.name == "mysql":
         text = "CREATE DATABASE {0} CHARACTER SET = '{1}'".format(
-            quote(engine, database),
-            encoding
+            quote(engine, database), encoding
         )
         engine.execute(text)
 
-    elif engine.dialect.name == 'sqlite' and database != ':memory:':
-        open(database, 'w').close()
+    elif engine.dialect.name == "sqlite" and database != ":memory:":
+        open(database, "w").close()
 
     else:
-        text = 'CREATE DATABASE {0}'.format(quote(engine, database))
+        text = "CREATE DATABASE {0}".format(quote(engine, database))
         engine.execute(text)
 
 
@@ -222,44 +220,40 @@ def drop_database(url):
 
     database = url.database
 
-    if url.drivername.startswith('postgresql'):
-        url.database = 'template1'
-    elif not url.drivername.startswith('sqlite'):
+    if url.drivername.startswith("postgresql"):
+        url.database = "template1"
+    elif not url.drivername.startswith("sqlite"):
         url.database = None
 
     engine = create_engine(url)
 
-    if engine.dialect.name == 'sqlite' and url.database != ':memory:':
+    if engine.dialect.name == "sqlite" and url.database != ":memory:":
         os.remove(url.database)
 
-    elif engine.dialect.name == 'postgresql' and engine.driver == 'psycopg2':
+    elif engine.dialect.name == "postgresql" and engine.driver == "psycopg2":
         from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
         engine.raw_connection().set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
         # Disconnect all users from the database we are dropping.
         version = list(
-            map(
-                int,
-                engine.execute('SHOW server_version').first()[0].split('.')
-            )
+            map(int, engine.execute("SHOW server_version").first()[0].split("."))
         )
-        pid_column = (
-            'pid' if (version[0] >= 9 and version[1] >= 2) else 'procpid'
-        )
-        text = '''
+        pid_column = "pid" if (version[0] >= 9 and version[1] >= 2) else "procpid"
+        text = """
         SELECT pg_terminate_backend(pg_stat_activity.%(pid_column)s)
         FROM pg_stat_activity
         WHERE pg_stat_activity.datname = '%(database)s'
           AND %(pid_column)s <> pg_backend_pid();
-        ''' % {'pid_column': pid_column, 'database': database}
+        """ % {"pid_column": pid_column, "database": database}
         engine.execute(text)
 
         # Drop the database.
-        text = 'DROP DATABASE {0}'.format(quote(engine, database))
+        text = "DROP DATABASE {0}".format(quote(engine, database))
         engine.execute(text)
 
     else:
-        text = 'DROP DATABASE {0}'.format(quote(engine, database))
+        text = "DROP DATABASE {0}".format(quote(engine, database))
         engine.execute(text)
 
 
@@ -273,6 +267,6 @@ def do_cprofile(func):
             profile.disable()
             return result
         finally:
-            profile.print_stats(sort='time')
+            profile.print_stats(sort="time")
 
     return profiled_func

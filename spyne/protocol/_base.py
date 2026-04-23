@@ -25,10 +25,10 @@ logger = logging.getLogger(__name__)
 from datetime import datetime
 from weakref import WeakKeyDictionary
 
-from spyne.evmgr import EventManager
-from spyne.context import ProtocolContext
 from spyne.const import DEFAULT_LOCALE
+from spyne.context import ProtocolContext
 from spyne.error import ResourceNotFoundError
+from spyne.evmgr import EventManager
 from spyne.model import Array
 from spyne.util import DefaultAttrDict
 

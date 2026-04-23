@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -41,6 +40,7 @@ END_COLOR = ""
 """ANSI colour value for end color marker if colours are enabled, empty string
 otherwise."""
 
+
 def enable_color():
     """Enable colors by setting colour code constants to ANSI color codes."""
 
@@ -77,5 +77,6 @@ def disable_color():
 
     global END_COLOR
     END_COLOR = ""
+
 
 enable_color()

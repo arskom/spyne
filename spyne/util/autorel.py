@@ -80,10 +80,9 @@ except ImportError:
     MAX_FILES = 0
 else:
     try:
-        MAX_FILES = os.sysconf('SC_OPEN_MAX')
+        MAX_FILES = os.sysconf("SC_OPEN_MAX")
     except AttributeError:
         MAX_FILES = 1024
-
 
 
 class AutoReloader(object):
@@ -106,7 +105,7 @@ class AutoReloader(object):
     FILES = set()
     """The set of files to poll for modifications."""
 
-    def __init__(self, frequency=1, match='.*'):
+    def __init__(self, frequency=1, match=".*"):
         self.max_cloexec_files = MAX_FILES
 
         self.mtimes = {}
@@ -128,29 +127,25 @@ class AutoReloader(object):
 
         retval = LoopingCall(self.run)
         retval.start(self.frequency)
-        return retval # oh no
+        return retval  # oh no
 
     def sysfiles(self):
         """Return a Set of sys.modules filenames to monitor."""
         files = set()
         for k, m in list(sys.modules.items()):
             if re.match(self.match, k):
-                if (
-                    hasattr(m, '__loader__') and
-                    hasattr(m.__loader__, 'archive')
-                ):
+                if hasattr(m, "__loader__") and hasattr(m.__loader__, "archive"):
                     f = m.__loader__.archive
                 else:
                     try:
-                        f = getattr(m, '__file__', None)
+                        f = getattr(m, "__file__", None)
                     except ImportError:
                         f = None
 
                     if f is not None and not os.path.isabs(f):
                         # ensure absolute paths so a os.chdir() in the app
                         # doesn't break me
-                        f = os.path.normpath(
-                            os.path.join(_module__file__base, f))
+                        f = os.path.normpath(os.path.join(_module__file__base, f))
                 files.add(f)
         return files
 
@@ -158,7 +153,7 @@ class AutoReloader(object):
         """Reload the process if registered files have been modified."""
         for filename in self.sysfiles() | self.files:
             if filename:
-                if filename.endswith('.pyc'):
+                if filename.endswith(".pyc"):
                     filename = filename[:-1]
 
                 oldtime = self.mtimes.get(filename, 0)
@@ -178,10 +173,10 @@ class AutoReloader(object):
                 else:
                     if mtime is None or mtime > oldtime:
                         # The file has been deleted or modified.
-                        logger.info("Restarting because '%s' has changed." %
-                                                                       filename)
+                        logger.info("Restarting because '%s' has changed." % filename)
 
                         from twisted.internet import reactor
+
                         reactor.stop()
                         self._do_execv()
                         return
@@ -201,12 +196,9 @@ class AutoReloader(object):
         (This idea filched from tornado.autoreload)
         """
 
-        path_prefix = '.' + os.pathsep
-        existing_path = env.get('PYTHONPATH', '')
-        needs_patch = (
-            sys.path[0] == '' and
-            not existing_path.startswith(path_prefix)
-        )
+        path_prefix = "." + os.pathsep
+        existing_path = env.get("PYTHONPATH", "")
+        needs_patch = sys.path[0] == "" and not existing_path.startswith(path_prefix)
 
         if needs_patch:
             env["PYTHONPATH"] = path_prefix + existing_path
@@ -239,17 +231,18 @@ class AutoReloader(object):
 
         self._extend_pythonpath(os.environ)
 
-        logger.info('Re-spawning %s' % ' '.join(args))
+        logger.info("Re-spawning %s" % " ".join(args))
         logger.info("")
         logger.info("%s Bye! %s", YEL("-" * 35), YEL("-" * 35))
         logger.info("")
 
-        if sys.platform[:4] == 'java':
+        if sys.platform[:4] == "java":
             from _systemrestart import SystemRestart
+
             raise SystemRestart
 
         args.insert(0, sys.executable)
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             args = ['"%s"' % arg for arg in args]
 
         os.chdir(_module__file__base)

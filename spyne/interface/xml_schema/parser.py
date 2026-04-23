@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -44,7 +43,7 @@ from spyne.model import (
     ComplexModelMeta,
     Null,
     XmlAttribute,
-    XmlData
+    XmlData,
 )
 from spyne.model.complex import XmlModifier
 from spyne.protocol.xml import XmlDocument
@@ -75,23 +74,26 @@ def Thier_repr(with_ns=False):
     """
 
     if with_ns is False:
+
         def get_class_name(c):
             return c.get_type_name()
 
     elif with_ns is True or with_ns == 1:
+
         def get_class_name(c):
             return "{%s}%s" % (c.get_namespace(), c.get_type_name())
 
     else:
+
         def get_class_name(c):
             return with_ns(c.get_namespace(), c.get_type_name())
 
-    def hier_repr(inst, i0=0, I='  ', tags=None):
+    def hier_repr(inst, i0=0, I="  ", tags=None):
         if tags is None:
             tags = set()
 
         cls = inst.__class__
-        if not hasattr(cls, '_type_info'):
+        if not hasattr(cls, "_type_info"):
             return repr(inst)
 
         clsid = "%s" % (get_class_name(cls))
@@ -103,7 +105,7 @@ def Thier_repr(with_ns=False):
         i1 = i0 + 1
         i2 = i1 + 1
 
-        retval = [clsid, '(']
+        retval = [clsid, "("]
 
         xtba = cls.Attributes._xml_tag_body_as
         if xtba is not None:
@@ -113,31 +115,31 @@ def Thier_repr(with_ns=False):
                 value = getattr(inst, xtba_key, None)
                 retval.append("%s,\n" % hier_repr(value, i1, I, tags))
             else:
-                retval.append('\n')
+                retval.append("\n")
         else:
-            retval.append('\n')
+            retval.append("\n")
 
         for k, v in inst.get_flat_type_info(cls).items():
             value = getattr(inst, k, None)
-            if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
-                                                              value is not None:
+            if (
+                issubclass(v, Array) or v.Attributes.max_occurs > 1
+            ) and value is not None:
                 retval.append("%s%s=[\n" % (I * i1, k))
                 for subval in value:
-                    retval.append("%s%s,\n" % (I * i2,
-                                                hier_repr(subval, i2, I, tags)))
-                retval.append('%s],\n' % (I * i1))
+                    retval.append("%s%s,\n" % (I * i2, hier_repr(subval, i2, I, tags)))
+                retval.append("%s],\n" % (I * i1))
 
             elif issubclass(v, XmlData):
                 pass
 
             else:
-                retval.append("%s%s=%s,\n" % (I * i1, k,
-                                                hier_repr(value, i1, I, tags)))
+                retval.append("%s%s=%s,\n" % (I * i1, k, hier_repr(value, i1, I, tags)))
 
-        retval.append('%s)' % (I * i0))
-        return ''.join(retval)
+        retval.append("%s)" % (I * i0))
+        return "".join(retval)
 
     return hier_repr
+
 
 SchemaBase.__repr__ = Thier_repr()
 
@@ -146,8 +148,9 @@ hier_repr_ns = Thier_repr(with_ns=True)
 
 
 class XmlSchemaParser(object):
-    def __init__(self, files, base_dir=None, repr_=Thier_repr(with_ns=False),
-                                                             skip_errors=False):
+    def __init__(
+        self, files, base_dir=None, repr_=Thier_repr(with_ns=False), skip_errors=False
+    ):
         self.retval = {}
         self.indent = 0
         self.files = files
@@ -188,7 +191,7 @@ class XmlSchemaParser(object):
         return retval
 
     def debug0(self, s, *args, **kwargs):
-        logger.debug("%s%s" % ("  " *  self.indent, s), *args, **kwargs)
+        logger.debug("%s%s" % ("  " * self.indent, s), *args, **kwargs)
 
     def debug1(self, s, *args, **kwargs):
         logger.debug("%s%s" % ("  " * (self.indent + 1), s), *args, **kwargs)
@@ -197,7 +200,7 @@ class XmlSchemaParser(object):
         logger.debug("%s%s" % ("  " * (self.indent + 2), s), *args, **kwargs)
 
     def parse_schema_file(self, file_name):
-        elt = etree.fromstring(open(file_name, 'rb').read(), parser=PARSER)
+        elt = etree.fromstring(open(file_name, "rb").read(), parser=PARSER)
         return self.parse_schema(elt)
 
     def process_includes(self, include):
@@ -208,7 +211,7 @@ class XmlSchemaParser(object):
         self.debug1("including %s %s", self.base_dir, file_name)
 
         file_name = abspath(join(self.base_dir, file_name))
-        data = open(file_name, 'rb').read()
+        data = open(file_name, "rb").read()
         elt = etree.fromstring(data, parser=PARSER)
         self.nsmap.update(elt.nsmap)
         self.prefmap = dict([(v, k) for k, v in self.nsmap.items()])
@@ -222,7 +225,7 @@ class XmlSchemaParser(object):
                 self.nsmap.update(child_ctx.nsmap)
                 self.prefmap = dict([(v, k) for k, v in self.nsmap.items()])
 
-        for attr in ('imports', 'simple_types', 'complex_types', 'elements'):
+        for attr in ("imports", "simple_types", "complex_types", "elements"):
             sub = getattr(sub_schema, attr)
             if sub is None:
                 sub = []
@@ -238,20 +241,26 @@ class XmlSchemaParser(object):
     def process_simple_type_list(self, s, name=None):
         item_type = s.list.item_type
         if item_type is None:
-            self.debug1("skipping simple type: %s because its list itemType "
-                        "could not be found", name)
+            self.debug1(
+                "skipping simple type: %s because its list itemType "
+                "could not be found",
+                name,
+            )
             return
 
         base = self.get_type(item_type)
         if base is None:
             self.pending_simple_types[self.get_name(item_type)].add((s, name))
-            self.debug1("pending  simple type list: %s "
-                                   "because of unseen base %s", name, item_type)
+            self.debug1(
+                "pending  simple type list: %s " "because of unseen base %s",
+                name,
+                item_type,
+            )
 
             return
 
         self.debug1("adding   simple type list: %s", name)
-        retval = Array(base, serialize_as='sd-list')  # FIXME: to be implemented
+        retval = Array(base, serialize_as="sd-list")  # FIXME: to be implemented
         retval.__type_name__ = name
         retval.__namespace__ = self.tns
 
@@ -261,15 +270,19 @@ class XmlSchemaParser(object):
     def process_simple_type_restriction(self, s, name=None):
         base_name = s.restriction.base
         if base_name is None:
-            self.debug1("skipping simple type: %s because its restriction base "
-                        "could not be found", name)
+            self.debug1(
+                "skipping simple type: %s because its restriction base "
+                "could not be found",
+                name,
+            )
             return
 
         base = self.get_type(base_name)
         if base is None:
             self.pending_simple_types[self.get_name(base_name)].add((s, name))
-            self.debug1("pending  simple type: %s because of unseen base %s",
-                                                                name, base_name)
+            self.debug1(
+                "pending  simple type: %s because of unseen base %s", name, base_name
+            )
 
             return
 
@@ -278,19 +291,19 @@ class XmlSchemaParser(object):
         kwargs = {}
         restriction = s.restriction
         if restriction.enumeration:
-            kwargs['values'] = [e.value for e in restriction.enumeration]
+            kwargs["values"] = [e.value for e in restriction.enumeration]
 
         if restriction.max_length:
             if restriction.max_length.value:
-                kwargs['max_len'] = int(restriction.max_length.value)
+                kwargs["max_len"] = int(restriction.max_length.value)
 
         if restriction.min_length:
             if restriction.min_length.value:
-                kwargs['min_len'] = int(restriction.min_length.value)
+                kwargs["min_len"] = int(restriction.min_length.value)
 
         if restriction.pattern:
             if restriction.pattern.value:
-                kwargs['pattern'] = restriction.pattern.value
+                kwargs["pattern"] = restriction.pattern.value
 
         retval = base.customize(**kwargs)
         retval.__type_name__ = name
@@ -305,8 +318,9 @@ class XmlSchemaParser(object):
         return retval
 
     def process_simple_type_union(self, s, name=None):
-        self.debug1("skipping simple type: %s because <union> is not "
-                    "implemented", name)
+        self.debug1(
+            "skipping simple type: %s because <union> is not " "implemented", name
+        )
 
     def process_simple_type(self, s, name=None):
         """Returns the simple Spyne type from `<simpleType>` tag."""
@@ -373,20 +387,20 @@ class XmlSchemaParser(object):
             t = self.get_type(a.type)
 
             if t is None:
-                raise ValueError(a, 'type %r not found' % a.type)
+                raise ValueError(a, "type %r not found" % a.type)
 
         elif a.simple_type is not None:
             t = self.process_simple_type(a.simple_type, a.name)
 
             if t is None:
-                raise ValueError(a, 'simple type %r not found' % a.simple_type)
+                raise ValueError(a, "simple type %r not found" % a.simple_type)
 
         else:
             raise Exception("dunno attr")
 
         kwargs = {}
         if a.default is not None:
-            kwargs['default'] = _prot.from_unicode(t, a.default)
+            kwargs["default"] = _prot.from_unicode(t, a.default)
 
         if len(kwargs) > 0:
             t = t.customize(**kwargs)
@@ -415,30 +429,30 @@ class XmlSchemaParser(object):
             kwargs = {}
             if element is not None:
                 if e.min_occurs != "0":  # spyne default
-                    kwargs['min_occurs'] = int(e.min_occurs)
+                    kwargs["min_occurs"] = int(e.min_occurs)
 
                 if e.max_occurs == "unbounded":
-                    kwargs['max_occurs'] = e.max_occurs
+                    kwargs["max_occurs"] = e.max_occurs
                 elif e.max_occurs != "1":
-                    kwargs['max_occurs'] = int(e.max_occurs)
+                    kwargs["max_occurs"] = int(e.max_occurs)
 
                 if e.nillable != True:  # spyne default
-                    kwargs['nillable'] = e.nillable
+                    kwargs["nillable"] = e.nillable
 
                 if e.default is not None:
-                    kwargs['default'] = _prot.from_unicode(t, e.default)
+                    kwargs["default"] = _prot.from_unicode(t, e.default)
 
                 if len(kwargs) > 0:
                     t = t.customize(**kwargs)
 
             if attribute is not None:
                 if attribute.default is not None:
-                    kwargs['default'] = _prot.from_unicode(t, a.default)
+                    kwargs["default"] = _prot.from_unicode(t, a.default)
 
                 if len(kwargs) > 0:
                     t = t.customize(**kwargs)
 
-            ti.append( (name, wrapper(t)) )
+            ti.append((name, wrapper(t)))
             self.debug2("    found: %r(%s), c: %r", key, tn, kwargs)
 
         def process_element(e):
@@ -528,13 +542,15 @@ class XmlSchemaParser(object):
             r._type_info.update(ti)
 
         else:
-            cls_dict = odict({
-                '__type_name__': c.name,
-                '__namespace__': self.tns,
-                '_type_info': ti,
-            })
+            cls_dict = odict(
+                {
+                    "__type_name__": c.name,
+                    "__namespace__": self.tns,
+                    "_type_info": ti,
+                }
+            )
             if self.repr is not None:
-                cls_dict['__repr__'] = self.repr
+                cls_dict["__repr__"] = self.repr
 
             r = ComplexModelMeta(str(c.name), (base,), cls_dict)
             self.retval[self.tns].types[c.name] = r
@@ -543,7 +559,7 @@ class XmlSchemaParser(object):
 
     def get_name(self, tn):
         if tn.startswith("{"):
-            ns, qn = tn[1:].split('}', 1)
+            ns, qn = tn[1:].split("}", 1)
 
         elif ":" in tn:
             ns, qn = tn.split(":", 1)
@@ -576,8 +592,7 @@ class XmlSchemaParser(object):
                 else:
                     retval = self.get_type("{%s}%s" % (ns, e.type))
                     if retval is None and None in self.nsmap:
-                        retval = self.get_type("{%s}%s" %
-                                                     (self.nsmap[None], e.type))
+                        retval = self.get_type("{%s}%s" % (self.nsmap[None], e.type))
                     return retval
 
         return TYPE_MAP.get("{%s}%s" % (ns, qn))
@@ -594,8 +609,7 @@ class XmlSchemaParser(object):
 
     def print_pending(self, fail=False):
         ptt_pending = sum((len(v) for v in self.pending_simple_types.values())) > 0
-        if len(self.pending_elements) > 0 or len(self.pending_types) > 0 or \
-                                                                    ptt_pending:
+        if len(self.pending_elements) > 0 or len(self.pending_types) > 0 or ptt_pending:
             if fail:
                 logging.basicConfig(level=logging.DEBUG)
             self.debug0("%" * 50)
@@ -627,7 +641,7 @@ class XmlSchemaParser(object):
 
         self.tns = tns = schema.target_namespace
         if self.tns is None:
-            self.tns = tns = '__no_ns__'
+            self.tns = tns = "__no_ns__"
         if tns in self.retval:
             return
         self.retval[tns] = _Schema()
@@ -640,11 +654,9 @@ class XmlSchemaParser(object):
         if schema.elements:
             schema.elements = odict([(e.name, e) for e in schema.elements])
         if schema.complex_types:
-            schema.complex_types = odict([(c.name, c)
-                                                 for c in schema.complex_types])
+            schema.complex_types = odict([(c.name, c) for c in schema.complex_types])
         if schema.simple_types:
-            schema.simple_types = odict([(s.name, s)
-                                                 for s in schema.simple_types])
+            schema.simple_types = odict([(s.name, s) for s in schema.simple_types])
         if schema.attributes:
             schema.attributes = odict([(a.name, a) for a in schema.attributes])
 
@@ -663,8 +675,9 @@ class XmlSchemaParser(object):
                 self.process_simple_type(s)
 
             # no simple types should have been left behind.
-            assert sum((len(v) for v in self.pending_simple_types.values())) == 0, \
-                                              self.pending_simple_types.values()
+            assert (
+                sum((len(v) for v in self.pending_simple_types.values())) == 0
+            ), self.pending_simple_types.values()
 
         self.debug0("4 %s processing attributes", G(tns))
         if schema.attributes:
@@ -689,7 +702,7 @@ class XmlSchemaParser(object):
                 # This is needed for schemas with circular imports
                 for c in chain([self], self.children):
                     c.print_pending()
-                self.debug0('')
+                self.debug0("")
 
                 # FIXME: should put this in a while loop that loops until no
                 # changes occur
@@ -697,7 +710,7 @@ class XmlSchemaParser(object):
                     c.process_pending()
                 for c in chain([self], self.children):
                     c.process_pending()
-                self.debug0('')
+                self.debug0("")
 
                 for c in chain([self], self.children):
                     c.print_pending(fail=(not self.skip_errors))

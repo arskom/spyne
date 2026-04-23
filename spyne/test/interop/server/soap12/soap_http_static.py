@@ -20,7 +20,7 @@
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('spyne.wsgi')
+logger = logging.getLogger("spyne.wsgi")
 logger.setLevel(logging.DEBUG)
 
 import os
@@ -28,9 +28,10 @@ import os
 from spyne.server.twisted import TwistedWebResource
 from spyne.test.interop.server.soap12.soap_http_basic import soap12_application
 
-host = '127.0.0.1'
+host = "127.0.0.1"
 port = 9756
-url = 'app'
+url = "app"
+
 
 def main(argv):
     from twisted.internet import reactor
@@ -38,10 +39,10 @@ def main(argv):
     from twisted.web.server import Site
     from twisted.web.static import File
 
-    observer = log.PythonLoggingObserver('twisted')
+    observer = log.PythonLoggingObserver("twisted")
     log.startLoggingWithObserver(observer.emit, setStdout=False)
 
-    static_dir = os.path.abspath('.')
+    static_dir = os.path.abspath(".")
     logging.info("registering static folder %r on /" % static_dir)
     root = File(static_dir)
 
@@ -52,11 +53,12 @@ def main(argv):
     site = Site(root)
 
     reactor.listenTCP(port, site)
-    logging.info("listening on: %s:%d" % (host,port))
+    logging.info("listening on: %s:%d" % (host, port))
 
     return reactor.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     sys.exit(main(sys.argv))

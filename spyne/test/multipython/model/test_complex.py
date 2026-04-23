@@ -22,16 +22,11 @@
 
 import unittest
 
-from spyne.model.complex import (
-    Array,
-    ComplexModel,
-    ComplexModelBase,
-    ComplexModelMeta
-)
+from spyne.model.complex import Array, ComplexModel, ComplexModelBase, ComplexModelMeta
 from spyne.model.primitive import Integer, String, Unicode
 
 
-class DeclareOrder_declare(ComplexModel.customize(declare_order='declared')):
+class DeclareOrder_declare(ComplexModel.customize(declare_order="declared")):
     field3 = Integer
     field1 = Integer
     field2 = Integer
@@ -41,23 +36,24 @@ class MyComplexModelMeta(ComplexModelMeta):
     """Custom complex model metaclass."""
 
     def __new__(mcs, name, bases, attrs):
-        attrs['new_field'] = Unicode
-        attrs['field1'] = Unicode
-        new_cls = super(MyComplexModelMeta, mcs).__new__(mcs, name, bases,
-                                                         attrs)
+        attrs["new_field"] = Unicode
+        attrs["field1"] = Unicode
+        new_cls = super(MyComplexModelMeta, mcs).__new__(mcs, name, bases, attrs)
         return new_cls
 
 
 class MyComplexModel(ComplexModelBase, metaclass=MyComplexModelMeta):
     """Custom complex model class."""
+
     class Attributes(ComplexModelBase.Attributes):
-        declare_order = 'declared'
+        declare_order = "declared"
 
 
 class MyModelWithDeclaredOrder(MyComplexModel):
     """Test model for complex model with custom metaclass."""
+
     class Attributes(MyComplexModel.Attributes):
-        declare_order = 'declared'
+        declare_order = "declared"
 
     field3 = Integer
     field1 = Integer
@@ -68,71 +64,75 @@ class TestComplexModel(unittest.TestCase):
     def test_add_field(self):
         class C(ComplexModel):
             u = Unicode
-        C.append_field('i', Integer)
-        assert C._type_info['i'] is Integer
+
+        C.append_field("i", Integer)
+        assert C._type_info["i"] is Integer
 
     def test_insert_field(self):
         class C(ComplexModel):
             u = Unicode
-        C.insert_field(0, 'i', Integer)
-        assert C._type_info.keys() == ['i', 'u']
+
+        C.insert_field(0, "i", Integer)
+        assert C._type_info.keys() == ["i", "u"]
 
     def test_variants(self):
         class C(ComplexModel):
             u = Unicode
+
         CC = C.customize(child_attrs=dict(u=dict(min_len=5)))
         print(dict(C.Attributes._variants.items()))
-        r, = C.Attributes._variants
+        (r,) = C.Attributes._variants
         assert r is CC
         assert CC.Attributes.parent_variant is C
-        C.append_field('i', Integer)
-        assert C._type_info['i'] is Integer
-        assert CC._type_info['i'] is Integer
+        C.append_field("i", Integer)
+        assert C._type_info["i"] is Integer
+        assert CC._type_info["i"] is Integer
 
     def test_child_customization(self):
         class C(ComplexModel):
             u = Unicode
+
         CC = C.customize(child_attrs=dict(u=dict(min_len=5)))
-        assert CC._type_info['u'].Attributes.min_len == 5
-        assert C._type_info['u'].Attributes.min_len != 5
+        assert CC._type_info["u"].Attributes.min_len == 5
+        assert C._type_info["u"].Attributes.min_len != 5
 
     def test_array_customization(self):
         CC = Array(Unicode).customize(
-            serializer_attrs=dict(min_len=5), punks='roll',
+            serializer_attrs=dict(min_len=5),
+            punks="roll",
         )
-        assert CC.Attributes.punks == 'roll'
+        assert CC.Attributes.punks == "roll"
         assert CC._type_info[0].Attributes.min_len == 5
 
     def test_array_customization_complex(self):
         class C(ComplexModel):
             u = Unicode
 
-        CC = Array(C).customize(
-            punks='roll',
-            serializer_attrs=dict(bidik=True)
-        )
-        assert CC.Attributes.punks == 'roll'
+        CC = Array(C).customize(punks="roll", serializer_attrs=dict(bidik=True))
+        assert CC.Attributes.punks == "roll"
         assert CC._type_info[0].Attributes.bidik == True
 
     def test_delayed_child_customization_append(self):
         class C(ComplexModel):
             u = Unicode
+
         CC = C.customize(child_attrs=dict(i=dict(ge=5)))
-        CC.append_field('i', Integer)
-        assert CC._type_info['i'].Attributes.ge == 5
-        assert not 'i' in C._type_info
+        CC.append_field("i", Integer)
+        assert CC._type_info["i"].Attributes.ge == 5
+        assert not "i" in C._type_info
 
     def test_delayed_child_customization_insert(self):
         class C(ComplexModel):
             u = Unicode
+
         CC = C.customize(child_attrs=dict(i=dict(ge=5)))
-        CC.insert_field(1, 'i', Integer)
-        assert CC._type_info['i'].Attributes.ge == 5
-        assert not 'i' in C._type_info
+        CC.insert_field(1, "i", Integer)
+        assert CC._type_info["i"].Attributes.ge == 5
+        assert not "i" in C._type_info
 
     def test_array_member_name(self):
         print(Array(String, member_name="punk")._type_info)
-        assert 'punk' in Array(String, member_name="punk")._type_info
+        assert "punk" in Array(String, member_name="punk")._type_info
 
     def test_customize(self):
         class Base(ComplexModel):
@@ -170,12 +170,16 @@ class TestComplexModel(unittest.TestCase):
         self.assertEqual(Derived3.Attributes.prop1, Base.Attributes.prop1)
 
     def test_declare_order(self):
-        self.assertEqual(["field3", "field1", "field2"],
-                          list(DeclareOrder_declare._type_info))
-        self.assertEqual(["field3", "field1", "field2", "new_field"],
-                          list(MyModelWithDeclaredOrder._type_info))
+        self.assertEqual(
+            ["field3", "field1", "field2"], list(DeclareOrder_declare._type_info)
+        )
+        self.assertEqual(
+            ["field3", "field1", "field2", "new_field"],
+            list(MyModelWithDeclaredOrder._type_info),
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     sys.exit(unittest.main())

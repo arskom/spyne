@@ -29,10 +29,10 @@ from io import BytesIO
 from lxml import etree
 from lxml.etree import LxmlSyntaxError
 
-from spyne.descriptor import BODY_STYLE_WRAPPED
-from spyne.model.complex import Array
-from spyne.model.binary import ByteArray, File
 from spyne.context import ProtocolContext
+from spyne.descriptor import BODY_STYLE_WRAPPED
+from spyne.model.binary import ByteArray, File
+from spyne.model.complex import Array
 from spyne.protocol import ProtocolMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
 from spyne.protocol.cloth.to_parent import ToParentMixin

@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -21,7 +20,6 @@
 """The Django client transport for testing Spyne apps the way you'd test Django
 apps."""
 
-
 from __future__ import absolute_import
 
 from django.test.client import Client
@@ -33,7 +31,7 @@ class _RemoteProcedure(RemoteProcedureBase):
     def __init__(self, url, app, name, out_header=None, *args, **kwargs):
         super(_RemoteProcedure, self).__init__(url, app, name, out_header=out_header)
 
-        self.secure = kwargs.get('secure', False)
+        self.secure = kwargs.get("secure", False)
 
     def __call__(self, *args, **kwargs):
         response = self.get_django_response(*args, **kwargs)
@@ -58,7 +56,7 @@ class _RemoteProcedure(RemoteProcedureBase):
         # the comma-in-assignment trick is a general way of getting the first
         # and the only variable from an iterable. so if there's more than one
         # element in the iterable, it'll fail miserably.
-        self.ctx, = self.contexts
+        (self.ctx,) = self.contexts
 
         # sets ctx.out_object
         self.get_out_object(self.ctx, args, kwargs)
@@ -66,10 +64,12 @@ class _RemoteProcedure(RemoteProcedureBase):
         # sets ctx.out_string
         self.get_out_string(self.ctx)
 
-        out_string = b''.join(self.ctx.out_string)
+        out_string = b"".join(self.ctx.out_string)
         # Hack
         client = Client()
-        return client.post(self.url, content_type='text/xml', data=out_string, secure=self.secure)
+        return client.post(
+            self.url, content_type="text/xml", data=out_string, secure=self.secure
+        )
 
 
 class DjangoTestClient(ClientBase):

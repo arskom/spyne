@@ -1,9 +1,10 @@
 variables:
-  KUBERNETES_UNIT_TESTS_MEMORY: "1024Mi"
-  CODE_QUALITY: "false"
+  KUBERNETES_MEMORY_REQUEST_DEFAULT: "2000Mi"
+  KUBERNETES_MEMORY_LIMIT_DEFAULT: "2000Mi"
+  CODE_QUALITY: false
 
 include:
-  - component: $CI_SERVER_FQDN/gitlab-ci/ci-toolbox/python-library@1.0.94
+  - component: $CI_SERVER_FQDN/gitlab-ci/ci-toolbox/python-library@1.0.93
 
 
 unit-tests:

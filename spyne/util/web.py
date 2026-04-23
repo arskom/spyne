@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -46,13 +45,13 @@ from spyne import (
     Service,
     Unicode,
     UnsignedInteger32,
-    rpc
+    rpc,
 )
 from spyne.const import (
     MAX_ARRAY_ELEMENT_NUM,
     MAX_DICT_ELEMENT_NUM,
     MAX_FIELD_NUM,
-    MAX_STRING_FIELD_LENGTH
+    MAX_STRING_FIELD_LENGTH,
 )
 
 try:
@@ -62,14 +61,15 @@ try:
 except ImportError:
     # these are used just for isinstance checks. so we just set it to an
     # anonymous value
-    FileData = type('__hidden', (object, ), {})
-    DetachedInstanceError = type('__hidden', (Exception, ), {})
+    FileData = type("__hidden", (object,), {})
+    DetachedInstanceError = type("__hidden", (Exception,), {})
 
 EXCEPTION_ADDRESS = None
 
 
 try:
     from colorama.ansi import Fore, Style
+
     RED = Fore.RED + Style.BRIGHT
     GREEN = Fore.GREEN + Style.BRIGHT
     RESET = Style.RESET_ALL
@@ -88,8 +88,9 @@ class WriterService(Service):
     pass
 
 
-def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
-                                                          tags=None, prot=None):
+def log_repr(
+    obj, cls=None, given_len=None, parent=None, from_array=False, tags=None, prot=None
+):
     """Use this function if you want to serialize a ComplexModelBase instance to
     logs. It will:
 
@@ -102,10 +103,10 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
         tags = set()
 
     if obj is None:
-        return 'None'
+        return "None"
 
     objcls = None
-    if hasattr(obj, '__class__'):
+    if hasattr(obj, "__class__"):
         objcls = obj.__class__
 
     if objcls in (list, tuple):
@@ -123,7 +124,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
     cls_attrs = None
     logged = None
 
-    if hasattr(cls, 'Attributes'):
+    if hasattr(cls, "Attributes"):
         # init cls_attrs
         if prot is None:
             cls_attrs = cls.Attributes
@@ -135,11 +136,11 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
         if not logged:
             return "%s(...)" % cls.get_type_name()
 
-        if logged == '...':
+        if logged == "...":
             return "(...)"
 
-    if logged == 'len':
-        l = '?'
+    if logged == "len":
+        l = "?"
         try:
             if isinstance(obj, (list, tuple)):
                 l = str(sum([len(o) for o in obj]))
@@ -164,33 +165,33 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
         retval = []
 
         if isinstance(obj, dict):
-            if logged == 'full':
+            if logged == "full":
                 for i, (k, v) in enumerate(obj.items()):
-                    retval.append('%r: %r' % (k, v))
+                    retval.append("%r: %r" % (k, v))
 
-            elif logged == 'keys':
+            elif logged == "keys":
                 for i, k in enumerate(obj.keys()):
                     if i >= MAX_DICT_ELEMENT_NUM:
                         retval.append("(...)")
                         break
 
-                    retval.append('%r: (...)' % (k,))
+                    retval.append("%r: (...)" % (k,))
 
-            elif logged == 'values':
+            elif logged == "values":
                 for i, v in enumerate(obj.values()):
                     if i >= MAX_DICT_ELEMENT_NUM:
                         retval.append("(...)")
                         break
 
-                    retval.append('(...): %s' % (log_repr(v, tags=tags),))
+                    retval.append("(...): %s" % (log_repr(v, tags=tags),))
 
-            elif logged == 'keys-full':
+            elif logged == "keys-full":
                 for k in obj.keys():
-                    retval.append('%r: (...)' % (k,))
+                    retval.append("%r: (...)" % (k,))
 
-            elif logged == 'values-full':
+            elif logged == "values-full":
                 for v in obj.values():
-                    retval.append('(...): %r' % (v,))
+                    retval.append("(...): %r" % (v,))
 
             elif logged is True:  # default behaviour
                 for i, (k, v) in enumerate(obj.items()):
@@ -198,18 +199,17 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
                         retval.append("(...)")
                         break
 
-                    retval.append('%r: %s' % (k,
-                                              log_repr(v, parent=k, tags=tags)))
+                    retval.append("%r: %s" % (k, log_repr(v, parent=k, tags=tags)))
             elif logged is None:
                 return "(...)"
 
             else:
                 raise ValueError("Invalid value logged=%r", logged)
 
-            return "{%s}" % ', '.join(retval)
+            return "{%s}" % ", ".join(retval)
 
         else:
-            if logged in ('full', 'keys-full', 'values-full'):
+            if logged in ("full", "keys-full", "values-full"):
                 retval = [repr(s) for s in obj]
 
             else:
@@ -220,11 +220,11 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
 
                     retval.append(log_repr(v, tags=tags))
 
-            return "[%s]" % ', '.join(retval)
+            return "[%s]" % ", ".join(retval)
 
-    if ( issubclass(cls, Array)
-                     or (cls_attrs is not None and cls_attrs.max_occurs > 1) ) \
-            and not from_array:
+    if (
+        issubclass(cls, Array) or (cls_attrs is not None and cls_attrs.max_occurs > 1)
+    ) and not from_array:
 
         if id(obj) in tags:
             return "%s(...)" % obj.__class__.__name__
@@ -235,22 +235,22 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
 
         subcls = cls
         if issubclass(cls, Array):
-            subcls, = cls._type_info.values()
+            (subcls,) = cls._type_info.values()
 
         if isinstance(obj, PushBase):
-            return '[<PushData>]'
+            return "[<PushData>]"
 
         if logged is None:
             logged = cls_attrs.logged
 
         for i, o in enumerate(obj):
-            if logged != 'full' and i >= MAX_ARRAY_ELEMENT_NUM:
+            if logged != "full" and i >= MAX_ARRAY_ELEMENT_NUM:
                 retval.append("(...)")
                 break
 
             retval.append(log_repr(o, subcls, from_array=True, tags=tags))
 
-        return "[%s]" % (', '.join(retval))
+        return "[%s]" % (", ".join(retval))
 
     if issubclass(cls, ComplexModelBase):
         if id(obj) in tags:
@@ -269,7 +269,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
             if not t.Attributes.logged:
                 continue
 
-            if logged == '...':
+            if logged == "...":
                 retval.append("%s=(...)" % k)
                 continue
 
@@ -291,11 +291,11 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
                 retval.append("%s=%s" % (k, log_repr(v, t, parent=k, tags=tags)))
                 i += 1
 
-        return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
+        return "%s(%s)" % (cls.get_type_name(), ", ".join(retval))
 
     if issubclass(cls, Unicode) and isinstance(obj, str):
         if len(obj) > MAX_STRING_FIELD_LENGTH:
-            return '%r(...)' % obj[:MAX_STRING_FIELD_LENGTH]
+            return "%r(...)" % obj[:MAX_STRING_FIELD_LENGTH]
 
         return repr(obj)
 
@@ -315,39 +315,46 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False,
 
 def TReaderService(T, T_name):
     class ReaderService(ReaderService):
-        @rpc(M(UnsignedInteger32), _returns=T,
-                    _in_message_name='get_%s' % T_name,
-                    _in_variable_names={'obj_id': "%s_id" % T_name})
+        @rpc(
+            M(UnsignedInteger32),
+            _returns=T,
+            _in_message_name="get_%s" % T_name,
+            _in_variable_names={"obj_id": "%s_id" % T_name},
+        )
         def get(ctx, obj_id):
             return ctx.udc.session.query(T).filter_by(id=obj_id).one()
 
-        @rpc(_returns=Iterable(T),
-                    _in_message_name='get_all_%s' % T_name)
+        @rpc(_returns=Iterable(T), _in_message_name="get_all_%s" % T_name)
         def get_all(ctx):
             return ctx.udc.session.query(T).order_by(T.id)
 
     return ReaderService
 
 
-def TWriterService(T, T_name, put_not_found='raise'):
-    assert put_not_found in ('raise', 'fix')
+def TWriterService(T, T_name, put_not_found="raise"):
+    assert put_not_found in ("raise", "fix")
 
-    if put_not_found == 'raise':
+    if put_not_found == "raise":
+
         def put_not_found(obj):
-            raise ResourceNotFoundError('%s.id=%d' % (T_name, obj.id))
+            raise ResourceNotFoundError("%s.id=%d" % (T_name, obj.id))
 
-    elif put_not_found == 'fix':
+    elif put_not_found == "fix":
+
         def put_not_found(obj):
             obj.id = None
 
     class WriterService(WriterService):
-        @rpc(M(T), _returns=UnsignedInteger32,
-                    _in_message_name='put_%s' % T_name,
-                    _in_variable_names={'obj': T_name})
+        @rpc(
+            M(T),
+            _returns=UnsignedInteger32,
+            _in_message_name="put_%s" % T_name,
+            _in_variable_names={"obj": T_name},
+        )
         def put(ctx, obj):
             if obj.id is None:
                 ctx.udc.session.add(obj)
-                ctx.udc.session.flush() # so that we get the obj.id value
+                ctx.udc.session.flush()  # so that we get the obj.id value
 
             else:
                 if ctx.udc.session.query(T).get(obj.id) is None:
@@ -365,9 +372,11 @@ def TWriterService(T, T_name, put_not_found='raise'):
 
             return obj.id
 
-        @rpc(M(UnsignedInteger32),
-                    _in_message_name='del_%s' % T_name,
-                    _in_variable_names={'obj_id': '%s_id' % T_name})
+        @rpc(
+            M(UnsignedInteger32),
+            _in_message_name="del_%s" % T_name,
+            _in_variable_names={"obj_id": "%s_id" % T_name},
+        )
         def del_(ctx, obj_id):
             count = ctx.udc.session.query(T).filter_by(id=obj_id).count()
             if count == 0:

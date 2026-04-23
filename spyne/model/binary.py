@@ -18,6 +18,8 @@
 
 """The ``spyne.model.binary`` package contains binary type markers."""
 
+# isort: skip_file
+
 import logging
 
 logger = logging.getLogger(__name__)

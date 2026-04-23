@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -41,10 +40,13 @@ except ImportError as _import_error:
     html = None
 
     _local_import_error = _import_error
+
     def get_object_as_xml(*_, **__):
         raise _local_import_error
+
     def get_xml_as_object(*_, **__):
         raise _local_import_error
+
 
 from io import BytesIO, StringIO
 
@@ -56,8 +58,7 @@ from spyne.util.fileproxy import SeekableFileProxy
 
 
 class PGXml(UserDefinedType):
-    def __init__(self, pretty_print=False, xml_declaration=False,
-                                                              encoding='UTF-8'):
+    def __init__(self, pretty_print=False, xml_declaration=False, encoding="UTF-8"):
         super(PGXml, self).__init__()
         self.xml_declaration = xml_declaration
         self.pretty_print = pretty_print
@@ -68,12 +69,15 @@ class PGXml(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if value is None or \
-                            isinstance(value, (str, bytes)):
+            if value is None or isinstance(value, (str, bytes)):
                 return value
 
-            return etree.tostring(value, pretty_print=self.pretty_print,
-                                      encoding="unicode", xml_declaration=False)
+            return etree.tostring(
+                value,
+                pretty_print=self.pretty_print,
+                encoding="unicode",
+                xml_declaration=False,
+            )
 
         return process
 
@@ -83,13 +87,15 @@ class PGXml(UserDefinedType):
                 return etree.fromstring(value)
             else:
                 return value
+
         return process
 
-sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGXml
+
+sqlalchemy.dialects.postgresql.base.ischema_names["xml"] = PGXml
 
 
 class PGHtml(UserDefinedType):
-    def __init__(self, pretty_print=False, encoding='UTF-8'):
+    def __init__(self, pretty_print=False, encoding="UTF-8"):
         super(PGHtml, self).__init__()
 
         self.pretty_print = pretty_print
@@ -100,12 +106,13 @@ class PGHtml(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, (str, bytes)) \
-                                                               or value is None:
+            if isinstance(value, (str, bytes)) or value is None:
                 return value
             else:
-                return html.tostring(value, pretty_print=self.pretty_print,
-                                                         encoding=self.encoding)
+                return html.tostring(
+                    value, pretty_print=self.pretty_print, encoding=self.encoding
+                )
+
         return process
 
     def result_processor(self, dialect, col_type):
@@ -114,11 +121,12 @@ class PGHtml(UserDefinedType):
                 return html.fromstring(value)
             else:
                 return None
+
         return process
 
 
 class PGJson(UserDefinedType):
-    def __init__(self, encoding='UTF-8'):
+    def __init__(self, encoding="UTF-8"):
         self.encoding = encoding
 
     def get_col_spec(self, **_):
@@ -130,6 +138,7 @@ class PGJson(UserDefinedType):
                 return value
             else:
                 return json.dumps(value)
+
         return process
 
     def result_processor(self, dialect, col_type):
@@ -138,9 +147,11 @@ class PGJson(UserDefinedType):
                 return json.loads(value)
             else:
                 return value
+
         return process
 
-sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGJson
+
+sqlalchemy.dialects.postgresql.base.ischema_names["json"] = PGJson
 
 
 class PGJsonB(PGJson):
@@ -148,12 +159,11 @@ class PGJsonB(PGJson):
         return "jsonb"
 
 
-sqlalchemy.dialects.postgresql.base.ischema_names['jsonb'] = PGJsonB
+sqlalchemy.dialects.postgresql.base.ischema_names["jsonb"] = PGJsonB
 
 
 class PGObjectXml(UserDefinedType):
-    def __init__(self, cls, root_tag_name=None, no_namespace=False,
-                                                            pretty_print=False):
+    def __init__(self, cls, root_tag_name=None, no_namespace=False, pretty_print=False):
         self.cls = cls
         self.root_tag_name = root_tag_name
         self.no_namespace = no_namespace
@@ -165,21 +175,29 @@ class PGObjectXml(UserDefinedType):
     def bind_processor(self, dialect):
         def process(value):
             if value is not None:
-                return etree.tostring(get_object_as_xml(value, self.cls,
-                    self.root_tag_name, self.no_namespace), encoding='utf8',
-                          pretty_print=self.pretty_print, xml_declaration=False)
+                return etree.tostring(
+                    get_object_as_xml(
+                        value, self.cls, self.root_tag_name, self.no_namespace
+                    ),
+                    encoding="utf8",
+                    pretty_print=self.pretty_print,
+                    xml_declaration=False,
+                )
+
         return process
 
     def result_processor(self, dialect, col_type):
         def process(value):
             if value is not None:
                 return get_xml_as_object(etree.fromstring(value), self.cls)
+
         return process
 
 
 class PGObjectJson(UserDefinedType):
-    def __init__(self, cls, ignore_wrappers=True, complex_as=dict, dbt='json',
-                                                               encoding='utf8'):
+    def __init__(
+        self, cls, ignore_wrappers=True, complex_as=dict, dbt="json", encoding="utf8"
+    ):
         self.cls = cls
         self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as
@@ -187,6 +205,7 @@ class PGObjectJson(UserDefinedType):
         self.encoding = encoding
 
         from spyne.util.dictdoc import get_dict_as_object, get_object_as_json
+
         self.get_object_as_json = get_object_as_json
         self.get_dict_as_object = get_dict_as_object
 
@@ -197,7 +216,9 @@ class PGObjectJson(UserDefinedType):
         def process(value):
             if value is not None:
                 try:
-                    return self.get_object_as_json(value, self.cls,
+                    return self.get_object_as_json(
+                        value,
+                        self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
                     ).decode(self.encoding)
@@ -219,28 +240,33 @@ class PGObjectJson(UserDefinedType):
                 value = value.decode(self.encoding)
 
             if isinstance(value, str):
-                return self.get_dict_as_object(json.loads(value), self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as,
-                        protocol=JsonDocument,
-                    )
-
-            return self.get_dict_as_object(value, self.cls,
+                return self.get_dict_as_object(
+                    json.loads(value),
+                    self.cls,
                     ignore_wrappers=self.ignore_wrappers,
                     complex_as=self.complex_as,
                     protocol=JsonDocument,
                 )
 
+            return self.get_dict_as_object(
+                value,
+                self.cls,
+                ignore_wrappers=self.ignore_wrappers,
+                complex_as=self.complex_as,
+                protocol=JsonDocument,
+            )
+
         return process
 
 
 class PGFileJson(PGObjectJson):
-    def __init__(self, store, type=None, dbt='json'):
+    def __init__(self, store, type=None, dbt="json"):
         if type is None:
             type = FileData
 
-        super(PGFileJson, self).__init__(type, ignore_wrappers=True,
-                                                       complex_as=list, dbt=dbt)
+        super(PGFileJson, self).__init__(
+            type, ignore_wrappers=True, complex_as=list, dbt=dbt
+        )
         self.store = store
 
     def bind_processor(self, dialect):
@@ -250,10 +276,12 @@ class PGFileJson(PGObjectJson):
                     value.path = uuid1().hex
                     fp = join(self.store, value.path)
                     if not abspath(fp).startswith(self.store):
-                        raise ValidationError(value.path, "Path %r contains "
-                                          "relative path operators (e.g. '..')")
+                        raise ValidationError(
+                            value.path,
+                            "Path %r contains " "relative path operators (e.g. '..')",
+                        )
 
-                    with open(fp, 'wb') as file:
+                    with open(fp, "wb") as file:
                         for d in value.data:
                             file.write(d)
 
@@ -261,16 +289,19 @@ class PGFileJson(PGObjectJson):
                     value.path = uuid1().hex
                     fp = join(self.store, value.path)
                     if not abspath(fp).startswith(self.store):
-                        raise ValidationError(value.path, "Path %r contains "
-                                          "relative path operators (e.g. '..')")
+                        raise ValidationError(
+                            value.path,
+                            "Path %r contains " "relative path operators (e.g. '..')",
+                        )
 
                     if isinstance(value.handle, (StringIO, BytesIO)):
-                        with open(fp, 'wb') as out_file:
+                        with open(fp, "wb") as out_file:
                             out_file.write(value.handle.getvalue())
                     else:
-                        with closing(mmap(value.handle.fileno(), 0,
-                                                   access=ACCESS_READ)) as data:
-                            with open(fp, 'wb') as out_file:
+                        with closing(
+                            mmap(value.handle.fileno(), 0, access=ACCESS_READ)
+                        ) as data:
+                            with open(fp, "wb") as out_file:
                                 out_file.write(data)
 
                 elif value.path is not None:
@@ -284,25 +315,27 @@ class PGFileJson(PGObjectJson):
 
                         if value.move:
                             shutil.move(in_file_path, dest)
-                            logger.debug("move '%s' => '%s'",
-                                                             in_file_path, dest)
+                            logger.debug("move '%s' => '%s'", in_file_path, dest)
 
                         else:
                             shutil.copy(in_file_path, dest)
-                            logger.debug("copy '%s' => '%s'",
-                                                             in_file_path, dest)
+                            logger.debug("copy '%s' => '%s'", in_file_path, dest)
 
                         value.path = basename(dest)
                         value.abspath = dest
 
                 else:
-                    raise ValueError("Invalid file object passed in. All of "
-                                           ".data, .handle and .path are None.")
+                    raise ValueError(
+                        "Invalid file object passed in. All of "
+                        ".data, .handle and .path are None."
+                    )
 
                 value.store = self.store
                 value.abspath = join(self.store, value.path)
 
-                return self.get_object_as_json(value, self.cls,
+                return self.get_object_as_json(
+                    value,
+                    self.cls,
                     ignore_wrappers=self.ignore_wrappers,
                     complex_as=self.complex_as,
                 )
@@ -318,24 +351,28 @@ class PGFileJson(PGObjectJson):
                 value = json.loads(value)
 
             elif isinstance(value, bytes):
-                value = json.loads(value.decode('utf8'))
+                value = json.loads(value.decode("utf8"))
 
-            retval = self.get_dict_as_object(value, self.cls,
-                    ignore_wrappers=self.ignore_wrappers,
-                    complex_as=self.complex_as)
+            retval = self.get_dict_as_object(
+                value,
+                self.cls,
+                ignore_wrappers=self.ignore_wrappers,
+                complex_as=self.complex_as,
+            )
 
             retval.store = self.store
             retval.abspath = path = join(self.store, retval.path)
             retval.handle = None
-            retval.data = [b'']
+            retval.data = [b""]
 
             if not os.access(path, os.R_OK):
                 import traceback
+
                 traceback.print_stack()
                 logger.error("File '%s' is not readable", path)
                 return retval
 
-            h = retval.handle = SeekableFileProxy(open(path, 'rb'))
+            h = retval.handle = SeekableFileProxy(open(path, "rb"))
             if os.fstat(retval.handle.fileno()).st_size > 0:
                 h.mmap = mmap(h.fileno(), 0, access=ACCESS_READ)
                 retval.data = (h.mmap,)

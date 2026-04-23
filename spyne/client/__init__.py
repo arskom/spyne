@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -19,9 +18,4 @@
 
 """The ``spyne.client`` package contains the client transports."""
 
-from spyne.client._base import (
-    ClientBase,
-    Factory,
-    RemoteProcedureBase,
-    RemoteService
-)
+from spyne.client._base import ClientBase, Factory, RemoteProcedureBase, RemoteService

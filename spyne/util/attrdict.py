@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -25,14 +24,14 @@ def TAttrDict(default=None):
 
         def __call__(self, **kwargs):
             retval = AttrDict(self.__data.items())
-            for k,v in kwargs.items():
+            for k, v in kwargs.items():
                 setattr(retval, k, v)
             return retval
 
         def __setattr__(self, key, value):
             if key == "_AttrDict__data":
                 return object.__setattr__(self, key, value)
-            if key == 'items':
+            if key == "items":
                 raise ValueError("'items' is part of dict interface")
             self.__data[key] = value
 
@@ -52,23 +51,32 @@ def TAttrDict(default=None):
             return self.__data.update(d)
 
         def __repr__(self):
-            return "AttrDict(%s)" % ', '.join(['%s=%r' % (k, v)
-                    for k,v in sorted(self.__data.items(), key=lambda x:x[0])])
+            return "AttrDict(%s)" % ", ".join(
+                [
+                    "%s=%r" % (k, v)
+                    for k, v in sorted(self.__data.items(), key=lambda x: x[0])
+                ]
+            )
 
         if default is None:
+
             def __getattr__(self, key):
                 return self.__data[key]
+
             def __getitem__(self, key):
                 return self.__data[key]
+
         else:
+
             def __getitem__(self, key):
                 if key in self.__data:
                     return self.__data[key]
                 else:
                     return default()
+
             def __getattr__(self, key):
-                if key in ("_AttrDict__data", 'items', 'get', 'update'):
-                    return object.__getattribute__(self, '__data')
+                if key in ("_AttrDict__data", "items", "get", "update"):
+                    return object.__getattribute__(self, "__data")
                 if key in self.__data:
                     return self.__data[key]
                 else:
@@ -76,12 +84,14 @@ def TAttrDict(default=None):
 
     return AttrDict
 
+
 AttrDict = TAttrDict()
 DefaultAttrDict = TAttrDict(lambda: None)
 
 
 class AttrDictColl(object):
     AttrDictImpl = DefaultAttrDict
+
     def __init__(self, *args):
         for a in args:
             setattr(self, a, AttrDictColl.AttrDictImpl(NAME=a))

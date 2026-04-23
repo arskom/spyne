@@ -44,9 +44,9 @@ from lxml import etree
 from lxml.etree import XMLParser, XMLSyntaxError
 
 import spyne.const.xml as ns
-from spyne.descriptor import BODY_STYLE_WRAPPED
 from spyne.const.http import HTTP_405, HTTP_500
 from spyne.const.xml import DEFAULT_NS
+from spyne.descriptor import BODY_STYLE_WRAPPED
 from spyne.error import RequestNotAllowed
 from spyne.model.fault import Fault
 from spyne.model.primitive import Date, DateTime, Time

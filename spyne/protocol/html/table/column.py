@@ -44,7 +44,6 @@ class HtmlColumnTableRowProtocol(object):
         pass
 
 
-
 class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
     """Protocol that returns the response object as a html table.
 
@@ -79,22 +78,25 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
     """
 
     def __init__(self, *args, **kwargs):
-        before_table = kwargs.pop('before_table', None)
+        before_table = kwargs.pop("before_table", None)
 
         super(HtmlColumnTable, self).__init__(*args, **kwargs)
 
-        self.serialization_handlers.update({
-            ModelBase: self.model_base_to_parent,
-            ComplexModelBase: self.complex_model_to_parent,
-            Array: self.array_to_parent,
-        })
+        self.serialization_handlers.update(
+            {
+                ModelBase: self.model_base_to_parent,
+                ComplexModelBase: self.complex_model_to_parent,
+                Array: self.array_to_parent,
+            }
+        )
 
         if before_table is not None:
             self.event_manager.add_listener("before_table", before_table)
 
-    def model_base_to_parent(self, ctx, cls, inst, parent, name,
-                                                      from_arr=False, **kwargs):
-        inst_str = ''
+    def model_base_to_parent(
+        self, ctx, cls, inst, parent, name, from_arr=False, **kwargs
+    ):
+        inst_str = ""
         if inst is not None:
             inst_str = self.to_unicode(cls, inst)
 
@@ -109,8 +111,9 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
             parent.write(inst_str)
 
     @coroutine
-    def _gen_row(self, ctx, cls, inst, parent, name, from_arr=False,
-                                                    array_index=None, **kwargs):
+    def _gen_row(
+        self, ctx, cls, inst, parent, name, from_arr=False, array_index=None, **kwargs
+    ):
 
         # because HtmlForm* protocols don't use the global null handler, it's
         # possible for null values to reach here.
@@ -119,18 +122,16 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
 
         logger.debug("Generate row for %r", cls)
 
-        mrpc_delim_elt = ''
+        mrpc_delim_elt = ""
         if self.mrpc_delim_text is not None:
-            mrpc_delim_elt = E.span(self.mrpc_delim_text,
-                                                  **{'class': 'mrpc-delimiter'})
-            mrpc_delim_elt.tail = ' '
+            mrpc_delim_elt = E.span(self.mrpc_delim_text, **{"class": "mrpc-delimiter"})
+            mrpc_delim_elt.tail = " "
 
-        with parent.element('tr'):
+        with parent.element("tr"):
             for k, v in self.sort_fields(cls):
                 cls_attr = self.get_cls_attrs(v)
                 if cls_attr.exc:
-                    logger.debug("\tExclude table cell %r type %r for %r",
-                                                                      k, v, cls)
+                    logger.debug("\tExclude table cell %r type %r for %r", k, v, cls)
                     continue
 
                 try:
@@ -146,27 +147,40 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
                     if array_index is None:
                         sub_name = "%s%s%s" % (name, self.hier_delim, sub_name)
                     else:
-                        sub_name = "%s[%d]%s%s" % (name, array_index,
-                                                     self.hier_delim, sub_name)
+                        sub_name = "%s[%d]%s%s" % (
+                            name,
+                            array_index,
+                            self.hier_delim,
+                            sub_name,
+                        )
 
-                logger.debug("\tGenerate table cell %r type %r for %r",
-                                                               sub_name, v, cls)
+                logger.debug(
+                    "\tGenerate table cell %r type %r for %r", sub_name, v, cls
+                )
 
                 td_attrs = {}
 
                 self.add_field_attrs(td_attrs, cls_attr.sub_name or k, v)
 
                 if cls_attr.hidden:
-                    self.add_style(td_attrs, 'display:None')
+                    self.add_style(td_attrs, "display:None")
 
-                with parent.element('td', td_attrs):
-                    ret = self.to_parent(ctx, v, sub_value, parent, sub_name,
-                           from_arr=from_arr, array_index=array_index, **kwargs)
+                with parent.element("td", td_attrs):
+                    ret = self.to_parent(
+                        ctx,
+                        v,
+                        sub_value,
+                        parent,
+                        sub_name,
+                        from_arr=from_arr,
+                        array_index=array_index,
+                        **kwargs,
+                    )
 
                     if isgenerator(ret):
                         try:
                             while True:
-                                sv2 = (yield)
+                                sv2 = yield
                                 ret.send(sv2)
 
                         except Break as b:
@@ -177,9 +191,9 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
 
             m = cls.Attributes.methods
             if m is not None and len(m) > 0:
-                td_attrs = {'class': 'mrpc-cell'}
+                td_attrs = {"class": "mrpc-cell"}
 
-                with parent.element('td', td_attrs):
+                with parent.element("td", td_attrs):
                     first = True
 
                     for mn, md in self._methods(ctx, cls, inst):
@@ -191,7 +205,7 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
 
                         pd = {}
                         for k, v in self.sort_fields(cls):
-                            if getattr(v.Attributes, 'primary_key', None):
+                            if getattr(v.Attributes, "primary_key", None):
                                 r = self.to_unicode(v, getattr(inst, k, None))
                                 if r is not None:
                                     pd[k] = r
@@ -200,23 +214,25 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
 
                         mdid2key = ctx.app.interface.method_descriptor_id_to_key
                         href = mdid2key[id(md)].rsplit("}", 1)[-1]
-                        text = md.translate(ctx.locale,
-                                                  md.in_message.get_type_name())
-                        parent.write(E.a(
-                            text,
-                            href="%s?%s" % (href, params),
-                            **{'class': 'mrpc-operation'}
-                        ))
+                        text = md.translate(ctx.locale, md.in_message.get_type_name())
+                        parent.write(
+                            E.a(
+                                text,
+                                href="%s?%s" % (href, params),
+                                **{"class": "mrpc-operation"},
+                            )
+                        )
 
             logger.debug("Generate row for %r done.", cls)
-            self.extend_data_row(ctx, cls, inst, parent, name,
-                                              array_index=array_index, **kwargs)
+            self.extend_data_row(
+                ctx, cls, inst, parent, name, array_index=array_index, **kwargs
+            )
 
     def _gen_thead(self, ctx, cls, parent, name):
         logger.debug("Generate header for %r", cls)
 
-        with parent.element('thead'):
-            with parent.element('tr'):
+        with parent.element("thead"):
+            with parent.element("tr"):
                 if issubclass(cls, ComplexModelBase):
                     fti = self.sort_fields(cls)
                     for k, v in fti:
@@ -228,14 +244,14 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
                         self.add_field_attrs(th_attrs, k, cls)
 
                         if cls_attr.hidden:
-                            self.add_style(th_attrs, 'display:None')
+                            self.add_style(th_attrs, "display:None")
 
                         header_name = self.trc(v, ctx.locale, k)
                         parent.write(E.th(header_name, **th_attrs))
 
                     m = cls.Attributes.methods
                     if m is not None and len(m) > 0:
-                        th_attrs = {'class': 'mrpc-cell'}
+                        th_attrs = {"class": "mrpc-cell"}
                         parent.write(E.th(**th_attrs))
 
                 else:
@@ -259,22 +275,22 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
             table_class.add(self.table_class)
 
         if self.table_name_attr is not None:
-            tn = (self.table_name
-                        if self.table_name is not None else cls.get_type_name())
+            tn = self.table_name if self.table_name is not None else cls.get_type_name()
 
-            if self.table_name_attr == 'class':
+            if self.table_name_attr == "class":
                 table_class.add(tn)
             else:
                 attrib[self.table_name_attr] = tn
 
-        attrib['class'] = ' '.join(table_class)
+        attrib["class"] = " ".join(table_class)
         if self.table_width is not None:
-            attrib['width'] = self.table_width
+            attrib["width"] = self.table_width
 
-        self.event_manager.fire_event('before_table', ctx, cls, inst, parent,
-                                                      name, prot=self, **kwargs)
+        self.event_manager.fire_event(
+            "before_table", ctx, cls, inst, parent, name, prot=self, **kwargs
+        )
 
-        with parent.element('table', attrib):
+        with parent.element("table", attrib):
             write_header = self.header
             if cls_attrs.header is False:
                 write_header = cls_attrs.header
@@ -284,17 +300,16 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
 
                 subprot = self.get_subprot(ctx, cls_attrs)
                 if subprot is not None:
-                    ret = subprot.column_table_gen_header(ctx, cls, parent,
-                                                                           name)
+                    ret = subprot.column_table_gen_header(ctx, cls, parent, name)
                 if not ret:
                     self._gen_thead(ctx, cls, parent, name)
 
-            with parent.element('tbody'):
+            with parent.element("tbody"):
                 ret = gen_rows(ctx, cls, inst, parent, name, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
-                            sv2 = (yield)
+                            sv2 = yield
                             ret.send(sv2)
                     except Break as b:
                         try:
@@ -304,19 +319,28 @@ class HtmlColumnTable(HtmlTableBase, HtmlColumnTableRowProtocol):
 
                 self.extend_table(ctx, cls, parent, name, **kwargs)
 
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name,
-                                                      from_arr=False, **kwargs):
+    def complex_model_to_parent(
+        self, ctx, cls, inst, parent, name, from_arr=False, **kwargs
+    ):
         # If this is direct child of an array, table is already set up in
         # array_to_parent.
         if from_arr:
             return self._gen_row(ctx, cls, inst, parent, name, **kwargs)
         else:
-            return self.wrap_table(ctx, cls, inst, parent, name, self._gen_row,
-                                                                       **kwargs)
+            return self.wrap_table(
+                ctx, cls, inst, parent, name, self._gen_row, **kwargs
+            )
 
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        return self.wrap_table(ctx, cls, inst, parent, name,
-                         super(HtmlColumnTable, self).array_to_parent, **kwargs)
+        return self.wrap_table(
+            ctx,
+            cls,
+            inst,
+            parent,
+            name,
+            super(HtmlColumnTable, self).array_to_parent,
+            **kwargs,
+        )
 
     def wrap_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
         return self._gen_table(ctx, cls, inst, parent, name, gen_rows, **kwargs)

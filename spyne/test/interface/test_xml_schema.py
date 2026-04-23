@@ -36,7 +36,7 @@ from spyne.service import Service
 from spyne.util.xml import (
     get_schema_documents,
     parse_schema_element,
-    parse_schema_string
+    parse_schema_string,
 )
 
 
@@ -54,68 +54,95 @@ class TestXmlSchema(unittest.TestCase):
             def wooo(ctx):
                 return SomeObject()
 
-        Application([KickassService],
-            tns='kickass.ns',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11()
+        Application(
+            [KickassService],
+            tns="kickass.ns",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
         )
 
         docs = get_schema_documents([SomeObject])
-        doc = docs['tns']
+        doc = docs["tns"]
         print(etree.tostring(doc, pretty_print=True))
-        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
-                                   '/xs:sequence/xs:element[@name="punk"]',
-            namespaces={'xs': NS_XSD})) > 0
-        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
+        assert (
+            len(
+                doc.xpath(
+                    '/xs:schema/xs:complexType[@name="SomeObject"]'
+                    '/xs:sequence/xs:element[@name="punk"]',
+                    namespaces={"xs": NS_XSD},
+                )
+            )
+            > 0
+        )
+        assert (
+            len(
+                doc.xpath(
+                    '/xs:schema/xs:complexType[@name="SomeObject"]'
                     '/xs:sequence/xs:choice/xs:element[@name="one"]',
-            namespaces={'xs': NS_XSD})) > 0
+                    namespaces={"xs": NS_XSD},
+                )
+            )
+            > 0
+        )
 
     def test_customized_class_with_empty_subclass(self):
         class SummaryStatsOfDouble(ComplexModel):
-            _type_info = [('Min', XmlAttribute(Integer, use='required')),
-                          ('Max', XmlAttribute(Integer, use='required')),
-                          ('Avg', XmlAttribute(Integer, use='required'))]
+            _type_info = [
+                ("Min", XmlAttribute(Integer, use="required")),
+                ("Max", XmlAttribute(Integer, use="required")),
+                ("Avg", XmlAttribute(Integer, use="required")),
+            ]
 
         class SummaryStats(SummaryStatsOfDouble):
-            ''' this is an empty base class '''
+            """this is an empty base class"""
 
         class Payload(ComplexModel):
-            _type_info = [('Stat1', SummaryStats.customize(nillable=False)),
-                          ('Stat2', SummaryStats),
-                          ('Stat3', SummaryStats),
-                          ('Dummy', Unicode)]
+            _type_info = [
+                ("Stat1", SummaryStats.customize(nillable=False)),
+                ("Stat2", SummaryStats),
+                ("Stat3", SummaryStats),
+                ("Dummy", Unicode),
+            ]
 
         class JackedUpService(Service):
             @rpc(_returns=Payload)
             def GetPayload(ctx):
                 return Payload()
 
-        Application([JackedUpService],
-            tns='kickass.ns',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11()
+        Application(
+            [JackedUpService],
+            tns="kickass.ns",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
         )
 
         # if no exceptions while building the schema, no problem.
         # see: https://github.com/arskom/spyne/issues/226
-
 
     def test_namespaced_xml_attribute(self):
         class Release(ComplexModel):
             __namespace__ = "http://usefulinc.com/ns/doap#"
 
             _type_info = [
-                ('about', XmlAttribute(Unicode,
-                             ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#")),
+                (
+                    "about",
+                    XmlAttribute(
+                        Unicode, ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                    ),
+                ),
             ]
 
         class Project(ComplexModel):
             __namespace__ = "http://usefulinc.com/ns/doap#"
 
             _type_info = [
-                ('about', XmlAttribute(Unicode,
-                             ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#")),
-                ('release', Release.customize(max_occurs=float('inf'))),
+                (
+                    "about",
+                    XmlAttribute(
+                        Unicode, ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                    ),
+                ),
+                ("release", Release.customize(max_occurs=float("inf"))),
             ]
 
         class RdfService(Service):
@@ -123,17 +150,18 @@ class TestXmlSchema(unittest.TestCase):
             def some_call(ctx, a, b):
                 pass
 
-        Application([RdfService],
-            tns='spynepi',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11()
+        Application(
+            [RdfService],
+            tns="spynepi",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
         )
 
         # if no exceptions while building the schema, no problem.
 
     def test_customized_simple_type_in_xml_attribute(self):
         class Product(ComplexModel):
-            __namespace__ = 'some_ns'
+            __namespace__ = "some_ns"
 
             id = XmlAttribute(Uuid)
             edition = Unicode
@@ -141,63 +169,73 @@ class TestXmlSchema(unittest.TestCase):
         class SomeService(Service):
             @rpc(Product, _returns=Product)
             def echo_product(ctx, product):
-                logging.info('edition_id: %r', product.edition_id)
+                logging.info("edition_id: %r", product.edition_id)
                 return product
 
-        Application([SomeService], tns='some_ns',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11()
+        Application(
+            [SomeService],
+            tns="some_ns",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
         )
 
         # if no exceptions while building the schema, no problem.
 
     def test_binary_encodings(self):
         class Product(ComplexModel):
-            __namespace__ = 'some_ns'
+            __namespace__ = "some_ns"
 
-            hex = ByteArray(encoding='hex')
-            base64_1 = ByteArray(encoding='base64')
+            hex = ByteArray(encoding="hex")
+            base64_1 = ByteArray(encoding="base64")
             base64_2 = ByteArray
 
         class SomeService(Service):
             @rpc(Product, _returns=Product)
             def echo_product(ctx, product):
-                logging.info('edition_id: %r', product.edition_id)
+                logging.info("edition_id: %r", product.edition_id)
                 return product
 
-        app = Application([SomeService],
-            tns='some_ns',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11()
+        app = Application(
+            [SomeService],
+            tns="some_ns",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
         )
 
-        _ns = {'xs': NS_XSD}
+        _ns = {"xs": NS_XSD}
         pref_xs = ns.PREFMAP[NS_XSD]
         xs = XmlSchema(app.interface)
         xs.build_interface_document()
-        elt = xs.get_interface_document()['tns'].xpath(
-                    '//xs:complexType[@name="Product"]',
-                    namespaces=_ns)[0]
+        elt = xs.get_interface_document()["tns"].xpath(
+            '//xs:complexType[@name="Product"]', namespaces=_ns
+        )[0]
 
-        assert elt.xpath('//xs:element[@name="base64_1"]/@type',
-                            namespaces=_ns)[0] == '%s:base64Binary' % pref_xs
-        assert elt.xpath('//xs:element[@name="base64_2"]/@type',
-                            namespaces=_ns)[0] == '%s:base64Binary' % pref_xs
-        assert elt.xpath('//xs:element[@name="hex"]/@type',
-                            namespaces=_ns)[0] == '%s:hexBinary' % pref_xs
+        assert (
+            elt.xpath('//xs:element[@name="base64_1"]/@type', namespaces=_ns)[0]
+            == "%s:base64Binary" % pref_xs
+        )
+        assert (
+            elt.xpath('//xs:element[@name="base64_2"]/@type', namespaces=_ns)[0]
+            == "%s:base64Binary" % pref_xs
+        )
+        assert (
+            elt.xpath('//xs:element[@name="hex"]/@type', namespaces=_ns)[0]
+            == "%s:hexBinary" % pref_xs
+        )
 
     def test_multilevel_customized_simple_type(self):
         class ExampleService(Service):
-            __tns__ = 'http://xml.company.com/ns/example/'
+            __tns__ = "http://xml.company.com/ns/example/"
 
             @rpc(M(Uuid), _returns=Unicode)
             def say_my_uuid(ctx, uuid):
-                return 'Your UUID: %s' % uuid
+                return "Your UUID: %s" % uuid
 
-        Application([ExampleService],
-            tns='kickass.ns',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11()
+        Application(
+            [ExampleService],
+            tns="kickass.ns",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
         )
 
         # if no exceptions while building the schema, no problem.
@@ -209,19 +247,22 @@ class TestXmlSchema(unittest.TestCase):
         class SomeType(ComplexModel):
             __namespace__ = "zo"
 
-            anything = AnyXml(schema_tag='{%s}any' % NS_XSD, namespace='##other',
-                                                         process_contents='lax')
+            anything = AnyXml(
+                schema_tag="{%s}any" % NS_XSD,
+                namespace="##other",
+                process_contents="lax",
+            )
 
         docs = get_schema_documents([SomeType])
-        print(etree.tostring(docs['tns'], pretty_print=True))
-        _any = docs['tns'].xpath('//xsd:any', namespaces={'xsd': NS_XSD})
+        print(etree.tostring(docs["tns"], pretty_print=True))
+        _any = docs["tns"].xpath("//xsd:any", namespaces={"xsd": NS_XSD})
 
         assert len(_any) == 1
-        assert _any[0].attrib['namespace'] == '##other'
-        assert _any[0].attrib['processContents'] == 'lax'
+        assert _any[0].attrib["namespace"] == "##other"
+        assert _any[0].attrib["processContents"] == "lax"
 
     def _build_xml_data_test_schema(self, custom_root):
-        tns = 'kickass.ns'
+        tns = "kickass.ns"
 
         class ProductEdition(ComplexModel):
             __namespace__ = tns
@@ -241,27 +282,34 @@ class TestXmlSchema(unittest.TestCase):
             def say_my_uuid(ctx, product):
                 pass
 
-        app = Application([ExampleService],
-            tns='kickass.ns',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11()
+        app = Application(
+            [ExampleService],
+            tns="kickass.ns",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
         )
 
         schema = XmlSchema(app.interface)
         schema.build_interface_document()
         schema.build_validation_schema()
 
-        doc = schema.get_interface_document()['tns']
+        doc = schema.get_interface_document()["tns"]
         print(etree.tostring(doc, pretty_print=True))
         return schema
 
     def test_xml_data_schema_doc(self):
         schema = self._build_xml_data_test_schema(custom_root=False)
 
-        assert len(schema.get_interface_document()['tns'].xpath(
-                '/xs:schema/xs:complexType[@name="ProductEdition"]'
-                '/xs:simpleContent/xs:extension/xs:attribute[@name="id"]'
-                ,namespaces={'xs': NS_XSD})) == 1
+        assert (
+            len(
+                schema.get_interface_document()["tns"].xpath(
+                    '/xs:schema/xs:complexType[@name="ProductEdition"]'
+                    '/xs:simpleContent/xs:extension/xs:attribute[@name="id"]',
+                    namespaces={"xs": NS_XSD},
+                )
+            )
+            == 1
+        )
 
     def _test_xml_data_validation(self):
         schema = self._build_xml_data_test_schema(custom_root=False)
@@ -283,11 +331,11 @@ class TestXmlSchema(unittest.TestCase):
             </Product>
         """)), schema.validation_schema.error_log.last_error
 
-
     def test_subs(self):
         from lxml import etree
 
         from spyne.util.xml import get_schema_documents
+
         xpath = lambda o, x: o.xpath(x, namespaces={"xs": NS_XSD})
 
         m = {
@@ -303,10 +351,10 @@ class TestXmlSchema(unittest.TestCase):
             c = Integer(sub_ns="cc")
             d = Integer(sub_ns="dd", sub_name="dd")
 
-        elt = get_schema_documents([C], "aa")['tns']
+        elt = get_schema_documents([C], "aa")["tns"]
         print(etree.tostring(elt, pretty_print=True))
 
-        seq, = xpath(elt, "xs:complexType/xs:sequence")
+        (seq,) = xpath(elt, "xs:complexType/xs:sequence")
 
         assert len(seq) == 4
         assert len(xpath(seq, 'xs:element[@name="a"]')) == 1
@@ -315,8 +363,8 @@ class TestXmlSchema(unittest.TestCase):
         # FIXME: this doesn't feel right.
         # check the spec to see whether it should it be prefixed.
         #
-        #assert len(xpath(seq, 'xs:element[@name="{cc}c"]')) == 1
-        #assert len(xpath(seq, 'xs:element[@name="{dd}dd"]')) == 1
+        # assert len(xpath(seq, 'xs:element[@name="{cc}c"]')) == 1
+        # assert len(xpath(seq, 'xs:element[@name="{dd}dd"]')) == 1
 
     def test_mandatory(self):
         xpath = lambda o, x: o.xpath(x, namespaces={"xs": NS_XSD})
@@ -325,35 +373,37 @@ class TestXmlSchema(unittest.TestCase):
             __namespace__ = "aa"
             foo = XmlAttribute(M(Unicode))
 
-        elt = get_schema_documents([C])['tns']
+        elt = get_schema_documents([C])["tns"]
         print(etree.tostring(elt, pretty_print=True))
-        foo, = xpath(elt, 'xs:complexType/xs:attribute[@name="foo"]')
+        (foo,) = xpath(elt, 'xs:complexType/xs:attribute[@name="foo"]')
         attrs = foo.attrib
-        assert 'use' in attrs and attrs['use'] == 'required'
+        assert "use" in attrs and attrs["use"] == "required"
 
     def test_annotation(self):
-        tns = 'some_ns'
+        tns = "some_ns"
         doc = "Some Doc"
 
         class SomeClass(ComplexModel):
             __namespace__ = tns
             some_attr = Unicode(doc=doc)
 
-        schema = get_schema_documents([SomeClass], tns)['tns']
+        schema = get_schema_documents([SomeClass], tns)["tns"]
         print(etree.tostring(schema, pretty_print=True))
-        assert schema.xpath("//xs:documentation/text()",
-                                             namespaces={'xs': NS_XSD}) == [doc]
+        assert schema.xpath("//xs:documentation/text()", namespaces={"xs": NS_XSD}) == [
+            doc
+        ]
 
 
 class TestParseOwnXmlSchema(unittest.TestCase):
     def test_simple(self):
-        tns = 'some_ns'
+        tns = "some_ns"
+
         class SomeGuy(ComplexModel):
-            __namespace__ = 'some_ns'
+            __namespace__ = "some_ns"
 
             id = Integer
 
-        schema = get_schema_documents([SomeGuy], tns)['tns']
+        schema = get_schema_documents([SomeGuy], tns)["tns"]
         print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
@@ -365,103 +415,111 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         assert dict(NewGuy._type_info) == dict(SomeGuy._type_info)
 
     def test_customized_unicode(self):
-        tns = 'some_ns'
+        tns = "some_ns"
+
         class SomeGuy(ComplexModel):
             __namespace__ = tns
             name = Unicode(max_len=10, pattern="a", min_len=5, default="aa")
 
-        schema = get_schema_documents([SomeGuy], tns)['tns']
+        schema = get_schema_documents([SomeGuy], tns)["tns"]
         print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)
 
-        NewGuy = objects['some_ns'].types["SomeGuy"]
-        assert NewGuy._type_info['name'].Attributes.max_len == 10
-        assert NewGuy._type_info['name'].Attributes.min_len == 5
-        assert NewGuy._type_info['name'].Attributes.pattern == "a"
-        assert NewGuy._type_info['name'].Attributes.default == "aa"
+        NewGuy = objects["some_ns"].types["SomeGuy"]
+        assert NewGuy._type_info["name"].Attributes.max_len == 10
+        assert NewGuy._type_info["name"].Attributes.min_len == 5
+        assert NewGuy._type_info["name"].Attributes.pattern == "a"
+        assert NewGuy._type_info["name"].Attributes.default == "aa"
 
     def test_boolean_default(self):
-        tns = 'some_ns'
+        tns = "some_ns"
+
         class SomeGuy(ComplexModel):
             __namespace__ = tns
             bald = Boolean(default=True)
 
-        schema = get_schema_documents([SomeGuy], tns)['tns']
+        schema = get_schema_documents([SomeGuy], tns)["tns"]
         print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)
 
-        NewGuy = objects['some_ns'].types["SomeGuy"]
-        assert NewGuy._type_info['bald'].Attributes.default == True
+        NewGuy = objects["some_ns"].types["SomeGuy"]
+        assert NewGuy._type_info["bald"].Attributes.default == True
 
     def test_boolean_attribute_default(self):
-        tns = 'some_ns'
+        tns = "some_ns"
+
         class SomeGuy(ComplexModel):
             __namespace__ = tns
 
             bald = XmlAttribute(Boolean(default=True))
 
-        schema = get_schema_documents([SomeGuy], tns)['tns']
+        schema = get_schema_documents([SomeGuy], tns)["tns"]
         print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)
 
-        NewGuy = objects['some_ns'].types["SomeGuy"]
-        assert NewGuy._type_info['bald'].Attributes.default == True
+        NewGuy = objects["some_ns"].types["SomeGuy"]
+        assert NewGuy._type_info["bald"].Attributes.default == True
 
     def test_attribute(self):
-        tns = 'some_ns'
+        tns = "some_ns"
+
         class SomeGuy(ComplexModel):
             __namespace__ = tns
 
             name = XmlAttribute(Unicode)
 
-        schema = get_schema_documents([SomeGuy], tns)['tns']
+        schema = get_schema_documents([SomeGuy], tns)["tns"]
         print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects)
         pprint(objects[tns].types)
 
-        NewGuy = objects['some_ns'].types["SomeGuy"]
-        assert NewGuy._type_info['name'].type is Unicode
+        NewGuy = objects["some_ns"].types["SomeGuy"]
+        assert NewGuy._type_info["name"].type is Unicode
 
     def test_attribute_with_customized_type(self):
-        tns = 'some_ns'
+        tns = "some_ns"
+
         class SomeGuy(ComplexModel):
             __namespace__ = tns
 
             name = XmlAttribute(Unicode(default="aa"))
 
-        schema = get_schema_documents([SomeGuy], tns)['tns']
+        schema = get_schema_documents([SomeGuy], tns)["tns"]
         print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)
 
-        NewGuy = objects['some_ns'].types["SomeGuy"]
-        assert NewGuy._type_info['name'].type.__orig__ is Unicode
-        assert NewGuy._type_info['name'].type.Attributes.default == "aa"
+        NewGuy = objects["some_ns"].types["SomeGuy"]
+        assert NewGuy._type_info["name"].type.__orig__ is Unicode
+        assert NewGuy._type_info["name"].type.Attributes.default == "aa"
 
     def test_inherited_attribute(self):
         class DeviceEntity(ComplexModel):
-            token = XmlAttribute(Unicode, use='required')
+            token = XmlAttribute(Unicode, use="required")
 
         class DigitalInput(DeviceEntity):
             IdleState = XmlAttribute(Unicode)
 
         class SomeService(Service):
-            @rpc(_returns=DigitalInput, _body_style='bare')
+            @rpc(_returns=DigitalInput, _body_style="bare")
             def GetDigitalInput(ctx):
                 return DigitalInput()
 
-        Application([SomeService], 'some_tns',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11())
+        Application(
+            [SomeService],
+            "some_tns",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
+        )
 
     def test_simple_type_explicit_customization(self):
         class Header(ComplexModel):
@@ -474,20 +532,21 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         class DummyService(Service):
             @rpc(Params, _returns=Unicode)
             def loadServices(ctx, serviceParams):
-                return '42'
+                return "42"
 
-        Application([DummyService],
-            tns='dummy',
-            name='DummyService',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11()
+        Application(
+            [DummyService],
+            tns="dummy",
+            name="DummyService",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
         )
         # if instantiation doesn't fail, test is green.
 
 
 class TestParseForeignXmlSchema(unittest.TestCase):
     def test_simple_content(self):
-        tns = 'some_ns'
+        tns = "some_ns"
 
         schema = """<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="some_ns"
@@ -504,29 +563,29 @@ class TestParseForeignXmlSchema(unittest.TestCase):
         objects = parse_schema_string(schema)
         pprint(objects[tns].types)
 
-        NewGuy = objects[tns].types['SomeGuy']
+        NewGuy = objects[tns].types["SomeGuy"]
         ti = NewGuy._type_info
         pprint(dict(ti))
-        assert issubclass(ti['_data'], XmlData)
-        assert ti['_data'].type is Unicode
+        assert issubclass(ti["_data"], XmlData)
+        assert ti["_data"].type is Unicode
 
-        assert issubclass(ti['attr'], XmlAttribute)
-        assert ti['attr'].type is Unicode
+        assert issubclass(ti["attr"], XmlAttribute)
+        assert ti["attr"].type is Unicode
 
 
 class TestCodeGeneration(unittest.TestCase):
     def _get_schema(self, *args):
-        schema_doc = get_schema_documents(args)['tns']
+        schema_doc = get_schema_documents(args)["tns"]
         return parse_schema_element(schema_doc)
 
     def test_simple(self):
-        ns = 'some_ns'
+        ns = "some_ns"
 
         class SomeObject(ComplexModel):
             __namespace__ = ns
             _type_info = [
-                ('i', Integer),
-                ('s', Unicode),
+                ("i", Integer),
+                ("s", Unicode),
             ]
 
         s = self._get_schema(SomeObject)[ns]
@@ -540,6 +599,5 @@ class TestCodeGeneration(unittest.TestCase):
     ]""" in code
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
-
