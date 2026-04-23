@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,11 +17,17 @@
 #
 
 
+from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.ext.compiler import compiles
 
-from sqlalchemy.dialects.postgresql import INET
-from spyne.store.relational import PGXml, PGJson, PGHtml, PGJsonB, \
-    PGObjectJson, PGFileJson
+from spyne.store.relational.document import (
+    PGFileJson,
+    PGHtml,
+    PGJson,
+    PGJsonB,
+    PGObjectJson,
+    PGXml,
+)
 
 
 @compiles(PGXml)
@@ -58,7 +63,6 @@ def compile_fjson(type_, compiler, **kw):
 @compiles(INET)
 def compile_inet(type_, compiler, **kw):
     return "inet"
-
 
 
 @compiles(PGXml, "firebird")

@@ -18,23 +18,23 @@
 #
 
 import logging
-suds_logger = logging.getLogger('suds')
+
+suds_logger = logging.getLogger("suds")
 suds_logger.setLevel(logging.INFO)
 
 import unittest
-
+from base64 import b64decode, b64encode
 from datetime import datetime
-from base64 import b64encode, b64decode
 
-from suds.sax.parser import Parser
+from suds import WebFault
 from suds.client import Client
 from suds.plugin import MessagePlugin
-from suds import WebFault
+from suds.sax.parser import Parser
 
-from spyne.util import six
-
-from spyne.test.interop._test_soap_client_base import SpyneClientTestBase, \
-    server_started
+from spyne.test.interop._test_soap_client_base import (
+    SpyneClientTestBase,
+    server_started,
+)
 
 
 class LastReceivedPlugin(MessagePlugin):
@@ -45,12 +45,15 @@ class LastReceivedPlugin(MessagePlugin):
 
 class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def setUp(self):
-        SpyneClientTestBase.setUp(self, 'http')
+        from spyne.test.interop.server.soap11.soap_http_basic import port as _port
 
-        port, = server_started.keys()
+        SpyneClientTestBase.setUp(self, "http")
 
-        self.client = Client("http://localhost:%d/?wsdl" % port, cache=None,
-                                                 plugins=[LastReceivedPlugin()])
+        self.client = Client(
+            "http://localhost:%d/?wsdl" % _port[0],
+            cache=None,
+            plugins=[LastReceivedPlugin()],
+        )
         self.ns = "spyne.test.interop.server"
 
     def test_echo_datetime(self):
@@ -120,8 +123,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         assert val == b64decode(ret)
 
     def test_validation(self):
-        non_nillable_class = self.client.factory.create(
-                                                  "{hunk.sunk}NonNillableClass")
+        non_nillable_class = self.client.factory.create("{hunk.sunk}NonNillableClass")
         non_nillable_class.i = 6
         non_nillable_class.s = None
 
@@ -133,13 +135,13 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
             raise Exception("must fail")
 
     def test_echo_integer_array(self):
-        ia = self.client.factory.create('integerArray')
+        ia = self.client.factory.create("integerArray")
         ia.integer.extend([1, 2, 3, 4, 5])
         self.client.service.echo_integer_array(ia)
 
     def test_echo_in_header(self):
-        in_header = self.client.factory.create('InHeader')
-        in_header.s = 'a'
+        in_header = self.client.factory.create("InHeader")
+        in_header.s = "a"
         in_header.i = 3
 
         self.client.set_options(soapheaders=in_header)
@@ -152,13 +154,14 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEqual(in_header.i, ret.i)
 
     def test_echo_in_complex_header(self):
-        in_header = self.client.factory.create('InHeader')
-        in_header.s = 'a'
+        in_header = self.client.factory.create("InHeader")
+        in_header.s = "a"
         in_header.i = 3
-        in_trace_header = self.client.factory.create('InTraceHeader')
-        in_trace_header.client = 'suds'
-        in_trace_header.callDate = datetime(year=2000, month=1, day=1, hour=0,
-                                              minute=0, second=0, microsecond=0)
+        in_trace_header = self.client.factory.create("InTraceHeader")
+        in_trace_header.client = "suds"
+        in_trace_header.callDate = datetime(
+            year=2000, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+        )
 
         self.client.set_options(soapheaders=(in_header, in_trace_header))
         ret = self.client.service.echo_in_complex_header()
@@ -172,7 +175,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEqual(in_trace_header.callDate, ret[1].callDate)
 
     def test_send_out_header(self):
-        out_header = self.client.factory.create('OutHeader')
+        out_header = self.client.factory.create("OutHeader")
         out_header.dt = datetime(year=2000, month=1, day=1)
         out_header.f = 3.141592653
 
@@ -183,14 +186,16 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEqual(ret.f, out_header.f)
 
     def test_send_out_complex_header(self):
-        out_header = self.client.factory.create('OutHeader')
+        out_header = self.client.factory.create("OutHeader")
         out_header.dt = datetime(year=2000, month=1, day=1)
         out_header.f = 3.141592653
-        out_trace_header = self.client.factory.create('OutTraceHeader')
-        out_trace_header.receiptDate = datetime(year=2000, month=1, day=1,
-                                  hour=1, minute=1, second=1, microsecond=1)
-        out_trace_header.returnDate = datetime(year=2000, month=1, day=1,
-                                 hour=1, minute=1, second=1, microsecond=100)
+        out_trace_header = self.client.factory.create("OutTraceHeader")
+        out_trace_header.receiptDate = datetime(
+            year=2000, month=1, day=1, hour=1, minute=1, second=1, microsecond=1
+        )
+        out_trace_header.returnDate = datetime(
+            year=2000, month=1, day=1, hour=1, minute=1, second=1, microsecond=100
+        )
 
         ret = self.client.service.send_out_complex_header()
 
@@ -202,19 +207,36 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEqual(ret[1].returnDate, out_trace_header.returnDate)
         # Control the reply soap header (in an unelegant way but this is the
         # only way with suds)
-        soapheaders = self.client.options.plugins[0].reply.getChild("Envelope").getChild("Header")
-        soap_out_header = soapheaders.getChild('OutHeader')
-        self.assertEqual('T'.join((out_header.dt.date().isoformat(),
-                                    out_header.dt.time().isoformat())),
-                          soap_out_header.getChild('dt').getText())
-        self.assertEqual(six.text_type(out_header.f), soap_out_header.getChild('f').getText())
-        soap_out_trace_header = soapheaders.getChild('OutTraceHeader')
-        self.assertEqual('T'.join((out_trace_header.receiptDate.date().isoformat(),
-                                    out_trace_header.receiptDate.time().isoformat())),
-                          soap_out_trace_header.getChild('receiptDate').getText())
-        self.assertEqual('T'.join((out_trace_header.returnDate.date().isoformat(),
-                                    out_trace_header.returnDate.time().isoformat())),
-                          soap_out_trace_header.getChild('returnDate').getText())
+        soapheaders = (
+            self.client.options.plugins[0].reply.getChild("Envelope").getChild("Header")
+        )
+        soap_out_header = soapheaders.getChild("OutHeader")
+        self.assertEqual(
+            "T".join(
+                (out_header.dt.date().isoformat(), out_header.dt.time().isoformat())
+            ),
+            soap_out_header.getChild("dt").getText(),
+        )
+        self.assertEqual(str(out_header.f), soap_out_header.getChild("f").getText())
+        soap_out_trace_header = soapheaders.getChild("OutTraceHeader")
+        self.assertEqual(
+            "T".join(
+                (
+                    out_trace_header.receiptDate.date().isoformat(),
+                    out_trace_header.receiptDate.time().isoformat(),
+                )
+            ),
+            soap_out_trace_header.getChild("receiptDate").getText(),
+        )
+        self.assertEqual(
+            "T".join(
+                (
+                    out_trace_header.returnDate.date().isoformat(),
+                    out_trace_header.returnDate.time().isoformat(),
+                )
+            ),
+            soap_out_trace_header.getChild("returnDate").getText(),
+        )
 
     def test_echo_string(self):
         test_string = "OK"
@@ -225,23 +247,16 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def __get_xml_test_val(self):
         return {
             "test_sub": {
-                "test_subsub1": {
-                    "test_subsubsub1": ["subsubsub1 value"]
-                },
+                "test_subsub1": {"test_subsubsub1": ["subsubsub1 value"]},
                 "test_subsub2": ["subsub2 value 1", "subsub2 value 2"],
                 "test_subsub3": [
-                    {
-                        "test_subsub3sub1": ["subsub3sub1 value"]
-                    },
-                    {
-                        "test_subsub3sub2": ["subsub3sub2 value"]
-                    },
+                    {"test_subsub3sub1": ["subsub3sub1 value"]},
+                    {"test_subsub3sub2": ["subsub3sub2 value"]},
                 ],
                 "test_subsub4": [],
                 "test_subsub5": ["x"],
             }
         }
-
 
     def test_echo_simple_class(self):
         val = self.client.factory.create("{spyne.test.interop.server}SimpleClass")
@@ -255,10 +270,14 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         assert ret.s == val.s
 
     def test_echo_class_with_self_reference(self):
-        val = self.client.factory.create("{spyne.test.interop.server}ClassWithSelfReference")
+        val = self.client.factory.create(
+            "{spyne.test.interop.server}ClassWithSelfReference"
+        )
 
         val.i = 45
-        val.sr = self.client.factory.create("{spyne.test.interop.server}ClassWithSelfReference")
+        val.sr = self.client.factory.create(
+            "{spyne.test.interop.server}ClassWithSelfReference"
+        )
         val.sr.i = 50
         val.sr.sr = None
 
@@ -268,7 +287,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         assert ret.sr.i == val.sr.i
 
     def test_echo_nested_class(self):
-        val = self.client.factory.create("{punk.tunk}NestedClass");
+        val = self.client.factory.create("{punk.tunk}NestedClass")
 
         val.i = 45
         val.s = "asd"
@@ -276,17 +295,23 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         val.ai = self.client.factory.create("integerArray")
         val.ai.integer.extend([1, 2, 3, 45, 5, 3, 2, 1, 4])
 
-        val.simple = self.client.factory.create("{spyne.test.interop.server}SimpleClassArray")
+        val.simple = self.client.factory.create(
+            "{spyne.test.interop.server}SimpleClassArray"
+        )
 
-        val.simple.SimpleClass.append(self.client.factory.create("{spyne.test.interop.server}SimpleClass"))
-        val.simple.SimpleClass.append(self.client.factory.create("{spyne.test.interop.server}SimpleClass"))
+        val.simple.SimpleClass.append(
+            self.client.factory.create("{spyne.test.interop.server}SimpleClass")
+        )
+        val.simple.SimpleClass.append(
+            self.client.factory.create("{spyne.test.interop.server}SimpleClass")
+        )
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
         val.simple.SimpleClass[1].i = 12
         val.simple.SimpleClass[1].s = "qwe"
 
-        val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass");
+        val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass")
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
@@ -302,8 +327,9 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEqual(self.client.service.huge_number(), 2 ** int(1e4))
 
     def test_long_string(self):
-        self.assertEqual(self.client.service.long_string(),
-                                                   ('0123456789abcdef' * 16384))
+        self.assertEqual(
+            self.client.service.long_string(), ("0123456789abcdef" * 16384)
+        )
 
     def test_empty(self):
         self.client.service.test_empty()
@@ -315,22 +341,28 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         val.s = "asd"
         val.f = 12.34
 
-        val.simple = self.client.factory.create("{spyne.test.interop.server}SimpleClassArray")
+        val.simple = self.client.factory.create(
+            "{spyne.test.interop.server}SimpleClassArray"
+        )
 
-        val.simple.SimpleClass.append(self.client.factory.create("{spyne.test.interop.server}SimpleClass"))
-        val.simple.SimpleClass.append(self.client.factory.create("{spyne.test.interop.server}SimpleClass"))
+        val.simple.SimpleClass.append(
+            self.client.factory.create("{spyne.test.interop.server}SimpleClass")
+        )
+        val.simple.SimpleClass.append(
+            self.client.factory.create("{spyne.test.interop.server}SimpleClass")
+        )
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
         val.simple.SimpleClass[1].i = 12
         val.simple.SimpleClass[1].s = "qwe"
 
-        val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass");
+        val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass")
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
 
-        val.p = self.client.factory.create("{hunk.sunk}NonNillableClass");
+        val.p = self.client.factory.create("{hunk.sunk}NonNillableClass")
         val.p.dt = datetime(2010, 6, 2)
         val.p.i = 123
         val.p.s = "punk"
@@ -347,7 +379,6 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.assertEqual(ret.simple.SimpleClass[0].i, val.simple.SimpleClass[0].i)
         self.assertEqual(ret.other.dt, val.other.dt)
         self.assertEqual(ret.p.s, val.p.s)
-
 
     def test_python_exception(self):
         try:
@@ -381,18 +412,18 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     def test_custom_messages(self):
         ret = self.client.service.custom_messages("test")
 
-        assert ret == 'test'
+        assert ret == "test"
 
     def test_echo_simple_bare(self):
         ret = self.client.service.echo_simple_bare("test")
 
-        assert ret == 'test'
+        assert ret == "test"
 
     #
     # This test is disabled because suds does not create the right request
     # object. Opening the first <ns0:string> tag below is wrong.
     #
-    #<SOAP-ENV:Envelope xmlns:ns0="spyne.test.interop.server"
+    # <SOAP-ENV:Envelope xmlns:ns0="spyne.test.interop.server"
     #                   xmlns:xs="http://www.w3.org/2001/XMLSchema"
     #                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     #                   xmlns:ns1="http://schemas.xmlsoap.org/soap/envelope/"
@@ -406,7 +437,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     #         </ns0:string>
     #      </ns0:echo_complex_bare>
     #  </ns1:Body>
-    #</SOAP-ENV:Envelope>
+    # </SOAP-ENV:Envelope>
     #
     # The right request looks like this:
     #
@@ -416,13 +447,13 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
     #      </ns0:echo_complex_bare>
     #
     def _test_echo_complex_bare(self):
-        val = ['abc','def']
-        ia = self.client.factory.create('stringArray')
+        val = ["abc", "def"]
+        ia = self.client.factory.create("stringArray")
         ia.string.extend(val)
         ret = self.client.service.echo_complex_bare(ia)
 
         assert ret == val
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

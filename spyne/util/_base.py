@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,10 +16,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from time import mktime
 from datetime import datetime
+from time import mktime
 
-from spyne.util import memoize, six
+from spyne.util.memo import memoize
 
 
 def utctime():
@@ -29,10 +28,10 @@ def utctime():
 
 @memoize
 def get_version(package):
-    if isinstance(package, (six.text_type, six.binary_type)):
+    if isinstance(package, (str, bytes)):
         package = __import__(package)
 
-    verstr = getattr(package, '__version__')
+    verstr = getattr(package, "__version__")
     retval = []
 
     for f in verstr.split("."):

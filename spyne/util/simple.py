@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -20,12 +19,12 @@
 """Contains functions that implement the most common protocol and transport
 combinations"""
 
-
 from spyne.application import Application
 
 
-def wsgi_soap11_application(services, tns='spyne.simple.soap', validator=None,
-                                                                     name=None):
+def wsgi_soap11_application(
+    services, tns="spyne.simple.soap", validator=None, name=None
+):
     """Wraps `services` argument inside a WsgiApplication that uses Soap 1.1 for
     both input and output protocols.
     """
@@ -33,17 +32,24 @@ def wsgi_soap11_application(services, tns='spyne.simple.soap', validator=None,
     from spyne.protocol.soap import Soap11
     from spyne.server.wsgi import WsgiApplication
 
-    application = Application(services, tns, name=name,
-                in_protocol=Soap11(validator=validator), out_protocol=Soap11())
+    application = Application(
+        services,
+        tns,
+        name=name,
+        in_protocol=Soap11(validator=validator),
+        out_protocol=Soap11(),
+    )
 
     return WsgiApplication(application)
+
 
 wsgi_soap_application = wsgi_soap11_application
 """DEPRECATED! Use :func:`wsgi_soap11_application` instead."""
 
 
-def pyramid_soap11_application(services, tns='spyne.simple.soap',
-                                                     validator=None, name=None):
+def pyramid_soap11_application(
+    services, tns="spyne.simple.soap", validator=None, name=None
+):
     """Wraps `services` argument inside a PyramidApplication that uses Soap 1.1
     for both input and output protocols.
     """
@@ -51,7 +57,12 @@ def pyramid_soap11_application(services, tns='spyne.simple.soap',
     from spyne.protocol.soap import Soap11
     from spyne.server.pyramid import PyramidApplication
 
-    application = Application(services, tns, name=name,
-                in_protocol=Soap11(validator=validator), out_protocol=Soap11())
+    application = Application(
+        services,
+        tns,
+        name=name,
+        in_protocol=Soap11(validator=validator),
+        out_protocol=Soap11(),
+    )
 
     return PyramidApplication(application)

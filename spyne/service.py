@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -22,12 +21,12 @@ This module contains the :class:`Service` class and its helper objects.
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-from spyne.util.six.moves.collections_abc import Sequence
+from collections.abc import Sequence
 
 from spyne.evmgr import EventManager
-from spyne.util import six
 from spyne.util.oset import oset
 
 
@@ -38,14 +37,15 @@ class ServiceBaseMeta(type):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
         self.public_methods = {}
-        self.event_manager = EventManager(self,
-                                      self.__get_base_event_handlers(cls_bases))
+        self.event_manager = EventManager(
+            self, self.__get_base_event_handlers(cls_bases)
+        )
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
 
         for base in cls_bases:
-            evmgr = getattr(base, 'event_manager', None)
+            evmgr = getattr(base, "event_manager", None)
             if evmgr is None:
                 continue
 
@@ -56,6 +56,7 @@ class ServiceBaseMeta(type):
                 handlers[k] = handler
 
         return handlers
+
 
 class ServiceMeta(ServiceBaseMeta):
     """Creates the :class:`spyne.MethodDescriptor` objects by iterating over
@@ -69,7 +70,7 @@ class ServiceMeta(ServiceBaseMeta):
         has_nonaux_methods = None
 
         for k, v in cls_dict.items():
-            if not hasattr(v, '_is_rpc'):
+            if not hasattr(v, "_is_rpc"):
                 continue
 
             descriptor = v(_default_function_name=k, _service_class=self)
@@ -92,16 +93,17 @@ class ServiceMeta(ServiceBaseMeta):
                 self.__has_aux_methods = True
 
             if self.__has_aux_methods and has_nonaux_methods:
-                raise Exception("You can't mix primary and "
-                                "auxiliary methods in a single service definition.")
+                raise Exception(
+                    "You can't mix primary and "
+                    "auxiliary methods in a single service definition."
+                )
 
     def is_auxiliary(self):
         return self.__has_aux_methods
 
 
 # FIXME: To be renamed to ServiceBase in Spyne 3
-@six.add_metaclass(ServiceBaseMeta)
-class ServiceBaseBase(object):
+class ServiceBaseBase(metaclass=ServiceBaseMeta):
     __in_header__ = None
     """The incoming header object that the methods under this service definition
     accept."""
@@ -182,7 +184,7 @@ class ServiceBaseBase(object):
             if args is None:
                 args = ctx.in_object
 
-                assert not isinstance(args, six.string_types)
+                assert not isinstance(args, str)
 
                 # python3 wants a proper sequence as *args
                 if not isinstance(args, Sequence):
@@ -198,8 +200,7 @@ class ServiceBaseBase(object):
         pass
 
 
-@six.add_metaclass(ServiceMeta)
-class Service(ServiceBaseBase):
+class Service(ServiceBaseBase, metaclass=ServiceMeta):
     """The ``Service`` class is the base class for all service definitions.
 
     The convention is to have public methods defined under a subclass of this

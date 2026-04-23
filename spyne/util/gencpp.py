@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -22,7 +21,8 @@ standard C++ classes."""
 
 import sys
 
-INDENT = '    '
+INDENT = "    "
+
 
 class Object(object):
     def __init__(self):
@@ -39,10 +39,10 @@ class Object(object):
         ostr.write("/**\n")
         ostr.write(INDENT * indent)
         ostr.write(" *")
-        for line in self.comment_before.split('\n'):
+        for line in self.comment_before.split("\n"):
             ostr.write(" ")
             ostr.write(line)
-            ostr.write('\n')
+            ostr.write("\n")
             ostr.write(INDENT * indent)
         ostr.write(" */")
         ostr.write("\n")
@@ -51,7 +51,7 @@ class Object(object):
         if self.comment_after is None:
             return
 
-        lines = self.comment_after.split('\n')
+        lines = self.comment_after.split("\n")
 
         if len(lines) < 2:
             ostr.write("  // ")
@@ -65,7 +65,7 @@ class Object(object):
             for line in lines:
                 ostr.write(" ")
                 ostr.write(line)
-                ostr.write('\n')
+                ostr.write("\n")
                 ostr.write(INDENT * indent)
             ostr.write(" */")
             ostr.write("\n")
@@ -116,7 +116,7 @@ class DataMember(Entry):
         ostr.write(" ")
         ostr.write(self.name)
 
-        if self.modifier != 'static' and self.initializer is not None:
+        if self.modifier != "static" and self.initializer is not None:
             ostr.write(" = ")
             self.initializer.to_stream(ostr, indent)
 
@@ -124,7 +124,7 @@ class DataMember(Entry):
         ostr.write("\n")
 
     def to_defn_stream(self, ostr, indent):
-        if self.modifier != 'static':
+        if self.modifier != "static":
             return
 
         self._comment_before_to_stream(ostr, indent)
@@ -162,7 +162,7 @@ class Class(Entry):
 
         self.name = None
         self.namespace = None
-        self.type = 'class'
+        self.type = "class"
         self.public_entries = []
         self.protected_entries = []
         self.private_entries = []
@@ -174,7 +174,13 @@ class Class(Entry):
             ostr.write(" {\n")
 
         ostr.write(INDENT * indent)
-        ostr.write("%s %s {\n" % (self.type, self.name,))
+        ostr.write(
+            "%s %s {\n"
+            % (
+                self.type,
+                self.name,
+            )
+        )
 
         if len(self.public_entries) > 0:
             ostr.write(INDENT * indent)
@@ -224,6 +230,7 @@ class Class(Entry):
         if self.namespace is not None:
             ostr.write("}\n")
 
+
 def gen_cpp_class(cls, namespace=None, type_map=None):
     if type_map is None:
         type_map = dict()
@@ -240,8 +247,7 @@ def gen_cpp_class(cls, namespace=None, type_map=None):
 
     for k, v in cls.get_flat_type_info(cls).items():
         member = DataMember(
-            "static", "const std::string",
-            k, StringLiteral(v.Attributes.sub_name or k)
+            "static", "const std::string", k, StringLiteral(v.Attributes.sub_name or k)
         )
 
         member.comment_before = v.Annotations.doc

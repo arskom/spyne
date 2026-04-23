@@ -1,0 +1,34 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+
+[dev-packages]
+pytest = ">=2.9"
+pytest-twisted = "*"
+pytest-cov = "*"
+coverage = "*"
+junitxml = "*"
+werkzeug = "*"
+sqlalchemy = "*"
+lxml = ">=3.6"
+pyyaml = "*"
+pyzmq = "*"
+twisted = "*"
+colorama = "*"
+msgpack = ">=1"
+webtest = "*"
+pytest-django = "*"
+django = "*"
+python-subunit = "*"
+pyramid = "*"
+tox = "*"
+pyparsing = ">=2.0.2"
+suds-community = "*"
+zeep = "*"
+pandas = "*"
+
+[requires]
+python_version = "3.10"

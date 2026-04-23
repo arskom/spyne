@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) spyne contributors.
 #
@@ -18,9 +17,9 @@
 #
 
 
+from spyne.decorator import rpc
 from spyne.model.primitive import String
 from spyne.service import Service
-from spyne.decorator import rpc
 
 
 def TDefaultPortService():

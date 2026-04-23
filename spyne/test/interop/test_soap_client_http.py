@@ -20,20 +20,22 @@
 import unittest
 
 from spyne.client.http import HttpClient
-from spyne.test.interop._test_soap_client_base import SpyneClientTestBase, \
-    server_started
+from spyne.test.interop._test_soap_client_base import (
+    SpyneClientTestBase,
+    server_started,
+)
 from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
+
 
 class TestSpyneHttpClient(SpyneClientTestBase, unittest.TestCase):
     def setUp(self):
-        SpyneClientTestBase.setUp(self, 'http')
+        SpyneClientTestBase.setUp(self, "http")
 
-        port, = server_started.keys()
+        (port,) = server_started.keys()
 
-        self.client = HttpClient('http://localhost:%d/' % port,
-                                                             soap11_application)
+        self.client = HttpClient("http://localhost:%d/" % port, soap11_application)
         self.ns = "spyne.test.interop.server"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

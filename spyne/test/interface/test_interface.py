@@ -21,8 +21,16 @@
 import unittest
 
 from spyne import Application, Service, rpc
-from spyne.model import Array, ComplexModel, AnyXml, UnsignedLong, \
-    UnsignedInteger16, Integer, DateTime, Unicode
+from spyne.model import (
+    AnyXml,
+    Array,
+    ComplexModel,
+    DateTime,
+    Integer,
+    Unicode,
+    UnsignedInteger16,
+    UnsignedLong,
+)
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 
@@ -30,6 +38,7 @@ from spyne.protocol.soap import Soap11
 class TestInterface(unittest.TestCase):
     def test_imports(self):
         import logging
+
         logging.basicConfig(level=logging.DEBUG)
 
         class KeyValuePair(ComplexModel):
@@ -62,10 +71,12 @@ class TestInterface(unittest.TestCase):
             def some_other_call(ctx, sth):
                 pass
 
-        application = Application([Service1, Service2],
+        application = Application(
+            [Service1, Service2],
             in_protocol=HttpRpc(),
             out_protocol=Soap11(),
-            name='Service', tns='target_namespace'
+            name="Service",
+            tns="target_namespace",
         )
 
         imports = application.interface.imports
@@ -73,20 +84,20 @@ class TestInterface(unittest.TestCase):
         smm = application.interface.service_method_map
         print(imports)
 
-        assert imports[tns] == set(['1', '3', '4'])
-        assert imports['3'] == set(['2'])
-        assert imports['4'] == set(['2'])
+        assert imports[tns] == set(["1", "3", "4"])
+        assert imports["3"] == set(["2"])
+        assert imports["4"] == set(["2"])
 
-        assert smm['{%s}some_call' % tns]
-        assert smm['{%s}some_call' % tns][0].service_class == Service1
-        assert smm['{%s}some_call' % tns][0].function == Service1.some_call
+        assert smm["{%s}some_call" % tns]
+        assert smm["{%s}some_call" % tns][0].service_class == Service1
+        assert smm["{%s}some_call" % tns][0].function == Service1.some_call
 
-        assert smm['{%s}some_other_call' % tns]
-        assert smm['{%s}some_other_call' % tns][0].service_class == Service2
-        assert smm['{%s}some_other_call' % tns][0].function == Service2.some_other_call
+        assert smm["{%s}some_other_call" % tns]
+        assert smm["{%s}some_other_call" % tns][0].service_class == Service2
+        assert smm["{%s}some_other_call" % tns][0].function == Service2.some_other_call
 
     def test_custom_primitive_in_array(self):
-        RequestStatus = Unicode(values=['new', 'processed'], zonta='bonta')
+        RequestStatus = Unicode(values=["new", "processed"], zonta="bonta")
 
         class DataRequest(ComplexModel):
             status = Array(RequestStatus)
@@ -96,12 +107,15 @@ class TestInterface(unittest.TestCase):
             def some_call(ctx, dgrntcl):
                 pass
 
-        Application([HelloWorldService], 'spyne.examples.hello.soap',
-                in_protocol=Soap11(validator='lxml'),
-                out_protocol=Soap11())
+        Application(
+            [HelloWorldService],
+            "spyne.examples.hello.soap",
+            in_protocol=Soap11(validator="lxml"),
+            out_protocol=Soap11(),
+        )
 
         # test passes if instantiating Application doesn't fail
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

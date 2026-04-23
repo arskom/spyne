@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,19 +17,19 @@
 #
 
 import msgpack
+from twisted.trial import unittest
 
 from spyne import Application, Service, rpc
 from spyne.model import Unicode
 from spyne.protocol.msgpack import MessagePackDocument
 
-from twisted.trial import  unittest
-
 
 class TestMessagePackServer(unittest.TestCase):
-     def gen_prot(self, app):
-        from spyne.server.twisted.msgpack import TwistedMessagePackProtocol
-        from twisted.test.proto_helpers import StringTransportWithDisconnection
+    def gen_prot(self, app):
+        from twisted.internet.testing import StringTransportWithDisconnection
+
         from spyne.server.msgpack import MessagePackServerBase
+        from spyne.server.twisted.msgpack import TwistedMessagePackProtocol
 
         prot = TwistedMessagePackProtocol(MessagePackServerBase(app))
         transport = StringTransportWithDisconnection()
@@ -39,19 +38,23 @@ class TestMessagePackServer(unittest.TestCase):
 
         return prot
 
-     def test_roundtrip(self):
+    def test_roundtrip(self):
         v = "yaaay!"
+
         class SomeService(Service):
             @rpc(Unicode, _returns=Unicode)
             def yay(ctx, u):
                 return u
 
-        app = Application([SomeService], 'tns',
-                                in_protocol=MessagePackDocument(),
-                                out_protocol=MessagePackDocument())
+        app = Application(
+            [SomeService],
+            "tns",
+            in_protocol=MessagePackDocument(),
+            out_protocol=MessagePackDocument(),
+        )
 
         prot = self.gen_prot(app)
-        request = msgpack.packb({'yay': [v]})
+        request = msgpack.packb({"yay": [v]})
         prot.dataReceived(msgpack.packb([1, request]))
         val = prot.transport.value()
         print(repr(val))
@@ -60,26 +63,32 @@ class TestMessagePackServer(unittest.TestCase):
 
         self.assertEqual(val, [0, msgpack.packb(v)])
 
-     def test_roundtrip_deferred(self):
+    def test_roundtrip_deferred(self):
         from twisted.internet import reactor
         from twisted.internet.task import deferLater
 
         v = "yaaay!"
         p_ctx = []
+
         class SomeService(Service):
             @rpc(Unicode, _returns=Unicode)
             def yay(ctx, u):
                 def _cb():
                     return u
+
                 p_ctx.append(ctx)
                 return deferLater(reactor, 0.1, _cb)
 
-        app = Application([SomeService], 'tns',
-                                in_protocol=MessagePackDocument(),
-                                out_protocol=MessagePackDocument())
+        app = Application(
+            [SomeService],
+            "tns",
+            in_protocol=MessagePackDocument(),
+            out_protocol=MessagePackDocument(),
+        )
 
         prot = self.gen_prot(app)
-        request = msgpack.packb({'yay': [v]})
+        request = msgpack.packb({"yay": [v]})
+
         def _ccb(_):
             val = prot.transport.value()
             print(repr(val))
@@ -91,4 +100,3 @@ class TestMessagePackServer(unittest.TestCase):
         prot.dataReceived(msgpack.packb([1, request]))
 
         return p_ctx[0].out_object[0].addCallback(_ccb)
-

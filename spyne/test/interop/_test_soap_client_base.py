@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,28 +16,21 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
+import _thread as thread
 import socket
 import time
-
-import pytz
-from spyne.util import six
-
-if six.PY2:
-    import thread
-else:
-    import _thread as thread
-
-from spyne.model.fault import Fault
-
+import unittest
 from datetime import datetime
 
+import pytz
+
+from spyne.model.fault import Fault
 
 server_started = {}
 
 
 def test_port_open(port):
-    host = '127.0.0.1'
+    host = "127.0.0.1"
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((host, port))
@@ -48,22 +40,20 @@ def test_port_open(port):
 
 
 def run_server(server_type):
-    if server_type == 'http':
-        from spyne.test.interop.server.soap11.soap_http_basic import main
-        from spyne.test.interop.server.soap11.soap_http_basic import port
+    if server_type == "http":
+        from spyne.test.interop.server.soap11.soap_http_basic import main, port
 
-    elif server_type == 'zeromq':
-        from spyne.test.interop.server.soap11.soap_zeromq import main
-        from spyne.test.interop.server.soap11.soap_zeromq import port
+    elif server_type == "zeromq":
+        from spyne.test.interop.server.soap11.soap_zeromq import main, port
 
-    elif server_type == 'msgpack_rpc_http':
-        from spyne.test.interop.server.msgpackrpc_http_basic import main
-        from spyne.test.interop.server.msgpackrpc_http_basic import port
+    elif server_type == "msgpack_rpc_http":
+        from spyne.test.interop.server.msgpackrpc_http_basic import main, port
 
     else:
         raise ValueError(server_type)
 
     if server_started.get(port[0], None) is None:
+
         def run_server():
             main()
 
@@ -127,11 +117,11 @@ class SpyneClientTestBase(object):
             raise Exception("must fail")
 
         except Fault as e:
-            assert 'ValidationError' in e.faultcode
+            assert "ValidationError" in e.faultcode
 
     def test_echo_in_header(self):
-        in_header = self.get_inst('{spyne.test.interop.server}InHeader')
-        in_header.s = 'a'
+        in_header = self.get_inst("{spyne.test.interop.server}InHeader")
+        in_header.s = "a"
         in_header.i = 3
 
         self.client.set_options(soapheaders=in_header)
@@ -153,23 +143,16 @@ class SpyneClientTestBase(object):
     def _get_xml_test_val(self):
         return {
             "test_sub": {
-                "test_subsub1": {
-                    "test_subsubsub1" : ["subsubsub1 value"]
-                },
+                "test_subsub1": {"test_subsubsub1": ["subsubsub1 value"]},
                 "test_subsub2": ["subsub2 value 1", "subsub2 value 2"],
                 "test_subsub3": [
-                    {
-                        "test_subsub3sub1": ["subsub3sub1 value"]
-                    },
-                    {
-                        "test_subsub3sub2": ["subsub3sub2 value"]
-                    },
+                    {"test_subsub3sub1": ["subsub3sub1 value"]},
+                    {"test_subsub3sub2": ["subsub3sub2 value"]},
                 ],
                 "test_subsub4": [],
                 "test_subsub5": ["x"],
             }
         }
-
 
     def test_echo_simple_class(self):
         val = self.get_inst("{spyne.test.interop.server}SimpleClass")
@@ -183,7 +166,7 @@ class SpyneClientTestBase(object):
         assert ret.s == val.s
 
     def test_echo_nested_class(self):
-        val = self.get_inst("{punk.tunk}NestedClass");
+        val = self.get_inst("{punk.tunk}NestedClass")
 
         val.i = 45
         val.s = "asd"
@@ -200,7 +183,7 @@ class SpyneClientTestBase(object):
         val.simple[1].i = 12
         val.simple[1].s = "qwe"
 
-        val.other = self.get_inst("{spyne.test.interop.server}OtherClass");
+        val.other = self.get_inst("{spyne.test.interop.server}OtherClass")
         val.other.dt = datetime.now(pytz.utc)
         val.other.d = 123.456
         val.other.b = True
@@ -213,7 +196,7 @@ class SpyneClientTestBase(object):
         self.assertEqual(ret.other.dt, val.other.dt)
 
     def test_echo_extension_class(self):
-        val = self.get_inst("{bar}ExtensionClass");
+        val = self.get_inst("{bar}ExtensionClass")
 
         val.i = 45
         val.s = "asd"
@@ -229,12 +212,12 @@ class SpyneClientTestBase(object):
         val.simple[1].i = 12
         val.simple[1].s = "qwe"
 
-        val.other = self.get_inst("{spyne.test.interop.server}OtherClass");
+        val.other = self.get_inst("{spyne.test.interop.server}OtherClass")
         val.other.dt = datetime.now(pytz.utc)
         val.other.d = 123.456
         val.other.b = True
 
-        val.p = self.get_inst("{hunk.sunk}NonNillableClass");
+        val.p = self.get_inst("{hunk.sunk}NonNillableClass")
         val.p.dt = datetime(2010, 6, 2)
         val.p.i = 123
         val.p.s = "punk"
@@ -251,7 +234,6 @@ class SpyneClientTestBase(object):
         self.assertEqual(ret.simple[0].i, val.simple[0].i)
         self.assertEqual(ret.other.dt, val.other.dt)
         self.assertEqual(ret.p.s, val.p.s)
-
 
     def test_python_exception(self):
         try:
@@ -279,5 +261,5 @@ class SpyneClientTestBase(object):
         self.assertEqual(ret.roles[0], roles.MEMBER)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

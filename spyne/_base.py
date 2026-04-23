@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,7 +17,8 @@
 #
 
 import logging
-logger = logging.getLogger('spyne')
+
+logger = logging.getLogger("spyne")
 
 from collections import namedtuple
 
@@ -27,11 +27,11 @@ from collections import namedtuple
 Address = namedtuple("Address", ["type", "host", "port"])
 
 
-class _add_address_types():
-    Address.TCP4 = 'TCP4'
-    Address.TCP6 = 'TCP6'
-    Address.UDP4 = 'UDP4'
-    Address.UDP6 = 'UDP6'
+class _add_address_types:
+    Address.TCP4 = "TCP4"
+    Address.TCP6 = "TCP6"
+    Address.UDP4 = "UDP4"
+    Address.UDP6 = "UDP6"
 
     def address_str(self):
         return ":".join((self.type, self.host, str(self.port)))
@@ -42,6 +42,7 @@ class _add_address_types():
     @staticmethod
     def _fta(*a, **kw):
         from spyne.server.twisted._base import _address_from_twisted_address
+
         return _address_from_twisted_address(*a, **kw)
 
     Address.from_twisted_address = _fta

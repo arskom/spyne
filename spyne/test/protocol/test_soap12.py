@@ -3,15 +3,16 @@
 from __future__ import unicode_literals
 
 import unittest
+from io import BytesIO
 
 from lxml import etree
-from lxml.doctestcompare import LXMLOutputChecker, PARSE_XML
+from lxml.doctestcompare import PARSE_XML, LXMLOutputChecker
 
-from spyne import Fault, Unicode, ByteArray
+from spyne import ByteArray, Fault, Unicode
 from spyne.application import Application
 from spyne.const import xml as ns
 from spyne.const.xml import NS_SOAP11_ENV
-from spyne.decorator import srpc, rpc
+from spyne.decorator import rpc, srpc
 from spyne.interface import Wsdl11
 from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Integer, String
@@ -20,9 +21,12 @@ from spyne.protocol.soap.soap12 import Soap12
 from spyne.protocol.xml import XmlDocument
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import Service
-from spyne.test.protocol.test_soap11 import TestService, TestSingle, \
-    TestReturn, MultipleReturnService
-from spyne.util.six import BytesIO
+from spyne.test.protocol.test_soap11 import (
+    MultipleReturnService,
+    TestReturn,
+    TestService,
+    TestSingle,
+)
 
 
 def start_response(code, headers):
@@ -67,22 +71,26 @@ class DownloadPartFileResult(ComplexModel):
 
 class TestSingleSoap12(TestSingle):
     def setUp(self):
-        self.app = Application([TestService], 'tns', in_protocol=Soap12(), out_protocol=Soap12())
-        self.app.transport = 'null.spyne'
+        self.app = Application(
+            [TestService], "tns", in_protocol=Soap12(), out_protocol=Soap12()
+        )
+        self.app.transport = "null.spyne"
         self.srv = TestService()
 
         wsdl = Wsdl11(self.app.interface)
-        wsdl.build_interface_document('URL')
+        wsdl.build_interface_document("URL")
         self.wsdl_str = wsdl.get_interface_document()
         self.wsdl_doc = etree.fromstring(self.wsdl_str)
 
 
 class TestMultipleSoap12(TestReturn):
     def setUp(self):
-        self.app = Application([MultipleReturnService], 'tns', in_protocol=Soap12(), out_protocol=Soap12())
-        self.app.transport = 'none'
+        self.app = Application(
+            [MultipleReturnService], "tns", in_protocol=Soap12(), out_protocol=Soap12()
+        )
+        self.app.transport = "none"
         self.wsdl = Wsdl11(self.app.interface)
-        self.wsdl.build_interface_document('URL')
+        self.wsdl.build_interface_document("URL")
 
 
 class TestSoap12(unittest.TestCase):
@@ -116,9 +124,15 @@ class TestSoap12(unittest.TestCase):
             @srpc()
             def soap_exception():
                 raise Fault(
-                    "Client.Plausible.issue", "A plausible fault", 'http://faultactor.example.com',
-                    detail={'some':'extra info'})
-        app = Application([SoapException], 'tns', in_protocol=Soap12(), out_protocol=Soap12())
+                    "Client.Plausible.issue",
+                    "A plausible fault",
+                    "http://faultactor.example.com",
+                    detail={"some": "extra info"},
+                )
+
+        app = Application(
+            [SoapException], "tns", in_protocol=Soap12(), out_protocol=Soap12()
+        )
 
         req = b"""
         <soap12env:Envelope
@@ -131,13 +145,21 @@ class TestSoap12(unittest.TestCase):
         """
 
         server = WsgiApplication(app)
-        response = etree.fromstring(b''.join(server({
-            'QUERY_STRING': '',
-            'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': 'text/xml; charset=utf8',
-            'wsgi.input': BytesIO(req)
-        }, start_response, "http://null")))
+        response = etree.fromstring(
+            b"".join(
+                server(
+                    {
+                        "QUERY_STRING": "",
+                        "PATH_INFO": "/call",
+                        "REQUEST_METHOD": "POST",
+                        "CONTENT_TYPE": "text/xml; charset=utf8",
+                        "wsgi.input": BytesIO(req),
+                    },
+                    start_response,
+                    "http://null",
+                )
+            )
+        )
 
         response_str = etree.tostring(response, pretty_print=True)
         print(response_str)
@@ -171,7 +193,7 @@ class TestSoap12(unittest.TestCase):
     def test_gen_fault_codes(self):
         fault_string = "Server.Plausible.error"
         value, faultstrings = Soap12().gen_fault_codes(faultstring=fault_string)
-        self.assertEqual(value, "%s:Receiver" %(Soap12.soap_env))
+        self.assertEqual(value, "%s:Receiver" % (Soap12.soap_env))
         self.assertEqual(faultstrings[0], "Plausible")
         self.assertEqual(faultstrings[1], "error")
 
@@ -180,88 +202,118 @@ class TestSoap12(unittest.TestCase):
             value, faultstrings = Soap12().gen_fault_codes(faultstring=fault_string)
 
     def test_mtom(self):
-        FILE_NAME = 'EA055406-5881-4F02-A3DC-9A5A7510D018.dat'
-        TNS = 'http://gib.gov.tr/vedop3/eFatura'
+        FILE_NAME = "EA055406-5881-4F02-A3DC-9A5A7510D018.dat"
+        TNS = "http://gib.gov.tr/vedop3/eFatura"
+
         class SomeService(Service):
-            @rpc(Unicode(sub_name="fileName"), ByteArray(sub_name='binaryData'),
-                 ByteArray(sub_name="hash"), _returns=Unicode)
+            @rpc(
+                Unicode(sub_name="fileName"),
+                ByteArray(sub_name="binaryData"),
+                ByteArray(sub_name="hash"),
+                _returns=Unicode,
+            )
             def documentRequest(ctx, file_name, file_data, data_hash):
                 assert file_name == FILE_NAME
-                assert file_data == (b'sample data',)
+                assert file_data == (b"sample data",)
 
                 return file_name
 
-        app = Application([SomeService], tns=TNS,
-                                    in_protocol=Soap12(), out_protocol=Soap12())
+        app = Application(
+            [SomeService], tns=TNS, in_protocol=Soap12(), out_protocol=Soap12()
+        )
 
         server = WsgiApplication(app)
-        response = etree.fromstring(b''.join(server({
-            'QUERY_STRING': '',
-            'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': 'Content-Type: multipart/related; '
-                            'type="application/xop+xml"; '
-                            'boundary="uuid:2e53e161-b47f-444a-b594-eb6b72e76997"; '
-                            'start="<root.message@cxf.apache.org>"; '
-                            'start-info="application/soap+xml"; action="sendDocument"',
-            'wsgi.input': BytesIO(MTOM_REQUEST.replace(b"\n", b"\r\n"))
-        }, start_response, "http://null")))
+        response = etree.fromstring(
+            b"".join(
+                server(
+                    {
+                        "QUERY_STRING": "",
+                        "PATH_INFO": "/call",
+                        "REQUEST_METHOD": "POST",
+                        "CONTENT_TYPE": "Content-Type: multipart/related; "
+                        'type="application/xop+xml"; '
+                        'boundary="uuid:2e53e161-b47f-444a-b594-eb6b72e76997"; '
+                        'start="<root.message@cxf.apache.org>"; '
+                        'start-info="application/soap+xml"; action="sendDocument"',
+                        "wsgi.input": BytesIO(MTOM_REQUEST.replace(b"\n", b"\r\n")),
+                    },
+                    start_response,
+                    "http://null",
+                )
+            )
+        )
 
         response_str = etree.tostring(response, pretty_print=True)
         print(response_str)
 
         nsdict = dict(tns=TNS)
 
-        assert etree.fromstring(response_str) \
-            .xpath(".//tns:documentRequestResult/text()", namespaces=nsdict) \
-                                                                  == [FILE_NAME]
+        assert etree.fromstring(response_str).xpath(
+            ".//tns:documentRequestResult/text()", namespaces=nsdict
+        ) == [FILE_NAME]
 
     def test_mtom_join_envelope_chunks(self):
-        FILE_NAME = 'EA055406-5881-4F02-A3DC-9A5A7510D018.dat'
-        TNS = 'http://gib.gov.tr/vedop3/eFatura'
+        FILE_NAME = "EA055406-5881-4F02-A3DC-9A5A7510D018.dat"
+        TNS = "http://gib.gov.tr/vedop3/eFatura"
 
         # large enough payload to be chunked
         PAYLOAD = b"sample data " * 1024
+
         class SomeService(Service):
-            @rpc(Unicode(sub_name="fileName"), ByteArray(sub_name='binaryData'),
-                 ByteArray(sub_name="hash"), _returns=Unicode)
+            @rpc(
+                Unicode(sub_name="fileName"),
+                ByteArray(sub_name="binaryData"),
+                ByteArray(sub_name="hash"),
+                _returns=Unicode,
+            )
             def documentRequest(ctx, file_name, file_data, data_hash):
                 assert file_name == FILE_NAME
                 assert file_data == (PAYLOAD,)
 
                 return file_name
 
-        app = Application([SomeService], tns=TNS,
-                                    in_protocol=Soap12(), out_protocol=Soap12())
+        app = Application(
+            [SomeService], tns=TNS, in_protocol=Soap12(), out_protocol=Soap12()
+        )
 
         server = WsgiApplication(app, block_length=1024)
-        response = etree.fromstring(b''.join(server({
-            'QUERY_STRING': '',
-            'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': 'Content-Type: multipart/related; '
-                            'type="application/xop+xml"; '
-                            'boundary="uuid:2e53e161-b47f-444a-b594-eb6b72e76997"; '
-                            'start="<root.message@cxf.apache.org>"; '
-                            'start-info="application/soap+xml"; action="sendDocument"',
-            'wsgi.input': BytesIO(MTOM_REQUEST
-                                  .replace(b"\n", b"\r\n")
-                                  .replace(b"sample data", PAYLOAD)),
-        }, start_response, "http://null")))
+        response = etree.fromstring(
+            b"".join(
+                server(
+                    {
+                        "QUERY_STRING": "",
+                        "PATH_INFO": "/call",
+                        "REQUEST_METHOD": "POST",
+                        "CONTENT_TYPE": "Content-Type: multipart/related; "
+                        'type="application/xop+xml"; '
+                        'boundary="uuid:2e53e161-b47f-444a-b594-eb6b72e76997"; '
+                        'start="<root.message@cxf.apache.org>"; '
+                        'start-info="application/soap+xml"; action="sendDocument"',
+                        "wsgi.input": BytesIO(
+                            MTOM_REQUEST.replace(b"\n", b"\r\n").replace(
+                                b"sample data", PAYLOAD
+                            )
+                        ),
+                    },
+                    start_response,
+                    "http://null",
+                )
+            )
+        )
 
         response_str = etree.tostring(response, pretty_print=True)
         print(response_str)
 
         nsdict = dict(tns=TNS)
 
-        assert etree.fromstring(response_str) \
-            .xpath(".//tns:documentRequestResult/text()", namespaces=nsdict) \
-                                                                  == [FILE_NAME]
+        assert etree.fromstring(response_str).xpath(
+            ".//tns:documentRequestResult/text()", namespaces=nsdict
+        ) == [FILE_NAME]
 
     def test_bytes_join_attachment(self):
         href_id = "http://tempuri.org/1/634133419330914808"
         payload = "ANJNSLJNDYBC SFDJNIREMX:CMKSAJN"
-        envelope = '''
+        envelope = """
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
   <s:Body>
     <DownloadPartFileResponse xmlns="http://tempuri.org/">
@@ -278,10 +330,11 @@ class TestSoap12(unittest.TestCase):
     </DownloadPartFileResponse>
   </s:Body>
 </s:Envelope>
-        ''' % href_id
+        """ % href_id
 
-        (joinedmsg, numreplaces) = _join_attachment(NS_SOAP11_ENV,
-                                                     href_id, envelope, payload)
+        joinedmsg, numreplaces = _join_attachment(
+            NS_SOAP11_ENV, href_id, envelope, payload
+        )
 
         soaptree = etree.fromstring(joinedmsg)
 
@@ -293,5 +346,5 @@ class TestSoap12(unittest.TestCase):
         self.assertEqual(payload, r.Data)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

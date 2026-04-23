@@ -18,33 +18,30 @@
 #
 import logging
 
-
-zeep_logger = logging.getLogger('zeep')
+zeep_logger = logging.getLogger("zeep")
 zeep_logger.setLevel(logging.INFO)
 
 import unittest
-
 from datetime import datetime
-from base64 import b64encode, b64decode
-
-from spyne.test.interop._test_soap_client_base import server_started
-from spyne.util import six
 
 from zeep import Client
-from zeep.transports import Transport
 from zeep.exceptions import Error as ZeepError
+from zeep.transports import Transport
+
+from spyne.test.interop._test_soap_client_base import server_started
 
 
 class TestZeep(unittest.TestCase):
     def setUp(self):
         from spyne.test.interop._test_soap_client_base import run_server
-        run_server('http')
+        from spyne.test.interop.server.soap11.soap_http_basic import port as _port
 
-        port, = server_started.keys()
+        run_server("http")
 
         transport = Transport(cache=False)
-        self.client = Client("http://localhost:%d/?wsdl" % port,
-                                                            transport=transport)
+        self.client = Client(
+            "http://localhost:%d/?wsdl" % _port[0], transport=transport
+        )
         self.ns = "spyne.test.interop.server"
 
     def get_inst(self, what):
@@ -102,7 +99,7 @@ class TestZeep(unittest.TestCase):
         self.assertEqual(val, ret)
 
     def test_enum(self):
-        val = self.client.get_type("{%s}DaysOfWeekEnum" % self.ns)('Monday')
+        val = self.client.get_type("{%s}DaysOfWeekEnum" % self.ns)("Monday")
 
         ret = self.client.service.echo_enum(val)
 
@@ -127,18 +124,20 @@ class TestZeep(unittest.TestCase):
             raise Exception("must fail")
 
     def test_echo_integer_array(self):
-        ia = self.client.get_type('{%s}integerArray' % self.ns)()
+        ia = self.client.get_type("{%s}integerArray" % self.ns)()
         ia.integer.extend([1, 2, 3, 4, 5])
         self.client.service.echo_integer_array(ia)
 
     def test_echo_in_header(self):
-        in_header = self.client.get_type('{%s}InHeader' % self.ns)()
-        in_header.s = 'a'
+        in_header = self.client.get_type("{%s}InHeader" % self.ns)()
+        in_header.s = "a"
         in_header.i = 3
 
-        ret = self.client.service.echo_in_header(_soapheaders={
-            'InHeader': in_header,
-        })
+        ret = self.client.service.echo_in_header(
+            _soapheaders={
+                "InHeader": in_header,
+            }
+        )
 
         print(ret)
 
@@ -147,18 +146,18 @@ class TestZeep(unittest.TestCase):
         self.assertEqual(in_header.i, out_header.i)
 
     def test_echo_in_complex_header(self):
-        in_header = self.client.get_type('{%s}InHeader' % self.ns)()
-        in_header.s = 'a'
+        in_header = self.client.get_type("{%s}InHeader" % self.ns)()
+        in_header.s = "a"
         in_header.i = 3
-        in_trace_header = self.client.get_type('{%s}InTraceHeader' % self.ns)()
-        in_trace_header.client = 'suds'
-        in_trace_header.callDate = datetime(year=2000, month=1, day=1, hour=0,
-                                              minute=0, second=0, microsecond=0)
+        in_trace_header = self.client.get_type("{%s}InTraceHeader" % self.ns)()
+        in_trace_header.client = "suds"
+        in_trace_header.callDate = datetime(
+            year=2000, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+        )
 
-        ret = self.client.service.echo_in_complex_header(_soapheaders={
-            'InHeader': in_header,
-            'InTraceHeader': in_trace_header
-        })
+        ret = self.client.service.echo_in_complex_header(
+            _soapheaders={"InHeader": in_header, "InTraceHeader": in_trace_header}
+        )
 
         print(ret)
 
@@ -171,7 +170,7 @@ class TestZeep(unittest.TestCase):
         self.assertEqual(in_trace_header.callDate, out_trace_header.callDate)
 
     def test_send_out_header(self):
-        out_header = self.client.get_type('{%s}OutHeader' % self.ns)()
+        out_header = self.client.get_type("{%s}OutHeader" % self.ns)()
         out_header.dt = datetime(year=2000, month=1, day=1)
         out_header.f = 3.141592653
 
@@ -181,21 +180,27 @@ class TestZeep(unittest.TestCase):
         self.assertEqual(ret.header.OutHeader.f, out_header.f)
 
     def test_send_out_complex_header(self):
-        out_header = self.client.get_type('{%s}OutHeader' % self.ns)()
+        out_header = self.client.get_type("{%s}OutHeader" % self.ns)()
         out_header.dt = datetime(year=2000, month=1, day=1)
         out_header.f = 3.141592653
-        out_trace_header = self.client.get_type('{%s}OutTraceHeader' % self.ns)()
-        out_trace_header.receiptDate = datetime(year=2000, month=1, day=1,
-                                  hour=1, minute=1, second=1, microsecond=1)
-        out_trace_header.returnDate = datetime(year=2000, month=1, day=1,
-                                 hour=1, minute=1, second=1, microsecond=100)
+        out_trace_header = self.client.get_type("{%s}OutTraceHeader" % self.ns)()
+        out_trace_header.receiptDate = datetime(
+            year=2000, month=1, day=1, hour=1, minute=1, second=1, microsecond=1
+        )
+        out_trace_header.returnDate = datetime(
+            year=2000, month=1, day=1, hour=1, minute=1, second=1, microsecond=100
+        )
 
         ret = self.client.service.send_out_complex_header()
 
         self.assertEqual(ret.header.OutHeader.dt, out_header.dt)
         self.assertEqual(ret.header.OutHeader.f, out_header.f)
-        self.assertEqual(ret.header.OutTraceHeader.receiptDate, out_trace_header.receiptDate)
-        self.assertEqual(ret.header.OutTraceHeader.returnDate, out_trace_header.returnDate)
+        self.assertEqual(
+            ret.header.OutTraceHeader.receiptDate, out_trace_header.receiptDate
+        )
+        self.assertEqual(
+            ret.header.OutTraceHeader.returnDate, out_trace_header.returnDate
+        )
 
     def test_echo_string(self):
         test_string = "OK"
@@ -206,23 +211,16 @@ class TestZeep(unittest.TestCase):
     def __get_xml_test_val(self):
         return {
             "test_sub": {
-                "test_subsub1": {
-                    "test_subsubsub1": ["subsubsub1 value"]
-                },
+                "test_subsub1": {"test_subsubsub1": ["subsubsub1 value"]},
                 "test_subsub2": ["subsub2 value 1", "subsub2 value 2"],
                 "test_subsub3": [
-                    {
-                        "test_subsub3sub1": ["subsub3sub1 value"]
-                    },
-                    {
-                        "test_subsub3sub2": ["subsub3sub2 value"]
-                    },
+                    {"test_subsub3sub1": ["subsub3sub1 value"]},
+                    {"test_subsub3sub2": ["subsub3sub2 value"]},
                 ],
                 "test_subsub4": [],
                 "test_subsub5": ["x"],
             }
         }
-
 
     def test_echo_simple_class(self):
         val = self.client.get_type("{%s}SimpleClass" % self.ns)()
@@ -259,8 +257,12 @@ class TestZeep(unittest.TestCase):
 
         val.simple = self.client.get_type("{%s}SimpleClassArray" % self.ns)()
 
-        val.simple.SimpleClass.append(self.client.get_type("{%s}SimpleClass" % self.ns)())
-        val.simple.SimpleClass.append(self.client.get_type("{%s}SimpleClass" % self.ns)())
+        val.simple.SimpleClass.append(
+            self.client.get_type("{%s}SimpleClass" % self.ns)()
+        )
+        val.simple.SimpleClass.append(
+            self.client.get_type("{%s}SimpleClass" % self.ns)()
+        )
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
@@ -284,8 +286,9 @@ class TestZeep(unittest.TestCase):
         self.assertEqual(self.client.service.huge_number(), 2 ** int(1e4))
 
     def test_long_string(self):
-        self.assertEqual(self.client.service.long_string(),
-                                                   ('0123456789abcdef' * 16384))
+        self.assertEqual(
+            self.client.service.long_string(), ("0123456789abcdef" * 16384)
+        )
 
     def test_empty(self):
         self.client.service.test_empty()
@@ -299,8 +302,12 @@ class TestZeep(unittest.TestCase):
 
         val.simple = self.client.get_type("{%s}SimpleClassArray" % self.ns)()
 
-        val.simple.SimpleClass.append(self.client.get_type("{%s}SimpleClass" % self.ns)())
-        val.simple.SimpleClass.append(self.client.get_type("{%s}SimpleClass" % self.ns)())
+        val.simple.SimpleClass.append(
+            self.client.get_type("{%s}SimpleClass" % self.ns)()
+        )
+        val.simple.SimpleClass.append(
+            self.client.get_type("{%s}SimpleClass" % self.ns)()
+        )
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
@@ -329,7 +336,6 @@ class TestZeep(unittest.TestCase):
         self.assertEqual(ret.simple.SimpleClass[0].i, val.simple.SimpleClass[0].i)
         self.assertEqual(ret.other.dt, val.other.dt)
         self.assertEqual(ret.p.s, val.p.s)
-
 
     def test_python_exception(self):
         try:
@@ -363,18 +369,19 @@ class TestZeep(unittest.TestCase):
     def test_custom_messages(self):
         ret = self.client.service.custom_messages("test")
 
-        assert ret == 'test'
+        assert ret == "test"
 
     def test_echo_simple_bare(self):
         ret = self.client.service.echo_simple_bare("test")
 
-        assert ret == 'test'
+        assert ret == "test"
 
     def test_echo_complex_bare(self):
-        val = ['abc','def']
+        val = ["abc", "def"]
         ret = self.client.service.echo_complex_bare(val)
 
         assert ret == val
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

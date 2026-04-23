@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -59,7 +58,8 @@ class tlist(list):
         if not isinstance(val, self._types):
             raise TypeError(
                 "Wrong type %s, this list can hold only instances of %s"
-                                                % (type(val), str(self._types)))
+                % (type(val), str(self._types))
+            )
 
     def __iadd__(self, other):
         map(self._type_check, other)

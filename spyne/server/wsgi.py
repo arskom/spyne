@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -23,39 +22,35 @@ A server that uses http as transport via wsgi. It doesn't contain any server
 logic.
 """
 
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 import threading
-
+from http.cookies import SimpleCookie
 from inspect import isgenerator
 from itertools import chain
+from urllib.parse import quote, unquote
 
-from spyne import Address, File, Fault
-from spyne.util.six.moves.http_cookies import SimpleCookie
-from spyne.util.six.moves.urllib.parse import unquote, quote
-
+from spyne._base import Address
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
+from spyne.const.ansi_color import END_COLOR, LIGHT_GREEN
+from spyne.const.http import HTTP_200, HTTP_404, HTTP_500
 from spyne.error import RequestTooLongError
+from spyne.model.binary import File
+from spyne.model.fault import Fault
 from spyne.protocol.http import HttpRpc
 from spyne.server.http import HttpBase, HttpMethodContext, HttpTransportContext
-from spyne.util.odict import odict
 from spyne.util.address import address_parser
 from spyne.util.http import parse_content_type_header
-
-from spyne.const.ansi_color import LIGHT_GREEN
-from spyne.const.ansi_color import END_COLOR
-from spyne.const.http import HTTP_200
-from spyne.const.http import HTTP_404
-from spyne.const.http import HTTP_500
-
+from spyne.util.odict import odict
 
 try:
     from spyne.protocol.soap.mime import apply_mtom
 except ImportError as _import_error_1:
     _local_import_error_1 = _import_error_1  # python 3 workaround
+
     def apply_mtom(*args, **kwargs):
         raise _local_import_error_1
 
@@ -64,12 +59,14 @@ try:
     from werkzeug.formparser import parse_form_data
 except ImportError as _import_error_2:
     _local_import_error_2 = _import_error_2  # python 3 workaround
+
     def parse_form_data(*args, **kwargs):
         raise _local_import_error_2
 
 
-def _reconstruct_url(environ, protocol=True, server_name=True, path=True,
-                                                             query_string=True):
+def _reconstruct_url(
+    environ, protocol=True, server_name=True, path=True, query_string=True
+):
     """Rebuilds the calling url from values found in the
     environment.
 
@@ -77,64 +74,66 @@ def _reconstruct_url(environ, protocol=True, server_name=True, path=True,
     contributed by Ian Bicking.
     """
 
-    url = ''
+    url = ""
     if protocol:
-        url = environ['wsgi.url_scheme'] + '://'
+        url = environ["wsgi.url_scheme"] + "://"
 
     if server_name:
-        if environ.get('HTTP_HOST'):
-            url += environ['HTTP_HOST']
+        if environ.get("HTTP_HOST"):
+            url += environ["HTTP_HOST"]
 
         else:
-            url += environ['SERVER_NAME']
+            url += environ["SERVER_NAME"]
 
-            if environ['wsgi.url_scheme'] == 'https':
-                if environ['SERVER_PORT'] != '443':
-                    url += ':' + environ['SERVER_PORT']
+            if environ["wsgi.url_scheme"] == "https":
+                if environ["SERVER_PORT"] != "443":
+                    url += ":" + environ["SERVER_PORT"]
 
             else:
-                if environ['SERVER_PORT'] != '80':
-                    url += ':' + environ['SERVER_PORT']
+                if environ["SERVER_PORT"] != "80":
+                    url += ":" + environ["SERVER_PORT"]
 
     if path:
-        if (quote(environ.get('SCRIPT_NAME', '')) == '/' and
-            quote(environ.get('PATH_INFO', ''))[0] == '/'):
-            #skip this if it is only a slash
+        if (
+            quote(environ.get("SCRIPT_NAME", "")) == "/"
+            and quote(environ.get("PATH_INFO", ""))[0] == "/"
+        ):
+            # skip this if it is only a slash
             pass
 
-        elif quote(environ.get('SCRIPT_NAME', ''))[0:2] == '//':
-            url += quote(environ.get('SCRIPT_NAME', ''))[1:]
+        elif quote(environ.get("SCRIPT_NAME", ""))[0:2] == "//":
+            url += quote(environ.get("SCRIPT_NAME", ""))[1:]
 
         else:
-            url += quote(environ.get('SCRIPT_NAME', ''))
+            url += quote(environ.get("SCRIPT_NAME", ""))
 
-        url += quote(environ.get('PATH_INFO', ''))
+        url += quote(environ.get("PATH_INFO", ""))
 
     if query_string:
-        if environ.get('QUERY_STRING'):
-            url += '?' + environ['QUERY_STRING']
+        if environ.get("QUERY_STRING"):
+            url += "?" + environ["QUERY_STRING"]
 
     return url
 
 
 def _parse_qs(qs):
-    pairs = (s2 for s1 in qs.split('&') for s2 in s1.split(';'))
+    pairs = (s2 for s1 in qs.split("&") for s2 in s1.split(";"))
     retval = odict()
 
     for name_value in pairs:
         if name_value is None or len(name_value) == 0:
             continue
-        nv = name_value.split('=', 1)
+        nv = name_value.split("=", 1)
 
         if len(nv) != 2:
             # Handle case of a control-name with no equal sign
             nv.append(None)
 
-        name = unquote(nv[0].replace('+', ' '))
+        name = unquote(nv[0].replace("+", " "))
 
         value = None
         if nv[1] is not None:
-            value = unquote(nv[1].replace('+', ' '))
+            value = unquote(nv[1].replace("+", " "))
 
         l = retval.get(name, None)
         if l is None:
@@ -151,7 +150,7 @@ def _get_http_headers(req_env):
         if k.startswith("HTTP_"):
             key = k[5:].lower()
             val = [v]
-            retval[key]= val
+            retval[key] = val
             logger.debug("Add http header %r = %r", key, val)
 
     return retval
@@ -160,7 +159,7 @@ def _get_http_headers(req_env):
 def _gen_http_headers(headers):
     retval = []
 
-    for k,v in headers.items():
+    for k, v in headers.items():
         if isinstance(v, (list, tuple)):
             for v2 in v:
                 retval.append((k, v2))
@@ -175,13 +174,14 @@ class WsgiTransportContext(HttpTransportContext):
     :class:`WsgiMethodContext` class."""
 
     def __init__(self, parent, transport, req_env, content_type):
-        super(WsgiTransportContext, self).__init__(parent, transport,
-                                                          req_env, content_type)
+        super(WsgiTransportContext, self).__init__(
+            parent, transport, req_env, content_type
+        )
 
         self.req_env = self.req
         """WSGI Request environment"""
 
-        self.req_method = req_env.get('REQUEST_METHOD', None)
+        self.req_method = req_env.get("REQUEST_METHOD", None)
         """HTTP Request verb, as a convenience to users."""
 
         self.headers = _get_http_headers(self.req_env)
@@ -190,17 +190,17 @@ class WsgiTransportContext(HttpTransportContext):
         return _reconstruct_url(self.req_env)
 
     def get_path(self):
-        return self.req_env['PATH_INFO']
+        return self.req_env["PATH_INFO"]
 
     def get_path_and_qs(self):
-        retval = quote(self.req_env.get('PATH_INFO', ''))
-        qs = self.req_env.get('QUERY_STRING', None)
+        retval = quote(self.req_env.get("PATH_INFO", ""))
+        qs = self.req_env.get("QUERY_STRING", None)
         if qs is not None:
-            retval += '?' + qs
+            retval += "?" + qs
         return retval
 
     def get_cookie(self, key):
-        cookie_string = self.req_env.get('HTTP_COOKIE', None)
+        cookie_string = self.req_env.get("HTTP_COOKIE", None)
         if cookie_string is None:
             return
 
@@ -210,14 +210,13 @@ class WsgiTransportContext(HttpTransportContext):
         return cookie.get(key, None).value
 
     def get_request_method(self):
-        return self.req['REQUEST_METHOD'].upper()
+        return self.req["REQUEST_METHOD"].upper()
 
     def get_request_content_type(self):
         return self.req.get("CONTENT_TYPE", None)
 
     def get_peer(self):
-        addr, port = address_parser.get_ip(self.req),\
-                                               address_parser.get_port(self.req)
+        addr, port = address_parser.get_ip(self.req), address_parser.get_port(self.req)
 
         if address_parser.is_valid_ipv4(addr):
             return Address(type=Address.TCP4, host=addr, port=port)
@@ -279,10 +278,16 @@ class WsgiApplication(HttpBase):
             called both from success and error cases.
     """
 
-    def __init__(self, app, chunked=True, max_content_length=2 * 1024 * 1024,
-                                                         block_length=8 * 1024):
-        super(WsgiApplication, self).__init__(app, chunked, max_content_length,
-                                                                   block_length)
+    def __init__(
+        self,
+        app,
+        chunked=True,
+        max_content_length=2 * 1024 * 1024,
+        block_length=8 * 1024,
+    ):
+        super(WsgiApplication, self).__init__(
+            app, chunked, max_content_length, block_length
+        )
 
         self._mtx_build_interface_document = threading.Lock()
 
@@ -299,11 +304,11 @@ class WsgiApplication(HttpBase):
 
         url = wsgi_url
         if url is None:
-            url = _reconstruct_url(req_env).split('.wsdl')[0]
+            url = _reconstruct_url(req_env).split(".wsdl")[0]
 
         if self.is_wsdl_request(req_env):
             # Format the url for location
-            url = url.split('?')[0].split('.wsdl')[0]
+            url = url.split("?")[0].split(".wsdl")[0]
             return self.handle_wsdl_request(req_env, start_response, url)
 
         else:
@@ -314,23 +319,19 @@ class WsgiApplication(HttpBase):
         # /stuff/stuff/stuff/serviceName.wsdl or
         # /stuff/stuff/stuff/serviceName/?wsdl
 
-        return (
-            req_env['REQUEST_METHOD'].upper() == 'GET'
-            and (
-                (
-                    'QUERY_STRING' in req_env
-                    and req_env['QUERY_STRING'].split('=')[0].lower() == 'wsdl'
-                )
-                or req_env['PATH_INFO'].endswith('.wsdl')
+        return req_env["REQUEST_METHOD"].upper() == "GET" and (
+            (
+                "QUERY_STRING" in req_env
+                and req_env["QUERY_STRING"].split("=")[0].lower() == "wsdl"
             )
+            or req_env["PATH_INFO"].endswith(".wsdl")
         )
 
     def handle_wsdl_request(self, req_env, start_response, url):
-        ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
+        ctx = WsgiMethodContext(self, req_env, "text/xml; charset=utf-8")
 
         if self.doc.wsdl11 is None:
-            start_response(HTTP_404,
-                                  _gen_http_headers(ctx.transport.resp_headers))
+            start_response(HTTP_404, _gen_http_headers(ctx.transport.resp_headers))
             return [HTTP_404]
 
         if self._wsdl is None:
@@ -346,27 +347,26 @@ class WsgiApplication(HttpBase):
 
                 if ctx.transport.wsdl is None:
                     self.doc.wsdl11.build_interface_document(url)
-                    ctx.transport.wsdl = self._wsdl = \
-                                        self.doc.wsdl11.get_interface_document()
+                    ctx.transport.wsdl = self._wsdl = (
+                        self.doc.wsdl11.get_interface_document()
+                    )
 
             except Exception as e:
                 logger.exception(e)
                 ctx.transport.wsdl_error = e
 
-                self.event_manager.fire_event('wsdl_exception', ctx)
+                self.event_manager.fire_event("wsdl_exception", ctx)
 
-                start_response(HTTP_500,
-                                  _gen_http_headers(ctx.transport.resp_headers))
+                start_response(HTTP_500, _gen_http_headers(ctx.transport.resp_headers))
 
                 return [HTTP_500]
 
             finally:
                 self._mtx_build_interface_document.release()
 
-        self.event_manager.fire_event('wsdl', ctx)
+        self.event_manager.fire_event("wsdl", ctx)
 
-        ctx.transport.resp_headers['Content-Length'] = \
-                                                    str(len(ctx.transport.wsdl))
+        ctx.transport.resp_headers["Content-Length"] = str(len(ctx.transport.wsdl))
         start_response(HTTP_200, _gen_http_headers(ctx.transport.resp_headers))
 
         retval = ctx.transport.wsdl
@@ -385,20 +385,23 @@ class WsgiApplication(HttpBase):
         """
 
         if p_ctx.transport.resp_code is None:
-            p_ctx.transport.resp_code = \
-                p_ctx.out_protocol.fault_to_http_response_code(error)
+            p_ctx.transport.resp_code = p_ctx.out_protocol.fault_to_http_response_code(
+                error
+            )
 
         self.get_out_string(p_ctx)
 
         # consume the generator to get the length
         p_ctx.out_string = list(p_ctx.out_string)
 
-        p_ctx.transport.resp_headers['Content-Length'] = \
-                                    str(sum((len(s) for s in p_ctx.out_string)))
-        self.event_manager.fire_event('wsgi_exception', p_ctx)
+        p_ctx.transport.resp_headers["Content-Length"] = str(
+            sum((len(s) for s in p_ctx.out_string))
+        )
+        self.event_manager.fire_event("wsgi_exception", p_ctx)
 
-        start_response(p_ctx.transport.resp_code,
-                                _gen_http_headers(p_ctx.transport.resp_headers))
+        start_response(
+            p_ctx.transport.resp_code, _gen_http_headers(p_ctx.transport.resp_headers)
+        )
 
         try:
             process_contexts(self, others, p_ctx, error=error)
@@ -409,12 +412,12 @@ class WsgiApplication(HttpBase):
         return chain(p_ctx.out_string, self.__finalize(p_ctx))
 
     def handle_rpc(self, req_env, start_response):
-        initial_ctx = WsgiMethodContext(self, req_env,
-                                                self.app.out_protocol.mime_type)
+        initial_ctx = WsgiMethodContext(self, req_env, self.app.out_protocol.mime_type)
 
-        self.event_manager.fire_event('wsgi_call', initial_ctx)
-        initial_ctx.in_string, in_string_charset = \
-                                        self.__reconstruct_wsgi_request(req_env)
+        self.event_manager.fire_event("wsgi_call", initial_ctx)
+        initial_ctx.in_string, in_string_charset = self.__reconstruct_wsgi_request(
+            req_env
+        )
 
         contexts = self.generate_contexts(initial_ctx, in_string_charset)
         p_ctx, others = contexts[0], contexts[1:]
@@ -423,19 +426,16 @@ class WsgiApplication(HttpBase):
         p_ctx.active = True
 
         if p_ctx.in_error:
-            return self.handle_error(p_ctx, others, p_ctx.in_error,
-                                                                 start_response)
+            return self.handle_error(p_ctx, others, p_ctx.in_error, start_response)
 
         self.get_in_object(p_ctx)
         if p_ctx.in_error:
             logger.error(p_ctx.in_error)
-            return self.handle_error(p_ctx, others, p_ctx.in_error,
-                                                                 start_response)
+            return self.handle_error(p_ctx, others, p_ctx.in_error, start_response)
 
         self.get_out_object(p_ctx)
         if p_ctx.out_error:
-            return self.handle_error(p_ctx, others, p_ctx.out_error,
-                                                                 start_response)
+            return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
 
         assert p_ctx.out_object is not None
         g = next(iter(p_ctx.out_object))
@@ -448,7 +448,7 @@ class WsgiApplication(HttpBase):
         # protocol. Is there a better way?
         if is_generator:
             first_obj = next(g)
-            p_ctx.out_object = ( chain((first_obj,), g), )
+            p_ctx.out_object = (chain((first_obj,), g),)
 
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = HTTP_200
@@ -458,13 +458,10 @@ class WsgiApplication(HttpBase):
 
         except Exception as e:
             logger.exception(e)
-            p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
-            return self.handle_error(p_ctx, others, p_ctx.out_error,
-                                                                 start_response)
+            p_ctx.out_error = Fault("Server", get_fault_string_from_exception(e))
+            return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
 
-
-        if isinstance(p_ctx.out_protocol, HttpRpc) and \
-                                               p_ctx.out_header_doc is not None:
+        if isinstance(p_ctx.out_protocol, HttpRpc) and p_ctx.out_header_doc is not None:
             p_ctx.transport.resp_headers.update(p_ctx.out_header_doc)
 
         if p_ctx.descriptor and p_ctx.descriptor.mtom:
@@ -478,31 +475,34 @@ class WsgiApplication(HttpBase):
                 p_ctx.out_object = [p_ctx.out_object]
 
             p_ctx.transport.resp_headers, p_ctx.out_string = apply_mtom(
-                    p_ctx.transport.resp_headers, p_ctx.out_string,
-                    p_ctx.descriptor.out_message._type_info.values(),
-                    p_ctx.out_object,
-                )
+                p_ctx.transport.resp_headers,
+                p_ctx.out_string,
+                p_ctx.descriptor.out_message._type_info.values(),
+                p_ctx.out_object,
+            )
 
-        self.event_manager.fire_event('wsgi_return', p_ctx)
+        self.event_manager.fire_event("wsgi_return", p_ctx)
 
         if self.chunked:
             # the user has not set a content-length, so we delete it as the
             # input is just an iterable.
-            if 'Content-Length' in p_ctx.transport.resp_headers:
-                del p_ctx.transport.resp_headers['Content-Length']
+            if "Content-Length" in p_ctx.transport.resp_headers:
+                del p_ctx.transport.resp_headers["Content-Length"]
         else:
-            p_ctx.out_string = [''.join(p_ctx.out_string)]
+            p_ctx.out_string = ["".join(p_ctx.out_string)]
 
         try:
             len(p_ctx.out_string)
 
-            p_ctx.transport.resp_headers['Content-Length'] = \
-                                    str(sum([len(a) for a in p_ctx.out_string]))
+            p_ctx.transport.resp_headers["Content-Length"] = str(
+                sum([len(a) for a in p_ctx.out_string])
+            )
         except TypeError:
             pass
 
-        start_response(p_ctx.transport.resp_code,
-                                _gen_http_headers(p_ctx.transport.resp_headers))
+        start_response(
+            p_ctx.transport.resp_code, _gen_http_headers(p_ctx.transport.resp_headers)
+        )
 
         retval = chain(p_ctx.out_string, self.__finalize(p_ctx))
 
@@ -516,7 +516,7 @@ class WsgiApplication(HttpBase):
 
     def __finalize(self, p_ctx):
         p_ctx.close()
-        self.event_manager.fire_event('wsgi_close', p_ctx)
+        self.event_manager.fire_event("wsgi_close", p_ctx)
 
         return ()
 
@@ -530,14 +530,14 @@ class WsgiApplication(HttpBase):
             # >>> parse_content_type_header("text/xml; charset=utf-8")
             # ('text/xml', {'charset': 'utf-8'})
             content_type = parse_content_type_header(content_type)
-            charset = content_type[1].get('charset', None)
+            charset = content_type[1].get("charset", None)
 
         return self.__wsgi_input_to_iterable(http_env), charset
 
     def __wsgi_input_to_iterable(self, http_env):
-        istream = http_env.get('wsgi.input')
+        istream = http_env.get("wsgi.input")
 
-        length = str(http_env.get('CONTENT_LENGTH', self.max_content_length))
+        length = str(http_env.get("CONTENT_LENGTH", self.max_content_length))
         if len(length) == 0:
             length = 0
         else:
@@ -571,39 +571,43 @@ class WsgiApplication(HttpBase):
 
         if self.has_patterns:
             # http://legacy.python.org/dev/peps/pep-0333/#url-reconstruction
-            domain = wsgi_env.get('HTTP_HOST', None)
+            domain = wsgi_env.get("HTTP_HOST", None)
             if domain is None:
-                domain = wsgi_env['SERVER_NAME']
+                domain = wsgi_env["SERVER_NAME"]
             else:
-                domain = domain.partition(':')[0] # strip port info
+                domain = domain.partition(":")[0]  # strip port info
 
-            params = self.match_pattern(ctx,
-                    wsgi_env.get('REQUEST_METHOD', ''),
-                    wsgi_env.get('PATH_INFO', ''),
-                    domain,
-                )
+            params = self.match_pattern(
+                ctx,
+                wsgi_env.get("REQUEST_METHOD", ""),
+                wsgi_env.get("PATH_INFO", ""),
+                domain,
+            )
 
         if ctx.method_request_string is None:
-            ctx.method_request_string = '{%s}%s' % (
-                                    prot.app.interface.get_tns(),
-                                    wsgi_env['PATH_INFO'].split('/')[-1])
+            ctx.method_request_string = "{%s}%s" % (
+                prot.app.interface.get_tns(),
+                wsgi_env["PATH_INFO"].split("/")[-1],
+            )
 
-        logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
-                                          ctx.method_request_string, END_COLOR))
+        logger.debug(
+            "%sMethod name: %r%s" % (LIGHT_GREEN, ctx.method_request_string, END_COLOR)
+        )
 
         ctx.in_header_doc = ctx.transport.headers
-        ctx.in_body_doc = _parse_qs(wsgi_env['QUERY_STRING'])
+        ctx.in_body_doc = _parse_qs(wsgi_env["QUERY_STRING"])
 
         for k, v in params.items():
-             if k in ctx.in_body_doc:
-                 ctx.in_body_doc[k].extend(v)
-             else:
-                 ctx.in_body_doc[k] = list(v)
+            if k in ctx.in_body_doc:
+                ctx.in_body_doc[k].extend(v)
+            else:
+                ctx.in_body_doc[k] = list(v)
 
-        verb = wsgi_env['REQUEST_METHOD'].upper()
-        if verb in ('POST', 'PUT', 'PATCH'):
-            stream, form, files = parse_form_data(wsgi_env,
-                                             stream_factory=prot.stream_factory)
+        verb = wsgi_env["REQUEST_METHOD"].upper()
+        if verb in ("POST", "PUT", "PATCH"):
+            stream, form, files = parse_form_data(
+                wsgi_env, stream_factory=prot.stream_factory
+            )
 
             for k, v in form.lists():
                 val = ctx.in_body_doc.get(k, [])
@@ -613,20 +617,25 @@ class WsgiApplication(HttpBase):
             for k, v in files.items():
                 val = ctx.in_body_doc.get(k, [])
 
-                mime_type = v.headers.get('Content-Type',
-                                                     'application/octet-stream')
+                mime_type = v.headers.get("Content-Type", "application/octet-stream")
 
-                path = getattr(v.stream, 'name', None)
+                path = getattr(v.stream, "name", None)
                 if path is None:
-                    val.append(File.Value(name=v.filename, type=mime_type,
-                                                    data=[v.stream.getvalue()]))
+                    val.append(
+                        File.Value(
+                            name=v.filename, type=mime_type, data=[v.stream.getvalue()]
+                        )
+                    )
                 else:
                     v.stream.seek(0)
-                    val.append(File.Value(name=v.filename, type=mime_type,
-                                                    path=path, handle=v.stream))
+                    val.append(
+                        File.Value(
+                            name=v.filename, type=mime_type, path=path, handle=v.stream
+                        )
+                    )
 
                 ctx.in_body_doc[k] = val
 
             for k, v in ctx.in_body_doc.items():
-                if v == ['']:
+                if v == [""]:
                     ctx.in_body_doc[k] = [None]

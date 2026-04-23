@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -19,10 +18,10 @@
 
 """The HTTP (urllib2) client transport."""
 
-from spyne import RemoteService, ClientBase, RemoteProcedureBase
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
-from spyne.util.six.moves.urllib.request import Request, urlopen
-from spyne.util.six.moves.urllib.error import HTTPError
+from spyne import ClientBase, RemoteProcedureBase, RemoteService
 
 
 class _RemoteProcedure(RemoteProcedureBase):
@@ -32,7 +31,7 @@ class _RemoteProcedure(RemoteProcedureBase):
         # the comma-in-assignment trick is a general way of getting the first
         # and the only variable from an iterable. so if there's more than one
         # element in the iterable, it'll fail miserably.
-        self.ctx, = self.contexts
+        (self.ctx,) = self.contexts
 
         # sets ctx.out_object
         self.get_out_object(self.ctx, args, kwargs)
@@ -40,7 +39,9 @@ class _RemoteProcedure(RemoteProcedureBase):
         # sets ctx.out_string
         self.get_out_string(self.ctx)
 
-        out_string = b''.join(self.ctx.out_string) # FIXME: just send the iterable to the http stream.
+        out_string = b"".join(
+            self.ctx.out_string
+        )  # FIXME: just send the iterable to the http stream.
         request = Request(self.url, out_string)
         code = 200
         try:

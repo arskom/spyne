@@ -21,14 +21,10 @@
 This package contains some basic html output protocols.
 """
 
-from spyne.protocol.html._base import HtmlBase
-from spyne.protocol.html._base import HtmlCloth
-from spyne.protocol.html._base import parse_html_fragment_file
-from spyne.protocol.html.table import HtmlColumnTable
-from spyne.protocol.html.table import HtmlRowTable
+from spyne.protocol.html._base import HtmlBase, HtmlCloth, parse_html_fragment_file
+from spyne.protocol.html.addtl import BooleanListProtocol, PrettyFormat
 from spyne.protocol.html.microformat import HtmlMicroFormat
-from spyne.protocol.html.addtl import PrettyFormat
-from spyne.protocol.html.addtl import BooleanListProtocol
+from spyne.protocol.html.table import HtmlColumnTable, HtmlRowTable
 
 
 # FIXME: REMOVE ME

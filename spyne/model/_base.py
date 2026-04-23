@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -24,23 +23,21 @@ defining models.
 from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-import re
 import decimal
+import re
 import threading
+from collections import OrderedDict
+from copy import deepcopy
 
 import spyne.const.xml
-
-from copy import deepcopy
-from collections import OrderedDict
-
 from spyne import const
-from spyne.util import Break, six
+from spyne.const.xml import DEFAULT_NS
+from spyne.util import Break
 from spyne.util.cdict import cdict
 from spyne.util.odict import odict
-
-from spyne.const.xml import DEFAULT_NS
 
 
 class Ignored(object):
@@ -48,19 +45,25 @@ class Ignored(object):
     None. However, direct method invocations (and NullServer) get the return
     value. It can be used for tests and from hooks."""
 
-    __slots__ = ('args', 'kwargs')
+    __slots__ = ("args", "kwargs")
 
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
 
     def __eq__(self, other):
-        return      isinstance(other, Ignored) \
-                    and self.args == other.args and self.kwargs == other.kwargs
+        return (
+            isinstance(other, Ignored)
+            and self.args == other.args
+            and self.kwargs == other.kwargs
+        )
 
     def __ne__(self, other):
-        return not (isinstance(other, Ignored) \
-                    and self.args == other.args and self.kwargs == other.kwargs)
+        return not (
+            isinstance(other, Ignored)
+            and self.args == other.args
+            and self.kwargs == other.kwargs
+        )
 
 
 def _decode_pa_dict(d):
@@ -92,25 +95,24 @@ class AttributesMeta(type(object)):
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
         # Mapper args should not be inherited.
-        if not 'sqla_mapper_args' in cls_dict:
-            cls_dict['sqla_mapper_args'] = None
+        if not "sqla_mapper_args" in cls_dict:
+            cls_dict["sqla_mapper_args"] = None
 
         rd = {}
         for k in list(cls_dict.keys()):
-            if k in ('parser', 'cast'):
-                rd['parser'] = cls_dict.pop(k)
+            if k in ("parser", "cast"):
+                rd["parser"] = cls_dict.pop(k)
                 continue
 
-            if k in ('sanitize', 'sanitizer'):
-                rd['sanitizer'] = cls_dict.pop(k)
+            if k in ("sanitize", "sanitizer"):
+                rd["sanitizer"] = cls_dict.pop(k)
                 continue
 
-            if k == 'logged':
-                rd['logged'] = cls_dict.pop(k)
+            if k == "logged":
+                rd["logged"] = cls_dict.pop(k)
                 continue
 
-        retval = super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases,
-                                                                       cls_dict)
+        retval = super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
         for k, v in rd.items():
             if v is None:
@@ -122,11 +124,11 @@ class AttributesMeta(type(object)):
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         # you will probably want to look at ModelBase._s_customize as well.
-        if not hasattr(self, '_method_config_do'):
+        if not hasattr(self, "_method_config_do"):
             self._method_config_do = None
 
-        nullable = cls_dict.get('nullable', None)
-        nillable = cls_dict.get('nillable', None)
+        nullable = cls_dict.get("nullable", None)
+        nillable = cls_dict.get("nillable", None)
         if nullable is not None:
             assert nillable is None or nullable == nillable
             self._nullable = nullable
@@ -135,43 +137,40 @@ class AttributesMeta(type(object)):
             assert nullable is None or nullable == nillable
             self._nullable = nillable
 
-        if not hasattr(self, '_nullable'):
+        if not hasattr(self, "_nullable"):
             self._nullable = None
 
-        if not hasattr(self, '_default_factory'):
+        if not hasattr(self, "_default_factory"):
             self._default_factory = None
 
-        if not hasattr(self, '_html_cloth'):
+        if not hasattr(self, "_html_cloth"):
             self._html_cloth = None
-        if not hasattr(self, '_html_root_cloth'):
+        if not hasattr(self, "_html_root_cloth"):
             self._html_root_cloth = None
 
-        if 'html_cloth' in cls_dict:
-            self.set_html_cloth(cls_dict.pop('html_cloth'))
-        if 'html_root_cloth' in cls_dict:
-            self.set_html_cloth(cls_dict.pop('html_root_cloth'))
+        if "html_cloth" in cls_dict:
+            self.set_html_cloth(cls_dict.pop("html_cloth"))
+        if "html_root_cloth" in cls_dict:
+            self.set_html_cloth(cls_dict.pop("html_root_cloth"))
 
-        if not hasattr(self, '_xml_cloth'):
+        if not hasattr(self, "_xml_cloth"):
             self._xml_cloth = None
-        if not hasattr(self, '_xml_root_cloth'):
+        if not hasattr(self, "_xml_root_cloth"):
             self._xml_root_cloth = None
 
-        if 'xml_cloth' in cls_dict:
-            self.set_xml_cloth(cls_dict.pop('xml_cloth'))
+        if "xml_cloth" in cls_dict:
+            self.set_xml_cloth(cls_dict.pop("xml_cloth"))
 
-        if 'xml_root_cloth' in cls_dict:
-            self.set_xml_cloth(cls_dict.pop('xml_root_cloth'))
+        if "xml_root_cloth" in cls_dict:
+            self.set_xml_cloth(cls_dict.pop("xml_root_cloth"))
 
-        if 'method_config_do' in cls_dict and \
-                                       cls_dict['method_config_do'] is not None:
-            cls_dict['method_config_do'] = \
-                                      staticmethod(cls_dict['method_config_do'])
+        if "method_config_do" in cls_dict and cls_dict["method_config_do"] is not None:
+            cls_dict["method_config_do"] = staticmethod(cls_dict["method_config_do"])
 
         super(AttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
     def get_nullable(self):
-        return (self._nullable if self._nullable is not None else
-                                                          self.NULLABLE_DEFAULT)
+        return self._nullable if self._nullable is not None else self.NULLABLE_DEFAULT
 
     def set_nullable(self, what):
         self._nullable = what
@@ -196,8 +195,10 @@ class AttributesMeta(type(object)):
 
     def get_html_cloth(self):
         return self._html_cloth
+
     def set_html_cloth(self, what):
         from spyne.protocol.cloth.to_cloth import ClothParserMixin
+
         cm = ClothParserMixin.from_html_cloth(what)
         if cm._root_cloth is not None:
             self._html_root_cloth = cm._root_cloth
@@ -205,16 +206,20 @@ class AttributesMeta(type(object)):
             self._html_cloth = cm._cloth
         else:
             raise Exception("%r is not a suitable cloth", what)
+
     html_cloth = property(get_html_cloth, set_html_cloth)
 
     def get_html_root_cloth(self):
         return self._html_root_cloth
+
     html_root_cloth = property(get_html_root_cloth)
 
     def get_xml_cloth(self):
         return self._xml_cloth
+
     def set_xml_cloth(self, what):
         from spyne.protocol.cloth.to_cloth import ClothParserMixin
+
         cm = ClothParserMixin.from_xml_cloth(what)
         if cm._root_cloth is not None:
             self._xml_root_cloth = cm._root_cloth
@@ -222,19 +227,23 @@ class AttributesMeta(type(object)):
             self._xml_cloth = cm._cloth
         else:
             raise Exception("%r is not a suitable cloth", what)
+
     xml_cloth = property(get_xml_cloth, set_xml_cloth)
 
     def get_xml_root_cloth(self):
         return self._xml_root_cloth
+
     xml_root_cloth = property(get_xml_root_cloth)
 
     def get_method_config_do(self):
         return self._method_config_do
+
     def set_method_config_do(self, what):
         if what is None:
             self._method_config_do = None
         else:
             self._method_config_do = staticmethod(what)
+
     method_config_do = property(get_method_config_do, set_method_config_do)
 
 
@@ -251,8 +260,7 @@ class ModelBaseMeta(type(object)):
         return type(cls_name, cls_bases, cls_dict)
 
 
-@six.add_metaclass(ModelBaseMeta)
-class ModelBase(object):
+class ModelBase(metaclass=ModelBaseMeta):
     """The base class for type markers. It defines the model interface for the
     interface generators to use and also manages class customizations that are
     mainly used for defining constraints on input values.
@@ -284,8 +292,7 @@ class ModelBase(object):
     #
     # Please note that min_occurs and max_occurs must be validated in the
     # ComplexModelBase deserializer.
-    @six.add_metaclass(AttributesMeta)
-    class Attributes(object):
+    class Attributes(metaclass=AttributesMeta):
         """The class that holds the constraints for the given type."""
 
         _wrapper = False
@@ -336,7 +343,7 @@ class ModelBase(object):
         will imply an iterable of objects as native python type. Can be set to
         ``decimal.Decimal("inf")`` for arbitrary number of arguments."""
 
-        schema_tag = spyne.const.xml.XSD('element')
+        schema_tag = spyne.const.xml.XSD("element")
         """The tag used to add a primitives as child to a complex type in the
         xml schema."""
 
@@ -485,7 +492,6 @@ class ModelBase(object):
         """A dict of classes that override polymorphic substitions for classes
         given as keys to classes given as values."""
 
-
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
@@ -549,8 +555,9 @@ class ModelBase(object):
         cls.__type_name__ = "%s_%s%s" % (parent_tn, k, const.TYPE_SUFFIX)
         extends = cls.__extends__
         while extends is not None and extends.__type_name__ is ModelBase.Empty:
-            cls.__extends__._fill_empty_type_name(cls.get_namespace(),
-                               cls.get_type_name(), k + const.PARENT_SUFFIX)
+            cls.__extends__._fill_empty_type_name(
+                cls.get_namespace(), cls.get_type_name(), k + const.PARENT_SUFFIX
+            )
             extends = extends.__extends__
 
     # TODO: rename to "resolve_identifier"
@@ -570,19 +577,18 @@ class ModelBase(object):
         if cls.__namespace__ is spyne.const.xml.DEFAULT_NS:
             cls.__namespace__ = default_ns
 
-        if (cls.__namespace__ in spyne.const.xml.PREFMAP and
-                                                       not cls.is_default(cls)):
+        if cls.__namespace__ in spyne.const.xml.PREFMAP and not cls.is_default(cls):
             cls.__namespace__ = default_ns
 
         if cls.__namespace__ is None:
             ret = []
-            for f in cls.__module__.split('.'):
-                if f.startswith('_'):
+            for f in cls.__module__.split("."):
+                if f.startswith("_"):
                     break
                 else:
                     ret.append(f)
 
-            cls.__namespace__ = '.'.join(ret)
+            cls.__namespace__ = ".".join(ret)
 
         if cls.__namespace__ is None or len(cls.__namespace__) == 0:
             cls.__namespace__ = default_ns
@@ -592,15 +598,14 @@ class ModelBase(object):
 
         # print("    resolve ns for %r to %r" % (cls, cls.__namespace__))
 
-        if getattr(cls, '__extends__', None) != None:
+        if getattr(cls, "__extends__", None) != None:
             cls.__extends__.resolve_namespace(cls.__extends__, default_ns, tags)
 
         return True
 
     @classmethod
     def get_type_name(cls):
-        """Returns the class name unless the __type_name__ attribute is defined.
-        """
+        """Returns the class name unless the __type_name__ attribute is defined."""
 
         retval = cls.__type_name__
         if retval is None:
@@ -611,12 +616,10 @@ class ModelBase(object):
     # FIXME: Rename this to get_type_name_with_ns_pref
     @classmethod
     def get_type_name_ns(cls, interface):
-        """Returns the type name with a namespace prefix, separated by a column.
-        """
+        """Returns the type name with a namespace prefix, separated by a column."""
 
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(interface),
-                                                            cls.get_type_name())
+            return "%s:%s" % (cls.get_namespace_prefix(interface), cls.get_type_name())
 
     @classmethod
     def get_element_name(cls):
@@ -640,14 +643,14 @@ class ModelBase(object):
         """
         Returns str(value). This should be overridden if this is not enough.
         """
-        return six.binary_type(value)
+        return bytes(value)
 
     @classmethod
     def to_unicode(cls, value):
         """
         Returns unicode(value). This should be overridden if this is not enough.
         """
-        return six.text_type(value)
+        return str(value)
 
     @classmethod
     def get_documentation(cls):
@@ -656,7 +659,7 @@ class ModelBase(object):
         elif cls.Annotations.__use_parent_doc__:
             return cls.__doc__
         else:
-            return ''
+            return ""
 
     @classmethod
     def _s_customize(cls, **kwargs):
@@ -667,12 +670,12 @@ class ModelBase(object):
         def _log_debug(s, *args):
             logger.debug("\t%s: %s" % (cls.get_type_name(), s), *args)
 
-        cls_dict = odict({'__module__': cls.__module__, '__doc__': cls.__doc__})
+        cls_dict = odict({"__module__": cls.__module__, "__doc__": cls.__doc__})
 
-        if getattr(cls, '__orig__', None) is None:
-            cls_dict['__orig__'] = cls
+        if getattr(cls, "__orig__", None) is None:
+            cls_dict["__orig__"] = cls
         else:
-            cls_dict['__orig__'] = cls.__orig__
+            cls_dict["__orig__"] = cls.__orig__
 
         class Attributes(cls.Attributes):
             _explicit_type_name = False
@@ -683,95 +686,106 @@ class ModelBase(object):
         if cls.Attributes.sqla_column_args is None:
             Attributes.sqla_column_args = (), {}
         else:
-            Attributes.sqla_column_args = deepcopy(
-                                                cls.Attributes.sqla_column_args)
+            Attributes.sqla_column_args = deepcopy(cls.Attributes.sqla_column_args)
 
-        cls_dict['Attributes'] = Attributes
+        cls_dict["Attributes"] = Attributes
 
         # properties get reset every time a new class is defined. So we need
         # to reinitialize them explicitly.
-        for k in ('nillable', '_xml_cloth', '_xml_root_cloth', '_html_cloth',
-                                                            '_html_root_cloth'):
+        for k in (
+            "nillable",
+            "_xml_cloth",
+            "_xml_root_cloth",
+            "_html_cloth",
+            "_html_root_cloth",
+        ):
             v = getattr(cls.Attributes, k)
             if v is not None:
                 setattr(Attributes, k, v)
 
         class Annotations(cls.Annotations):
             pass
-        cls_dict['Annotations'] = Annotations
+
+        cls_dict["Annotations"] = Annotations
 
         # get protocol attrs
-        prot = kwargs.get('protocol', None)
+        prot = kwargs.get("protocol", None)
         if prot is None:
-            prot = kwargs.get('prot', None)
+            prot = kwargs.get("prot", None)
 
         if prot is None:
-            prot = kwargs.get('p', None)
+            prot = kwargs.get("p", None)
 
         if prot is not None and len(prot.type_attrs) > 0:
             # if there is a class customization from protocol, do it
 
             type_attrs = prot.type_attrs.copy()
             type_attrs.update(kwargs)
-            _log_debug("kwargs %r => %r from prot typeattr %r",
-                                            kwargs, type_attrs, prot.type_attrs)
+            _log_debug(
+                "kwargs %r => %r from prot typeattr %r",
+                kwargs,
+                type_attrs,
+                prot.type_attrs,
+            )
             kwargs = type_attrs
 
         # the ones that wrap values in staticmethod() should be added to
         # AttributesMeta initializer
         for k, v in kwargs.items():
-            if k.startswith('_'):
+            if k.startswith("_"):
                 _log_debug("ignoring '%s' because of leading underscore", k)
                 continue
 
-            if k in ('protocol', 'prot', 'p'):
+            if k in ("protocol", "prot", "p"):
                 Attributes.prot = v
                 _log_debug("setting prot=%r", v)
 
-            elif k in ('voa', 'validate_on_assignment'):
+            elif k in ("voa", "validate_on_assignment"):
                 Attributes.validate_on_assignment = v
                 _log_debug("setting voa=%r", v)
 
-            elif k in ('parser', 'in_cast'):
-                setattr(Attributes, 'parser', staticmethod(v))
+            elif k in ("parser", "in_cast"):
+                setattr(Attributes, "parser", staticmethod(v))
                 _log_debug("setting %s=%r", k, v)
 
-            elif k in ('sanitize', 'sanitizer', 'out_cast'):
-                setattr(Attributes, 'sanitizer', staticmethod(v))
+            elif k in ("sanitize", "sanitizer", "out_cast"):
+                setattr(Attributes, "sanitizer", staticmethod(v))
                 _log_debug("setting %s=%r as sanitizer", k, v)
 
-            elif k == 'logged':
-                setattr(Attributes, 'logged', staticmethod(v))
+            elif k == "logged":
+                setattr(Attributes, "logged", staticmethod(v))
                 _log_debug("setting %s=%r as log sanitizer", k, v)
 
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
                 _log_debug("setting Annotations.%s=%r", k, v)
 
-            elif k in ('primary_key', 'pk'):
-                setattr(Attributes, 'primary_key', v)
-                Attributes.sqla_column_args[-1]['primary_key'] = v
+            elif k in ("primary_key", "pk"):
+                setattr(Attributes, "primary_key", v)
+                Attributes.sqla_column_args[-1]["primary_key"] = v
                 _log_debug("setting primary_key=%r", v)
 
-            elif k in ('protocol_attrs', 'prot_attrs', 'pa'):
-                setattr(Attributes, 'prot_attrs', _decode_pa_dict(v))
+            elif k in ("protocol_attrs", "prot_attrs", "pa"):
+                setattr(Attributes, "prot_attrs", _decode_pa_dict(v))
                 _log_debug("setting prot_attrs=%r", v)
 
-            elif k in ('foreign_key', 'fk'):
+            elif k in ("foreign_key", "fk"):
                 from sqlalchemy.schema import ForeignKey
+
                 t, d = Attributes.sqla_column_args
                 fkt = (ForeignKey(v),)
                 new_v = (t + fkt, d)
                 Attributes.sqla_column_args = new_v
                 _log_debug("setting sqla_column_args=%r", new_v)
 
-            elif k in ('autoincrement', 'onupdate', 'server_default'):
+            elif k in ("autoincrement", "onupdate", "server_default"):
                 Attributes.sqla_column_args[-1][k] = v
                 _log_debug("adding %s=%r to Attributes.sqla_column_args", k, v)
 
-            elif k == 'values_dict':
-                assert not 'values' in v, "`values` and `values_dict` can't be" \
-                                          "specified at the same time"
+            elif k == "values_dict":
+                assert not "values" in v, (
+                    "`values` and `values_dict` can't be" "specified at the same time"
+                )
 
                 if not isinstance(v, dict):
                     # our odict has one nasty implicit behaviour: setitem on
@@ -782,23 +796,27 @@ class ModelBase(object):
 
                 Attributes.values = list(v.keys())
                 Attributes.values_dict = v
-                _log_debug("setting values=%r, values_dict=%r",
-                                      Attributes.values, Attributes.values_dict)
+                _log_debug(
+                    "setting values=%r, values_dict=%r",
+                    Attributes.values,
+                    Attributes.values_dict,
+                )
 
-            elif k == 'exc_table':
+            elif k == "exc_table":
                 Attributes.exc_table = v
                 Attributes.exc_db = v
                 _log_debug("setting exc_table=%r, exc_db=%r", v, v)
 
-            elif k == 'max_occurs' and v in ('unbounded', 'inf', float('inf')):
-                new_v = decimal.Decimal('inf')
+            elif k == "max_occurs" and v in ("unbounded", "inf", float("inf")):
+                new_v = decimal.Decimal("inf")
                 setattr(Attributes, k, new_v)
                 _log_debug("setting max_occurs=%r", new_v)
 
-            elif k == 'type_name':
+            elif k == "type_name":
                 Attributes._explicit_type_name = True
-                _log_debug("setting _explicit_type_name=True because "
-                                                          "we have 'type_name'")
+                _log_debug(
+                    "setting _explicit_type_name=True because " "we have 'type_name'"
+                )
 
             else:
                 setattr(Attributes, k, v)
@@ -812,7 +830,7 @@ class ModelBase(object):
         string. This is called before converting the incoming string to the
         native python value."""
 
-        return (cls.Attributes.nillable or value is not None)
+        return cls.Attributes.nillable or value is not None
 
     @staticmethod
     def validate_native(cls, value):
@@ -820,7 +838,7 @@ class ModelBase(object):
         value. This is called after converting the incoming string to the
         native python value."""
 
-        return (cls.Attributes.nullable or value is not None)
+        return cls.Attributes.nullable or value is not None
 
 
 class Null(ModelBase):
@@ -829,9 +847,8 @@ class Null(ModelBase):
 
 class SimpleModelAttributesMeta(AttributesMeta):
     def __init__(self, cls_name, cls_bases, cls_dict):
-        super(SimpleModelAttributesMeta, self).__init__(cls_name, cls_bases,
-                                                                       cls_dict)
-        if getattr(self, '_pattern', None) is None:
+        super(SimpleModelAttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
+        if getattr(self, "_pattern", None) is None:
             self._pattern = None
 
     def get_pattern(self):
@@ -861,8 +878,7 @@ class SimpleModel(ModelBase):
 
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
-    @six.add_metaclass(SimpleModelAttributesMeta)
-    class Attributes(ModelBase.Attributes):
+    class Attributes(ModelBase.Attributes, metaclass=SimpleModelAttributesMeta):
         """The class that holds the constraints for the given type."""
 
         values = set()
@@ -897,29 +913,31 @@ class SimpleModel(ModelBase):
         if not retval.is_default(retval):
             retval.__extends__ = cls
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
-            if 'type_name' in kwargs:
-                logger.debug("Type name for %r was overridden as '%s'",
-                                                   retval, retval.__type_name__)
+            if "type_name" in kwargs:
+                logger.debug(
+                    "Type name for %r was overridden as '%s'",
+                    retval,
+                    retval.__type_name__,
+                )
 
-        retval.resolve_namespace(retval, kwargs.get('__namespace__'))
+        retval.resolve_namespace(retval, kwargs.get("__namespace__"))
 
         return retval
 
     @staticmethod
     def is_default(cls):
-        return (cls.Attributes.values == SimpleModel.Attributes.values)
+        return cls.Attributes.values == SimpleModel.Attributes.values
 
     @staticmethod
     def validate_native(cls, value):
-        return (ModelBase.validate_native(cls, value)
-                and (
-                    cls.Attributes.values is None or
-                    len(cls.Attributes.values) == 0 or (
-                        (value is None     and cls.Attributes.nillable) or
-                        (value is not None and value in cls.Attributes.values)
-                    )
-                )
+        return ModelBase.validate_native(cls, value) and (
+            cls.Attributes.values is None
+            or len(cls.Attributes.values) == 0
+            or (
+                (value is None and cls.Attributes.nillable)
+                or (value is not None and value in cls.Attributes.values)
             )
+        )
 
 
 class PushBase(object):
@@ -1010,13 +1028,28 @@ class table:
     :param back_populates: See https://docs.sqlalchemy.org/en/13/orm/relationship_api.html?highlight=lazy#sqlalchemy.orm.relationship.params.back_populates
     """
 
-    def __init__(self, multi=False, left=None, right=None, backref=None,
-            id_backref=None, cascade=False, lazy='select', back_populates=None,
-                       fk_left_deferrable=None, fk_left_initially=None,
-                       fk_right_deferrable=None, fk_right_initially=None,
-                       fk_left_ondelete=None, fk_left_onupdate=None,
-                       fk_right_ondelete=None, fk_right_onupdate=None,
-                       explicit_join=False, order_by=False, single_parent=None):
+    def __init__(
+        self,
+        multi=False,
+        left=None,
+        right=None,
+        backref=None,
+        id_backref=None,
+        cascade=False,
+        lazy="select",
+        back_populates=None,
+        fk_left_deferrable=None,
+        fk_left_initially=None,
+        fk_right_deferrable=None,
+        fk_right_initially=None,
+        fk_left_ondelete=None,
+        fk_left_onupdate=None,
+        fk_right_ondelete=None,
+        fk_right_onupdate=None,
+        explicit_join=False,
+        order_by=False,
+        single_parent=None,
+    ):
         self.multi = multi
         self.left = left
         self.right = right
@@ -1070,21 +1103,31 @@ class msgpack:
 
     Make sure you don't mix this with the msgpack package when importing.
     """
+
     def __init__(self):
         pass
 
 
-PSSM_VALUES = {'json': json, 'jsonb': jsonb, 'xml': xml,
-                                             'msgpack': msgpack, 'table': table}
+PSSM_VALUES = {
+    "json": json,
+    "jsonb": jsonb,
+    "xml": xml,
+    "msgpack": msgpack,
+    "table": table,
+}
 
 
 def apply_pssm(val):
     if val is not None:
         val_c = PSSM_VALUES.get(val, None)
         if val_c is None:
-            assert isinstance(val, tuple(PSSM_VALUES.values())), \
-             "'store_as' should be one of: %r or an instance of %r not %r" \
-             % (tuple(PSSM_VALUES.keys()), tuple(PSSM_VALUES.values()), val)
+            assert isinstance(
+                val, tuple(PSSM_VALUES.values())
+            ), "'store_as' should be one of: %r or an instance of %r not %r" % (
+                tuple(PSSM_VALUES.keys()),
+                tuple(PSSM_VALUES.values()),
+                val,
+            )
 
             return val
         return val_c()
