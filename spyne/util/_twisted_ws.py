@@ -158,7 +158,7 @@ def _parseFrames(frameBuffer, needMask=True):
         # care about.
         opcode = header & 0xF
         try:
-            opcode = CONTROLS.lookupByValue(opcode)
+            opcode = CONTROLS(opcode)
         except ValueError:
             raise _WSException("Unknown opcode %d in frame" % opcode)
 

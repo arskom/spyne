@@ -161,6 +161,16 @@ class MessagePackDocument(HierDictDocument):
             return value
         raise ValidationError(value)
 
+    def get_class_name(self, cls):
+        class_name = cls.get_type_name()
+        if self.kwargs_unpacker.get("raw", False):
+            if not isinstance(class_name, bytes):
+                class_name = class_name.encode(self.default_string_encoding)
+        else:
+            if isinstance(class_name, bytes):
+                class_name = class_name.decode("utf8")
+        return class_name
+
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.
 
