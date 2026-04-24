@@ -18,20 +18,22 @@
 #
 
 from twisted.trial import unittest
-from spyne.test.interop._test_soap_client_base import run_server, server_started
 
 from spyne.client.twisted import TwistedHttpClient
+from spyne.test.interop._test_soap_client_base import run_server, server_started
 from spyne.test.interop.server.soap11.soap_http_basic import soap11_application
+
 
 class TestSpyneHttpClient(unittest.TestCase):
     def setUp(self):
-        run_server('http')
+        run_server("http")
 
-        port, = server_started.keys()
+        (port,) = server_started.keys()
 
         self.ns = b"spyne.test.interop.server._service"
-        self.client = TwistedHttpClient(b'http://localhost:%d/' % port,
-                                                             soap11_application)
+        self.client = TwistedHttpClient(
+            b"http://localhost:%d/" % port, soap11_application
+        )
 
     def test_echo_boolean(self):
         def eb(ret):

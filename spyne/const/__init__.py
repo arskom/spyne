@@ -1,5 +1,3 @@
-
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -21,7 +19,6 @@
 """The ``spyne.const`` package contains miscellanous constant values needed
 in various parts of Spyne."""
 
-
 MAX_STRING_FIELD_LENGTH = 64
 """Maximum length of a string field for :func:`spyne.util.log_repr`"""
 
@@ -34,41 +31,41 @@ MAX_DICT_ELEMENT_NUM = 2
 MAX_FIELD_NUM = 10
 """Maximum number of complex model fields for :func:`spyne.util.log_repr`"""
 
-ARRAY_PREFIX = ''
+ARRAY_PREFIX = ""
 """The prefix for Array wrapper objects. You may want to set this to 'ArrayOf'
 and the ARRAY_SUFFIX to '' for compatibility with some SOAP deployments."""
 
-ARRAY_SUFFIX = 'Array'
+ARRAY_SUFFIX = "Array"
 """The suffix for Array wrapper objects."""
 
-REQUEST_SUFFIX = ''
+REQUEST_SUFFIX = ""
 """The suffix for function response objects."""
 
-RESPONSE_SUFFIX = 'Response'
+RESPONSE_SUFFIX = "Response"
 """The suffix for function response objects."""
 
-RESULT_SUFFIX = 'Result'
+RESULT_SUFFIX = "Result"
 """The suffix for function response wrapper objects."""
 
-TYPE_SUFFIX = 'Type'
+TYPE_SUFFIX = "Type"
 """The suffix for primitives with unnamed constraints."""
 
-PARENT_SUFFIX = 'Parent'
+PARENT_SUFFIX = "Parent"
 """The suffix for parent classes of primitives with unnamed constraints."""
 
-MANDATORY_PREFIX = 'Mandatory'
+MANDATORY_PREFIX = "Mandatory"
 """The prefix for types created with the :func:`spyne.model.Mandatory`."""
 
-MANDATORY_SUFFIX = ''
+MANDATORY_SUFFIX = ""
 """The suffix for types created with the :func:`spyne.model.Mandatory`."""
 
-DEFAULT_DECLARE_ORDER = 'random'
+DEFAULT_DECLARE_ORDER = "random"
 """Order of complex type attrs of :class:`spyne.model.complex.ComplexModel`."""
 
 MIN_GC_INTERVAL = 1.0
 """Minimum time in seconds between gc.collect() calls."""
 
-DEFAULT_LOCALE = 'en_US'
+DEFAULT_LOCALE = "en_US"
 """Locale code to use for the translation subsystem when locale information is
 missing in an incoming request."""
 

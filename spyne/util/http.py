@@ -22,22 +22,17 @@
 
 import sys
 import time
-
-from email.message import EmailMessage
-from time import strftime
-from time import gmtime
 from collections import deque
+from email.message import EmailMessage
+from time import gmtime, strftime
 
-from spyne.util import six
+COOKIE_MAX_AGE = sys.maxsize
 
-if six.PY2:
-    COOKIE_MAX_AGE = sys.maxint
-else:
-    COOKIE_MAX_AGE = sys.maxsize
 
 # This is a modified version of twisted's addCookie
-def generate_cookie(k, v, max_age=None, domain=None, path=None,
-                                       comment=None, secure=False):
+def generate_cookie(
+    k, v, max_age=None, domain=None, path=None, comment=None, secure=False
+):
     """Generate a HTTP response cookie. No sanity check whatsoever is done,
     don't send anything other than ASCII.
 
@@ -50,19 +45,20 @@ def generate_cookie(k, v, max_age=None, domain=None, path=None,
     :param secure: If true, appends 'Secure' to the cookie string.
     """
 
-    if not six.PY2 and isinstance(v, bytes):
+    if isinstance(v, bytes):
         v = v.decode("ascii")
 
-    retval = deque(['%s=%s' % (k, v)])
+    retval = deque(["%s=%s" % (k, v)])
 
     if max_age is not None:
         retval.append("Max-Age=%d" % max_age)
         assert time.time() < COOKIE_MAX_AGE
 
         expires = time.time() + max_age
-        expires = min(2<<30, expires) - 1  # FIXME
-        retval.append("Expires=%s" % strftime("%a, %d %b %Y %H:%M:%S GMT",
-                                                               gmtime(expires)))
+        expires = min(2 << 30, expires) - 1  # FIXME
+        retval.append(
+            "Expires=%s" % strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime(expires))
+        )
     if domain is not None:
         retval.append("Domain=%s" % domain)
     if path is not None:
@@ -72,9 +68,10 @@ def generate_cookie(k, v, max_age=None, domain=None, path=None,
     if secure:
         retval.append("Secure")
 
-    return '; '.join(retval)
+    return "; ".join(retval)
+
 
 def parse_content_type_header(h):
     msg = EmailMessage()
-    msg['content-type'] = h
-    return msg.get_content_type(), msg['content-type'].params
+    msg["content-type"] = h
+    return msg.get_content_type(), msg["content-type"].params

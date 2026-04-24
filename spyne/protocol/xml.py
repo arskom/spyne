@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -29,59 +28,54 @@ Warning! You can get a lot of crap in the 'invalid' logger. You're not advised
 to turn it on for a production system.
 """
 
-
 import logging
-logger = logging.getLogger('spyne.protocol.xml')
-logger_invalid = logging.getLogger('spyne.protocol.xml.invalid')
 
-from inspect import isgenerator
+logger = logging.getLogger("spyne.protocol.xml")
+logger_invalid = logging.getLogger("spyne.protocol.xml.invalid")
+
 from collections import defaultdict
+from inspect import isgenerator
 
-from lxml import etree
-from lxml import html
+from lxml import etree, html
 from lxml.builder import E
-from lxml.etree import XMLSyntaxError
-from lxml.etree import XMLParser
+from lxml.etree import XMLParser, XMLSyntaxError
 
-from spyne import BODY_STYLE_WRAPPED
-
-from spyne.util import Break, coroutine
-from spyne.util.six import text_type, string_types
-from spyne.util.cdict import cdict
-from spyne.util.etreeconv import etree_to_dict, dict_to_etree,\
-    root_dict_to_etree
-from spyne.const.xml import XSI, NS_SOAP11_ENC
-
-from spyne.error import Fault
-from spyne.error import ValidationError
-from spyne.const.ansi_color import LIGHT_GREEN
-from spyne.const.ansi_color import LIGHT_RED
-from spyne.const.ansi_color import END_COLOR
-from spyne.const.xml import NS_SOAP11_ENV
-from spyne.const.xml import PREFMAP, DEFAULT_NS
-
-from spyne.model import Any, ModelBase, Array, Iterable, ComplexModelBase, \
-    AnyHtml, AnyXml, AnyDict, Unicode, PushBase, File, ByteArray, XmlData, \
-    XmlAttribute
+from spyne.const.ansi_color import END_COLOR, LIGHT_GREEN, LIGHT_RED
+from spyne.const.xml import DEFAULT_NS, NS_SOAP11_ENC, NS_SOAP11_ENV, PREFMAP, XSI
+from spyne.descriptor import BODY_STYLE_WRAPPED
+from spyne.error import Fault, ValidationError
+from spyne.model import (
+    Any,
+    AnyDict,
+    AnyHtml,
+    AnyXml,
+    Array,
+    ByteArray,
+    ComplexModelBase,
+    File,
+    Iterable,
+    ModelBase,
+    PushBase,
+    Unicode,
+    XmlAttribute,
+    XmlData,
+)
 from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.enum import EnumBase
-
 from spyne.protocol import ProtocolBase
+from spyne.util import Break, coroutine
+from spyne.util.cdict import cdict
+from spyne.util.etreeconv import dict_to_etree, etree_to_dict, root_dict_to_etree
 
-from spyne.util import six
-
-if six.PY2:
-    STR_TYPES = (str, unicode)
-else:
-    STR_TYPES = (str, bytes)
+STR_TYPES = (str, bytes)
 
 
-NIL_ATTR = {XSI('nil'): 'true'}
-XSI_TYPE = XSI('type')
+NIL_ATTR = {XSI("nil"): "true"}
+XSI_TYPE = XSI("type")
 
 
 def _append(parent, child_elt):
-    if hasattr(parent, 'append'):
+    if hasattr(parent, "append"):
         parent.append(child_elt)
     else:
         parent.write(child_elt)
@@ -96,7 +90,7 @@ def _gen_tagname(ns, name):
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
 
-    CODE = 'Client.SchemaValidationError'
+    CODE = "Client.SchemaValidationError"
 
     def __init__(self, faultstring):
         super(SchemaValidationError, self).__init__(self.CODE, faultstring)
@@ -273,39 +267,45 @@ class XmlDocument(SubXmlBase):
 
     SCHEMA_VALIDATION = type("Schema", (object,), {})
 
-    mime_type = 'text/xml'
+    mime_type = "text/xml"
     default_binary_encoding = BINARY_ENCODING_BASE64
 
     type = set(ProtocolBase.type)
-    type.add('xml')
+    type.add("xml")
 
     soap_env = PREFMAP[NS_SOAP11_ENV]
     ns_soap_env = NS_SOAP11_ENV
     ns_soap_enc = NS_SOAP11_ENC
 
-    def __init__(self, app=None, validator=None,
-                replace_null_with_default=True,
-                xml_declaration=True,
-                cleanup_namespaces=True, encoding=None, pretty_print=False,
-                attribute_defaults=False,
-                dtd_validation=False,
-                load_dtd=False,
-                no_network=True,
-                ns_clean=False,
-                recover=False,
-                remove_blank_text=False,
-                remove_pis=True,
-                strip_cdata=True,
-                resolve_entities=False,
-                huge_tree=False,
-                compact=True,
-                binary_encoding=None,
-                parse_xsi_type=True,
-                polymorphic=False,
-            ):
+    def __init__(
+        self,
+        app=None,
+        validator=None,
+        replace_null_with_default=True,
+        xml_declaration=True,
+        cleanup_namespaces=True,
+        encoding=None,
+        pretty_print=False,
+        attribute_defaults=False,
+        dtd_validation=False,
+        load_dtd=False,
+        no_network=True,
+        ns_clean=False,
+        recover=False,
+        remove_blank_text=False,
+        remove_pis=True,
+        strip_cdata=True,
+        resolve_entities=False,
+        huge_tree=False,
+        compact=True,
+        binary_encoding=None,
+        parse_xsi_type=True,
+        polymorphic=False,
+    ):
 
-        super(XmlDocument, self).__init__(app, validator,
-                                                binary_encoding=binary_encoding)
+        super(XmlDocument, self).__init__(
+            app, validator, binary_encoding=binary_encoding
+        )
 
         self.validation_schema = None
         self.xml_declaration = xml_declaration
@@ -313,7 +313,7 @@ class XmlDocument(SubXmlBase):
         self.replace_null_with_default = replace_null_with_default
 
         if encoding is None:
-            self.encoding = 'UTF-8'
+            self.encoding = "UTF-8"
         else:
             self.encoding = encoding
 
@@ -321,35 +321,39 @@ class XmlDocument(SubXmlBase):
         self.pretty_print = pretty_print
         self.parse_xsi_type = parse_xsi_type
 
-        self.serialization_handlers = cdict({
-            Any: self.any_to_parent,
-            Fault: self.fault_to_parent,
-            EnumBase: self.enum_to_parent,
-            AnyXml: self.any_xml_to_parent,
-            XmlData: self.xmldata_to_parent,
-            AnyDict: self.any_dict_to_parent,
-            AnyHtml: self.any_html_to_parent,
-            ModelBase: self.modelbase_to_parent,
-            ByteArray: self.byte_array_to_parent,
-            ComplexModelBase: self.complex_to_parent,
-            XmlAttribute: self.xmlattribute_to_parent,
-            SchemaValidationError: self.schema_validation_error_to_parent,
-        })
+        self.serialization_handlers = cdict(
+            {
+                Any: self.any_to_parent,
+                Fault: self.fault_to_parent,
+                EnumBase: self.enum_to_parent,
+                AnyXml: self.any_xml_to_parent,
+                XmlData: self.xmldata_to_parent,
+                AnyDict: self.any_dict_to_parent,
+                AnyHtml: self.any_html_to_parent,
+                ModelBase: self.modelbase_to_parent,
+                ByteArray: self.byte_array_to_parent,
+                ComplexModelBase: self.complex_to_parent,
+                XmlAttribute: self.xmlattribute_to_parent,
+                SchemaValidationError: self.schema_validation_error_to_parent,
+            }
+        )
 
-        self.deserialization_handlers = cdict({
-            AnyHtml: self.html_from_element,
-            AnyXml: self.xml_from_element,
-            Any: self.xml_from_element,
-            Array: self.array_from_element,
-            Fault: self.fault_from_element,
-            AnyDict: self.dict_from_element,
-            EnumBase: self.enum_from_element,
-            ModelBase: self.base_from_element,
-            Unicode: self.unicode_from_element,
-            Iterable: self.iterable_from_element,
-            ByteArray: self.byte_array_from_element,
-            ComplexModelBase: self.complex_from_element,
-        })
+        self.deserialization_handlers = cdict(
+            {
+                AnyHtml: self.html_from_element,
+                AnyXml: self.xml_from_element,
+                Any: self.xml_from_element,
+                Array: self.array_from_element,
+                Fault: self.fault_from_element,
+                AnyDict: self.dict_from_element,
+                EnumBase: self.enum_from_element,
+                ModelBase: self.base_from_element,
+                Unicode: self.unicode_from_element,
+                Iterable: self.iterable_from_element,
+                ByteArray: self.byte_array_from_element,
+                ComplexModelBase: self.complex_from_element,
+            }
+        )
 
         self.parser_kwargs = dict(
             attribute_defaults=attribute_defaults,
@@ -369,12 +373,11 @@ class XmlDocument(SubXmlBase):
         )
 
     def set_validator(self, validator):
-        if validator in ('lxml', 'schema') or \
-                                    validator is self.SCHEMA_VALIDATION:
+        if validator in ("lxml", "schema") or validator is self.SCHEMA_VALIDATION:
             self.validate_document = self.__validate_lxml
             self.validator = self.SCHEMA_VALIDATION
 
-        elif validator == 'soft' or validator is self.SOFT_VALIDATION:
+        elif validator == "soft" or validator is self.SOFT_VALIDATION:
             self.validator = self.SOFT_VALIDATION
 
         elif validator is None:
@@ -418,34 +421,35 @@ class XmlDocument(SubXmlBase):
 
         logger.debug("Validated ? %r" % ret)
         if ret == False:
-            error_text = text_type(self.validation_schema.error_log.last_error)
-            raise SchemaValidationError(error_text.encode('ascii',
-                                                           'xmlcharrefreplace'))
+            error_text = str(self.validation_schema.error_log.last_error)
+            raise SchemaValidationError(error_text.encode("ascii", "xmlcharrefreplace"))
 
     def create_in_document(self, ctx, charset=None):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
         ``ctx.in_document``."""
 
-        string = b''.join(ctx.in_string)
+        string = b"".join(ctx.in_string)
         try:
             try:
-                ctx.in_document = etree.fromstring(string,
-                                        parser=XMLParser(**self.parser_kwargs))
+                ctx.in_document = etree.fromstring(
+                    string, parser=XMLParser(**self.parser_kwargs)
+                )
 
             except ValueError:
-                logger.debug('ValueError: Deserializing from unicode strings '
-                             'with encoding declaration is not supported by '
-                             'lxml.')
-                ctx.in_document = etree.fromstring(string.decode(charset),
-                                                                    self.parser)
+                logger.debug(
+                    "ValueError: Deserializing from unicode strings "
+                    "with encoding declaration is not supported by "
+                    "lxml."
+                )
+                ctx.in_document = etree.fromstring(string.decode(charset), self.parser)
         except XMLSyntaxError as e:
             logger_invalid.error("%r in string %r", e, string)
-            raise Fault('Client.XMLSyntaxError', str(e))
+            raise Fault("Client.XMLSyntaxError", str(e))
 
     def decompose_incoming_envelope(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
-        ctx.in_header_doc = None # If you need header support, you should use Soap
+        ctx.in_header_doc = None  # If you need header support, you should use Soap
         ctx.in_body_doc = ctx.in_document
         ctx.method_request_string = ctx.in_body_doc.tag
         self.validate_body(ctx, message)
@@ -453,9 +457,8 @@ class XmlDocument(SubXmlBase):
     def from_element(self, ctx, cls, element):
         cls_attrs = self.get_cls_attrs(cls)
 
-        if bool(element.get(XSI('nil'))):
-            if self.validator is self.SOFT_VALIDATION and not \
-                                                             cls_attrs.nillable:
+        if bool(element.get(XSI("nil"))):
+            if self.validator is self.SOFT_VALIDATION and not cls_attrs.nillable:
                 raise ValidationError(None)
 
             if self.replace_null_with_default:
@@ -469,7 +472,7 @@ class XmlDocument(SubXmlBase):
             xsi_type = element.get(XSI_TYPE, None)
             if xsi_type is not None:
                 if ":" in xsi_type:
-                    prefix, objtype = xsi_type.split(':', 1)
+                    prefix, objtype = xsi_type.split(":", 1)
                 else:
                     prefix, objtype = None, xsi_type
 
@@ -478,21 +481,29 @@ class XmlDocument(SubXmlBase):
                     classkey = "{%s}%s" % (ns, objtype)
 
                 else:
-                    logger.error("xsi:type namespace prefix "
-                                            "'%s' in '%s' not found in %r",
-                                                    ns, xsi_type, element.nsmap)
+                    logger.error(
+                        "xsi:type namespace prefix " "'%s' in '%s' not found in %r",
+                        ns,
+                        xsi_type,
+                        element.nsmap,
+                    )
 
                     raise ValidationError(xsi_type)
 
                 newclass = ctx.app.interface.classes.get(classkey, None)
                 if newclass is None:
-                    logger.error("xsi:type '%s' interpreted as class key '%s' "
-                                        "is not recognized", xsi_type, classkey)
+                    logger.error(
+                        "xsi:type '%s' interpreted as class key '%s' "
+                        "is not recognized",
+                        xsi_type,
+                        classkey,
+                    )
                     raise ValidationError(xsi_type)
 
                 cls = newclass
-                logger.debug("xsi:type '%s' overrides %r to %r", xsi_type,
-                                                                  cls, newclass)
+                logger.debug(
+                    "xsi:type '%s' overrides %r to %r", xsi_type, cls, newclass
+                )
 
         handler = self.deserialization_handlers[cls]
         return handler(ctx, cls, element)
@@ -503,8 +514,7 @@ class XmlDocument(SubXmlBase):
 
         subprot = cls_attrs.prot
         if subprot is not None and isinstance(subprot, SubXmlBase):
-            return subprot.subserialize(ctx, cls, inst, parent, ns,
-                                                                *args, **kwargs)
+            return subprot.subserialize(ctx, cls, inst, parent, ns, *args, **kwargs)
 
         handler = self.serialization_handlers[cls]
 
@@ -512,13 +522,12 @@ class XmlDocument(SubXmlBase):
             inst = cls_attrs.default
 
         if inst is None:
-            return self.null_to_parent(ctx, cls, inst, parent, ns,
-                                                                *args, **kwargs)
+            return self.null_to_parent(ctx, cls, inst, parent, ns, *args, **kwargs)
 
         if cls_attrs.exc:
             return
 
-        kwargs['add_type'] = add_type
+        kwargs["add_type"] = add_type
         return handler(ctx, cls, inst, parent, ns, *args, **kwargs)
 
     def deserialize(self, ctx, message):
@@ -532,12 +541,13 @@ class XmlDocument(SubXmlBase):
 
         assert message in (self.REQUEST, self.RESPONSE)
 
-        self.event_manager.fire_event('before_deserialize', ctx)
+        self.event_manager.fire_event("before_deserialize", ctx)
 
         if ctx.descriptor is None:
             if ctx.in_error is None:
-                raise Fault("Client", "Method %r not found." %
-                                                      ctx.method_request_string)
+                raise Fault(
+                    "Client", "Method %r not found." % ctx.method_request_string
+                )
             else:
                 raise ctx.in_error
 
@@ -553,16 +563,19 @@ class XmlDocument(SubXmlBase):
             ctx.in_object = self.from_element(ctx, body_class, ctx.in_body_doc)
 
         if logger.level == logging.DEBUG and message is self.REQUEST:
-            line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
+            line_header = "%sRequest%s" % (LIGHT_GREEN, END_COLOR)
 
             outdoc_str = None
             if ctx.out_document is not None:
-                outdoc_str = etree.tostring(ctx.out_document,
-                        xml_declaration=self.xml_declaration, pretty_print=True)
+                outdoc_str = etree.tostring(
+                    ctx.out_document,
+                    xml_declaration=self.xml_declaration,
+                    pretty_print=True,
+                )
 
             logger.debug("%s %s" % (line_header, outdoc_str))
 
-        self.event_manager.fire_event('after_deserialize', ctx)
+        self.event_manager.fire_event("after_deserialize", ctx)
 
     def serialize(self, ctx, message):
         """Uses ``ctx.out_object``, ``ctx.out_header`` or ``ctx.out_error`` to
@@ -574,12 +587,17 @@ class XmlDocument(SubXmlBase):
 
         assert message in (self.REQUEST, self.RESPONSE)
 
-        self.event_manager.fire_event('before_serialize', ctx)
+        self.event_manager.fire_event("before_serialize", ctx)
 
         if ctx.out_error is not None:
-            tmp_elt = etree.Element('punk')
-            retval = self.to_parent(ctx, ctx.out_error.__class__, ctx.out_error,
-                                    tmp_elt, self.app.interface.get_tns())
+            tmp_elt = etree.Element("punk")
+            retval = self.to_parent(
+                ctx,
+                ctx.out_error.__class__,
+                ctx.out_error,
+                tmp_elt,
+                self.app.interface.get_tns(),
+            )
             ctx.out_document = tmp_elt[0]
 
         else:
@@ -592,8 +610,7 @@ class XmlDocument(SubXmlBase):
             if ctx.descriptor.body_style == BODY_STYLE_WRAPPED:
                 result_inst = result_message_class()
 
-                for i, (k, v) in enumerate(
-                                       result_message_class._type_info.items()):
+                for i, (k, v) in enumerate(result_message_class._type_info.items()):
                     attrs = self.get_cls_attrs(v)
                     result_inst._safe_set(k, ctx.out_object[i], v, attrs)
 
@@ -601,19 +618,25 @@ class XmlDocument(SubXmlBase):
                 result_inst = ctx.out_object
 
             if ctx.out_stream is None:
-                tmp_elt = etree.Element('punk')
-                retval = self.to_parent(ctx, result_message_class,
-                          result_inst, tmp_elt, self.app.interface.get_tns())
+                tmp_elt = etree.Element("punk")
+                retval = self.to_parent(
+                    ctx,
+                    result_message_class,
+                    result_inst,
+                    tmp_elt,
+                    self.app.interface.get_tns(),
+                )
                 ctx.out_document = tmp_elt[0]
 
             else:
-                retval = self.incgen(ctx, result_message_class,
-                                  result_inst, self.app.interface.get_tns())
+                retval = self.incgen(
+                    ctx, result_message_class, result_inst, self.app.interface.get_tns()
+                )
 
         if self.cleanup_namespaces and ctx.out_document is not None:
             etree.cleanup_namespaces(ctx.out_document)
 
-        self.event_manager.fire_event('after_serialize', ctx)
+        self.event_manager.fire_event("after_serialize", ctx)
 
         return retval
 
@@ -623,15 +646,26 @@ class XmlDocument(SubXmlBase):
         if charset is None:
             charset = self.encoding
 
-        ctx.out_string = [etree.tostring(ctx.out_document,
-                                          encoding=charset,
-                                          pretty_print=self.pretty_print,
-                                          xml_declaration=self.xml_declaration)]
+        ctx.out_string = [
+            etree.tostring(
+                ctx.out_document,
+                encoding=charset,
+                pretty_print=self.pretty_print,
+                xml_declaration=self.xml_declaration,
+            )
+        ]
 
         if logger.level == logging.DEBUG:
-            logger.debug('%sResponse%s %s' % (LIGHT_RED, END_COLOR,
-                            etree.tostring(ctx.out_document,
-                                          pretty_print=True, encoding='UTF-8')))
+            logger.debug(
+                "%sResponse%s %s"
+                % (
+                    LIGHT_RED,
+                    END_COLOR,
+                    etree.tostring(
+                        ctx.out_document, pretty_print=True, encoding="UTF-8"
+                    ),
+                )
+            )
 
     @coroutine
     def incgen(self, ctx, cls, inst, ns, name=None):
@@ -642,7 +676,7 @@ class XmlDocument(SubXmlBase):
             if isgenerator(ret):
                 try:
                     while True:
-                        y = (yield) # may throw Break
+                        y = yield  # may throw Break
                         ret.send(y)
 
                 except Break:
@@ -651,7 +685,7 @@ class XmlDocument(SubXmlBase):
                     except StopIteration:
                         pass
 
-        if hasattr(ctx.out_stream, 'finish'):
+        if hasattr(ctx.out_stream, "finish"):
             ctx.out_stream.finish()
 
     def _gen_tag(self, cls, ns, name, add_type=False, **_):
@@ -664,20 +698,17 @@ class XmlDocument(SubXmlBase):
 
         return retval
 
-    def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name='retval',
-                                                                      **kwargs):
+    def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name="retval", **kwargs):
         elt = self._gen_tag(cls, ns, name, **kwargs)
         elt.text = self.to_unicode(cls, inst, self.binary_encoding)
         _append(parent, elt)
 
-    def modelbase_to_parent(self, ctx, cls, inst, parent, ns, name='retval',
-                                                                      **kwargs):
+    def modelbase_to_parent(self, ctx, cls, inst, parent, ns, name="retval", **kwargs):
         elt = self._gen_tag(cls, ns, name, **kwargs)
         elt.text = self.to_unicode(cls, inst)
         _append(parent, elt)
 
-    def null_to_parent(self, ctx, cls, inst, parent, ns, name='retval',
-                                                                      **kwargs):
+    def null_to_parent(self, ctx, cls, inst, parent, ns, name="retval", **kwargs):
         if issubclass(cls, XmlAttribute):
             return
 
@@ -692,8 +723,7 @@ class XmlDocument(SubXmlBase):
     def null_from_element(self, ctx, cls, element):
         return None
 
-    def xmldata_to_parent(self, ctx, cls, inst, parent, ns, name,
-                                                      add_type=False, **_):
+    def xmldata_to_parent(self, ctx, cls, inst, parent, ns, name, add_type=False, **_):
         cls_attrs = self.get_cls_attrs(cls)
 
         ns = cls._ns
@@ -717,14 +747,12 @@ class XmlDocument(SubXmlBase):
 
         if inst is not None:
             if issubclass(cls.type, (ByteArray, File)):
-                parent.set(name, self.to_unicode(cls.type, inst,
-                                                 self.binary_encoding))
+                parent.set(name, self.to_unicode(cls.type, inst, self.binary_encoding))
             else:
                 parent.set(name, self.to_unicode(cls.type, inst))
 
     @coroutine
-    def gen_members_parent(self, ctx, cls, inst, parent, tag_name, subelts,
-                                                                      add_type):
+    def gen_members_parent(self, ctx, cls, inst, parent, tag_name, subelts, add_type):
         attrib = {}
         if add_type:
             tnn = cls.get_type_name_ns(self.app.interface)
@@ -744,7 +772,7 @@ class XmlDocument(SubXmlBase):
             if isgenerator(ret):
                 try:
                     while True:
-                        y = (yield) # may throw Break
+                        y = yield  # may throw Break
                         ret.send(y)
 
                 except Break:
@@ -761,7 +789,7 @@ class XmlDocument(SubXmlBase):
                 if isgenerator(ret):
                     try:
                         while True:
-                            y = (yield)
+                            y = yield
                             ret.send(y)
 
                     except Break:
@@ -773,14 +801,14 @@ class XmlDocument(SubXmlBase):
     @coroutine
     def _get_members_etree(self, ctx, cls, inst, parent):
         try:
-            parent_cls = getattr(cls, '__extends__', None)
+            parent_cls = getattr(cls, "__extends__", None)
 
             if not (parent_cls is None):
                 ret = self._get_members_etree(ctx, parent_cls, inst, parent)
                 if ret is not None:
                     try:
                         while True:
-                            sv2 = (yield) # may throw Break
+                            sv2 = yield  # may throw Break
                             ret.send(sv2)
 
                     except Break:
@@ -814,13 +842,12 @@ class XmlDocument(SubXmlBase):
                 if subvalue is not None and mo > 1:
                     if isinstance(subvalue, PushBase):
                         while True:
-                            sv = (yield)
-                            ret = self.to_parent(ctx, v, sv, parent, sub_ns,
-                                                                       sub_name)
+                            sv = yield
+                            ret = self.to_parent(ctx, v, sv, parent, sub_ns, sub_name)
                             if ret is not None:
                                 try:
                                     while True:
-                                        sv2 = (yield)  # may throw Break
+                                        sv2 = yield  # may throw Break
                                         ret.send(sv2)
 
                                 except Break:
@@ -831,13 +858,12 @@ class XmlDocument(SubXmlBase):
 
                     else:
                         for sv in subvalue:
-                            ret = self.to_parent(ctx, v, sv, parent, sub_ns,
-                                                                       sub_name)
+                            ret = self.to_parent(ctx, v, sv, parent, sub_ns, sub_name)
 
                             if ret is not None:
                                 try:
                                     while True:
-                                        sv2 = (yield)  # may throw Break
+                                        sv2 = yield  # may throw Break
                                         ret.send(sv2)
 
                                 except Break:
@@ -849,12 +875,11 @@ class XmlDocument(SubXmlBase):
                 # Don't include empty values for
                 # non-nillable optional attributes.
                 elif subvalue is not None or v.Attributes.min_occurs > 0:
-                    ret = self.to_parent(ctx, v, subvalue, parent, sub_ns,
-                                                                       sub_name)
+                    ret = self.to_parent(ctx, v, subvalue, parent, sub_ns, sub_name)
                     if ret is not None:
                         try:
                             while True:
-                                sv2 = (yield)
+                                sv2 = yield
                                 ret.send(sv2)
                         except Break as b:
                             try:
@@ -865,8 +890,9 @@ class XmlDocument(SubXmlBase):
         except Break:
             pass
 
-    def complex_to_parent(self, ctx, cls, inst, parent, ns, name=None,
-                                                           add_type=False, **_):
+    def complex_to_parent(
+        self, ctx, cls, inst, parent, ns, name=None, add_type=False, **_
+    ):
         cls_attrs = self.get_cls_attrs(cls)
 
         sub_name = cls_attrs.sub_name
@@ -883,54 +909,54 @@ class XmlDocument(SubXmlBase):
 
         inst = cls.get_serialization_instance(inst)
 
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [],
-                                                                       add_type)
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [], add_type)
 
     def _fault_to_parent_impl(self, ctx, cls, inst, parent, ns, subelts, **_):
         tag_name = "{%s}Fault" % self.ns_soap_env
 
         # Accepting raw lxml objects as detail is DEPRECATED. It's also not
         # documented. It's kept for backwards-compatibility purposes.
-        if isinstance(inst.detail, string_types + (etree._Element,)):
-            _append(subelts, E('detail', inst.detail))
+        if isinstance(inst.detail, (str, etree._Element)):
+            _append(subelts, E("detail", inst.detail))
 
         elif isinstance(inst.detail, dict):
             if len(inst.detail) > 0:
-                _append(subelts, root_dict_to_etree({'detail':inst.detail}))
+                _append(subelts, root_dict_to_etree({"detail": inst.detail}))
 
         elif inst.detail is None:
             pass
 
         else:
-            raise TypeError('Fault detail Must be dict, got', type(inst.detail))
+            raise TypeError("Fault detail Must be dict, got", type(inst.detail))
 
         # add other nonstandard fault subelements with get_members_etree
-        return self.gen_members_parent(ctx, cls, inst, parent, tag_name,
-                                                        subelts, add_type=False)
+        return self.gen_members_parent(
+            ctx, cls, inst, parent, tag_name, subelts, add_type=False
+        )
 
     def fault_to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
         subelts = [
-            E("faultcode", '%s:%s' % (self.soap_env, inst.faultcode)),
+            E("faultcode", "%s:%s" % (self.soap_env, inst.faultcode)),
             E("faultstring", inst.faultstring),
             E("faultactor", inst.faultactor),
         ]
 
         return self._fault_to_parent_impl(ctx, cls, inst, parent, ns, subelts)
 
-    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns,**_):
+    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns, **_):
         subelts = [
-            E("faultcode", '%s:%s' % (self.soap_env, inst.faultcode)),
+            E("faultcode", "%s:%s" % (self.soap_env, inst.faultcode)),
             # HACK: Does anyone know a better way of injecting raw xml entities?
             E("faultstring", html.fromstring(inst.faultstring).text),
             E("faultactor", inst.faultactor),
         ]
         if inst.detail != None:
-            _append(subelts, E('detail', inst.detail))
+            _append(subelts, E("detail", inst.detail))
 
         # add other nonstandard fault subelements with get_members_etree
         return self._fault_to_parent_impl(ctx, cls, inst, parent, ns, subelts)
 
-    def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval', **kwargs):
+    def enum_to_parent(self, ctx, cls, inst, parent, ns, name="retval", **kwargs):
         self.modelbase_to_parent(ctx, cls, str(inst), parent, ns, name, **kwargs)
 
     def any_xml_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
@@ -943,7 +969,7 @@ class XmlDocument(SubXmlBase):
         _append(parent, E(_gen_tagname(ns, name), inst))
 
     def any_html_to_parent(self, ctx, cls, inst, parent, ns, name, **_):
-        if isinstance(inst, string_types) and len(inst) > 0:
+        if isinstance(inst, str) and len(inst) > 0:
             inst = html.fromstring(inst)
 
         _append(parent, E(_gen_tagname(ns, name), inst))
@@ -967,8 +993,9 @@ class XmlDocument(SubXmlBase):
             for xtba_key, xtba_type in cls_attrs._xml_tag_body_as:
                 xtba_attrs = self.get_cls_attrs(xtba_type.type)
                 if issubclass(xtba_type.type, (ByteArray, File)):
-                    value = self.from_unicode(xtba_type.type, elt.text,
-                                                        self.binary_encoding)
+                    value = self.from_unicode(
+                        xtba_type.type, elt.text, self.binary_encoding
+                    )
                 else:
                     value = self.from_unicode(xtba_type.type, elt.text)
 
@@ -979,7 +1006,7 @@ class XmlDocument(SubXmlBase):
             if isinstance(c, etree._Comment):
                 continue
 
-            key = c.tag.split('}', 1)[-1]
+            key = c.tag.split("}", 1)[-1]
             frequencies[key] += 1
 
             member = flat_type_info.get(key, None)
@@ -1037,8 +1064,7 @@ class XmlDocument(SubXmlBase):
                 continue
 
             if issubclass(member.type, (ByteArray, File)):
-                value = self.from_unicode(member.type, value_str,
-                                                           self.binary_encoding)
+                value = self.from_unicode(member.type, value_str, self.binary_encoding)
             else:
                 value = self.from_unicode(member.type, value_str)
 
@@ -1050,13 +1076,15 @@ class XmlDocument(SubXmlBase):
                 val = frequencies.get(key, 0)
                 attr = self.get_cls_attrs(c)
                 if val < attr.min_occurs or val > attr.max_occurs:
-                    raise Fault('Client.ValidationError', '%r member does not '
-                                         'respect frequency constraints.' % key)
+                    raise Fault(
+                        "Client.ValidationError",
+                        "%r member does not " "respect frequency constraints." % key,
+                    )
 
         return inst
 
     def array_from_element(self, ctx, cls, element):
-        retval = [ ]
+        retval = []
         (serializer,) = cls._type_info.values()
 
         for child in element.getchildren():
@@ -1072,20 +1100,20 @@ class XmlDocument(SubXmlBase):
 
     def enum_from_element(self, ctx, cls, element):
         if self.validator is self.SOFT_VALIDATION and not (
-                                        cls.validate_string(cls, element.text)):
+            cls.validate_string(cls, element.text)
+        ):
             raise ValidationError(element.text)
         return getattr(cls, element.text)
 
     def fault_from_element(self, ctx, cls, element):
-        code = element.find('faultcode').text
-        string = element.find('faultstring').text
-        factor = element.find('faultactor')
+        code = element.find("faultcode").text
+        string = element.find("faultstring").text
+        factor = element.find("faultactor")
         if factor is not None:
             factor = factor.text
-        detail = element.find('detail')
+        detail = element.find("detail")
 
-        return cls(faultcode=code, faultstring=string, faultactor=factor,
-                                                                  detail=detail)
+        return cls(faultcode=code, faultstring=string, faultactor=factor, detail=detail)
 
     def xml_from_element(self, ctx, cls, element):
         children = element.getchildren()
@@ -1118,43 +1146,49 @@ class XmlDocument(SubXmlBase):
 
     def unicode_from_element(self, ctx, cls, element):
         if self.validator is self.SOFT_VALIDATION and not (
-                                        cls.validate_string(cls, element.text)):
+            cls.validate_string(cls, element.text)
+        ):
             raise ValidationError(element.text)
 
         s = element.text
         if s is None:
-            s = ''
+            s = ""
 
         retval = self.from_unicode(cls, s)
 
         if self.validator is self.SOFT_VALIDATION and not (
-                                              cls.validate_native(cls, retval)):
+            cls.validate_native(cls, retval)
+        ):
             raise ValidationError(retval)
 
         return retval
 
     def base_from_element(self, ctx, cls, element):
         if self.validator is self.SOFT_VALIDATION and not (
-                                        cls.validate_string(cls, element.text)):
+            cls.validate_string(cls, element.text)
+        ):
             raise ValidationError(element.text)
 
         retval = self.from_unicode(cls, element.text)
 
         if self.validator is self.SOFT_VALIDATION and not (
-                                            cls.validate_native(cls, retval)):
+            cls.validate_native(cls, retval)
+        ):
             raise ValidationError(retval)
 
         return retval
 
     def byte_array_from_element(self, ctx, cls, element):
         if self.validator is self.SOFT_VALIDATION and not (
-                                        cls.validate_string(cls, element.text)):
+            cls.validate_string(cls, element.text)
+        ):
             raise ValidationError(element.text)
 
         retval = self.from_unicode(cls, element.text, self.binary_encoding)
 
         if self.validator is self.SOFT_VALIDATION and not (
-                                            cls.validate_native(cls, retval)):
+            cls.validate_native(cls, retval)
+        ):
             raise ValidationError(retval)
 
         return retval

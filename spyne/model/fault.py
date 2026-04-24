@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,35 +16,32 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from warnings import warn
 from collections import defaultdict
+from warnings import warn
 
 import spyne.const
-
+from spyne.model.complex import ComplexModelBase, ComplexModelMeta
 from spyne.model.primitive import Any
-
-from spyne.util.six import add_metaclass
-
-from spyne.model.complex import ComplexModelMeta
-from spyne.model.complex import ComplexModelBase
 
 
 class FaultMeta(ComplexModelMeta):
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(FaultMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
-        code = cls_dict.get('CODE', None)
+        code = cls_dict.get("CODE", None)
 
         if code is not None:
             target = Fault.REGISTERED[code]
             target.add(self)
             if spyne.const.WARN_ON_DUPLICATE_FAULTCODE and len(target) > 1:
-                warn("Duplicate faultcode {} detected for classes {}"
-                                                          .format(code, target))
+                warn(
+                    "Duplicate faultcode {} detected for classes {}".format(
+                        code, target
+                    )
+                )
 
 
-@add_metaclass(FaultMeta)
-class Fault(ComplexModelBase, Exception):
+class Fault(ComplexModelBase, Exception, metaclass=FaultMeta):
     """Use this class as a base for all public exceptions.
     The Fault object adheres to the
     `SOAP 1.1 Fault definition <http://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383507>`_,
@@ -80,8 +76,14 @@ class Fault(ComplexModelBase, Exception):
 
     CODE = None
 
-    def __init__(self, faultcode='Server', faultstring="", faultactor="",
-                                      detail=None, lang=spyne.DEFAULT_LANGUAGE):
+    def __init__(
+        self,
+        faultcode="Server",
+        faultstring="",
+        faultactor="",
+        detail=None,
+        lang=spyne.DEFAULT_LANGUAGE,
+    ):
         self.faultcode = faultcode
         self.faultstring = faultstring or self.get_type_name()
         self.faultactor = faultactor
@@ -96,11 +98,18 @@ class Fault(ComplexModelBase, Exception):
 
     def __repr__(self):
         if self.detail is None:
-            return "%s(%s: %r)" % (self.__class__.__name__,
-                                               self.faultcode, self.faultstring)
+            return "%s(%s: %r)" % (
+                self.__class__.__name__,
+                self.faultcode,
+                self.faultstring,
+            )
 
-        return "%s(%s: %r detail: %r)" % (self.__class__.__name__,
-                                  self.faultcode, self.faultstring, self.detail)
+        return "%s(%s: %r detail: %r)" % (
+            self.__class__.__name__,
+            self.faultcode,
+            self.faultstring,
+            self.detail,
+        )
 
     @staticmethod
     def to_dict(cls, value, prot):
@@ -111,7 +120,7 @@ class Fault(ComplexModelBase, Exception):
                 "detail": str(value),
             }
 
-        retval =  {
+        retval = {
             "faultcode": value.faultcode,
             "faultstring": value.faultstring,
         }
@@ -138,9 +147,9 @@ class Fault(ComplexModelBase, Exception):
         if not issubclass(cls, Fault):
             return [
                 "Server.Unknown",  # faultcode
-                cls.__name__,      # faultstring
-                "",                # faultactor
-                str(value),        # detail
+                cls.__name__,  # faultstring
+                "",  # faultactor
+                str(value),  # detail
             ]
 
         retval = [
@@ -163,9 +172,9 @@ class Fault(ComplexModelBase, Exception):
     @classmethod
     def to_bytes_iterable(cls, value):
         return [
-            value.faultcode.encode('utf8'),
-            b'\n\n',
-            value.faultstring.encode('utf8'),
+            value.faultcode.encode("utf8"),
+            b"\n\n",
+            value.faultstring.encode("utf8"),
         ]
 
     def detail_to_doc(self, prot):
@@ -173,3 +182,17 @@ class Fault(ComplexModelBase, Exception):
 
     def detail_from_doc(self, prot, doc):
         self.detail = doc
+
+
+class ValidationError(Fault):
+    """Raised when the input stream does not adhere to type constraints."""
+
+    CODE = "Client.ValidationError"
+
+    def __init__(self, obj, custom_msg="The value %r could not be validated."):
+        try:
+            msg = custom_msg % (obj,)
+        except TypeError:
+            msg = custom_msg
+
+        super(ValidationError, self).__init__(self.CODE, msg)

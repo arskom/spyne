@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -67,7 +66,6 @@ class EventManager(object):
             del self.handlers[event_name]
         else:
             self.handlers[event_name].remove(handler)
-
 
     def fire_event(self, event_name, ctx, *args, **kwargs):
         """Run all the handlers for a given event name.

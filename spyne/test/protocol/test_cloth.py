@@ -20,18 +20,26 @@
 from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import unittest
+from io import BytesIO
 
 from lxml import etree, html
 from lxml.builder import E
 
-from spyne import ComplexModel, XmlAttribute, Unicode, Array, Integer, \
-    SelfReference, XmlData
+from spyne import (
+    Array,
+    ComplexModel,
+    Integer,
+    SelfReference,
+    Unicode,
+    XmlAttribute,
+    XmlData,
+)
 from spyne.protocol.cloth import XmlCloth
 from spyne.test import FakeContext
-from spyne.util.six import BytesIO
 
 
 class TestModelCloth(unittest.TestCase):
@@ -79,8 +87,7 @@ class TestXmlClothToParent(unittest.TestCase):
             cls = inst.__class__
 
         with etree.xmlfile(self.stream) as parent:
-            XmlCloth().subserialize(self.ctx, cls, inst, parent,
-                                                              name=cls.__name__)
+            XmlCloth().subserialize(self.ctx, cls, inst, parent, name=cls.__name__)
 
         elt = etree.fromstring(self.stream.getvalue())
 
@@ -88,7 +95,7 @@ class TestXmlClothToParent(unittest.TestCase):
         return elt
 
     def test_simple(self):
-        v = 'punk.'
+        v = "punk."
         elt = self._run(v, Unicode)
 
         assert elt.text == v
@@ -97,7 +104,7 @@ class TestXmlClothToParent(unittest.TestCase):
         class SomeObject(ComplexModel):
             s = Unicode
 
-        v = 'punk.'
+        v = "punk."
         elt = self._run(SomeObject(s=v))
 
         assert elt[0].text == v
@@ -110,7 +117,7 @@ class TestXmlClothToParent(unittest.TestCase):
             s = Unicode
 
         i = 42
-        s = 'punk.'
+        s = "punk."
         elt = self._run(B(i=i, s=s))
 
         # order is important
@@ -142,8 +149,9 @@ class TestXmlCloth(unittest.TestCase):
             assert spid is None
 
         with etree.xmlfile(self.stream) as parent:
-            XmlCloth(cloth=cloth).set_identifier_prefix('spyne_') \
-                                      .subserialize(self.ctx, cls, inst, parent)
+            XmlCloth(cloth=cloth).set_identifier_prefix("spyne_").subserialize(
+                self.ctx, cls, inst, parent
+            )
 
         elt = etree.fromstring(self.stream.getvalue())
 
@@ -154,8 +162,8 @@ class TestXmlCloth(unittest.TestCase):
         class SomeObject(ComplexModel):
             s = Unicode
 
-        v = 'punk.'
-        elt = self._run(SomeObject(s=v), spid='s')
+        v = "punk."
+        elt = self._run(SomeObject(s=v), spid="s")
 
         assert elt[0].text == v
 
@@ -163,7 +171,7 @@ class TestXmlCloth(unittest.TestCase):
         class SomeObject(ComplexModel):
             s = Unicode
 
-        elt = self._run(SomeObject(), spid='s')
+        elt = self._run(SomeObject(), spid="s")
 
         assert len(elt) == 0
 
@@ -172,7 +180,7 @@ class TestXmlCloth(unittest.TestCase):
         class SomeObject(ComplexModel):
             s = Unicode(min_occurs=1)
 
-        elt = self._run(SomeObject(), spid='s')
+        elt = self._run(SomeObject(), spid="s")
 
         assert elt[0].text is None
 
@@ -193,9 +201,9 @@ class TestXmlCloth(unittest.TestCase):
 
         cloth = etree.fromstring('<a><spyne_data spyne_id="d"/></a>')
 
-        elt = self._run(SomeObject(d='data'), cloth=cloth)
+        elt = self._run(SomeObject(d="data"), cloth=cloth)
 
-        assert elt.text == 'data'
+        assert elt.text == "data"
 
     def test_xml_data_attr(self):
         class SomeObject(ComplexModel):
@@ -203,9 +211,9 @@ class TestXmlCloth(unittest.TestCase):
 
         cloth = etree.fromstring('<a spyne_data="d"></a>')
 
-        elt = self._run(SomeObject(d='data'), cloth=cloth)
+        elt = self._run(SomeObject(d="data"), cloth=cloth)
 
-        assert elt.text == 'data'
+        assert elt.text == "data"
 
     def test_xml_data_attr_undesignated(self):
         class SomeObject(ComplexModel):
@@ -213,12 +221,12 @@ class TestXmlCloth(unittest.TestCase):
 
         cloth = etree.fromstring('<a spyne_data="d"></a>')
 
-        elt = self._run(SomeObject(d='data'), cloth=cloth)
+        elt = self._run(SomeObject(d="data"), cloth=cloth)
 
-        assert elt.text == 'data'
+        assert elt.text == "data"
 
     def test_simple_value_xmlattribute(self):
-        v = 'punk.'
+        v = "punk."
 
         class SomeObject(ComplexModel):
             s = XmlAttribute(Unicode(min_occurs=1))
@@ -226,42 +234,42 @@ class TestXmlCloth(unittest.TestCase):
         cloth = etree.fromstring("""<a></a>""")
         elt = self._run(SomeObject(s=v), cloth=cloth)
 
-        assert elt.attrib['s'] == v
+        assert elt.attrib["s"] == v
 
     def test_simple_value_xmlattribute_subname(self):
-        v = 'punk.'
+        v = "punk."
 
         class SomeObject(ComplexModel):
-            s = XmlAttribute(Unicode(min_occurs=1, sub_name='foo'))
+            s = XmlAttribute(Unicode(min_occurs=1, sub_name="foo"))
 
         cloth = etree.fromstring("""<a></a>""")
         elt = self._run(SomeObject(s=v), cloth=cloth)
 
-        assert elt.attrib['foo'] == v
+        assert elt.attrib["foo"] == v
 
     def test_simple_value_xmlattribute_non_immediate(self):
-        v = 'punk.'
+        v = "punk."
 
         class SomeObject(ComplexModel):
-            s = XmlAttribute(Unicode(min_occurs=1, sub_name='foo'))
+            s = XmlAttribute(Unicode(min_occurs=1, sub_name="foo"))
 
         cloth = etree.fromstring("""<a><b spyne_attr="s"/></a>""")
         elt = self._run(SomeObject(s=v), cloth=cloth)
 
-        assert elt.attrib['foo'] == v
-        assert elt[0].attrib['foo'] == v
+        assert elt.attrib["foo"] == v
+        assert elt[0].attrib["foo"] == v
 
     def test_simple_value_xmlattribute_non_immediate_non_designated(self):
-        v = 'punk.'
+        v = "punk."
 
         class SomeObject(ComplexModel):
-            s = Unicode(min_occurs=1, sub_name='foo')
+            s = Unicode(min_occurs=1, sub_name="foo")
 
         cloth = etree.fromstring("""<a><b spyne_attr="s"/></a>""")
         elt = self._run(SomeObject(s=v), cloth=cloth)
 
-        assert not 'foo' in elt.attrib
-        assert elt[0].attrib['foo'] == v
+        assert not "foo" in elt.attrib
+        assert elt[0].attrib["foo"] == v
 
     def test_non_tagbag(self):
         cloth = E.a(
@@ -274,7 +282,7 @@ class TestXmlCloth(unittest.TestCase):
                 ),
                 spyne_id="i",
             ),
-            spyne_tagbag='',
+            spyne_tagbag="",
         )
 
         class C2(ComplexModel):
@@ -285,9 +293,9 @@ class TestXmlCloth(unittest.TestCase):
             c = C2
 
         elt = self._run(C1(i=1, c=C2(i=2)), cloth=cloth)
-        assert elt.xpath('//b/text()') == ['1']
+        assert elt.xpath("//b/text()") == ["1"]
         # no order guarantee is given
-        assert set(elt.xpath('//d/text()')) == set(['1', '2'])
+        assert set(elt.xpath("//d/text()")) == set(["1", "2"])
 
     def test_array(self):
         v = range(3)
@@ -304,7 +312,7 @@ class TestXmlCloth(unittest.TestCase):
 
         elt = self._run(SomeObject(s=v), cloth=cloth)
 
-        assert elt.xpath('//c/text()') == [str(i) for i in v]
+        assert elt.xpath("//c/text()") == [str(i) for i in v]
 
     def test_array_empty(self):
         class SomeObject(ComplexModel):
@@ -315,7 +323,7 @@ class TestXmlCloth(unittest.TestCase):
 
         elt = self._run(SomeObject(), cloth=cloth)
 
-        assert elt.xpath('//c') == []
+        assert elt.xpath("//c") == []
 
     # FIXME: just fix it
     def _test_array_empty_nonoptional(self):
@@ -327,14 +335,14 @@ class TestXmlCloth(unittest.TestCase):
 
         elt = self._run(SomeObject(), cloth=cloth)
 
-        assert elt.xpath('//c') == [cloth[0][0]]
+        assert elt.xpath("//c") == [cloth[0][0]]
 
     def test_simple_two_tags(self):
         class SomeObject(ComplexModel):
             s = Unicode
             i = Integer
 
-        v = SomeObject(s='s', i=5)
+        v = SomeObject(s="s", i=5)
 
         cloth = E.a(
             E.b1(),
@@ -352,22 +360,22 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(v, cloth=cloth)
 
         print(etree.tostring(elt, pretty_print=True))
-        assert elt[0].tag == 'b1'
-        assert elt[1].tag == 'b2'
-        assert elt[1][0].tag == 'c1'
-        assert elt[1][0].text == 's'
-        assert elt[1][1].tag == 'c2'
-        assert elt[2].tag == 'e'
-        assert elt[2][0].tag == 'g1'
-        assert elt[2][1].tag == 'g2'
-        assert elt[2][1].text == '5'
-        assert elt[2][2].tag == 'g3'
+        assert elt[0].tag == "b1"
+        assert elt[1].tag == "b2"
+        assert elt[1][0].tag == "c1"
+        assert elt[1][0].text == "s"
+        assert elt[1][1].tag == "c2"
+        assert elt[2].tag == "e"
+        assert elt[2][0].tag == "g1"
+        assert elt[2][1].tag == "g2"
+        assert elt[2][1].text == "5"
+        assert elt[2][2].tag == "g3"
 
     def test_sibling_order(self):
         class SomeObject(ComplexModel):
             s = Unicode
 
-        v = SomeObject(s='s')
+        v = SomeObject(s="s")
 
         cloth = E.a(
             E.b1(),
@@ -382,20 +390,20 @@ class TestXmlCloth(unittest.TestCase):
 
         elt = self._run(v, cloth=cloth)
         print(etree.tostring(elt, pretty_print=True))
-        assert elt[0].tag == 'b1'
-        assert elt[1].tag == 'b2'
-        assert elt[1][0].tag == 'c0'
-        assert elt[1][1].tag == 'c1'
-        assert elt[1][2].tag == 'c2'
-        assert elt[1][2].text == 's'
-        assert elt[1][3].tag == 'c3'
-        assert elt[1][4].tag == 'c4'
+        assert elt[0].tag == "b1"
+        assert elt[1].tag == "b2"
+        assert elt[1][0].tag == "c0"
+        assert elt[1][1].tag == "c1"
+        assert elt[1][2].tag == "c2"
+        assert elt[1][2].text == "s"
+        assert elt[1][3].tag == "c3"
+        assert elt[1][4].tag == "c4"
 
     def test_parent_text(self):
         class SomeObject(ComplexModel):
             s = Unicode
 
-        v = SomeObject(s='s')
+        v = SomeObject(s="s")
 
         cloth = E.a(
             "text 0",
@@ -406,17 +414,17 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(v, cloth=cloth)
         print(etree.tostring(elt, pretty_print=True))
 
-        assert elt.tag == 'a'
-        assert elt.text == 'text 0'
+        assert elt.tag == "a"
+        assert elt.text == "text 0"
 
-        assert elt[0].tag  == 'b1'
-        assert elt[0].text == 's'
+        assert elt[0].tag == "b1"
+        assert elt[0].text == "s"
 
     def test_anc_text(self):
         class SomeObject(ComplexModel):
             s = Unicode
 
-        v = SomeObject(s='s')
+        v = SomeObject(s="s")
 
         cloth = E.a(
             E.b1(
@@ -429,16 +437,16 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(v, cloth=cloth)
         print(etree.tostring(elt, pretty_print=True))
 
-        assert elt[0].tag  == 'b1'
-        assert elt[0].text == 'text 1'
-        assert elt[0][0].tag == 'c1'
-        assert elt[0][0].text == 's'
+        assert elt[0].tag == "b1"
+        assert elt[0].text == "text 1"
+        assert elt[0][0].tag == "c1"
+        assert elt[0][0].text == "s"
 
     def test_prevsibl_tail(self):
         class SomeObject(ComplexModel):
             s = Unicode
 
-        v = SomeObject(s='s')
+        v = SomeObject(s="s")
 
         cloth = E.a(
             E.b1(
@@ -452,16 +460,16 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(v, cloth=cloth)
         print(etree.tostring(elt, pretty_print=True))
 
-        assert elt[0].tag  == 'b1'
-        assert elt[0][0].tag == 'c1'
-        assert elt[0][0].tail == 'text 2'
-        assert elt[0][1].text == 's'
+        assert elt[0].tag == "b1"
+        assert elt[0][0].tag == "c1"
+        assert elt[0][0].tail == "text 2"
+        assert elt[0][1].text == "s"
 
     def test_sibling_tail_close(self):
         class SomeObject(ComplexModel):
             s = Unicode
 
-        v = SomeObject(s='s')
+        v = SomeObject(s="s")
 
         cloth = E.a(
             E.b0(spyne_id="s"),
@@ -472,16 +480,16 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(v, cloth=cloth)
         print(etree.tostring(elt, pretty_print=True))
 
-        assert elt[0].tag == 'b0'
-        assert elt[0].text == 's'
-        assert elt[0].tail == 'text 3'
+        assert elt[0].tag == "b0"
+        assert elt[0].text == "s"
+        assert elt[0].tail == "text 3"
 
     def test_sibling_tail_close_sibling(self):
         class SomeObject(ComplexModel):
             s = Unicode
             i = Integer
 
-        v = SomeObject(s='s', i=5)
+        v = SomeObject(s="s", i=5)
 
         cloth = E.a(
             E.b0(spyne_id="s"),
@@ -493,16 +501,16 @@ class TestXmlCloth(unittest.TestCase):
         elt = self._run(v, cloth=cloth)
         print(etree.tostring(elt, pretty_print=True))
 
-        assert elt[0].tag == 'b0'
-        assert elt[0].text == 's'
-        assert elt[0].tail == 'text 3'
+        assert elt[0].tag == "b0"
+        assert elt[0].text == "s"
+        assert elt[0].tail == "text 3"
 
     def test_sibling_tail_close_anc(self):
         class SomeObject(ComplexModel):
             s = Unicode
             i = Integer
 
-        v = SomeObject(s='s', i=5)
+        v = SomeObject(s="s", i=5)
 
         cloth = E.a(
             E.b0(),
@@ -517,16 +525,16 @@ class TestXmlCloth(unittest.TestCase):
             E.b2(
                 E.c1(spyne_id="i"),
                 "text 4",
-            )
+            ),
         )
 
         print(etree.tostring(cloth, pretty_print=True))
         elt = self._run(v, cloth=cloth)
         print(etree.tostring(elt, pretty_print=True))
 
-        assert elt.xpath('/a/b1/c0')[0].tail == 'text 1'
-        assert elt.xpath('/a/b1/c1')[0].tail == 'text 2'
-        assert elt.xpath('/a/b2/c1')[0].tail == 'text 4'
+        assert elt.xpath("/a/b1/c0")[0].tail == "text 1"
+        assert elt.xpath("/a/b1/c1")[0].tail == "text 2"
+        assert elt.xpath("/a/b2/c1")[0].tail == "text 4"
 
     def test_nested_conflicts(self):
         class SomeObject(ComplexModel):
@@ -534,7 +542,7 @@ class TestXmlCloth(unittest.TestCase):
             i = Integer
             c = SelfReference
 
-        v = SomeObject(s='x', i=1, c=SomeObject(s='y', i=2))
+        v = SomeObject(s="x", i=1, c=SomeObject(s="y", i=2))
 
         cloth = E.a(
             E.b0(),
@@ -553,18 +561,18 @@ class TestXmlCloth(unittest.TestCase):
             E.b2(
                 E.c2(spyne_id="i"),
                 "text 4",
-            )
+            ),
         )
 
         print(etree.tostring(cloth, pretty_print=True))
         elt = self._run(v, cloth=cloth)
         print(etree.tostring(elt, pretty_print=True))
 
-        assert elt.xpath('/a/b1/c0')[0].text == str(v.s)
-        assert elt.xpath('/a/b1/c1/d0')[0].text == str(v.c.s)
-        assert elt.xpath('/a/b1/c1/d1')[0].text == str(v.c.i)
-        assert elt.xpath('/a/b2/c2')[0].text == str(v.i)
+        assert elt.xpath("/a/b1/c0")[0].text == str(v.s)
+        assert elt.xpath("/a/b1/c1/d0")[0].text == str(v.c.s)
+        assert elt.xpath("/a/b1/c1/d1")[0].text == str(v.c.i)
+        assert elt.xpath("/a/b2/c2")[0].text == str(v.i)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

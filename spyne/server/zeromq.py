@@ -19,6 +19,7 @@
 """The ``spyne.server.zeromq`` module contains a server implementation that
 uses ZeroMQ (zmq.REP) as transport.
 """
+
 import threading
 
 import zmq
@@ -31,12 +32,13 @@ from spyne.server import ServerBase
 class ZmqMethodContext(MethodContext):
     def __init__(self, app):
         super(ZmqMethodContext, self).__init__(app, MethodContext.SERVER)
-        self.transport.type = 'zmq'
+        self.transport.type = "zmq"
 
 
 class ZeroMQServer(ServerBase):
     """The ZeroMQ server transport."""
-    transport = 'http://rfc.zeromq.org/'
+
+    transport = "http://rfc.zeromq.org/"
 
     def __init__(self, app, app_url, wsdl_url=None, ctx=None, socket=None):
         if ctx and socket and ctx is not socket.context:
@@ -63,9 +65,10 @@ class ZeroMQServer(ServerBase):
         return self.app.get_interface_document(self.url)
 
     # FIXME: Add suport for binary-only transports
-    def generate_contexts(self, ctx, in_string_charset='utf8'):
-        return super(ZeroMQServer, self).generate_contexts(ctx,
-                                            in_string_charset=in_string_charset)
+    def generate_contexts(self, ctx, in_string_charset="utf8"):
+        return super(ZeroMQServer, self).generate_contexts(
+            ctx, in_string_charset=in_string_charset
+        )
 
     def serve_forever(self):
         """Runs the ZeroMQ server."""
@@ -102,7 +105,7 @@ class ZeroMQServer(ServerBase):
 
             process_contexts(self, others, error)
 
-            self.zmq_socket.send(b''.join(p_ctx.out_string))
+            self.zmq_socket.send(b"".join(p_ctx.out_string))
 
             p_ctx.close()
 
@@ -111,7 +114,8 @@ class ZeroMQThreadPoolServer(object):
     """Create a ZeroMQ server transport with several background workers,
     allowing asynchronous calls.
 
-    More details on the pattern http://zguide.zeromq.org/page:all#Shared-Queue-DEALER-and-ROUTER-sockets"""
+    More details on the pattern http://zguide.zeromq.org/page:all#Shared-Queue-DEALER-and-ROUTER-sockets
+    """
 
     def __init__(self, app, app_url, pool_size, wsdl_url=None, ctx=None, socket=None):
         if ctx and socket and ctx is not socket.context:
@@ -132,7 +136,7 @@ class ZeroMQThreadPoolServer(object):
             self.frontend = self.ctx.socket(zmq.ROUTER)
             self.frontend.bind(app_url)
 
-        be_url = 'inproc://{tns}.{name}'.format(tns=self.app.tns, name=self.app.name)
+        be_url = "inproc://{tns}.{name}".format(tns=self.app.tns, name=self.app.name)
         self.pool = []
         self.background_jobs = []
         for i in range(pool_size):

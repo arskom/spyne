@@ -27,7 +27,6 @@ except ImportError:  # Python 2
 
 from lxml import etree
 
-from spyne.util import six
 from spyne.util.odict import odict
 
 
@@ -39,7 +38,7 @@ def root_dict_to_etree(d):
 
     assert len(d) == 1, "Incoming dict len must be exactly 1. Data: %r" % d
 
-    key, = d.keys()
+    (key,) = d.keys()
     retval = etree.Element(key)
     for val in d.values():
         break
@@ -49,7 +48,7 @@ def root_dict_to_etree(d):
 
     if isinstance(val, dict) or isinstance(val, odict):
         dict_to_etree(val, retval)
-    elif not isinstance(val, Sized) or isinstance(val, six.string_types):
+    elif not isinstance(val, Sized) or isinstance(val, str):
         retval.text = str(val)
     else:
         for a in val:
@@ -68,7 +67,7 @@ def dict_to_etree(d, parent):
         if v is None:
             etree.SubElement(parent, k)
 
-        elif isinstance(v, six.string_types):
+        elif isinstance(v, str):
             etree.SubElement(parent, k).text = v
 
         elif isinstance(v, dict) or isinstance(v, odict):
@@ -121,10 +120,10 @@ def etree_to_dict(element, iterable=(list, list.append)):
 def etree_strip_namespaces(element):
     """Removes any namespace information form the given element recursively."""
 
-    retval = etree.Element(element.tag.rpartition('}')[-1])
+    retval = etree.Element(element.tag.rpartition("}")[-1])
     retval.text = element.text
     for a in element.attrib:
-        retval.attrib[a.rpartition('}')[-1]] = element.attrib[a]
+        retval.attrib[a.rpartition("}")[-1]] = element.attrib[a]
 
     for e in element:
         retval.append(etree_strip_namespaces(e))

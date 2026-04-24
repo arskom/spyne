@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -57,10 +56,12 @@ class odict(dict):
             super(odict, self).__setitem__(key, val)
 
         assert len(self.__list) == super(odict, self).__len__(), (
-            repr(self.__list), super(odict, self).__repr__())
+            repr(self.__list),
+            super(odict, self).__repr__(),
+        )
 
     def __repr__(self):
-        return "{%s}" % ','.join(["%r: %r" % (k, v) for k, v in self.items()])
+        return "{%s}" % ",".join(["%r: %r" % (k, v) for k, v in self.items()])
 
     def __str__(self):
         return repr(self)
@@ -75,7 +76,7 @@ class odict(dict):
     def __delitem__(self, key):
         if not isinstance(key, int):
             super(odict, self).__delitem__(key)
-            key = self.__list.index(key) # ouch.
+            key = self.__list.index(key)  # ouch.
         else:
             super(odict, self).__delitem__(self.__list[key])
         del self.__list[key]
@@ -87,7 +88,7 @@ class odict(dict):
     def items(self):
         retval = []
         for k in self.__list:
-            retval.append( (k, super(odict, self).__getitem__(k)) )
+            retval.append((k, super(odict, self).__getitem__(k)))
         return retval
 
     def iteritems(self):

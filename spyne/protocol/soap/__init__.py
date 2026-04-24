@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -24,7 +23,5 @@ brand new Soap 1.2 standard.
 Patches are welcome.
 """
 
-from spyne.protocol.soap.soap11 import Soap11
-from spyne.protocol.soap.soap11 import _from_soap
-from spyne.protocol.soap.soap11 import _parse_xml_string
+from spyne.protocol.soap.soap11 import Soap11, _from_soap, _parse_xml_string
 from spyne.protocol.soap.soap12 import Soap12

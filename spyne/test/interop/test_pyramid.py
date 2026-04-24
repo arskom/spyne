@@ -25,21 +25,22 @@ from pyramid import testing
 from pyramid.config import Configurator
 from pyramid.request import Request
 
-from spyne.protocol.soap import Soap11
-from spyne.service import Service
-from spyne.decorator import srpc
 from spyne import Application
-from spyne.model import Unicode, Integer, Iterable
+from spyne.decorator import srpc
+from spyne.model import Integer, Iterable, Unicode
+from spyne.protocol.soap import Soap11
 from spyne.server.pyramid import PyramidApplication
+from spyne.service import Service
 
 
 class SpyneIntegrationTest(unittest.TestCase):
     """Tests for integration of Spyne into Pyramid view callable"""
+
     class HelloWorldService(Service):
         @srpc(Unicode, Integer, _returns=Iterable(Unicode))
         def say_hello(name, times):
             for i in range(times):
-                yield 'Hello, %s' % name
+                yield "Hello, %s" % name
 
     def setUp(self):
         request = testing.DummyRequest()
@@ -51,26 +52,28 @@ class SpyneIntegrationTest(unittest.TestCase):
     def testGetWsdl(self):
         """Simple test for serving of WSDL by spyne through pyramid route"""
         application = PyramidApplication(
-            Application([self.HelloWorldService],
-                        tns='spyne.examples.hello',
-                        in_protocol=Soap11(validator='lxml'),
-                        out_protocol=Soap11()))
+            Application(
+                [self.HelloWorldService],
+                tns="spyne.examples.hello",
+                in_protocol=Soap11(validator="lxml"),
+                out_protocol=Soap11(),
+            )
+        )
 
-        config = Configurator(settings={'debug_all': True})
-        config.add_route('home', '/')
-        config.add_view(application, route_name='home')
+        config = Configurator(settings={"debug_all": True})
+        config.add_route("home", "/")
+        config.add_view(application, route_name="home")
         wsgi_app = validator(config.make_wsgi_app())
 
         env = {
-            'SCRIPT_NAME': '',
-            'REQUEST_METHOD': 'GET',
-            'PATH_INFO': '/',
-            'QUERY_STRING': 'wsdl',
+            "SCRIPT_NAME": "",
+            "REQUEST_METHOD": "GET",
+            "PATH_INFO": "/",
+            "QUERY_STRING": "wsdl",
         }
         setup_testing_defaults(env)
 
         request = Request(env)
         resp = request.get_response(wsgi_app)
-        self.assert_(resp.status.startswith("200 "))
+        self.assertTrue(resp.status.startswith("200 "))
         node = etree.XML(resp.body)  # will throw exception if non well formed
-

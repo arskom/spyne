@@ -1,0 +1,68 @@
+[project]
+name = "spyne"
+version = "3.0.0"
+description = "A transport and architecture agnostic rpc library that focuses on exposing public services with a well-defined API."
+readme = "README.rst"
+keywords = [
+    "soap",
+    "wsdl",
+    "wsgi",
+    "zeromq",
+    "rest",
+    "rpc",
+    "json",
+    "http",
+    "msgpack",
+    "xml",
+    "django",
+    "pyramid",
+    "postgresql",
+    "sqlalchemy",
+    "twisted",
+    "yaml",
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Operating System :: OS Independent",
+    "Natural Language :: English",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "pytz",
+]
+[[project.authors]]
+name = "Burak Arslan"
+email = "burak+package@spyne.io"
+
+[[project.maintainers]]
+name = "Burak Arslan"
+email = "burak+package@spyne.io"
+
+[project.license]
+text = "LGPL-2.1-or-later"
+
+[project.urls]
+Homepage = "http://spyne.io"
+
+[project.scripts]
+sort_wsdl = "spyne.test.sort_wsdl:main"
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 88
+
+[tool.setuptools.packages.find]
+where = [
+    ".",
+]

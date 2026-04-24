@@ -22,18 +22,16 @@ import unittest
 
 from lxml import etree
 
-from spyne import Ignored
-from spyne import const
-from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.xml import XmlDocument
-
-from spyne.model.complex import Array
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import String
+from spyne import Ignored, const
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.service import Service
+from spyne.interface.wsdl import Wsdl11
+from spyne.model.complex import Array
+from spyne.model.primitive import Boolean, String
+from spyne.protocol.xml import XmlDocument
 from spyne.server.null import NullServer
+from spyne.service import Service
+
 
 class TestNullServer(unittest.TestCase):
     def test_empty_return_type(self):
@@ -42,8 +40,12 @@ class TestNullServer(unittest.TestCase):
             def send_message(s):
                 return s
 
-        application = Application([MessageService], 'some_tns',
-                          in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        application = Application(
+            [MessageService],
+            "some_tns",
+            in_protocol=XmlDocument(),
+            out_protocol=XmlDocument(),
+        )
 
         assert None == NullServer(application).service.send_message("zabaaa")
 
@@ -61,8 +63,12 @@ class TestNullServer(unittest.TestCase):
             def send_message_3(s):
                 return "OK"
 
-        application = Application([MessageService], 'some_tns',
-                          in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        application = Application(
+            [MessageService],
+            "some_tns",
+            in_protocol=XmlDocument(),
+            out_protocol=XmlDocument(),
+        )
 
         server = NullServer(application)
         assert Ignored("xyz") == server.service.send_message_1("zabaaa")
@@ -77,8 +83,12 @@ class TestNullServer(unittest.TestCase):
             def send_message(s):
                 queue.add(s)
 
-        application = Application([MessageService], 'some_tns',
-                          in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        application = Application(
+            [MessageService],
+            "some_tns",
+            in_protocol=XmlDocument(),
+            out_protocol=XmlDocument(),
+        )
 
         server = NullServer(application)
         server.service.send_message("zabaaa")
@@ -91,20 +101,24 @@ class TestNullServer(unittest.TestCase):
         class MessageService(Service):
             @srpc(String, String)
             def send_message(s, k):
-                queue.add((s,k))
+                queue.add((s, k))
 
-        application = Application([MessageService], 'some_tns',
-                          in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        application = Application(
+            [MessageService],
+            "some_tns",
+            in_protocol=XmlDocument(),
+            out_protocol=XmlDocument(),
+        )
 
         server = NullServer(application)
 
         queue.clear()
         server.service.send_message("zabaaa", k="hobaa")
-        assert set([("zabaaa","hobaa")]) == queue
+        assert set([("zabaaa", "hobaa")]) == queue
 
         queue.clear()
         server.service.send_message(k="hobaa")
-        assert set([(None,"hobaa")]) == queue
+        assert set([(None, "hobaa")]) == queue
 
         queue.clear()
         server.service.send_message("zobaaa", s="hobaa")
@@ -119,20 +133,25 @@ class TestNullServer(unittest.TestCase):
                 queue.add((s, k))
                 return [s, k]
 
-        application = Application([MessageService], 'some_tns',
-                        in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        application = Application(
+            [MessageService],
+            "some_tns",
+            in_protocol=XmlDocument(),
+            out_protocol=XmlDocument(),
+        )
 
         ostr_server = NullServer(application, ostr=True)
 
         queue.clear()
         ret = ostr_server.service.send_message("zabaaa", k="hobaa")
-        assert set([("zabaaa","hobaa")]) == queue
-        assert etree.fromstring(b''.join(ret)).xpath('//tns:string/text()',
-                 namespaces=application.interface.nsmap) == ['zabaaa', 'hobaa']
+        assert set([("zabaaa", "hobaa")]) == queue
+        assert etree.fromstring(b"".join(ret)).xpath(
+            "//tns:string/text()", namespaces=application.interface.nsmap
+        ) == ["zabaaa", "hobaa"]
 
         queue.clear()
         ostr_server.service.send_message(k="hobaa")
-        assert set([(None,"hobaa")]) == queue
+        assert set([(None, "hobaa")]) == queue
 
         queue.clear()
         ostr_server.service.send_message("zobaaa", s="hobaa")
@@ -145,24 +164,27 @@ class TestNullServer(unittest.TestCase):
                 return True
 
         application = Application(
-            [PingService], 'some_tns',
-            in_protocol=XmlDocument(), out_protocol=XmlDocument())
+            [PingService],
+            "some_tns",
+            in_protocol=XmlDocument(),
+            out_protocol=XmlDocument(),
+        )
 
         server = NullServer(application)
         origin_collect = gc.collect
         origin_MIN_GC_INTERVAL = const.MIN_GC_INTERVAL
         try:
-            gc.collect = lambda : 1/0
+            gc.collect = lambda: 1 / 0
             with self.assertRaises(ZeroDivisionError):
                 const.MIN_GC_INTERVAL = 0
                 server.service.ping()
             # No raise
-            const.MIN_GC_INTERVAL = float('inf')
+            const.MIN_GC_INTERVAL = float("inf")
             server.service.ping()
         finally:
             gc.collect = origin_collect
             const.MIN_GC_INTERVAL = origin_MIN_GC_INTERVAL
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

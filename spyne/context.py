@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,21 +16,23 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import gc, logging
-logger = logging.getLogger('spyne')
+import gc
+import logging
 
-from time import time
+logger = logging.getLogger("spyne")
+
+from collections import defaultdict, deque
 from copy import copy
-from collections import deque, defaultdict
+from time import time
 
 from spyne import const
-
 
 _LAST_GC_RUN = 0.0
 
 
 class AuxMethodContext(object):
     """Generic object that holds information specific to auxiliary methods"""
+
     def __init__(self, parent, error):
         self.parent = parent
         """Primary context that this method was bound to."""
@@ -42,6 +43,7 @@ class AuxMethodContext(object):
 
 class TransportContext(object):
     """Generic object that holds transport-specific context information"""
+
     def __init__(self, parent, transport, type=None):
         self.parent = parent
         """The MethodContext this object belongs to"""
@@ -61,7 +63,7 @@ class TransportContext(object):
         self.remote_addr = None
         """The address of the other end of the connection."""
 
-        self.sessid = ''
+        self.sessid = ""
         """The session id."""
 
     def get_peer(self):
@@ -73,6 +75,7 @@ class TransportContext(object):
 
 class ProtocolContext(object):
     """Generic object that holds protocol-specific context information"""
+
     def __init__(self, parent, transport, type=None):
         self.parent = parent
         """The MethodContext this object belongs to"""
@@ -84,8 +87,7 @@ class ProtocolContext(object):
         self.type = type
         """The protocol the transport uses."""
 
-        self._subctx = defaultdict(
-                               lambda: self.__class__(parent, transport, type))
+        self._subctx = defaultdict(lambda: self.__class__(parent, transport, type))
 
     def __getitem__(self, item):
         return self._subctx[item]
@@ -93,6 +95,7 @@ class ProtocolContext(object):
 
 class EventContext(object):
     """Generic object that holds event-specific context information"""
+
     def __init__(self, parent, event_id=None):
         self.parent = parent
         self.event_id = event_id
@@ -357,33 +360,33 @@ class MethodContext(object):
             return self.descriptor.service_class
 
     def __setattr__(self, k, v):
-        if not self.frozen or k in self.__dict__ or k in \
-                                                 ('descriptor', 'out_protocol'):
+        if not self.frozen or k in self.__dict__ or k in ("descriptor", "out_protocol"):
             object.__setattr__(self, k, v)
         else:
-            raise ValueError("use the udc member for storing arbitrary data "
-                             "in the method context")
+            raise ValueError(
+                "use the udc member for storing arbitrary data " "in the method context"
+            )
 
     def __repr__(self):
         retval = deque()
 
         for k, v in self.__dict__.items():
             if isinstance(v, dict):
-                ret = deque(['{'])
+                ret = deque(["{"])
 
                 for k2, v2 in sorted(v.items()):
-                    ret.append('\t\t%r: %r,' % (k2, v2))
+                    ret.append("\t\t%r: %r," % (k2, v2))
 
-                ret.append('\t}')
-                ret = '\n'.join(ret)
+                ret.append("\t}")
+                ret = "\n".join(ret)
                 retval.append("\n\t%s=%s" % (k, ret))
 
             else:
                 retval.append("\n\t%s=%r" % (k, v))
 
-        retval.append('\n)')
+        retval.append("\n)")
 
-        return ''.join((self.__class__.__name__, '(', ', '.join(retval), ')'))
+        return "".join((self.__class__.__name__, "(", ", ".join(retval), ")"))
 
     def close(self):
         global _LAST_GC_RUN
@@ -400,7 +403,7 @@ class MethodContext(object):
         if (t - _LAST_GC_RUN) > const.MIN_GC_INTERVAL:
             gc.collect()
 
-            dt = (time() - t)
+            dt = time() - t
             _LAST_GC_RUN = t
 
             logger.debug("gc.collect() took around %dms.", round(dt, 2) * 1000)
@@ -426,10 +429,22 @@ class MethodContext(object):
 
 
 class FakeContext(object):
-    def __init__(self, app=None, descriptor=None, in_header=None,
-            in_object=None, in_error=None, in_document=None, in_string=None,
-            out_object=None, out_error=None, out_document=None, out_string=None,
-            in_protocol=None, out_protocol=None):
+    def __init__(
+        self,
+        app=None,
+        descriptor=None,
+        in_header=None,
+        in_object=None,
+        in_error=None,
+        in_document=None,
+        in_string=None,
+        out_object=None,
+        out_error=None,
+        out_document=None,
+        out_string=None,
+        in_protocol=None,
+        out_protocol=None,
+    ):
         self.app = app
         self.descriptor = descriptor
         self.in_header = in_header

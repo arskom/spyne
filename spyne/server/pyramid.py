@@ -25,6 +25,7 @@ transport. It's a thin wrapper around
 from __future__ import absolute_import
 
 from pyramid.response import Response
+
 from spyne.server.wsgi import WsgiApplication
 
 
@@ -35,14 +36,13 @@ class PyramidApplication(WsgiApplication):
         retval = Response()
 
         def start_response(status, headers):
-            status, reason = status.split(' ', 1)
+            status, reason = status.split(" ", 1)
 
             retval.status_int = int(status)
             for header, value in headers:
                 retval.headers[header] = value
 
-        response = WsgiApplication.__call__(self, request.environ,
-                                            start_response)
+        response = WsgiApplication.__call__(self, request.environ, start_response)
         retval.body = b"".join(response)
 
         return retval

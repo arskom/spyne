@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -18,34 +17,44 @@
 #
 
 """The ``spyne.model.binary`` package contains binary type markers."""
+
+# isort: skip_file
+
 import logging
+
 logger = logging.getLogger(__name__)
 
-import os
 import base64
-import tempfile
 import errno
+import os
+import tempfile
+from base64 import b64decode, b64encode, urlsafe_b64decode, urlsafe_b64encode
+from binascii import hexlify, unhexlify
+from io import BytesIO, StringIO
+from mmap import ACCESS_READ
+from mmap import error as MmapError
+from mmap import mmap
+from os.path import abspath, basename, isdir, isfile
 
-from mmap import mmap, ACCESS_READ, error as MmapError
-from base64 import b64encode
-from base64 import b64decode
-from base64 import urlsafe_b64encode
-from base64 import urlsafe_b64decode
-from binascii import hexlify
-from binascii import unhexlify
-from os.path import abspath, isdir, isfile, basename
-
-from spyne.error import ValidationError
+from spyne.model.fault import ValidationError
+from spyne.model import ComplexModel, SimpleModel, Unicode
 from spyne.util import _bytes_join
-from spyne.model import ComplexModel, Unicode
-from spyne.model import SimpleModel
-from spyne.util import six
-from spyne.util.six import BytesIO, StringIO
 
-class BINARY_ENCODING_HEX: pass
-class BINARY_ENCODING_BASE64: pass
-class BINARY_ENCODING_USE_DEFAULT: pass
-class BINARY_ENCODING_URLSAFE_BASE64: pass
+
+class BINARY_ENCODING_HEX:
+    pass
+
+
+class BINARY_ENCODING_BASE64:
+    pass
+
+
+class BINARY_ENCODING_USE_DEFAULT:
+    pass
+
+
+class BINARY_ENCODING_URLSAFE_BASE64:
+    pass
 
 
 class ByteArray(SimpleModel):
@@ -57,7 +66,7 @@ class ByteArray(SimpleModel):
     and a sequence of ``bytes`` objects for Python 3.x.
     """
 
-    __type_name__ = 'base64Binary'
+    __type_name__ = "base64Binary"
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
     class Attributes(SimpleModel.Attributes):
@@ -70,31 +79,33 @@ class ByteArray(SimpleModel):
 
     def __new__(cls, **kwargs):
         tn = None
-        if 'encoding' in kwargs:
-            v = kwargs['encoding']
+        if "encoding" in kwargs:
+            v = kwargs["encoding"]
 
             if v is None:
-                kwargs['encoding'] = BINARY_ENCODING_USE_DEFAULT
+                kwargs["encoding"] = BINARY_ENCODING_USE_DEFAULT
 
-            elif v in ('base64', 'base64Binary', BINARY_ENCODING_BASE64):
+            elif v in ("base64", "base64Binary", BINARY_ENCODING_BASE64):
                 # This string is defined in the Xml Schema Standard
-                tn = 'base64Binary'
-                kwargs['encoding'] = BINARY_ENCODING_BASE64
+                tn = "base64Binary"
+                kwargs["encoding"] = BINARY_ENCODING_BASE64
 
-            elif v in ('urlsafe_base64', BINARY_ENCODING_URLSAFE_BASE64):
+            elif v in ("urlsafe_base64", BINARY_ENCODING_URLSAFE_BASE64):
                 # the Xml Schema Standard does not define urlsafe base64
                 # FIXME: produce a regexp that validates urlsafe base64 strings
-                tn = 'string'
-                kwargs['encoding'] = BINARY_ENCODING_URLSAFE_BASE64
+                tn = "string"
+                kwargs["encoding"] = BINARY_ENCODING_URLSAFE_BASE64
 
-            elif v in ('hex', 'hexBinary', BINARY_ENCODING_HEX):
+            elif v in ("hex", "hexBinary", BINARY_ENCODING_HEX):
                 # This string is defined in the Xml Schema Standard
-                tn = 'hexBinary'
-                kwargs['encoding'] = BINARY_ENCODING_HEX
+                tn = "hexBinary"
+                kwargs["encoding"] = BINARY_ENCODING_HEX
 
             else:
-                raise ValueError("'encoding' must be one of: %r" % \
-                                (tuple(ByteArray._encoding.handlers.values()),))
+                raise ValueError(
+                    "'encoding' must be one of: %r"
+                    % (tuple(ByteArray._encoding.handlers.values()),)
+                )
 
         retval = cls.customize(**kwargs)
         if tn is not None:
@@ -111,10 +122,10 @@ class ByteArray(SimpleModel):
             # TODO: be smarter about this
             return b64encode(value[0])
 
-        if isinstance(value, (six.binary_type, memoryview, mmap)):
+        if isinstance(value, (bytes, memoryview, mmap)):
             return b64encode(value)
 
-        return b64encode(b''.join(value))
+        return b64encode(b"".join(value))
 
     @classmethod
     def from_base64(cls, value):
@@ -133,9 +144,9 @@ class ByteArray(SimpleModel):
 
     @classmethod
     def from_urlsafe_base64(cls, value):
-        #FIXME: Find out why we need to do this.
-        if isinstance(value, six.text_type):
-            value = value.encode('utf8')
+        # FIXME: Find out why we need to do this.
+        if isinstance(value, str):
+            value = value.encode("utf8")
         try:
             if isinstance(value, (list, tuple)):
                 return (urlsafe_b64decode(_bytes_join(value)),)
@@ -160,16 +171,16 @@ class ByteArray(SimpleModel):
 
 
 def _default_binary_encoding(b):
-    if isinstance(b, (six.binary_type, memoryview)):
+    if isinstance(b, (bytes, memoryview)):
         return b
 
     if isinstance(b, tuple) and len(b) > 0 and isinstance(b[0], mmap):
         return b[0]
 
-    if isinstance(b, six.text_type):
+    if isinstance(b, str):
         raise ValueError(b)
 
-    return b''.join(b)
+    return b"".join(b)
 
 
 binary_encoding_handlers = {
@@ -188,7 +199,7 @@ binary_decoding_handlers = {
 
 
 class HybridFileStore(object):
-    def __init__(self, store_path, db_format='json', type=None):
+    def __init__(self, store_path, db_format="json", type=None):
         """Marker to be passed to File's store_as to denote a hybrid
         Sql/Filesystem storage scheme.
 
@@ -208,14 +219,13 @@ class HybridFileStore(object):
         assert isdir(self.store)
 
 
-_BINARY = type('FileTypeBinary', (object,), {})
-_TEXT = type('FileTypeText', (object,), {})
+_BINARY = type("FileTypeBinary", (object,), {})
+_TEXT = type("FileTypeText", (object,), {})
 
 
 class SanitizationError(ValidationError):
     def __init__(self, obj):
-        super(SanitizationError, self).__init__(
-                                         obj, "%r was not sanitized before use")
+        super(SanitizationError, self).__init__(obj, "%r was not sanitized before use")
 
 
 class _FileValue(ComplexModel):
@@ -226,26 +236,37 @@ class _FileValue(ComplexModel):
     :param data: Optional sequence of ``str`` or ``bytes`` instances
         that contain the file's data.
     """
+
     # ^ This is the public docstring.
 
     __type_name__ = "FileValue"
 
     _type_info = [
-        ('name', Unicode(encoding='utf8')),
-        ('type', Unicode),
-        ('data', ByteArray(logged='len')),
+        ("name", Unicode(encoding="utf8")),
+        ("type", Unicode),
+        ("data", ByteArray(logged="len")),
     ]
 
-    def __init__(self, name=None, path=None, type='application/octet-stream',
-                            data=None, handle=None, move=False, _sanitize=True):
+    def __init__(
+        self,
+        name=None,
+        path=None,
+        type="application/octet-stream",
+        data=None,
+        handle=None,
+        move=False,
+        _sanitize=True,
+    ):
 
         self.name = name
         """The file basename, no directory information here."""
 
         if self.name is not None and _sanitize:
             if not os.path.basename(self.name) == self.name:
-                raise ValidationError(self.name,
-                    "File name %r should not contain any directory information")
+                raise ValidationError(
+                    self.name,
+                    "File name %r should not contain any directory information",
+                )
 
         self.sanitized = _sanitize
 
@@ -291,7 +312,7 @@ class _FileValue(ComplexModel):
                 self.abspath = self.path = self.handle.name
                 self.name = basename(self.abspath)
             else:
-                self.handle = open(self.path, 'wb')
+                self.handle = open(self.path, "wb")
                 # FIXME: abspath could be None here, how do we make sure it's
                 # the right value?
 
@@ -309,9 +330,7 @@ class _FileValue(ComplexModel):
 
             except MmapError as e:
                 if e.errno == errno.EACCES:
-                    self.data = (
-                        mmap(self.handle.fileno(), 0, access=ACCESS_READ),
-                    )
+                    self.data = (mmap(self.handle.fileno(), 0, access=ACCESS_READ),)
                 else:
                     raise
 
@@ -319,14 +338,16 @@ class _FileValue(ComplexModel):
             if not isfile(self.path):
                 logger.error("File path in %r not found", self)
 
-            self.handle = open(self.path, 'rb')
+            self.handle = open(self.path, "rb")
             self.data = (mmap(self.handle.fileno(), 0, access=ACCESS_READ),)
             self.abspath = abspath(self.path)
             self.name = self.path = basename(self.path)
 
         else:
-            raise ValueError("Invalid file object passed in. All of "
-                                           ".data, .handle and .path are None.")
+            raise ValueError(
+                "Invalid file object passed in. All of "
+                ".data, .handle and .path are None."
+            )
 
 
 class File(SimpleModel):
@@ -334,7 +355,7 @@ class File(SimpleModel):
     standard way of encoding file metadata along with binary data. (E.g. Http)
     """
 
-    __type_name__ = 'base64Binary'
+    __type_name__ = "base64Binary"
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
     BINARY = _BINARY
@@ -366,12 +387,14 @@ class File(SimpleModel):
         if value is None:
             return
 
-        assert value.path, "You need to write data to persistent storage first " \
-                           "if you want to read it back."
-        f = open(value.path, 'rb')
+        assert value.path, (
+            "You need to write data to persistent storage first "
+            "if you want to read it back."
+        )
+        f = open(value.path, "rb")
 
         # base64 encodes every 3 bytes to 4 base64 characters
-        data = f.read(0x4001) # so this needs to be a multiple of 3
+        data = f.read(0x4001)  # so this needs to be a multiple of 3
         while len(data) > 0:
             yield base64.b64encode(data)
             data = f.read(0x4001)
@@ -385,8 +408,12 @@ class File(SimpleModel):
         return File.Value(data=[base64.b64decode(value)])
 
     def __repr__(self):
-        return "File(name=%r, path=%r, type=%r, data=%r)" % \
-                                    (self.name, self.path, self.type, self.data)
+        return "File(name=%r, path=%r, type=%r, data=%r)" % (
+            self.name,
+            self.path,
+            self.type,
+            self.data,
+        )
 
     @classmethod
     def store_as(cls, what):

@@ -12,14 +12,15 @@
 
 import os
 import string
+
 from lxml import etree
 
-CONFIG_FILE = 'config.xml'
-SPYNE_TEST_NS = 'spyne.test.interop.server'
-SPYNE_TEST_PORT = 'Application'
-SPYNE_REPORT_FILE = 'wsi-report-spyne.xml'
+CONFIG_FILE = "config.xml"
+SPYNE_TEST_NS = "spyne.test.interop.server"
+SPYNE_TEST_PORT = "Application"
+SPYNE_REPORT_FILE = "wsi-report-spyne.xml"
 
-WSI_ANALYZER_CONFIG_TEMPLATE=string.Template("""<?xml version="1.0" encoding="UTF-8"?>
+WSI_ANALYZER_CONFIG_TEMPLATE = string.Template("""<?xml version="1.0" encoding="UTF-8"?>
 <wsi-analyzerConfig:configuration name="WS-I Basic Profile Analyzer Configuration"
       xmlns:wsi-analyzerConfig="http://www.ws-i.org/testing/2004/07/analyzerConfig/">
   <wsi-analyzerConfig:description />
@@ -66,33 +67,33 @@ WSI_ANALYZER_CONFIG_TEMPLATE=string.Template("""<?xml version="1.0" encoding="UT
 </wsi-analyzerConfig:configuration>
 """)
 
-#This must be changed to point to the physical root of the wsi-installation
+# This must be changed to point to the physical root of the wsi-installation
 WSI_HOME_TAG = "WSI_HOME"
 WSI_HOME_VAL = "wsi-test-tools"
 WSI_JAVA_HOME_TAG = "WSI_JAVA_HOME"
-WSI_JAVA_HOME_VAL = WSI_HOME_VAL+"/java"
+WSI_JAVA_HOME_VAL = WSI_HOME_VAL + "/java"
 WSI_JAVA_OPTS_TAG = "WSI_JAVA_OPTS"
 WSI_JAVA_OPTS_VAL = " -Dorg.xml.sax.driver=org.apache.xerces.parsers.SAXParser"
-WSI_TEST_ASSERTIONS_FILE = WSI_HOME_VAL+"/common/profiles/SSBP10_BP11_TAD.xml"
-WSI_STYLESHEET_FILE = WSI_HOME_VAL+"/common/xsl/report.xsl"
+WSI_TEST_ASSERTIONS_FILE = WSI_HOME_VAL + "/common/profiles/SSBP10_BP11_TAD.xml"
+WSI_STYLESHEET_FILE = WSI_HOME_VAL + "/common/xsl/report.xsl"
 WSI_EXECUTION_COMMAND = "java ${WSI_JAVA_OPTS} -Dwsi.home=${WSI_HOME} -cp ${WSI_CP}\
                                 org.wsi.test.analyzer.BasicProfileAnalyzer -config "
 
-WSIClasspath=[
-    WSI_JAVA_HOME_VAL+"/lib/wsi-test-tools.jar",
-    WSI_JAVA_HOME_VAL+"/lib",
-    WSI_JAVA_HOME_VAL+"/lib/xercesImpl.jar",
-    WSI_JAVA_HOME_VAL+"/lib/xmlParserAPIs.jar",
-    WSI_JAVA_HOME_VAL+"/lib/wsdl4j.jar",
-    WSI_JAVA_HOME_VAL+"/lib/uddi4j.jar",
-    WSI_JAVA_HOME_VAL+"/lib/axis.jar",
-    WSI_JAVA_HOME_VAL+"/lib/jaxrpc.jar",
-    WSI_JAVA_HOME_VAL+"/lib/saaj.jar",
-    WSI_JAVA_HOME_VAL+"/lib/commons-discovery.jar",
-    WSI_JAVA_HOME_VAL+"/lib/commons-logging.jar"
+WSIClasspath = [
+    WSI_JAVA_HOME_VAL + "/lib/wsi-test-tools.jar",
+    WSI_JAVA_HOME_VAL + "/lib",
+    WSI_JAVA_HOME_VAL + "/lib/xercesImpl.jar",
+    WSI_JAVA_HOME_VAL + "/lib/xmlParserAPIs.jar",
+    WSI_JAVA_HOME_VAL + "/lib/wsdl4j.jar",
+    WSI_JAVA_HOME_VAL + "/lib/uddi4j.jar",
+    WSI_JAVA_HOME_VAL + "/lib/axis.jar",
+    WSI_JAVA_HOME_VAL + "/lib/jaxrpc.jar",
+    WSI_JAVA_HOME_VAL + "/lib/saaj.jar",
+    WSI_JAVA_HOME_VAL + "/lib/commons-discovery.jar",
+    WSI_JAVA_HOME_VAL + "/lib/commons-logging.jar",
 ]
 WSI_CLASSPATH_TAG = "WSI_CP"
-WSI_CLASSPATH_VAL = ':'.join(WSIClasspath)
+WSI_CLASSPATH_VAL = ":".join(WSIClasspath)
 
 
 def configure_env():
@@ -101,23 +102,27 @@ def configure_env():
     os.environ[WSI_JAVA_OPTS_TAG] = WSI_JAVA_OPTS_VAL
     os.environ[WSI_CLASSPATH_TAG] = WSI_CLASSPATH_VAL
 
+
 def create_config(wsdl_uri, config_file):
-    print(("Creating config for wsdl at %s ...\n" %wsdl_uri))
+    print(("Creating config for wsdl at %s ...\n" % wsdl_uri))
     # extract target elements
-    service = 'ValidatingApplication'
-    port = 'ValidatingApplication'
+    service = "ValidatingApplication"
+    port = "ValidatingApplication"
     # for wsdl service declarations:
     # create config(service, port)
-    vars = {'REPORT_FILE':SPYNE_REPORT_FILE,
-            'STYLESHEET_FILE':WSI_STYLESHEET_FILE,
-            'ASSERTIONS_FILE':WSI_TEST_ASSERTIONS_FILE,
-            'WSDL_NAMESPACE':SPYNE_TEST_NS,
-            'PORT_NAME':SPYNE_TEST_PORT,
-            'WSDL_URI':wsdl_uri}
+    vars = {
+        "REPORT_FILE": SPYNE_REPORT_FILE,
+        "STYLESHEET_FILE": WSI_STYLESHEET_FILE,
+        "ASSERTIONS_FILE": WSI_TEST_ASSERTIONS_FILE,
+        "WSDL_NAMESPACE": SPYNE_TEST_NS,
+        "PORT_NAME": SPYNE_TEST_PORT,
+        "WSDL_URI": wsdl_uri,
+    }
     config = WSI_ANALYZER_CONFIG_TEMPLATE.substitute(vars)
-    f = open(config_file, 'w')
+    f = open(config_file, "w")
     f.write(config)
     f.close()
+
 
 def analyze_wsdl(config_file):
     # execute ws-i tests
@@ -126,15 +131,15 @@ def analyze_wsdl(config_file):
 
     # parse result
     e = etree.parse(SPYNE_REPORT_FILE).getroot()
-    summary = etree.ETXPath('{%s}summary' %e.nsmap['wsi-report'])(e)
+    summary = etree.ETXPath("{%s}summary" % e.nsmap["wsi-report"])(e)
     if summary:
         # retrieve overall result of the test
-        result = summary[0].get('result')
-        if result == 'failed':
-            outs = etree.ETXPath('{%s}artifact' %(e.nsmap['wsi-report'],))(e)
+        result = summary[0].get("result")
+        if result == "failed":
+            outs = etree.ETXPath("{%s}artifact" % (e.nsmap["wsi-report"],))(e)
 
             # filter for the object describing the wsdl test
-            desc = [o for o in outs if o.get('type') == 'description'][0]
+            desc = [o for o in outs if o.get("type") == "description"][0]
 
             # loop over every group test
             for entry in desc.iterchildren():
@@ -142,20 +147,25 @@ def analyze_wsdl(config_file):
                 for test in entry.iterchildren():
                     # simply print the error if there is one
                     # an html can be generated using files in wsi-test-tools/common/xsl
-                    if test.get('result') == 'failed':
-                        fail_msg = etree.ETXPath('{%s}failureMessage' %e.nsmap['wsi-report'])(test)
-                        fail_det = etree.ETXPath('{%s}failureDetail' %e.nsmap['wsi-report'])(test)
+                    if test.get("result") == "failed":
+                        fail_msg = etree.ETXPath(
+                            "{%s}failureMessage" % e.nsmap["wsi-report"]
+                        )(test)
+                        fail_det = etree.ETXPath(
+                            "{%s}failureDetail" % e.nsmap["wsi-report"]
+                        )(test)
                         if fail_msg:
-                            print(('\nFAILURE in test %s\n' %test.get('id')))
+                            print(("\nFAILURE in test %s\n" % test.get("id")))
                             print((fail_msg[0].text))
                         if fail_det:
-                            print('\nFAILURE MSG\n')
+                            print("\nFAILURE MSG\n")
                             print((fail_det[0].text))
+
 
 from spyne.test.interop._test_soap_client_base import run_server
 
-if __name__ == '__main__':
-    run_server('http')
+if __name__ == "__main__":
+    run_server("http")
     configure_env()
-    create_config('http://localhost:9754/?wsdl', CONFIG_FILE)
+    create_config("http://localhost:9754/?wsdl", CONFIG_FILE)
     analyze_wsdl(CONFIG_FILE)

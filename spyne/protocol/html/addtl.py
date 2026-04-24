@@ -17,8 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from lxml.builder import E
 from pprint import pformat
+
+from lxml.builder import E
 
 from spyne import Boolean
 from spyne.protocol.html import HtmlBase

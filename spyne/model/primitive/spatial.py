@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -27,53 +26,63 @@
 from spyne.model import SimpleModel
 from spyne.model.primitive.string import Unicode
 
+FLOAT_PATTERN = r"-?[0-9]+\.?[0-9]*(e-?[0-9]+)?"
 
-FLOAT_PATTERN = r'-?[0-9]+\.?[0-9]*(e-?[0-9]+)?'
+
+_rinse_and_repeat = r"\s*\(%s\s*(,\s*%s)*\)\s*"
 
 
-_rinse_and_repeat = r'\s*\(%s\s*(,\s*%s)*\)\s*'
 def _get_one_point_pattern(dim):
-    return ' +'.join([FLOAT_PATTERN] * dim)
+    return " +".join([FLOAT_PATTERN] * dim)
+
 
 def _get_point_pattern(dim):
-    return r'POINT\s*\(%s\)' % _get_one_point_pattern(dim)
+    return r"POINT\s*\(%s\)" % _get_one_point_pattern(dim)
+
 
 def _get_one_multipoint_pattern(dim):
     one_point = _get_one_point_pattern(dim)
     return _rinse_and_repeat % (one_point, one_point)
 
+
 def _get_multipoint_pattern(dim):
-    return r'MULTIPOINT%s' % _get_one_multipoint_pattern(dim)
+    return r"MULTIPOINT%s" % _get_one_multipoint_pattern(dim)
 
 
 def _get_one_line_pattern(dim):
     one_point = _get_one_point_pattern(dim)
     return _rinse_and_repeat % (one_point, one_point)
 
+
 def _get_linestring_pattern(dim):
-    return r'LINESTRING%s' % _get_one_line_pattern(dim)
+    return r"LINESTRING%s" % _get_one_line_pattern(dim)
+
 
 def _get_one_multilinestring_pattern(dim):
     one_line = _get_one_line_pattern(dim)
     return _rinse_and_repeat % (one_line, one_line)
 
+
 def _get_multilinestring_pattern(dim):
-    return r'MULTILINESTRING%s' % _get_one_multilinestring_pattern(dim)
+    return r"MULTILINESTRING%s" % _get_one_multilinestring_pattern(dim)
 
 
 def _get_one_polygon_pattern(dim):
     one_line = _get_one_line_pattern(dim)
     return _rinse_and_repeat % (one_line, one_line)
 
+
 def _get_polygon_pattern(dim):
-    return r'POLYGON%s' % _get_one_polygon_pattern(dim)
+    return r"POLYGON%s" % _get_one_polygon_pattern(dim)
+
 
 def _get_one_multipolygon_pattern(dim):
     one_line = _get_one_polygon_pattern(dim)
     return _rinse_and_repeat % (one_line, one_line)
 
+
 def _get_multipolygon_pattern(dim):
-    return r'MULTIPOLYGON%s' % _get_one_multipolygon_pattern(dim)
+    return r"MULTIPOLYGON%s" % _get_one_multipolygon_pattern(dim)
 
 
 class Point(Unicode):
@@ -96,19 +105,19 @@ class Point(Unicode):
         if isinstance(x, str) or isinstance(y, str):
             assert isinstance(x, str)
             assert isinstance(y, str)
-            return 'POINT(%s %s)' % (x, y)
+            return "POINT(%s %s)" % (x, y)
 
-        return ('POINT(%%3.%(prec)sf %%3.%(prec)sf)' % {'prec': prec}) % (x,y)
+        return ("POINT(%%3.%(prec)sf %%3.%(prec)sf)" % {"prec": prec}) % (x, y)
 
     def __new__(cls, dim=None, **kwargs):
         assert dim in (None, 2, 3)
         if dim is not None:
-            kwargs['dim'] = dim
-            kwargs['pattern'] = _get_point_pattern(dim)
-            kwargs['type_name'] = 'point%dd' % dim
+            kwargs["dim"] = dim
+            kwargs["pattern"] = _get_point_pattern(dim)
+            kwargs["type_name"] = "point%dd" % dim
 
         retval = SimpleModel.__new__(cls, **kwargs)
-        retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__namespace__ = "http://spyne.io/schema"
         retval.__extends__ = Unicode
         retval.__orig__ = Unicode
         return retval
@@ -132,15 +141,16 @@ class Line(Unicode):
     def __new__(cls, dim=None, **kwargs):
         assert dim in (None, 2, 3)
         if dim is not None:
-            kwargs['dim'] = dim
-            kwargs['pattern'] = _get_linestring_pattern(dim)
-            kwargs['type_name'] = 'line%dd' % dim
+            kwargs["dim"] = dim
+            kwargs["pattern"] = _get_linestring_pattern(dim)
+            kwargs["type_name"] = "line%dd" % dim
 
         retval = SimpleModel.__new__(cls, **kwargs)
-        retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__namespace__ = "http://spyne.io/schema"
         retval.__extends__ = Unicode
         retval.__orig__ = Unicode
         return retval
+
 
 LineString = Line
 
@@ -154,6 +164,7 @@ class Polygon(Unicode):
 
     :param dim: Number of dimensons.
     """
+
     __type_name__ = None
 
     class Attributes(Unicode.Attributes):
@@ -162,12 +173,12 @@ class Polygon(Unicode):
     def __new__(cls, dim=None, **kwargs):
         assert dim in (None, 2, 3)
         if dim is not None:
-            kwargs['dim'] = dim
-            kwargs['pattern'] = _get_polygon_pattern(dim)
-            kwargs['type_name'] = 'polygon%dd' % dim
+            kwargs["dim"] = dim
+            kwargs["pattern"] = _get_polygon_pattern(dim)
+            kwargs["type_name"] = "polygon%dd" % dim
 
         retval = SimpleModel.__new__(cls, **kwargs)
-        retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__namespace__ = "http://spyne.io/schema"
         retval.__extends__ = Unicode
         retval.__orig__ = Unicode
         return retval
@@ -191,12 +202,12 @@ class MultiPoint(Unicode):
     def __new__(cls, dim=None, **kwargs):
         assert dim in (None, 2, 3)
         if dim is not None:
-            kwargs['dim'] = dim
-            kwargs['pattern'] = _get_multipoint_pattern(dim)
-            kwargs['type_name'] = 'multiPoint%dd' % dim
+            kwargs["dim"] = dim
+            kwargs["pattern"] = _get_multipoint_pattern(dim)
+            kwargs["type_name"] = "multiPoint%dd" % dim
 
         retval = SimpleModel.__new__(cls, **kwargs)
-        retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__namespace__ = "http://spyne.io/schema"
         retval.__extends__ = Unicode
         retval.__orig__ = Unicode
         return retval
@@ -220,15 +231,16 @@ class MultiLine(Unicode):
     def __new__(cls, dim=None, **kwargs):
         assert dim in (None, 2, 3)
         if dim is not None:
-            kwargs['dim'] = dim
-            kwargs['pattern'] = _get_multilinestring_pattern(dim)
-            kwargs['type_name'] = 'multiLine%dd' % dim
+            kwargs["dim"] = dim
+            kwargs["pattern"] = _get_multilinestring_pattern(dim)
+            kwargs["type_name"] = "multiLine%dd" % dim
 
         retval = SimpleModel.__new__(cls, **kwargs)
-        retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__namespace__ = "http://spyne.io/schema"
         retval.__extends__ = Unicode
         retval.__orig__ = Unicode
         return retval
+
 
 MultiLineString = MultiLine
 
@@ -251,13 +263,12 @@ class MultiPolygon(Unicode):
     def __new__(cls, dim=None, **kwargs):
         assert dim in (None, 2, 3)
         if dim is not None:
-            kwargs['dim'] = dim
-            kwargs['pattern'] = _get_multipolygon_pattern(dim)
-            kwargs['type_name'] = 'multipolygon%dd' % dim
+            kwargs["dim"] = dim
+            kwargs["pattern"] = _get_multipolygon_pattern(dim)
+            kwargs["type_name"] = "multipolygon%dd" % dim
 
         retval = SimpleModel.__new__(cls, **kwargs)
-        retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__namespace__ = "http://spyne.io/schema"
         retval.__extends__ = Unicode
         retval.__orig__ = Unicode
         return retval
-

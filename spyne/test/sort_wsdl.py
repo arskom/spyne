@@ -30,13 +30,13 @@ from lxml import etree
 
 
 def cache_order(l, ns):
-    return dict([ ("{%s}%s" % (ns, a), l.index(a)) for a in l])
+    return dict([("{%s}%s" % (ns, a), l.index(a)) for a in l])
 
 
-wsdl_order = ('types', 'message', 'service', 'portType', 'binding')
+wsdl_order = ("types", "message", "service", "portType", "binding")
 wsdl_order = cache_order(wsdl_order, ns_wsdl)
 
-schema_order = ('import', 'element', 'simpleType', 'complexType', 'attribute')
+schema_order = ("import", "element", "simpleType", "complexType", "attribute")
 schema_order = cache_order(schema_order, ns_schema)
 
 parser = etree.XMLParser(remove_blank_text=True)
@@ -62,17 +62,21 @@ def sort_wsdl(tree):
             l0.append(e)
             e.getparent().remove(e)
 
-    l0.sort(key=lambda e: (wsdl_order[e.tag], e.attrib['name']))
+    l0.sort(key=lambda e: (wsdl_order[e.tag], e.attrib["name"]))
     for e in l0:
         tree.getroot().append(e)
 
     for e in tree.getroot():
-        if e.tag in ("{%s}portType" % ns_wsdl, "{%s}binding" % ns_wsdl, "{%s}operation" % ns_wsdl):
+        if e.tag in (
+            "{%s}portType" % ns_wsdl,
+            "{%s}binding" % ns_wsdl,
+            "{%s}operation" % ns_wsdl,
+        ):
             nodes = []
             for p in e.getchildren():
                 nodes.append(p)
 
-            nodes.sort(key=lambda e: e.attrib.get('name', '0'))
+            nodes.sort(key=lambda e: e.attrib.get("name", "0"))
 
             for p in nodes:
                 e.append(p)
@@ -94,11 +98,11 @@ def sort_wsdl(tree):
             nodes.append(e)
             e.getparent().remove(e)
 
-        nodes.sort(key=lambda e: (schema_order[e.tag], e.attrib.get('name', '\0')))
+        nodes.sort(key=lambda e: (schema_order[e.tag], e.attrib.get("name", "\0")))
 
         for e in nodes:
             s.append(e)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -20,23 +19,29 @@
 from __future__ import print_function
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import re
+
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
-from mmap import mmap
 from collections import defaultdict
+from collections.abc import Iterable as AbcIterable
+from mmap import mmap
 
-from spyne.util import six
-from spyne.util.six.moves.collections_abc import Iterable as AbcIterable
-
-from spyne.error import ValidationError
-from spyne.error import ResourceNotFoundError
-
-from spyne.model import ByteArray, File, Fault, ComplexModelBase, Array, Any, \
-    AnyDict, Uuid, Unicode
-
+from spyne.error import ResourceNotFoundError, ValidationError
+from spyne.model import (
+    Any,
+    AnyDict,
+    Array,
+    ByteArray,
+    ComplexModelBase,
+    Fault,
+    File,
+    Unicode,
+    Uuid,
+)
 from spyne.protocol.dictdoc import DictDocument
 
 
@@ -47,17 +52,21 @@ class HierDictDocument(DictDocument):
     Implement ``create_in_document()`` and ``create_out_string()`` to use this.
     """
 
-    VALID_UNICODE_SOURCES = (six.text_type, six.binary_type, memoryview,
-                                                                mmap, bytearray)
+    VALID_UNICODE_SOURCES = (
+        str,
+        bytes,
+        memoryview,
+        mmap,
+        bytearray,
+    )
 
     from_serstr = DictDocument.from_unicode
     to_serstr = DictDocument.to_unicode
 
     def get_class_name(self, cls):
         class_name = cls.get_type_name()
-        if not six.PY2:
-            if isinstance(class_name, bytes):
-                class_name = class_name.decode('utf8')
+        if isinstance(class_name, bytes):
+            class_name = class_name.decode("utf8")
 
         return class_name
 
@@ -69,7 +78,7 @@ class HierDictDocument(DictDocument):
     def deserialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
-        self.event_manager.fire_event('before_deserialize', ctx)
+        self.event_manager.fire_event("before_deserialize", ctx)
 
         if ctx.descriptor is None:
             raise ResourceNotFoundError(ctx.method_request_string)
@@ -92,14 +101,13 @@ class HierDictDocument(DictDocument):
             if self.ignore_wrappers:
                 doc = doc.get(class_name, None)
 
-            result_message = self._doc_to_object(ctx, body_class, doc,
-                                                                 self.validator)
+            result_message = self._doc_to_object(ctx, body_class, doc, self.validator)
             ctx.in_object = result_message
 
         else:
             ctx.in_object = []
 
-        self.event_manager.fire_event('after_deserialize', ctx)
+        self.event_manager.fire_event("after_deserialize", ctx)
 
     def _fault_to_doc(self, inst, cls=None):
         if cls is None:
@@ -118,7 +126,7 @@ class HierDictDocument(DictDocument):
     def serialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
-        self.event_manager.fire_event('before_serialize', ctx)
+        self.event_manager.fire_event("before_serialize", ctx)
 
         if ctx.out_error is not None:
             ctx.out_document = self._fault_to_doc(ctx.out_error)
@@ -139,7 +147,7 @@ class HierDictDocument(DictDocument):
 
         # assign raw result to its wrapper, result_message
         if ctx.descriptor.is_out_bare():
-            out_instance, = ctx.out_object
+            (out_instance,) = ctx.out_object
 
         else:
             out_type_info = out_type.get_flat_type_info(out_type)
@@ -151,17 +159,18 @@ class HierDictDocument(DictDocument):
                 attrs = self.get_cls_attrs(v)
                 out_instance._safe_set(k, ctx.out_object[i], v, attrs)
 
-        ctx.out_document = self._object_to_doc(out_type, out_instance, set()),
+        ctx.out_document = (self._object_to_doc(out_type, out_instance, set()),)
 
         logger.debug("Response: %r", ctx.out_document)
-        self.event_manager.fire_event('after_serialize', ctx)
+        self.event_manager.fire_event("after_serialize", ctx)
 
     def validate(self, key, cls, inst):
         if inst is None and self.get_cls_attrs(cls).nullable:
             pass
 
-        elif issubclass(cls, Unicode) and not isinstance(inst,
-                                                    self.VALID_UNICODE_SOURCES):
+        elif issubclass(cls, Unicode) and not isinstance(
+            inst, self.VALID_UNICODE_SOURCES
+        ):
             raise ValidationError([key, inst])
 
     def _from_dict_value(self, ctx, key, cls, inst, validator):
@@ -195,12 +204,14 @@ class HierDictDocument(DictDocument):
                 retval = self._doc_to_object(ctx, cls, inst, validator)
 
             else:
-                if cls_attrs.empty_is_none and inst in (u'', b''):
+                if cls_attrs.empty_is_none and inst in ("", b""):
                     inst = None
 
-                if (validator is self.SOFT_VALIDATION
-                                        and isinstance(inst, six.string_types)
-                                        and not cls.validate_string(cls, inst)):
+                if (
+                    validator is self.SOFT_VALIDATION
+                    and isinstance(inst, str)
+                    and not cls.validate_string(cls, inst)
+                ):
                     raise ValidationError([key, inst])
 
                 if issubclass(cls, (ByteArray, Uuid)):
@@ -208,24 +219,28 @@ class HierDictDocument(DictDocument):
 
                 elif issubclass(cls, Unicode):
                     if isinstance(inst, bytearray):
-                        retval = six.text_type(inst,
-                                encoding=cls_attrs.encoding or 'ascii',
-                                                errors=cls_attrs.unicode_errors)
+                        retval = str(
+                            inst,
+                            encoding=cls_attrs.encoding or "ascii",
+                            errors=cls_attrs.unicode_errors,
+                        )
 
                     elif isinstance(inst, memoryview):
                         # FIXME: memoryview needs a .decode() function to avoid
                         #        needless copying here
                         retval = inst.tobytes().decode(
-                            cls_attrs.encoding or 'ascii',
-                                                errors=cls_attrs.unicode_errors)
+                            cls_attrs.encoding or "ascii",
+                            errors=cls_attrs.unicode_errors,
+                        )
 
                     elif isinstance(inst, mmap):
                         # FIXME: mmap needs a .decode() function to avoid
                         #        needless copying here
-                        retval = mmap[:].decode(cls_attrs.encoding,
-                                                errors=cls_attrs.unicode_errors)
+                        retval = mmap[:].decode(
+                            cls_attrs.encoding, errors=cls_attrs.unicode_errors
+                        )
 
-                    elif isinstance(inst, six.binary_type):
+                    elif isinstance(inst, bytes):
                         retval = self.unicode_from_bytes(cls, inst)
 
                     else:
@@ -258,8 +273,9 @@ class HierDictDocument(DictDocument):
                 raise ValidationError(doc)
 
             for i, child in enumerate(doc):
-                retval.append(self._from_dict_value(ctx, i, serializer, child,
-                                                                     validator))
+                retval.append(
+                    self._from_dict_value(ctx, i, serializer, child, validator)
+                )
 
             return retval
 
@@ -272,28 +288,35 @@ class HierDictDocument(DictDocument):
                 return None
 
             if len(doc) > 1:
-                raise ValidationError(doc, "There can be only one entry in a "
-                                                                 "wrapper dict")
+                raise ValidationError(
+                    doc, "There can be only one entry in a " "wrapper dict"
+                )
 
             subclasses = cls.get_subclasses()
-            (class_name, doc), = doc.items()
-            if not six.PY2 and isinstance(class_name, bytes):
-                class_name = class_name.decode('utf8')
+            ((class_name, doc),) = doc.items()
+            if isinstance(class_name, bytes):
+                class_name = class_name.decode("utf8")
 
-            if cls.get_type_name() != class_name and subclasses is not None \
-                                                        and len(subclasses) > 0:
+            if (
+                cls.get_type_name() != class_name
+                and subclasses is not None
+                and len(subclasses) > 0
+            ):
                 for subcls in subclasses:
                     if subcls.get_type_name() == class_name:
                         break
                 else:
-                    raise ValidationError(class_name,
-                        "Class name %%r is not registered as a subclass of %r" %
-                                                            cls.get_type_name())
+                    raise ValidationError(
+                        class_name,
+                        "Class name %%r is not registered as a subclass of %r"
+                        % cls.get_type_name(),
+                    )
 
                 if not self.issubclass(subcls, cls):
-                    raise ValidationError(class_name,
-                             "Class name %%r is not a subclass of %r" %
-                                                            cls.get_type_name())
+                    raise ValidationError(
+                        class_name,
+                        "Class name %%r is not a subclass of %r" % cls.get_type_name(),
+                    )
                 cls = subcls
 
         inst = cls.get_deserialization_instance(ctx)
@@ -315,8 +338,14 @@ class HierDictDocument(DictDocument):
             # with the incoming sequence with field names.
             # TODO: cache this
             try:
-                items = zip([k for k, v in flat_type_info.items()
-                                         if not self.get_cls_attrs(v).exc], doc)
+                items = zip(
+                    [
+                        k
+                        for k, v in flat_type_info.items()
+                        if not self.get_cls_attrs(v).exc
+                    ],
+                    doc,
+                )
             except TypeError as e:
                 logger.error("Invalid document %r for %r", doc, cls)
                 raise ValidationError(doc)
@@ -347,8 +376,7 @@ class HierDictDocument(DictDocument):
                     subinst = []
 
                 for a in v:
-                    subinst.append(
-                            self._from_dict_value(ctx, k, member, a, validator))
+                    subinst.append(self._from_dict_value(ctx, k, member, a, validator))
 
             else:
                 subinst = self._from_dict_value(ctx, k, member, v, validator)
@@ -400,16 +428,16 @@ class HierDictDocument(DictDocument):
             # cls_attrs = self.get_cls_attrs(cls)
 
         if self.ignore_wrappers:
-            ti = getattr(cls, '_type_info', {})
+            ti = getattr(cls, "_type_info", {})
 
             while cls.Attributes._wrapper and len(ti) == 1:
                 # Wrappers are auto-generated objects that have exactly one
                 # child type.
-                key, = ti.keys()
+                (key,) = ti.keys()
                 if not issubclass(cls, Array):
                     inst = getattr(inst, key, None)
-                cls, = ti.values()
-                ti = getattr(cls, '_type_info', {})
+                (cls,) = ti.values()
+                ti = getattr(cls, "_type_info", {})
 
         # transform the results into a dict:
         if cls.Attributes.max_occurs > 1:
@@ -420,27 +448,31 @@ class HierDictDocument(DictDocument):
                     if id(subinst) in tags:
                         # even when there is ONE already-serialized instance,
                         # we throw the whole thing away.
-                        logger.debug("Throwing the whole array away because "
-                                                        "found %d", id(subinst))
+                        logger.debug(
+                            "Throwing the whole array away because " "found %d",
+                            id(subinst),
+                        )
 
                         # this is DANGEROUS
-                        #logger.debug("Said array: %r", inst)
+                        # logger.debug("Said array: %r", inst)
 
                         return None
 
-                    retval.append(self._to_dict_value(cls, subinst, tags,
-                                                      cls_orig=cls_orig or cls))
+                    retval.append(
+                        self._to_dict_value(
+                            cls, subinst, tags, cls_orig=cls_orig or cls
+                        )
+                    )
 
         else:
-            retval = self._to_dict_value(cls, inst, tags,
-                                                       cls_orig=cls_orig or cls)
+            retval = self._to_dict_value(cls, inst, tags, cls_orig=cls_orig or cls)
 
         return retval
 
     def _get_member_pairs(self, cls, inst, tags):
         old_len = len(tags)
         tags = tags | {id(inst)}
-        assert len(tags) > old_len, ("Offending instance: %r" % inst)
+        assert len(tags) > old_len, "Offending instance: %r" % inst
 
         for k, v in self.sort_fields(cls):
             subattr = self.get_cls_attrs(v)
@@ -500,7 +532,7 @@ class HierDictDocument(DictDocument):
             return inst
 
         if issubclass(cls, Array):
-            st, = cls._type_info.values()
+            (st,) = cls._type_info.values()
             return self._object_to_doc(st, inst, tags)
 
         if issubclass(cls, ComplexModelBase):
@@ -520,15 +552,18 @@ class HierDictDocument(DictDocument):
 
             subinst = getattr(inst, sf, None)
 
-            logger.debug("Render complex object %s to the value %r of its "
-                         "field '%s'", cls.get_type_name(), subinst, sf)
+            logger.debug(
+                "Render complex object %s to the value %r of its " "field '%s'",
+                cls.get_type_name(),
+                subinst,
+                sf,
+            )
 
             return self.to_unicode(subcls, subinst)
 
         cls_attr = self.get_cls_attrs(cls)
         complex_as = self.get_complex_as(cls_attr)
-        if complex_as is list or \
-                         getattr(cls.Attributes, 'serialize_as', False) is list:
+        if complex_as is list or getattr(cls.Attributes, "serialize_as", False) is list:
             return list(self._complex_to_list(cls, inst, tags))
         return self._complex_to_dict(cls, inst, tags)
 
@@ -540,28 +575,31 @@ class HierDictDocument(DictDocument):
         if self.key_encoding is None:
             d = complex_as(self._get_member_pairs(cls, inst, tags))
 
-            if (self.ignore_wrappers or cls_attr.not_wrapped) \
-                                                 and not bool(cls_attr.wrapper):
+            if (self.ignore_wrappers or cls_attr.not_wrapped) and not bool(
+                cls_attr.wrapper
+            ):
                 return d
 
             else:
-                if isinstance(cls_attr.wrapper,
-                                              (six.text_type, six.binary_type)):
+                if isinstance(cls_attr.wrapper, (str, bytes)):
                     return {cls_attr.wrapper: d}
                 else:
                     return {cls.get_type_name(): d}
         else:
-            d = complex_as( (k.encode(self.key_encoding), v) for k, v in
-                                       self._get_member_pairs(cls, inst, tags) )
+            d = complex_as(
+                (k.encode(self.key_encoding), v)
+                for k, v in self._get_member_pairs(cls, inst, tags)
+            )
 
-            if (self.ignore_wrappers or cls_attr.not_wrapped) \
-                                                 and not bool(cls_attr.wrapper):
+            if (self.ignore_wrappers or cls_attr.not_wrapped) and not bool(
+                cls_attr.wrapper
+            ):
                 return d
 
             else:
-                if isinstance(cls_attr.wrapper, six.text_type):
+                if isinstance(cls_attr.wrapper, str):
                     return {cls_attr.wrapper.encode(self.key_encoding): d}
-                elif isinstance(cls_attr.wrapper, six.binary_type):
+                elif isinstance(cls_attr.wrapper, bytes):
                     return {cls_attr.wrapper: d}
                 else:
                     return {cls.get_type_name().encode(self.key_encoding): d}

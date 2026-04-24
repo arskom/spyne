@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -19,31 +18,19 @@
 
 """The Twisted Http Client transport."""
 
-from spyne import __version__ as VERSION
-from spyne.util import six
-
-from spyne.client import RemoteService
-from spyne.client import RemoteProcedureBase
-from spyne.client import ClientBase
-
-from zope.interface import implements
-
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol
-
 from twisted.web import error as werror
-from twisted.web.client import Agent
-from twisted.web.client import ResponseDone
-from twisted.web.iweb import IBodyProducer
-from twisted.web.iweb import UNKNOWN_LENGTH
+from twisted.web.client import Agent, ResponseDone
 from twisted.web.http_headers import Headers
+from twisted.web.iweb import UNKNOWN_LENGTH, IBodyProducer
+
+from spyne import __version__ as VERSION
+from spyne.client import ClientBase, RemoteProcedureBase, RemoteService
 
 
 class _Producer(object):
-    if six.PY2:
-        implements(IBodyProducer)
-
     _deferred = None
 
     def __init__(self, body):
@@ -53,7 +40,7 @@ class _Producer(object):
 
         # check to see if we can determine the length
         try:
-            len(body) # iterator?
+            len(body)  # iterator?
             self.length = sum([len(fragment) for fragment in body])
             self.body = iter(body)
 
@@ -76,7 +63,7 @@ class _Producer(object):
             if self.__paused:
                 break
         else:
-            self._deferred.callback(None) # done producing forever
+            self._deferred.callback(None)  # done producing forever
 
     def pauseProducing(self):
         self.__paused = True
@@ -107,7 +94,7 @@ class _RemoteProcedure(RemoteProcedureBase):
         # The comma-in-assignment trick is a pedantic way of getting the first
         # and the only variable from an iterable. so if there's more than one
         # element in the iterable, it'll fail miserably.
-        self.ctx, = self.contexts
+        (self.ctx,) = self.contexts
 
         self.get_out_object(self.ctx, args, kwargs)
         self.get_out_string(self.ctx)
@@ -116,10 +103,12 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         agent = Agent(reactor)
         d = agent.request(
-            b'POST', self.url,
-            Headers({b'User-Agent':
-                         [b'Spyne Twisted Http Client %s' % VERSION.encode()]}),
-            _Producer(self.ctx.out_string)
+            b"POST",
+            self.url,
+            Headers(
+                {b"User-Agent": [b"Spyne Twisted Http Client %s" % VERSION.encode()]}
+            ),
+            _Producer(self.ctx.out_string),
         )
 
         def _process_response(_, response):

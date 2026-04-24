@@ -20,28 +20,34 @@
 """pod being plain old data"""
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('spyne.protocol.xml')
+logger = logging.getLogger("spyne.protocol.xml")
 logger.setLevel(logging.DEBUG)
 
-from spyne.test.interop.server import get_open_port
 from spyne.application import Application
-from spyne.test.interop.server._service import services
 from spyne.protocol.http import HttpRpc
 from spyne.server.twisted import TwistedWebResource
+from spyne.test.interop.server import get_open_port
+from spyne.test.interop.server._service import services
 
-httprpc_soap_application = Application(services,
-                                'spyne.test.interop.server.httprpc.pod',
-                                in_protocol=HttpRpc(), out_protocol=HttpRpc())
+httprpc_soap_application = Application(
+    services,
+    "spyne.test.interop.server.httprpc.pod",
+    in_protocol=HttpRpc(),
+    out_protocol=HttpRpc(),
+)
 
-host = '127.0.0.1'
+host = "127.0.0.1"
 port = [0]
 
+
 def main(argv):
-    from twisted.web.server import Site
     from twisted.internet import reactor
     from twisted.python import log
-    observer = log.PythonLoggingObserver('twisted')
+    from twisted.web.server import Site
+
+    observer = log.PythonLoggingObserver("twisted")
     log.startLoggingWithObserver(observer.emit, setStdout=False)
 
     if port[0] == 0:
@@ -51,11 +57,12 @@ def main(argv):
     site = Site(wr)
 
     reactor.listenTCP(port[0], site)
-    logging.info("listening on: %s:%d" % (host,port[0]))
+    logging.info("listening on: %s:%d" % (host, port[0]))
 
     return reactor.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     sys.exit(main(sys.argv))

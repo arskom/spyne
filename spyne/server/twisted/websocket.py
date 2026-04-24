@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -40,31 +39,27 @@ in moderation.
 This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 """
 
-
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Factory
 
-# FIXME: Switch to:
-#    from twisted.web.websockets import WebSocketsProtocol
-#    from twisted.web.websockets import WebSocketsResource
-#    from twisted.web.websockets import CONTROLS
-
-from spyne.util._twisted_ws import WebSocketsProtocol
-from spyne.util._twisted_ws import WebSocketsResource
-from spyne.util._twisted_ws import CONTROLS
-
-
-from spyne import MethodContext, TransportContext, Address
+from spyne import Address, MethodContext, TransportContext
 from spyne.auxproc import process_contexts
 from spyne.model import PushBase
 from spyne.model.complex import ComplexModel
 from spyne.model.fault import Fault
 from spyne.server import ServerBase
+from spyne.util._twisted_ws import CONTROLS, WebSocketsProtocol, WebSocketsResource
+
+# FIXME: Switch to:
+#    from twisted.web.websockets import WebSocketsProtocol
+#    from twisted.web.websockets import WebSocketsResource
+#    from twisted.web.websockets import CONTROLS
 
 
 class WebSocketTransportContext(TransportContext):
@@ -87,8 +82,7 @@ class WebSocketMethodContext(MethodContext):
     def __init__(self, transport, client_handle):
         MethodContext.__init__(self, transport, MethodContext.SERVER)
 
-        self.transport = WebSocketTransportContext(self, transport, 'ws',
-                                                                  client_handle)
+        self.transport = WebSocketTransportContext(self, transport, "ws", client_handle)
 
 
 class TwistedWebSocketProtocol(WebSocketsProtocol):
@@ -124,7 +118,6 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
     def _connectionLost(self, reason):
         del self._clients[id(self)]
 
-
     def frameReceived(self, opcode, data, fin):
         tpt = self._spyne_transport
 
@@ -155,7 +148,7 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
                 p_ctx.out_object = retval
 
             tpt.get_out_string(p_ctx)
-            self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)
+            self.sendFrame(opcode, "".join(p_ctx.out_string), fin)
             p_ctx.close()
             process_contexts(tpt, others, p_ctx)
 
@@ -165,7 +158,7 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
                 logger.error(err.getTraceback())
 
             tpt.get_out_string(p_ctx)
-            self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)
+            self.sendFrame(opcode, "".join(p_ctx.out_string), fin)
             p_ctx.close()
 
         ret = p_ctx.out_object
@@ -193,8 +186,8 @@ class TwistedWebSocketFactory(Factory):
             self._clients = {}
 
     def buildProtocol(self, addr):
-        return TwistedWebSocketProtocol(self.transport, self.bookkeep,
-                                                                self._clients)
+        return TwistedWebSocketProtocol(self.transport, self.bookkeep, self._clients)
+
 
 class _Fake(object):
     pass
@@ -229,12 +222,14 @@ class TwistedWebSocketResource(WebSocketsResource):
         if bookkeep:
             self.propagate = self.do_propagate
 
-        WebSocketsResource.__init__(self, TwistedWebSocketFactory(app,
-                                                       bookkeep, self.clients))
+        WebSocketsResource.__init__(
+            self, TwistedWebSocketFactory(app, bookkeep, self.clients)
+        )
 
     def propagate(self):
-        raise InvalidRequestError("You must enable bookkeeping to have "
-                                  "message propagation work.")
+        raise InvalidRequestError(
+            "You must enable bookkeeping to have " "message propagation work."
+        )
 
     def get_doc(self, obj, cls=None):
         if cls is None:
@@ -245,11 +240,11 @@ class TwistedWebSocketResource(WebSocketsResource):
         op.serialize(ctx, op.RESPONSE)
         op.create_out_string(ctx)
 
-        return ''.join(ctx.out_string)
+        return "".join(ctx.out_string)
 
     def do_propagate(self, obj, cls=None):
         doc = self.get_doc(obj, cls)
 
         for c in self.clients.itervalues():
-            print('sending to', c)
+            print("sending to", c)
             c.sendFrame(CONTROLS.TEXT, doc, True)

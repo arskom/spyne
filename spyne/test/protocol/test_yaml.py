@@ -19,16 +19,14 @@
 
 import unittest
 
-from spyne.test.protocol._test_dictdoc import TDictDocumentTest
-from spyne.protocol.yaml import YamlDocument
-
 from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.service import Service
+from spyne.protocol.yaml import YamlDocument, yaml
 from spyne.server import ServerBase
+from spyne.service import Service
+from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 
-from spyne.protocol.yaml import yaml
 yaml.dumps = yaml.dump
 yaml.loads = yaml.load
 
@@ -42,17 +40,20 @@ class Test(unittest.TestCase):
             def yay():
                 pass
 
-        app = Application([SomeService], 'tns',
-                                in_protocol=YamlDocument(),
-                                out_protocol=YamlDocument())
+        app = Application(
+            [SomeService],
+            "tns",
+            in_protocol=YamlDocument(),
+            out_protocol=YamlDocument(),
+        )
 
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server, MethodContext.SERVER)
-        initial_ctx.in_string = [b'{']
-        ctx, = server.generate_contexts(initial_ctx)
-        assert ctx.in_error.faultcode == 'Client.YamlDecodeError'
+        initial_ctx.in_string = [b"{"]
+        (ctx,) = server.generate_contexts(initial_ctx)
+        assert ctx.in_error.faultcode == "Client.YamlDecodeError"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

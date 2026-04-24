@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -26,31 +25,39 @@ to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
 
-import spyne.const.xml
-
 from copy import copy
 from inspect import isclass
 
-from spyne import MethodDescriptor
+import spyne.const.xml
 
 # Empty means empty input, bare output. Doesn't say anything about response
 # being empty
 from spyne import LogicError
-from spyne import BODY_STYLE_EMPTY
-from spyne import BODY_STYLE_WRAPPED
-from spyne import BODY_STYLE_BARE
-from spyne import BODY_STYLE_OUT_BARE
-from spyne import BODY_STYLE_EMPTY_OUT_BARE
-
-from spyne.model import ModelBase, ComplexModel, ComplexModelBase
-from spyne.model.complex import TypeInfo, recust_selfref, SelfReference
-
 from spyne.const import add_request_suffix
+from spyne.descriptor import (
+    BODY_STYLE_BARE,
+    BODY_STYLE_EMPTY,
+    BODY_STYLE_EMPTY_OUT_BARE,
+    BODY_STYLE_OUT_BARE,
+    BODY_STYLE_WRAPPED,
+    MethodDescriptor,
+)
+from spyne.model import ComplexModel, ComplexModelBase, ModelBase
+from spyne.model.complex import SelfReference, TypeInfo, recust_selfref
 
 
-def _produce_input_message(f, params, in_message_name, in_variable_names,
-                       no_ctx, no_self, argnames, body_style_str, self_ref_cls,
-                       in_wsdl_part_name):
+def _produce_input_message(
+    f,
+    params,
+    in_message_name,
+    in_variable_names,
+    no_ctx,
+    no_self,
+    argnames,
+    body_style_str,
+    self_ref_cls,
+    in_wsdl_part_name,
+):
     arg_start = 0
     if no_ctx is False:
         arg_start += 1
@@ -72,21 +79,25 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
 
         if no_self is False:
             params = [self_ref_cls.novalidate_freq()] + params
-            argnames = ('self',) + argnames
+            argnames = ("self",) + argnames
 
         if len(params) != len(argnames):
-            raise LogicError("%r function has %d argument(s) but its decorator "
-                           "has %d." % (f.__name__, len(argnames), len(params)))
+            raise LogicError(
+                "%r function has %d argument(s) but its decorator "
+                "has %d." % (f.__name__, len(argnames), len(params))
+            )
 
     else:
         argnames = copy(argnames)
         if len(params) != len(argnames):
-            raise LogicError("%r function has %d argument(s) but the _args "
-                            "argument has %d." % (
-                                f.__name__, len(argnames), len(params)))
+            raise LogicError(
+                "%r function has %d argument(s) but the _args "
+                "argument has %d." % (f.__name__, len(argnames), len(params))
+            )
 
     in_params = TypeInfo()
     from spyne import SelfReference
+
     for k, v in zip(argnames, params):
         try:
             is_self_ref = issubclass(v, SelfReference)
@@ -106,7 +117,7 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
         ns, _, in_message_name = in_message_name[1:].partition("}")
 
     message = None
-    if body_style_str == 'bare':
+    if body_style_str == "bare":
         if len(in_params) > 1:
             # The soap Body elt contains 1 elt (called "body entry" in the soap
             # standard) per method call. If bare methods were allowed to have >1
@@ -114,28 +125,33 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
             # which would violate the standard. It's easy to work around this
             # restriction by creating a ComplexModel that contains all the
             # required parameters.
-            raise LogicError("body_style='bare' can handle at most one "
-                                                           "function argument.")
+            raise LogicError(
+                "body_style='bare' can handle at most one " "function argument."
+            )
 
         if len(in_params) == 0:
-            message = ComplexModel.produce(type_name=in_message_name,
-                                           namespace=ns, members=in_params)
+            message = ComplexModel.produce(
+                type_name=in_message_name, namespace=ns, members=in_params
+            )
         else:
-            message, = in_params.values()
+            (message,) = in_params.values()
             message = message.customize(sub_name=in_message_name, sub_ns=ns)
 
             if issubclass(message, ComplexModelBase) and not message._type_info:
-                raise LogicError("body_style='bare' does not allow empty "
-                                                               "model as param")
+                raise LogicError(
+                    "body_style='bare' does not allow empty " "model as param"
+                )
 
             # there can't be multiple arguments here.
             if message.__type_name__ is ModelBase.Empty:
-                message._fill_empty_type_name(ns, in_message_name,
-                                                    "%s_arg0" % in_message_name)
+                message._fill_empty_type_name(
+                    ns, in_message_name, "%s_arg0" % in_message_name
+                )
 
     else:
-        message = ComplexModel.produce(type_name=in_message_name,
-                                       namespace=ns, members=in_params)
+        message = ComplexModel.produce(
+            type_name=in_message_name, namespace=ns, members=in_params
+        )
         message.__namespace__ = ns
 
     if in_wsdl_part_name:
@@ -145,22 +161,21 @@ def _produce_input_message(f, params, in_message_name, in_variable_names,
 
 
 def _validate_body_style(kparams):
-    _body_style = kparams.pop('_body_style', None)
-    _soap_body_style = kparams.pop('_soap_body_style', None)
+    _body_style = kparams.pop("_body_style", None)
+    _soap_body_style = kparams.pop("_soap_body_style", None)
 
-    allowed_body_styles = ('wrapped', 'bare', 'out_bare')
+    allowed_body_styles = ("wrapped", "bare", "out_bare")
     if _body_style is None:
-        _body_style = 'wrapped'
+        _body_style = "wrapped"
 
     elif not (_body_style in allowed_body_styles):
-        raise ValueError("body_style must be one of %r" %
-                                                         (allowed_body_styles,))
+        raise ValueError("body_style must be one of %r" % (allowed_body_styles,))
 
-    elif _soap_body_style == 'document':
-        _body_style = 'wrapped'
+    elif _soap_body_style == "document":
+        _body_style = "wrapped"
 
-    elif _soap_body_style == 'rpc':
-        _body_style = 'bare'
+    elif _soap_body_style == "rpc":
+        _body_style = "bare"
 
     elif _soap_body_style is None:
         pass
@@ -168,19 +183,18 @@ def _validate_body_style(kparams):
     else:
         raise ValueError("soap_body_style must be one of ('rpc', 'document')")
 
-    assert _body_style in ('wrapped', 'bare', 'out_bare')
+    assert _body_style in ("wrapped", "bare", "out_bare")
 
     return _body_style
 
 
-def _produce_output_message(func_name, body_style_str, self_ref_cls,
-                                                              no_self, kparams):
+def _produce_output_message(func_name, body_style_str, self_ref_cls, no_self, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
     """
 
-    _returns = kparams.pop('_returns', None)
+    _returns = kparams.pop("_returns", None)
 
     try:
         is_self_ref = issubclass(_returns, SelfReference)
@@ -193,35 +207,38 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
 
         _returns = recust_selfref(_returns, self_ref_cls)
 
-    _is_out_message_name_overridden = not ('_out_message_name' in kparams)
-    _out_message_name = kparams.pop('_out_message_name', '%s%s' %
-                                       (func_name, spyne.const.RESPONSE_SUFFIX))
+    _is_out_message_name_overridden = not ("_out_message_name" in kparams)
+    _out_message_name = kparams.pop(
+        "_out_message_name", "%s%s" % (func_name, spyne.const.RESPONSE_SUFFIX)
+    )
 
-    if no_self is False and \
-               (body_style_str == 'wrapped' or _is_out_message_name_overridden):
-        _out_message_name = '%s.%s' % \
-                               (self_ref_cls.get_type_name(), _out_message_name)
+    if no_self is False and (
+        body_style_str == "wrapped" or _is_out_message_name_overridden
+    ):
+        _out_message_name = "%s.%s" % (self_ref_cls.get_type_name(), _out_message_name)
 
-    _out_wsdl_part_name = kparams.pop('_wsdl_part_name', None)
+    _out_wsdl_part_name = kparams.pop("_wsdl_part_name", None)
 
     out_params = TypeInfo()
 
-    if _returns and body_style_str == 'wrapped':
+    if _returns and body_style_str == "wrapped":
         if isinstance(_returns, (list, tuple)):
-            default_names = ['%s%s%d'% (func_name, spyne.const.RESULT_SUFFIX, i)
-                                                  for i in range(len(_returns))]
+            default_names = [
+                "%s%s%d" % (func_name, spyne.const.RESULT_SUFFIX, i)
+                for i in range(len(_returns))
+            ]
 
-            _out_variable_names = kparams.pop('_out_variable_names',
-                                                                  default_names)
+            _out_variable_names = kparams.pop("_out_variable_names", default_names)
 
-            assert (len(_returns) == len(_out_variable_names))
+            assert len(_returns) == len(_out_variable_names)
 
             var_pair = zip(_out_variable_names, _returns)
             out_params = TypeInfo(var_pair)
 
         else:
-            _out_variable_name = kparams.pop('_out_variable_name',
-                                '%s%s' % (func_name, spyne.const.RESULT_SUFFIX))
+            _out_variable_name = kparams.pop(
+                "_out_variable_name", "%s%s" % (func_name, spyne.const.RESULT_SUFFIX)
+            )
 
             out_params[_out_variable_name] = _returns
 
@@ -231,14 +248,15 @@ def _produce_output_message(func_name, body_style_str, self_ref_cls,
         ns = _out_message_name_parts[0]  # skip index 1, it is the closing '}'
         _out_message_name = _out_message_name_parts[2]
 
-    if body_style_str.endswith('bare') and _returns is not None:
+    if body_style_str.endswith("bare") and _returns is not None:
         message = _returns.customize(sub_name=_out_message_name, sub_ns=ns)
         if message.__type_name__ is ModelBase.Empty:
             message.__type_name__ = _out_message_name
 
     else:
-        message = ComplexModel.produce(type_name=_out_message_name,
-                                               namespace=ns, members=out_params)
+        message = ComplexModel.produce(
+            type_name=_out_message_name, namespace=ns, members=out_params
+        )
 
         message.Attributes._wrapper = True
         message.__namespace__ = ns  # FIXME: is this necessary?
@@ -283,15 +301,18 @@ def _get_event_managers(kparams):
     _event_managers = kparams.pop("_event_managers", None)
 
     if _event_manager is not None and _event_managers is not None:
-        raise LogicError("Pass one of _event_manager or "
-                         "_event_managers but not both")
+        raise LogicError(
+            "Pass one of _event_manager or " "_event_managers but not both"
+        )
 
     if _event_manager is not None:
         _event_managers = [_event_manager]
 
     if _evmgrs is not None and _event_managers is not None:
-        raise LogicError("You must pass at most one of _evmgr* "
-                         "arguments or _event_manager* arguments")
+        raise LogicError(
+            "You must pass at most one of _evmgr* "
+            "arguments or _event_manager* arguments"
+        )
     elif _evmgrs is not None:
         _event_managers = _evmgrs
 
@@ -384,19 +405,19 @@ def rpc(*params, **kparams):
             # contains information about the method context like the service
             # class that contains the method at hand.
 
-            function_name = kwargs['_default_function_name']
+            function_name = kwargs["_default_function_name"]
             _service_class = kwargs.pop("_service_class", None)
             _self_ref_replacement = None
 
             # this block is passed straight to the descriptor
-            _is_callback = kparams.pop('_is_callback', False)
-            _is_async = kparams.pop('_is_async', False)
-            _mtom = kparams.pop('_mtom', False)
-            _in_header = kparams.pop('_in_header', None)
-            _out_header = kparams.pop('_out_header', None)
-            _port_type = kparams.pop('_port_type', None)
-            _no_ctx = kparams.pop('_no_ctx', False)
-            _aux = kparams.pop('_aux', None)
+            _is_callback = kparams.pop("_is_callback", False)
+            _is_async = kparams.pop("_is_async", False)
+            _mtom = kparams.pop("_mtom", False)
+            _in_header = kparams.pop("_in_header", None)
+            _out_header = kparams.pop("_out_header", None)
+            _port_type = kparams.pop("_port_type", None)
+            _no_ctx = kparams.pop("_no_ctx", False)
+            _aux = kparams.pop("_aux", None)
             _pattern = kparams.pop("_pattern", None)
             _patterns = kparams.pop("_patterns", [])
             _args = kparams.pop("_args", None)
@@ -405,132 +426,162 @@ def rpc(*params, **kparams):
             _static_when = kparams.pop("_static_when", None)
             _href = kparams.pop("_href", None)
             _logged = kparams.pop("_logged", True)
-            _internal_key_suffix = kparams.pop('_internal_key_suffix', '')
-            if '_service' in kparams and '_service_class' in kparams:
-                raise LogicError("Please pass only one of '_service' and "
-                                                             "'_service_class'")
-            if '_service' in kparams:
+            _internal_key_suffix = kparams.pop("_internal_key_suffix", "")
+            if "_service" in kparams and "_service_class" in kparams:
+                raise LogicError(
+                    "Please pass only one of '_service' and " "'_service_class'"
+                )
+            if "_service" in kparams:
                 _service_class = kparams.pop("_service")
-            if '_service_class' in kparams:
+            if "_service_class" in kparams:
                 _service_class = kparams.pop("_service_class")
 
-            _no_self = kparams.pop('_no_self', True)
+            _no_self = kparams.pop("_no_self", True)
             _event_managers = _get_event_managers(kparams)
 
             # mrpc-specific
-            _self_ref_replacement = kwargs.pop('_self_ref_replacement', None)
-            _default_on_null = kparams.pop('_default_on_null', False)
-            _substitute_self_reference(params, kparams, _self_ref_replacement,
-                                                                       _no_self)
+            _self_ref_replacement = kwargs.pop("_self_ref_replacement", None)
+            _default_on_null = kparams.pop("_default_on_null", False)
+            _substitute_self_reference(params, kparams, _self_ref_replacement, _no_self)
 
             _faults = None
-            if ('_faults' in kparams) and ('_throws' in kparams):
-                raise ValueError("only one of '_throws ' or '_faults' arguments"
-                                 "must be given -- they're synonyms.")
+            if ("_faults" in kparams) and ("_throws" in kparams):
+                raise ValueError(
+                    "only one of '_throws ' or '_faults' arguments"
+                    "must be given -- they're synonyms."
+                )
 
-            elif '_faults' in kparams:
-                _faults = kparams.pop('_faults')
+            elif "_faults" in kparams:
+                _faults = kparams.pop("_faults")
 
-            elif '_throws' in kparams:
-                _faults = kparams.pop('_throws')
+            elif "_throws" in kparams:
+                _faults = kparams.pop("_throws")
 
-            _is_in_message_name_overridden = not ('_in_message_name' in kparams)
-            _in_message_name = kparams.pop('_in_message_name', function_name)
+            _is_in_message_name_overridden = not ("_in_message_name" in kparams)
+            _in_message_name = kparams.pop("_in_message_name", function_name)
 
             if _no_self is False and _is_in_message_name_overridden:
-                _in_message_name = '%s.%s' % \
-                       (_self_ref_replacement.get_type_name(), _in_message_name)
+                _in_message_name = "%s.%s" % (
+                    _self_ref_replacement.get_type_name(),
+                    _in_message_name,
+                )
 
-            _operation_name = kparams.pop('_operation_name', function_name)
+            _operation_name = kparams.pop("_operation_name", function_name)
 
-            if _operation_name != function_name and \
-                                              _in_message_name != function_name:
+            if _operation_name != function_name and _in_message_name != function_name:
                 raise ValueError(
                     "only one of '_operation_name' and '_in_message_name' "
-                    "arguments should be given")
+                    "arguments should be given"
+                )
 
             if _in_message_name == function_name:
                 _in_message_name = add_request_suffix(_operation_name)
 
-            if '_in_arg_names' in kparams and '_in_variable_names' in kparams:
-                raise LogicError("Use either '_in_arg_names' or "
-                                              "'_in_variable_names', not both.")
-            elif '_in_arg_names' in kparams:
-                _in_arg_names = kparams.pop('_in_arg_names')
+            if "_in_arg_names" in kparams and "_in_variable_names" in kparams:
+                raise LogicError(
+                    "Use either '_in_arg_names' or " "'_in_variable_names', not both."
+                )
+            elif "_in_arg_names" in kparams:
+                _in_arg_names = kparams.pop("_in_arg_names")
 
-            elif '_in_variable_names' in kparams:
-                _in_arg_names = kparams.pop('_in_variable_names')
+            elif "_in_variable_names" in kparams:
+                _in_arg_names = kparams.pop("_in_variable_names")
 
             else:
                 _in_arg_names = {}
 
-            if '_udd' in kparams and '_udp' in kparams:
+            if "_udd" in kparams and "_udp" in kparams:
                 raise LogicError("Use either '_udd' or '_udp', not both.")
-            elif '_udd' in kparams:
-                _udd = kparams.pop('_udd')
+            elif "_udd" in kparams:
+                _udd = kparams.pop("_udd")
 
-            elif '_udp' in kparams:
-                _udd = kparams.pop('_udp')
+            elif "_udp" in kparams:
+                _udd = kparams.pop("_udp")
 
             else:
                 _udd = {}
 
-            _wsdl_part_name = kparams.get('_wsdl_part_name', None)
+            _wsdl_part_name = kparams.get("_wsdl_part_name", None)
 
             body_style = BODY_STYLE_WRAPPED
             body_style_str = _validate_body_style(kparams)
-            if body_style_str.endswith('bare'):
-                if body_style_str == 'out_bare':
+            if body_style_str.endswith("bare"):
+                if body_style_str == "out_bare":
                     body_style = BODY_STYLE_OUT_BARE
                 else:
                     body_style = BODY_STYLE_BARE
 
-            in_message = _produce_input_message(f, params,
-                    _in_message_name, _in_arg_names, _no_ctx, _no_self,
-                                   _args, body_style_str, _self_ref_replacement,
-                                   _wsdl_part_name)
+            in_message = _produce_input_message(
+                f,
+                params,
+                _in_message_name,
+                _in_arg_names,
+                _no_ctx,
+                _no_self,
+                _args,
+                body_style_str,
+                _self_ref_replacement,
+                _wsdl_part_name,
+            )
 
-            out_message = _produce_output_message(function_name,
-                       body_style_str, _self_ref_replacement, _no_self, kparams)
+            out_message = _produce_output_message(
+                function_name, body_style_str, _self_ref_replacement, _no_self, kparams
+            )
 
             if _logged != True:
                 in_message.Attributes.logged = _logged
                 out_message.Attributes.logged = _logged
 
-            doc = getattr(f, '__doc__')
+            doc = getattr(f, "__doc__")
 
             if _pattern is not None and _patterns != []:
-                raise ValueError("only one of '_pattern' and '_patterns' "
-                                 "arguments should be given")
+                raise ValueError(
+                    "only one of '_pattern' and '_patterns' "
+                    "arguments should be given"
+                )
 
             if _pattern is not None:
                 _patterns = [_pattern]
 
-            if body_style_str.endswith('bare'):
+            if body_style_str.endswith("bare"):
                 from spyne.model import ComplexModelBase
 
                 ti = in_message
                 to = out_message
                 if issubclass(ti, ComplexModelBase) and len(ti._type_info) == 0:
-                    if not issubclass(to, ComplexModelBase) or \
-                                                         len(to._type_info) > 0:
+                    if not issubclass(to, ComplexModelBase) or len(to._type_info) > 0:
                         body_style = BODY_STYLE_EMPTY_OUT_BARE
                     else:
                         body_style = BODY_STYLE_EMPTY
 
             assert _in_header is None or isinstance(_in_header, tuple)
-            retval = MethodDescriptor(f,
-                in_message, out_message, doc,
-                is_callback=_is_callback, is_async=_is_async, mtom=_mtom,
-                in_header=_in_header, out_header=_out_header, faults=_faults,
+            retval = MethodDescriptor(
+                f,
+                in_message,
+                out_message,
+                doc,
+                is_callback=_is_callback,
+                is_async=_is_async,
+                mtom=_mtom,
+                in_header=_in_header,
+                out_header=_out_header,
+                faults=_faults,
                 parent_class=_self_ref_replacement,
-                port_type=_port_type, no_ctx=_no_ctx, udd=_udd,
-                class_key=function_name, aux=_aux, patterns=_patterns,
-                body_style=body_style, args=_args,
-                operation_name=_operation_name, no_self=_no_self,
+                port_type=_port_type,
+                no_ctx=_no_ctx,
+                udd=_udd,
+                class_key=function_name,
+                aux=_aux,
+                patterns=_patterns,
+                body_style=body_style,
+                args=_args,
+                operation_name=_operation_name,
+                no_self=_no_self,
                 translations=_translations,
-                when=_when, static_when=_static_when,
-                service_class=_service_class, href=_href,
+                when=_when,
+                static_when=_static_when,
+                service_class=_service_class,
+                href=_href,
                 internal_key_suffix=_internal_key_suffix,
                 default_on_null=_default_on_null,
                 event_managers=_event_managers,

@@ -20,23 +20,25 @@
 from __future__ import absolute_import
 
 import logging
+
 logger = logging.getLogger(__name__)
+
+from collections import OrderedDict
+from mmap import mmap
 
 import msgpack
 
-from mmap import mmap
-from collections import OrderedDict
-
-from spyne import MethodContext, TransportContext, Address
+from spyne import Address, MethodContext, TransportContext
 from spyne.auxproc import process_contexts
-from spyne.error import ValidationError, InternalError
+from spyne.error import InternalError, ValidationError
 from spyne.server import ServerBase
-from spyne.util.six import binary_type
 
 try:
     from twisted.internet.defer import Deferred
 except ImportError as e:
-    def Deferred(*_, **__): raise e
+
+    def Deferred(*_, **__):
+        raise e
 
 
 MSGPACK_SHELL_OVERHEAD = 10
@@ -45,7 +47,7 @@ MSGPACK_SHELL_OVERHEAD = 10
 def _process_v1_msg(prot, msg):
     header = None
     body = msg[1]
-    if not isinstance(body, (binary_type, mmap, memoryview)):
+    if not isinstance(body, (bytes, mmap, memoryview)):
         raise ValidationError(body, "Body must be a bytestream.")
 
     if len(msg) > 2:
@@ -78,7 +80,7 @@ class MessagePackTransportContext(TransportContext):
 
 
 class MessagePackOobMethodContext(object):
-    __slots__ = 'd'
+    __slots__ = "d"
 
     def __init__(self):
         if Deferred is not None:
@@ -120,9 +122,7 @@ class MessagePackTransportBase(ServerBase):
     def __init__(self, app):
         super(MessagePackTransportBase, self).__init__(app)
 
-        self._version_map = {
-            self.IN_REQUEST: _process_v1_msg
-        }
+        self._version_map = {self.IN_REQUEST: _process_v1_msg}
 
     def produce_contexts(self, msg):
         """Produce contexts based on incoming message.
@@ -136,13 +136,15 @@ class MessagePackTransportBase(ServerBase):
 
         if not len(msg) >= 2:
             logger.debug("Incoming request: %r", msg)
-            raise ValidationError(len(msg), "Request must have at least two "
-                                                          "elements. It has %r")
+            raise ValidationError(
+                len(msg), "Request must have at least two " "elements. It has %r"
+            )
 
         if not isinstance(msg[0], int):
             logger.debug("Incoming request: %r", msg)
-            raise ValidationError(msg[0], "Request version must be an integer. "
-                                                                    "It was %r")
+            raise ValidationError(
+                msg[0], "Request version must be an integer. " "It was %r"
+            )
 
         processor = self._version_map.get(msg[0], None)
         if processor is None:
@@ -200,8 +202,9 @@ class MessagePackTransportBase(ServerBase):
         return msgpack.dumps(str(error))
 
     def pack(self, ctx):
-        ctx.out_string = msgpack.packb([self.OUT_RESPONSE_NO_ERROR,
-                                                     b''.join(ctx.out_string)]),
+        ctx.out_string = (
+            msgpack.packb([self.OUT_RESPONSE_NO_ERROR, b"".join(ctx.out_string)]),
+        )
 
 
 class MessagePackServerBase(MessagePackTransportBase):

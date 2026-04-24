@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) spyne contributors.
 #
@@ -17,27 +16,30 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import spyne.const.xml as ns
 from spyne.application import Application
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
-import spyne.const.xml as ns
+
 
 def build_app(service_list, tns, name):
-    app = Application(service_list, tns, name=name,
-                      in_protocol=Soap11(), out_protocol=Soap11())
-    app.transport = 'http://schemas.xmlsoap.org/soap/http'
+    app = Application(
+        service_list, tns, name=name, in_protocol=Soap11(), out_protocol=Soap11()
+    )
+    app.transport = "http://schemas.xmlsoap.org/soap/http"
     return app
 
-class AppTestWrapper():
+
+class AppTestWrapper:
     def __init__(self, application):
 
-        self.url = 'http:/localhost:7789/wsdl'
-        self.service_string = ns.WSDL11('service')
-        self.port_string = ns.WSDL11('port')
-        self.soap_binding_string = ns.WSDL11_SOAP('binding')
-        self.operation_string = ns.WSDL11('operation')
-        self.port_type_string = ns.WSDL11('portType')
-        self.binding_string = ns.WSDL11('binding')
+        self.url = "http:/localhost:7789/wsdl"
+        self.service_string = ns.WSDL11("service")
+        self.port_string = ns.WSDL11("port")
+        self.soap_binding_string = ns.WSDL11_SOAP("binding")
+        self.operation_string = ns.WSDL11("operation")
+        self.port_type_string = ns.WSDL11("portType")
+        self.binding_string = ns.WSDL11("binding")
 
         self.app = application
         self.interface_doc = Wsdl11(self.app.interface)
@@ -49,6 +51,7 @@ class AppTestWrapper():
 
     def get_port_list(self, service):
         from lxml import etree
+
         print((etree.tostring(service, pretty_print=True)))
         return service.findall(self.port_string)
 

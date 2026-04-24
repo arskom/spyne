@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -22,6 +21,7 @@ Module that contains the Spyne Application Registry.
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 applications = {}
@@ -29,10 +29,12 @@ applications = {}
 try:
     from collections import namedtuple
 
-    _ApplicationMetaData = namedtuple("_ApplicationMetaData",
-                                          ['app', 'inst_stack', 'null', 'ostr'])
+    _ApplicationMetaData = namedtuple(
+        "_ApplicationMetaData", ["app", "inst_stack", "null", "ostr"]
+    )
 
-except ImportError: # python 2.5
+except ImportError:  # python 2.5
+
     class _ApplicationMetaData:
         def __init__(self, app, inst_stack, null, ostr):
             self.app = app
@@ -53,6 +55,7 @@ def register_application(app):
 
     try:
         import traceback
+
         stack = traceback.format_stack()
     except ImportError:
         stack = None
@@ -61,8 +64,10 @@ def register_application(app):
 
     if prev is not None:
         if hash(prev.app) == hash(app):
-            logger.debug("Application %r previously registered as %r is the same"
-                        " as %r. Skipping." % (prev.app, key, app))
+            logger.debug(
+                "Application %r previously registered as %r is the same"
+                " as %r. Skipping." % (prev.app, key, app)
+            )
             prev.inst_stack.append(stack)
 
         else:
@@ -72,17 +77,21 @@ def register_application(app):
                 stack_traces = []
                 for s in prev.inst_stack:
                     if s is not None:
-                        stack_traces.append(''.join(s))
-                logger.debug("Stack trace of the instantiation:\n%s" %
-                                   '====================\n'.join(stack_traces))
+                        stack_traces.append("".join(s))
+                logger.debug(
+                    "Stack trace of the instantiation:\n%s"
+                    % "====================\n".join(stack_traces)
+                )
 
-    applications[key] = _ApplicationMetaData(app=app, inst_stack=[stack],
-                          null=NullServer(app, appinit=False),
-                          ostr=NullServer(app, appinit=False, ostr=True)
+    applications[key] = _ApplicationMetaData(
+        app=app,
+        inst_stack=[stack],
+        null=NullServer(app, appinit=False),
+        ostr=NullServer(app, appinit=False, ostr=True),
     )
 
     logger.debug("Registering %r as %r" % (app, key))
 
 
-def get_application(tns, name='Application'):
+def get_application(tns, name="Application"):
     return applications.get((tns, name), None)
