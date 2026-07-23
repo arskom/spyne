@@ -256,7 +256,7 @@ def count(gen):
 
 
 def invregexp(regex):
-    """Call this routine as a generator to return all the strings that
+    r"""Call this routine as a generator to return all the strings that
        match the input regular expression.
            for s in invregexp("[A-Z]{3}\d{3}"):
                print s

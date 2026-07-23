@@ -43,7 +43,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 import re
-import cgi
+try:
+    import cgi  # removed in Python 3.13; pip install legacy-cgi to restore
+except ImportError:  # pragma: no cover
+    try:
+        import legacy_cgi as cgi
+    except ImportError:
+        cgi = None
 import gzip
 import shutil
 import threading
@@ -485,6 +491,11 @@ def _get_file_info(ctx):
             shutil.copyfileobj(ifstr, content)
         content.seek(0)
 
+    if cgi is None:
+        raise RuntimeError(
+            "Multipart parsing requires the 'cgi' module which was removed in "
+            "Python 3.13. Install 'legacy-cgi' (pip install legacy-cgi) to "
+            "enable this code path.")
     img = cgi.FieldStorage(
         fp=content,
         headers=ctx.in_header_doc,

@@ -1234,7 +1234,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             print(ctx.out_document)
 
             d = convert_dict({"some_callResponse": {"some_callResult": inner}})
-            self.assertEquals(ctx.out_document[0], d)
+            self.assertEqual(ctx.out_document[0], d)
 
         def test_validation_freq_parent(self):
             class C(ComplexModel):
@@ -1308,7 +1308,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None,
             doc = [{"C": {"s1": "s1","s2": "s2"}}]
             ctx = _dry_me([SomeService], {"some_call": doc})
 
-            self.assertEquals(ctx.out_document[0], convert_dict(
+            self.assertEqual(ctx.out_document[0], convert_dict(
                 {'some_callResponse': {'some_callResult': {'C': {'s2': 's2'}}}})
             )
 

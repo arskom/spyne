@@ -764,10 +764,9 @@ class ToClothMixin(OutProtocolBase, ClothParserMixin):
                             ret.throw(e)
                         except StopIteration:
                             pass
-                        finally:
-                            # cf below
-                            if not (as_attr or as_data):
-                                break
+                        # cf below; hoisted out of finally for PEP 765 (Py 3.14)
+                        if not (as_attr or as_data):
+                            break
                 else:
                     # this is here so that attribute on complex model doesn't get
                     # mixed with in-line attr inside complex model. if an element

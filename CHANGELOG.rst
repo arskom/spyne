@@ -2,6 +2,19 @@
 Changelog
 =========
 
+spyne-2.15.0
+------------
+* Python 3.11, 3.12, 3.13 and 3.14 support.
+* Fixed ``SyntaxWarning`` for invalid string escapes in ``protocol/http.py``,
+  ``protocol/json.py`` and ``util/invregexp.py``.
+* Fixed ``SyntaxWarning`` from PEP 765 (Python 3.14): ``break`` statement
+  hoisted out of a ``finally`` block in ``protocol/cloth/to_cloth.py``.
+* ``server/twisted/http.py``: ``cgi`` module was removed in Python 3.13;
+  the multipart code path now falls back to the ``legacy-cgi`` PyPI package
+  and raises a descriptive error if it is needed but missing.
+* Replaced deprecated ``unittest`` aliases (``assertEquals`` etc.) in the
+  test suite for Python 3.12+ compatibility.
+
 spyne-2.14.0
 ------------
 * Python 3.10 support.
