@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.protocol.json`` package contains the Json-related protocols.
+r"""The ``spyne.protocol.json`` package contains the Json-related protocols.
 Currently, only :class:`spyne.protocol.json.JsonDocument` is supported.
 
 Initially released in 2.8.0-rc.
