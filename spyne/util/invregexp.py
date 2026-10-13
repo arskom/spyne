@@ -43,6 +43,7 @@
 __all__ = ["count", "invregexp"]
 
 from pyparsing import Combine
+from pyparsing import infixNotation
 from pyparsing import Literal
 from pyparsing import ParseFatalException
 from pyparsing import ParseResults
@@ -53,7 +54,6 @@ from pyparsing import Word
 from pyparsing import nums
 from pyparsing import oneOf
 from pyparsing import opAssoc
-from pyparsing import operatorPrecedence
 from pyparsing import printables
 from pyparsing import srange
 
@@ -236,7 +236,7 @@ def parser():
         reDot.setParseAction(handle_dot)
 
         reTerm = (reLiteral | reRange | reMacro | reDot)
-        reExpr = operatorPrecedence(reTerm, [
+        reExpr = infixNotation(reTerm, [
                 (repetition, 1, opAssoc.LEFT, handle_repetition),
                 (None, 2, opAssoc.LEFT, handle_sequence),
                 (Suppress('|'), 2, opAssoc.LEFT, handle_alternative),
