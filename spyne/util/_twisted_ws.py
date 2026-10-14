@@ -20,7 +20,10 @@ from struct import pack, unpack
 from zope.interface import implementer, Interface, providedBy, directlyProvides
 
 from twisted.python import log
-from twisted.python.constants import Flags, FlagConstant
+try:
+    from twisted.python.constants import Flags, FlagConstant
+except ImportError:  # removed from newer Twisted, which depends on constantly
+    from constantly import Flags, FlagConstant
 from twisted.internet.protocol import Protocol
 from twisted.internet.interfaces import IProtocol
 from twisted.web.resource import IResource
