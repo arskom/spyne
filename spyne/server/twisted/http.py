@@ -43,7 +43,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 import re
-import cgi
 import gzip
 import shutil
 import threading
@@ -80,6 +79,7 @@ from spyne.model import PushBase, File, ComplexModelBase
 from spyne.model.fault import Fault
 
 from spyne.protocol.http import HttpRpc
+from spyne.protocol.http import get_stream_factory
 
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
@@ -93,6 +93,11 @@ from spyne.util.six.moves.urllib.parse import unquote
 
 if not six.PY2:
     from urllib.request import unquote_to_bytes
+
+try:
+    from werkzeug.formparser import parse_form_data
+except ImportError:
+    parse_form_data = None
 
 
 def _render_file(file, request):
@@ -471,46 +476,54 @@ def _get_file_info(ctx):
 
     request = ctx.transport.req
     headers = request.getAllHeaders()
-    content_type = headers.get('content-type', None)
+    content_type = headers.get(b'content-type', None)
     if content_type is None:
+        return retval
+
+    if not content_type.lower().startswith(b'multipart/form-data'):
+        return retval
+
+    if parse_form_data is None:
+        logger.warning("Install werkzeug to receive file uploads with "
+                                                      "TwistedWebResource.")
         return retval
 
     content = request.content
 
-    content_encoding = headers.get('content-encoding', None)
+    content_encoding = headers.get(b'content-encoding', None)
     if content_encoding == b'gzip':
         request.content.seek(0)
         content = TemporaryFile()
         with gzip.GzipFile(fileobj=request.content) as ifstr:
             shutil.copyfileobj(ifstr, content)
-        content.seek(0)
 
-    img = cgi.FieldStorage(
-        fp=content,
-        headers=ctx.in_header_doc,
-        environ={
-            'REQUEST_METHOD': request.method,
-            'CONTENT_TYPE': content_type,
-        }
-    )
+    content.seek(0, 2)
+    content_length = content.tell()
+    content.seek(0)
 
-    try:
-        keys = img.keys()
-    except TypeError:
-        return retval
+    stream_factory = getattr(ctx.app.in_protocol, 'stream_factory', None)
+    if stream_factory is None:
+        stream_factory = get_stream_factory()
 
-    for k in keys:
-        fields = img[k]
+    _, _, files = parse_form_data({
+        'REQUEST_METHOD': request.method.decode('latin1'),
+        'CONTENT_TYPE': content_type.decode('latin1'),
+        'CONTENT_LENGTH': str(content_length),
+        'wsgi.input': content,
+    }, stream_factory=stream_factory)
 
-        if isinstance(fields, cgi.FieldStorage):
-            fields = (fields,)
+    for k, field in files.items(multi=True):
+        if not field.filename:
+            continue
 
-        for field in fields:
-            file_type = field.type
-            file_name = field.disposition_options.get('filename', None)
-            if file_name is not None:
-                retval.append(_FileInfo(k, file_name, file_type,
-                                                [mmap(field.file.fileno(), 0)]))
+        stream = field.stream
+        stream.seek(0)
+        if _has_fd(stream) and fstat(stream.fileno()).st_size > 0:
+            data = [mmap(stream.fileno(), 0)]
+        else:
+            data = [stream.read()]
+
+        retval.append(_FileInfo(k, field.filename, field.content_type, data))
 
     return retval
 
