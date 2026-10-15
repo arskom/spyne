@@ -136,7 +136,7 @@ def _render_file(file, request):
 
     producer = file.makeProducer(request, fileForReading)
 
-    if request.method == 'HEAD':
+    if request.method == b'HEAD':
         return ''
 
     producer.start()
@@ -160,6 +160,8 @@ def _reconstruct_url(request):
     # HTTP "Hosts" header only supports ascii
 
     server_name = request.getHeader(b"x-forwarded-host")
+    if server_name is not None:
+        server_name = server_name.decode('ascii')
     server_port = request.getHeader(b"x-forwarded-port")
     if server_port is not None:
         try:
@@ -170,7 +172,7 @@ def _reconstruct_url(request):
 
     is_secure = request.getHeader(b"x-forwarded-proto")
     if is_secure is not None:
-        is_secure = is_secure == 'https'
+        is_secure = is_secure == b'https'
 
     if server_name is None:
         server_name = request.getRequestHostname().decode('ascii')
@@ -187,7 +189,7 @@ def _reconstruct_url(request):
     else:
         url_scheme = 'http'
 
-    uri = _decode_path(request.uri)
+    uri = _decode_path(request.uri).decode('utf-8')
     return ''.join([url_scheme, "://", server_name, uri])
 
 
@@ -225,13 +227,19 @@ class TwistedHttpTransportContext(HttpTransportContext):
         return self.req.getCookie(key)
 
     def get_path(self):
-        return self.req.URLPath().path
+        path = self.req.URLPath().path
+        if isinstance(path, bytes):
+            path = path.decode('utf-8')
+        return path
 
     def get_path_and_qs(self):
         return self.req.uri
 
     def get_request_method(self):
-        return self.req.method
+        method = self.req.method
+        if isinstance(method, bytes):
+            method = method.decode('ascii')
+        return method
 
     def get_request_content_type(self):
         return self.req.getHeader("Content-Type")
@@ -454,7 +462,7 @@ class TwistedHttpTransport(HttpBase):
             ctx.in_body_doc = self._decode_dict(ctx.in_body_doc)
 
         # This is consistent with what server.wsgi does.
-        if request.method in ('POST', 'PUT', 'PATCH'):
+        if request.method in (b'POST', b'PUT', b'PATCH'):
             for k, v in ctx.in_body_doc.items():
                 if v == ['']:
                     ctx.in_body_doc[k] = [None]

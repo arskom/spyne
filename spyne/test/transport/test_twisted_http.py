@@ -22,9 +22,13 @@ import unittest
 from io import BytesIO
 
 try:
-    import werkzeug
     from twisted.web.server import Request, Site
     from twisted.web.test.requesthelper import DummyChannel
+except ImportError:
+    Site = None
+
+try:
+    import werkzeug
 except ImportError:
     werkzeug = None
 
@@ -32,6 +36,8 @@ from spyne import Application, Service, rpc
 from spyne.model.binary import File
 from spyne.model.primitive import Unicode
 from spyne.protocol.http import HttpRpc
+from spyne.protocol.json import HybridHttpJsonDocument
+from spyne.protocol.soap import Soap11
 
 
 def _multipart(boundary, file_data):
@@ -48,7 +54,8 @@ def _multipart(boundary, file_data):
     )
 
 
-@unittest.skipIf(werkzeug is None, "needs twisted and werkzeug")
+@unittest.skipIf(Site is None or werkzeug is None,
+                                                "needs twisted and werkzeug")
 class TestTwistedHttpFileUpload(unittest.TestCase):
     def _post(self, body, content_type):
         from spyne.server.twisted import TwistedWebResource
@@ -94,3 +101,77 @@ class TestTwistedHttpFileUpload(unittest.TestCase):
         self.assertEqual(f.name, 'a.txt')
         self.assertEqual(b''.join(bytes(d) for d in f.data), data)
 
+
+
+class EchoService(Service):
+    @rpc(Unicode, _returns=Unicode)
+    def echo(ctx, s):
+        ctx.app.received.append(s)
+        return s
+
+
+def _request(app, method, path, body=b'', headers=()):
+    from spyne.server.twisted import TwistedWebResource
+
+    channel = DummyChannel()
+    channel.site = Site(TwistedWebResource(app))
+    request = Request(channel)
+    request.content = BytesIO(body)
+    for k, v in headers:
+        request.requestHeaders.setRawHeaders(k, [v])
+    request.requestHeaders.setRawHeaders(b'content-length',
+                                                [str(len(body)).encode()])
+    request.requestReceived(method, path, b'HTTP/1.1')
+    return request, channel.transport.written.getvalue()
+
+
+@unittest.skipIf(Site is None, "needs twisted")
+class TestTwistedHttpBytes(unittest.TestCase):
+    """Twisted gives the request method, uri and headers as bytes."""
+
+    def _app(self, in_protocol, out_protocol):
+        app = Application([EchoService], 'tns', in_protocol=in_protocol,
+                                                    out_protocol=out_protocol)
+        app.received = []
+        return app
+
+    def test_wsdl(self):
+        app = self._app(Soap11(), Soap11())
+        request, out = _request(app, b'GET', b'/?wsdl')
+
+        self.assertEqual(request.code, 200)
+        self.assertIn(b'location="http://', out)
+
+    def test_wsdl_behind_proxy(self):
+        app = self._app(Soap11(), Soap11())
+        request, out = _request(app, b'GET', b'/?wsdl', headers=[
+            (b'x-forwarded-host', b'proxy.example.com'),
+            (b'x-forwarded-proto', b'https'),
+            (b'x-forwarded-port', b'443'),
+        ])
+
+        self.assertEqual(request.code, 200)
+        self.assertIn(b'location="https://proxy.example.com/"', out)
+
+    def test_soap_post(self):
+        app = self._app(Soap11(), Soap11())
+        body = (
+            b'<soapenv:Envelope '
+            b'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" '
+            b'xmlns:tns="tns"><soapenv:Body>'
+            b'<tns:echo><tns:s>hello</tns:s></tns:echo>'
+            b'</soapenv:Body></soapenv:Envelope>'
+        )
+        request, _ = _request(app, b'POST', b'/', body,
+                         [(b'content-type', b'text/xml; charset=utf-8')])
+
+        self.assertEqual(request.code, 200)
+        self.assertEqual(app.received, [u'hello'])
+
+    def test_hybrid_http_json_post(self):
+        app = self._app(HybridHttpJsonDocument(), HttpRpc())
+        request, _ = _request(app, b'POST', b'/echo', b'{"s": "hello"}',
+                                    [(b'content-type', b'application/json')])
+
+        self.assertEqual(request.code, 200)
+        self.assertEqual(app.received, [u'hello'])
